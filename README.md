@@ -4,6 +4,21 @@ ROS 2 Humble learning project that combines a UR5 arm and a Robotiq 2F-85 grippe
 
 The current version uses fake hardware and RViz. It does not simulate gravity, contact, friction, or grasped-object physics.
 
+## Verified milestone
+
+On 2026-09-03, the complete task was verified in RViz with all four controllers active. The approach, lift/transport, and automatic-return Cartesian paths each reached 100%, and the process finished cleanly.
+
+```text
+UR5 motion planning + Robotiq action control + automatic Cartesian return
+                         -> PICK AND PLACE DEMO SUCCEEDED
+```
+
+## Portfolio map
+
+- [Learning journey](docs/LEARNING_JOURNEY.md) — how the project progressed from a UTM environment to a verified integrated demo
+- [Operations guide](docs/OPERATIONS_GUIDE.md) — repeatable startup, execution, and parameter-editing instructions
+- [Troubleshooting record](docs/TROUBLESHOOTING.md) — failures, diagnostic evidence, fixes, and engineering lessons
+
 ## Current demo
 
 The C++ node executes this sequence:
