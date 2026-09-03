@@ -1,0 +1,109 @@
+<?xml version="1.0"?>
+
+<package format="3">
+
+  <name>ur5_moveit_demo</name>
+
+  <version>0.1.0</version>
+
+  <description>
+    UR5 MoveIt learning and control demo.
+  </description>
+
+  <maintainer email="yuhao@example.com">
+    yuhao
+  </maintainer>
+
+  <license>Apache-2.0</license>
+
+  <!-- Build system -->
+  <buildtool_depend>
+    ament_cmake
+  </buildtool_depend>
+
+  <!-- C++ ROS 2 -->
+  <depend>
+    rclcpp
+  </depend>
+
+  <depend>
+    rclcpp_action
+  </depend>
+
+  <depend>
+    control_msgs
+  </depend>
+
+  <!-- MoveIt C++ interface -->
+  <depend>
+    moveit_ros_planning_interface
+  </depend>
+
+  <!-- Geometry messages -->
+  <depend>
+    geometry_msgs
+  </depend>
+
+  <depend>
+    moveit_msgs
+  </depend>
+
+  <!-- Launch system -->
+  <exec_depend>
+    launch
+  </exec_depend>
+
+  <exec_depend>
+    launch_ros
+  </exec_depend>
+
+  <!-- Xacro / Robot Description -->
+  <exec_depend>
+    xacro
+  </exec_depend>
+
+  <exec_depend>
+    ur_description
+  </exec_depend>
+
+  <!-- UR MoveIt SRDF / kinematics config -->
+  <exec_depend>
+    ur_moveit_config
+  </exec_depend>
+
+  <!-- Runtime nodes and controller plugins used by bringup -->
+  <exec_depend>
+    controller_manager
+  </exec_depend>
+
+  <exec_depend>
+    robot_state_publisher
+  </exec_depend>
+
+  <exec_depend>
+    joint_state_broadcaster
+  </exec_depend>
+
+  <exec_depend>
+    joint_trajectory_controller
+  </exec_depend>
+
+  <exec_depend>
+    position_controllers
+  </exec_depend>
+
+  <exec_depend>
+    robotiq_description
+  </exec_depend>
+
+  <exec_depend>
+    robotiq_controllers
+  </exec_depend>
+
+  <export>
+    <build_type>
+      ament_cmake
+    </build_type>
+  </export>
+
+</package>

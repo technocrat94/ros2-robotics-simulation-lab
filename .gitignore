@@ -1,0 +1,21 @@
+# colcon build outputs
+build/
+install/
+log/
+
+# ROS runtime files
+.ros/
+
+# Local recovery copies
+*.old
+*.bak
+*.before_*
+
+# Python and editor caches
+__pycache__/
+*.py[cod]
+.vscode/
+.idea/
+
+# macOS metadata
+.DS_Store
