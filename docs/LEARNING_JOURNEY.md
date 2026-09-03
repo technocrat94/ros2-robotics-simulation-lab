@@ -1,170 +1,150 @@
-# 學習歷程：從 UTM 到 UR5＋Robotiq 整合
+# Learning Journey: From UTM to an Integrated UR5 and Robotiq Demo
 
-## 專案目標
+[繁體中文版本](LEARNING_JOURNEY.zh-TW.md)
 
-這個專案不是單純讓 RViz 出現一支機械手臂，而是把原本各自運作的 UR5、Robotiq 2F-85、`ros2_control` 與 MoveIt 接成一套可重複執行的系統。
+## Project objective
 
-最終流程為：
-
-```text
-張開夾爪
-→ UR5 前往工作基準姿勢
-→ 直線靠近
-→ 閉合夾爪
-→ 後退並抬升
-→ 放開夾爪
-→ 自動回到工作基準姿勢
-```
-
-## 1. 建立開發環境
-
-開發環境是 macOS 上的 UTM 虛擬機，虛擬機內使用 Ubuntu 22.04（aarch64）、ROS 2 Humble 與 MoveIt 2。
-
-可以把這個結構想成「Mac 是教室，UTM 是實驗桌，Ubuntu 才是實際放置 ROS 工具的抽屜」。程式、ROS 節點與控制器都在 Ubuntu 內執行，Mac 主要負責顯示與遠端協作。
-
-這一階段學到：
-
-- ROS workspace 的 `src`、`build`、`install`、`log` 各自負責什麼
-- 每次新 Terminal 都要 `source` ROS 與 workspace 環境
-- 套件原始碼與編譯後安裝結果是兩個不同位置
-- 修改 C++ 後必須重新 `colcon build`，再重新 `source install/setup.bash`
-
-## 2. 先單獨驗證 Robotiq 夾爪
-
-整合前先確認夾爪能獨立工作。這就像組裝電腦前，先確認電源供應器本身能正常供電；若單一零件尚未通過測試，直接組合只會讓問題更難找。
-
-驗證結果：
-
-- `robotiq_gripper_controller` 為 `active`
-- `robotiq_activation_controller` 為 `active`
-- `/robotiq_gripper_controller/gripper_cmd` Action Server 存在
-- `position=0.0` 可張開
-- `position=0.7929` 可閉合
-- `/joint_states` 能讀到 `robotiq_85_left_knuckle_joint`
-
-因此確認問題不在夾爪驅動，而是在後續的模型、規劃或控制整合。
-
-## 3. 把 UR5 與 Robotiq 組成同一個機器人
-
-建立 `ur5_robotiq.urdf.xacro`，將 UR5、轉接座與 Robotiq 2F-85 組成同一棵 TF／關節樹，並把夾爪接到 UR5 的 `tool0`。
-
-URDF/Xacro 可以想成機器人的「身體構造圖」：有哪些骨頭（link）、關節（joint），以及它們如何連接。若手臂與夾爪使用兩張彼此無關的構造圖，MoveIt 就不會把它們視為同一個機器人。
-
-曾遇到 Xacro 的 `Undefined substitution argument name`。處理方式是補齊需要的 Xacro argument/default，先輸出 `/tmp/ur5_robotiq.urdf`，再確認產生結果同時包含：
-
-- UR5 的 `tool0`
-- Robotiq 的 `robotiq_85_base_link`
-- UR 與 Robotiq 的 `ros2_control` 定義
-
-## 4. 整合 ros2_control 與 joint states
-
-建立統一 bringup 與 controller 設定，讓同一個 Controller Manager 管理：
-
-- `joint_state_broadcaster`
-- `joint_trajectory_controller`
-- `robotiq_activation_controller`
-- `robotiq_gripper_controller`
-
-整合後，`/joint_states` 同時包含 UR5 六個關節與夾爪關節。這相當於把「手臂的儀表板」和「夾爪的儀表板」合併，MoveIt 才能取得一份完整且一致的目前狀態。
-
-## 5. 讓 MoveIt 正確理解這台組合機器人
-
-URDF 描述身體，SRDF 則像「動作規則書」：哪些關節屬於 `ur_manipulator`、有哪些命名姿勢，以及哪些相鄰零件的接觸可忽略。
-
-早期規劃到 `test_configuration` 時失敗並回傳 MoveIt error `-26`。檢查後改用本專案的組合 SRDF、kinematics 與 controller mapping，不再讓任務節點讀取只描述原始 UR 的語意設定。結果從「Planning request aborted」進步為規劃與執行成功。
-
-這裡也釐清了兩個不同階段：
-
-- Planning 成功：導航軟體找到一條路
-- Execution 成功：車子真的沿那條路開完
-
-因此「能規劃但 Execute aborted」不能算任務成功，還要確認 MoveIt 使用的 controller 名稱與實際 active controller 相同。
-
-## 6. 理解 RViz 顯示與座標系
-
-RViz 的 Fixed Frame 曾設為不存在的 `map`，畫面因此沒有機械手。改用系統實際存在的 `world` 後即可顯示。
-
-RViz 中的橘色手臂通常是 MoveIt 的目標／規劃狀態，灰色手臂是目前狀態。橘色模型不消失不代表多出一支真實手臂，也不代表執行失敗。
-
-目前 `dx, dy, dz` 使用 `world` planning frame：
+The goal was not merely to display a robot in RViz. It was to integrate a UR5 arm, a Robotiq 2F-85 gripper, `ros2_control`, and MoveIt into one reproducible system that can execute a guarded pick-and-place-style sequence.
 
 ```text
-+X/-X、+Y/-Y：世界座標的水平／側向方向
-+Z：世界座標向上
--Z：世界座標向下
+open gripper
+-> move to a known work-start configuration
+-> Cartesian approach
+-> close gripper
+-> retreat and lift
+-> release
+-> automatically return to the work-start pose
 ```
 
-這不是夾爪自己的前、後、左、右。就像「往教室北方走」和「依照自己面向往前走」是兩套不同指令。未來若要讓 Approach 永遠沿著夾爪正前方，就要加入 TCP/tool frame 轉換。
+## 1. Building the development environment
 
-## 7. 從一般 Pose Planning 改成受保護的 Cartesian Motion
+The project runs in an Ubuntu 22.04 aarch64 virtual machine hosted by UTM on macOS. ROS 2 Humble and MoveIt 2 run inside Ubuntu, while the host machine provides the surrounding development environment.
 
-最初使用單一 Pose Target 時，末端看似只需移動一小段，但規劃器可能選擇關節繞遠路，畫面出現接近 360 度旋轉。這不是理想的工業動作。
+This stage established several fundamentals:
 
-後來改用 `computeCartesianPath()`，要求末端沿直線插值並保持姿態，再加入三層保護：
+- the roles of `src`, `build`, `install`, and `log` in a ROS workspace;
+- why every new shell must source ROS and the workspace overlay;
+- the difference between source files and installed package resources;
+- why C++ changes require rebuilding and sourcing the new install space.
 
-1. Cartesian 完成率必須至少 99%
-2. trajectory 不可為空或格式錯誤
-3. 小幅直線動作中，任一關節總行程超過 1 rad 就拒絕執行
+## 2. Validating the gripper independently
 
-這像要求服務生端著一杯水直線送到桌邊，不能為了到達同一個終點先繞餐廳一圈。
+Before integration, the Robotiq subsystem was tested on its own. This reduced the search space: if the gripper controller and action worked independently, later failures were more likely to be in the combined model, MoveIt configuration, or execution mapping.
 
-測試也證明安全門檻有效：較大的位移曾只完成 12.5% 或 93.4%，程式選擇停止，沒有勉強執行不完整軌跡。
+The following were verified:
 
-## 8. 將任務參數集中並自動計算回程
+- `robotiq_gripper_controller` was active;
+- `robotiq_activation_controller` was active;
+- the `/robotiq_gripper_controller/gripper_cmd` action server was available;
+- position `0.0` opened the gripper;
+- position `0.7929` closed the gripper;
+- `/joint_states` contained `robotiq_85_left_knuckle_joint`.
 
-為了避免每次修改都在多個程式區塊尋找數字，將 Approach 與 Lift/Transport 參數集中放在 `main()` 前段。
+## 3. Building one combined robot model
 
-穩定參數：
+The `ur5_robotiq.urdf.xacro` file combines the UR5, the UR-to-Robotiq adapter, and the 2F-85 gripper in one kinematic tree attached at `tool0`.
+
+URDF/Xacro acts like the robot's anatomical drawing: links are body segments, joints connect them, and transmissions/control interfaces describe how motion is exposed. Keeping the arm and gripper in unrelated descriptions would prevent MoveIt from treating them as one robot.
+
+An early Xacro generation attempt failed with `Undefined substitution argument name`. The missing argument/default was corrected, and the generated URDF was checked for the UR5 `tool0`, the Robotiq base link, and both `ros2_control` definitions before launching the whole system.
+
+## 4. Integrating ros2_control and robot state
+
+The combined bringup uses a consistent controller setup:
+
+- `joint_state_broadcaster`;
+- `joint_trajectory_controller`;
+- `robotiq_activation_controller`;
+- `robotiq_gripper_controller`.
+
+After integration, `/joint_states` contained the six UR5 joints and the gripper joint. This gave MoveIt one coherent view of the complete robot instead of separate arm and gripper state streams.
+
+## 5. Aligning MoveIt's semantic and execution models
+
+URDF describes physical structure, while SRDF describes semantics: planning groups, named states, and collision relationships. The task originally aborted while planning to `test_configuration` and reported MoveIt error `-26`.
+
+The task launch was corrected to use this project's combined robot description, SRDF, kinematics, and controller mapping instead of a semantic model that represented only the original UR robot. Planning then succeeded.
+
+This also demonstrated the distinction between two layers:
+
+- planning success means a valid trajectory was generated;
+- execution success means an active controller accepted and completed it.
+
+A trajectory that plans successfully but is immediately aborted during execution still indicates a system integration problem. MoveIt's controller mapping must match the actual active controller.
+
+## 6. Understanding RViz and coordinate frames
+
+RViz initially used a nonexistent `map` fixed frame, so the robot disappeared. Selecting the available `world` frame restored the display.
+
+The orange robot in the MoveIt display represents a goal or planned state, while the grey robot represents the current state. Seeing both is not evidence of two physical robots or a failed execution.
+
+The current `dx`, `dy`, and `dz` offsets use the `world` planning frame. This is the difference between saying “move north” and “move forward”: world directions do not rotate with the gripper. A future tool-relative approach will require a TCP/tool-frame transform.
+
+## 7. Replacing unconstrained pose motion with guarded Cartesian motion
+
+An early pose-target implementation allowed a small end-effector displacement to produce a large joint-space detour, including an apparent full rotation. Reaching the same Cartesian endpoint does not guarantee that the selected inverse-kinematics solution is desirable.
+
+The relative stages were replaced with `computeCartesianPath()`, preserving end-effector orientation and interpolating a straight path. Three guards were added:
+
+1. Cartesian completion must be at least 99%;
+2. the generated trajectory must be nonempty and structurally valid;
+3. no joint may accumulate more than 1 rad of travel during a small Cartesian stage.
+
+Larger experimental offsets produced only 12.5% or 93.4% completion. The program refused to execute them. This was a successful safety response rather than a failure to be hidden by lowering the threshold.
+
+## 8. Centralizing parameters and calculating the return automatically
+
+The motion parameters were centralized so the task can be edited without searching through multiple execution blocks.
+
+Verified values:
 
 ```text
 Approach:           (+0.03, 0.00, 0.00) m
 Lift and transport: (-0.03, 0.00,+0.05) m
 ```
 
-回程不需要另外手動維護，而是用向量相加自動計算：
+The return vector is calculated automatically:
 
 ```text
 Return = -(Approach + Transport)
-       = (0.00, 0.00, -0.05) m
+       = (0.00, 0.00,-0.05) m
 ```
 
-這像記帳：先向東走 3 公尺，再向西走 3 公尺並上樓 5 公尺；程式把總位移結算後，自動算出只需下樓 5 公尺。只要前兩段都使用相同的 `world` 座標基準，就不必同步修改第三組數字。
+This prevents three separate displacement definitions from drifting out of sync, provided that all stages remain in the same planning frame and no unaccounted motion is inserted.
 
-## 9. 最終驗證成果
+## 9. Verified milestone
 
-2026-09-03 的完整驗證結果：
+The complete flow was verified on 2026-09-03:
 
 ```text
-四個 controllers：active
-Move to test_configuration：success
-Approach Cartesian path：100.0%
-Lift and transport Cartesian path：100.0%
-Return Cartesian path：100.0%
-Gripper open/close/release：success
+four controllers active
+move to test_configuration: success
+approach Cartesian path: 100.0%
+lift and transport Cartesian path: 100.0%
+return Cartesian path: 100.0%
+gripper open, close, and release: success
 PICK AND PLACE DEMO SUCCEEDED
-process has finished cleanly
+process finished cleanly
 ```
 
-## 從困難中建立的能力
+## Engineering skills demonstrated
 
-這份成果展示的不只是 ROS 指令操作，也包含：
+- integrating multiple ROS 2 packages into a single bringup;
+- inspecting nodes, topics, actions, controllers, and joint states;
+- distinguishing model, planning, and execution failures;
+- editing URDF/Xacro, SRDF, YAML, Python launch files, and MoveIt C++ code;
+- reducing complex failures through layered, reproducible tests;
+- rejecting unsafe or incomplete paths rather than forcing execution;
+- documenting limitations and preserving stable milestones with Git.
 
-- 將多個 ROS 2 套件整合成單一可啟動系統
-- 閱讀 node、topic、action、controller 與 joint-state 狀態
-- 區分模型錯誤、規劃失敗與控制執行失敗
-- 修改 URDF/Xacro、SRDF、YAML、Python launch 與 C++ MoveIt 程式
-- 用可重現的測試逐層縮小問題範圍
-- 為危險或不完整軌跡加入 fail-safe，而不是降低門檻強迫執行
-- 使用 Git commit 與版本標籤保存可回復的穩定里程碑
+## Next steps
 
-## 下一步
+The current milestone validates fake-hardware motion control, not physical grasping. Future work can add:
 
-目前成果是 fake hardware 上的運動控制驗證。若繼續發展，可依序加入：
+1. table, floor, and object collision geometry in the Planning Scene;
+2. grasped-object attach/detach state;
+3. TCP/tool-frame approach commands;
+4. NVIDIA Newton Physics or another physics-simulation workflow;
+5. hardware-specific force, speed, network, and safety validation.
 
-1. Planning Scene 的桌面、地板與物件碰撞模型
-2. 夾取物件的 attach/detach 狀態
-3. 以 TCP/tool frame 表達 Approach
-4. Gazebo 或其他物理模擬
-5. 實體 UR5 與 Robotiq 的速度、力道、網路及安全重新校正
-
-這些限制被明確寫下，是工程可信度的一部分：知道模擬已證明什麼，也知道它尚未證明什麼。
+Explicitly separating verified behavior from future work is part of the engineering result: it communicates both what the prototype proves and what it does not yet prove.

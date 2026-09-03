@@ -1,7 +1,5 @@
 # UR5 + Robotiq 2F-85 MoveIt Demo
 
-[English](README.md) | [繁體中文](README.zh-TW.md)
-
 ROS 2 Humble learning project that combines a UR5 arm and a Robotiq 2F-85 gripper into one robot description, one `ros2_control` bringup, and one sequential MoveIt task.
 
 The current version uses fake hardware and RViz. It does not simulate gravity, contact, friction, or grasped-object physics.
@@ -17,10 +15,9 @@ UR5 motion planning + Robotiq action control + automatic Cartesian return
 
 ## Portfolio map
 
-- [Learning journey](docs/LEARNING_JOURNEY.md) — how the project progressed from a UTM environment to a verified integrated demo
+- [Learning journey](docs/LEARNING_JOURNEY.md) ([繁體中文](docs/LEARNING_JOURNEY.zh-TW.md)) — how the project progressed from a UTM environment to a verified integrated demo
 - [Operations guide](docs/OPERATIONS_GUIDE.md) — repeatable startup, execution, and parameter-editing instructions
 - [Troubleshooting record](docs/TROUBLESHOOTING.md) — failures, diagnostic evidence, fixes, and engineering lessons
-- [Git and GitHub guide（中文）](docs/GITHUB_GUIDE.md) — what the repository, commits, tag, branch, and deploy key mean
 
 ## Current demo
 
