@@ -148,3 +148,83 @@ The current milestone validates fake-hardware motion control, not physical grasp
 5. hardware-specific force, speed, network, and safety validation.
 
 Explicitly separating verified behavior from future work is part of the engineering result: it communicates both what the prototype proves and what it does not yet prove.
+
+## 10. Mac mini migration verification
+
+Recorded on 2026-09-07. The supplied demo log is dated 2026-09-06.
+
+### Objective and baseline
+
+Verify the existing UTM environment after migration to a Mac mini M4
+before modifying the working robot implementation.
+
+The checked-out commit was `e79ad6f`. Local comparison with `v0.1.0`
+(`d01ff7b`) showed documentation changes only; tracked robot source
+code and configuration were unchanged. The working tree was clean.
+
+After successful verification, a local recovery branch named
+`backup/mac-mini-verified-e79ad6f` was created. GitHub's current remote
+state was not independently fetched during this verification.
+
+### Verification results
+
+- Ubuntu boot and login: successful.
+- Guest architecture: `aarch64`; ROS distribution: `humble`.
+- Root filesystem: 33% used, with 38 GB available.
+- DNS resolution and ping to `ubuntu.com`: successful, with 0% packet loss.
+- Incremental build using `colcon build --packages-select ur5_moveit_demo --symlink-install`: successful.
+- Controllers: `joint_state_broadcaster`, `joint_trajectory_controller`,
+  `robotiq_activation_controller`, and `robotiq_gripper_controller`
+  were all `active`.
+- Move to `test_configuration`: planning and execution successful.
+- Approach, lift/transport, and return Cartesian paths: each reached
+  100.0% completion and executed successfully.
+- Gripper: open at `0.0`, close at `0.7929`, and release at `0.0`
+  all reported successful completion.
+- Final output: `PICK AND PLACE DEMO SUCCEEDED`, followed by
+  `process has finished cleanly`.
+- The operator confirmed visible arm motion and gripper opening
+  and closing in RViz.
+
+### Source-review corrections to sections 7 and 8
+
+The current 1 rad guard compares the first and last joint positions
+using `abs(last - first)`. It does not accumulate travel through
+intermediate trajectory points. A joint-space detour that returns
+near the starting angle could therefore escape this check.
+
+Trajectory validation rejects an empty point list and mismatched
+first/last position-vector sizes. It does not comprehensively
+validate every intermediate trajectory point.
+
+Approach and transport values are grouped within their respective
+execution stages. Gripper and speed settings remain elsewhere in
+`main()`. A single consolidated configuration block has not yet
+been implemented. Return displacement is already calculated as
+`-(Approach + Transport)`.
+
+### Scope and follow-up work
+
+This was one successful run of the migrated fake-hardware workflow,
+using an incremental build. It was not a clean installation test
+or a repeated-run reliability test.
+
+Physical grasping, contact, friction, object attachment, and real
+hardware were not validated. Runtime clock settings remain a
+follow-up check: bringup passes `use_sim_time=true` to the included
+MoveIt launch, while the task launch does not explicitly set it.
+
+Next steps are to consolidate task settings, review intermediate
+joint-travel validation, and simplify the operating workflow.
+These improvements were not implemented during this verification.
+
+### Learning and contribution
+
+The main lesson was to validate an inherited environment in layers:
+guest OS, workspace, build, controllers, and complete task execution.
+Documentation must also be checked against the actual implementation.
+
+The project owner executed the commands and observed RViz. Codex
+assisted with the verification sequence, interpretation of supplied
+outputs, source review, and documentation drafting. No robot source
+code was changed during this verification.
