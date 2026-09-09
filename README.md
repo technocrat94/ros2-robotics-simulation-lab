@@ -2,7 +2,7 @@
 
 ROS 2 Humble learning project that combines a UR5 arm and a Robotiq 2F-85 gripper into one robot description, one `ros2_control` bringup, and one sequential MoveIt task.
 
-The current version uses fake hardware and RViz. It does not simulate gravity, contact, friction, or grasped-object physics.
+The ROS 2 robot demo uses fake hardware and RViz. It does not simulate gravity, contact, friction, or grasped-object physics. A separate Newton physics learning experiment is documented below.
 
 ## Verified milestone
 
@@ -12,6 +12,14 @@ On 2026-09-03, the complete task was verified in RViz with all four controllers 
 UR5 motion planning + Robotiq action control + automatic Cartesian return
                          -> PICK AND PLACE DEMO SUCCEEDED
 ```
+
+## Newton physics learning experiment (separate from ROS)
+
+![Newton CPU sphere-radius experiment: measured-position replay](docs/experiments/newton-radius/results/lesson01_replay.gif)
+
+CPU sphere-drop experiment with a 0.20 m radius and 1.00 m initial center height. This is a 2D replay of measured Newton positions, not a live simulator recording. Left: normal gravity with ground; middle: half gravity with ground; right: no collision ground. This experiment is **not yet integrated with ROS 2 or the UR5/Robotiq demo**.
+
+[Read the experiment, learner observations, source code, and data](docs/experiments/newton-radius/README.md).
 
 ## Portfolio map
 

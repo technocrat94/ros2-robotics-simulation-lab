@@ -1,0 +1,75 @@
+{
+  "environment": {
+    "python": "3.12.14",
+    "architecture": "aarch64",
+    "newton": "1.5.1",
+    "warp": "1.17.0",
+    "device": "cpu"
+  },
+  "sphere_center_initial_z_m": 1.0,
+  "sphere_radius_m": 0.2,
+  "duration_s": 2.0,
+  "solver": "SolverXPBD",
+  "iterations": 10,
+  "cases": {
+    "earth_ground": {
+      "gravity_m_s2": 9.81,
+      "ground": true,
+      "dt_s": 0.004166666666666667,
+      "ideal_touch_time_s": 0.4038550218769218,
+      "measured_near_ground_time_s": 0.4041666666666667,
+      "near_ground_definition": "first sample with center_z <= radius + 0.005 m; not exact solver contact time",
+      "max_freefall_error_first_0_3s_m": 0.0061311123847961335,
+      "final_center_z_m": 0.20000000298023224,
+      "min_center_z_m": 0.20000000298023224,
+      "last_quarter_second_z_range_m": 0.0
+    },
+    "earth_half_dt": {
+      "gravity_m_s2": 9.81,
+      "ground": true,
+      "dt_s": 0.0020833333333333333,
+      "ideal_touch_time_s": 0.4038550218769218,
+      "measured_near_ground_time_s": 0.40208333333333335,
+      "near_ground_definition": "first sample with center_z <= radius + 0.005 m; not exact solver contact time",
+      "max_freefall_error_first_0_3s_m": 0.003065407085418692,
+      "final_center_z_m": 0.20000000298023224,
+      "min_center_z_m": 0.20000000298023224,
+      "last_quarter_second_z_range_m": 0.0
+    },
+    "earth_no_ground": {
+      "gravity_m_s2": 9.81,
+      "ground": false,
+      "dt_s": 0.004166666666666667,
+      "ideal_touch_time_s": 0.4038550218769218,
+      "measured_near_ground_time_s": 0.4041666666666667,
+      "near_ground_definition": "first sample with center_z <= radius + 0.005 m; not exact solver contact time",
+      "max_freefall_error_first_0_3s_m": 0.0061311123847961335,
+      "final_center_z_m": -18.660921096801758,
+      "min_center_z_m": -18.660921096801758,
+      "last_quarter_second_z_range_m": 4.6035566329956055
+    },
+    "half_gravity": {
+      "gravity_m_s2": 4.905,
+      "ground": true,
+      "dt_s": 0.004166666666666667,
+      "ideal_touch_time_s": 0.5711372491708258,
+      "measured_near_ground_time_s": 0.5708333333333333,
+      "near_ground_definition": "first sample with center_z <= radius + 0.005 m; not exact solver contact time",
+      "max_freefall_error_first_0_3s_m": 0.0030655263900756236,
+      "final_center_z_m": 0.20000000298023224,
+      "min_center_z_m": 0.20000000298023224,
+      "last_quarter_second_z_range_m": 0.0
+    }
+  },
+  "checks": {
+    "earth_freefall_error_under_1cm": true,
+    "ground_final_height_within_5mm": true,
+    "ground_penetration_under_5mm": true,
+    "ground_tail_motion_under_2mm": true,
+    "no_ground_falls_below_plane": true,
+    "smaller_dt_reduces_freefall_error": true,
+    "earth_arrival_within_20ms": true,
+    "half_gravity_arrival_within_20ms": true
+  },
+  "scope": "One run per case. Educational acceptance criteria, not hardware safety limits. No grasping or ROS integration."
+}
