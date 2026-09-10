@@ -67,6 +67,8 @@ ROS command → adapter → Newton
 Newton state → adapter → ROS
 ```
 
+The endpoint now also exposes a loopback-only Viser view. It deliberately has no motion controls: movement must originate from ROS, while its panel displays Newton simulation time, measured height, running state, the last ROS command, and returned-state sequence. `NEWTON_VIEWER_PORT` selects the port and `NEWTON_BRIDGE_LOG` optionally records the transmitted state as CSV. The viewer supports inspection; the ROS topic and failure-injection evidence remain the acceptance tests.
+
 ## Important prototype limitation
 
 A successful service response currently means that the ROS adapter sent the UDP command. The endpoint produces an acknowledgement packet, but the current adapter does not use it to confirm completion. Command effects were verified from the returned state. A later version should correlate command IDs with acknowledgements and report a timeout when no acknowledgement arrives.
@@ -90,12 +92,28 @@ The installed Newton 1.5.1 XPBD solver documents that mimic constraints are unsu
 
 The planned prototype will keep one ROS gripper command and explicitly map the leader value to the five follower targets using each URDF multiplier and offset. Newton will remain responsible for contact and object motion. This mapping must be verified before grasp results are interpreted.
 
+### Verified static URDF import
+
+The combined Xacro was expanded with ROS and imported with Newton 1.5.1 on CPU. The first import produced 24 bodies and 24 Newton joints but zero shapes. This was a useful partial failure: Newton had parsed the kinematic topology, while every `package://ur_description/...` and `package://robotiq_description/...` mesh URI remained unresolved.
+
+The generated Newton-specific URDF replaced those package URIs with the package share paths reported by `ros2 pkg prefix --share`. The ROS source Xacro and generated ROS URDF were left unchanged. A second import produced:
+
+```text
+Bodies: 24
+Joints: 24
+Shapes: 54
+```
+
+The model still did not appear until `newton.eval_fk()` initialized the world transforms from the joint coordinates. After that step, the project owner visually confirmed a continuous UR5 assembly, a Robotiq gripper attached to the wrist, and both fingers present.
+
+This milestone proves that the static geometry and assembly can be represented in Newton. It does not prove correct joint motion, mimic coupling, self-collision behavior, contact behavior, dynamics, or ROS control of the robot. The reproducible inspection program is stored in `docs/experiments/newton-ros2-bridge/prototype/newton_robot_viewer.py`.
+
 ## Next acceptance milestone
 
-1. Inspect and record every Robotiq mimic multiplier and offset.
-2. Resolve all URDF mesh resources and import the combined robot into Newton.
-3. Verify link and joint-name correspondence between ROS and Newton.
-4. Exercise one arm joint and the gripper leader while checking all returned joint states.
+1. Verify link and joint-name correspondence between ROS and Newton.
+2. Exercise one arm joint and the gripper leader while checking all returned joint states and all five mimic relationships.
+3. Check collision geometry and self-collision settings independently of visual geometry.
+4. Connect robot commands and feedback through the verified bridge protocol.
 5. Ensure that only one component owns authoritative `/joint_states`; the existing fake hardware and Newton must not publish competing robot states.
 
 ## Engineering lesson

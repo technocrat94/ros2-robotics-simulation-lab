@@ -34,6 +34,8 @@ ROS：收到實際位置與模擬時間
 
 Newton 停止後，bridge 回報 `STALE`。如果系統繼續把最後位置當成最新資料，MoveIt 或控制器可能在錯誤資訊上做決定。
 
+Newton endpoint 也提供只綁定 loopback 的 Viser 畫面，而且刻意不放運動按鈕：動作只能從 ROS 發出，面板顯示 Newton 的模擬時間、實際高度、運行狀態、最後 ROS 指令與回傳序號。Viewer 用來觀察；topic 回傳與 `STALE` 故障測試才是整合驗收證據。
+
 ### 3. 電腦等待時間不等於模擬時間
 
 Shell 的 `sleep 1` 只保證命令等待約一秒。ROS discovery、程序排程和通訊也會耗時。需要精確實驗時，應用 Newton 的模擬時間或狀態條件作為停止標準。
@@ -45,6 +47,30 @@ Shell 的 `sleep 1` 只保證命令等待約一秒。ROS discovery、程序排�
 生活化理解：Robotiq 像一個馬達拉動整套連桿。URDF 的 mimic 規則說明其他關節如何跟著主關節轉動。
 
 Newton XPBD 不會自動保證這些 mimic 關節連動。若只看到模型成功載入就宣布完成，夾爪外觀可能正常，物理行為卻是錯的。
+
+## 已驗證：UR5＋Robotiq 靜態載入 Newton
+
+第一次載入展開後的 URDF 時，Newton 得到 24 個 bodies、24 個 Newton joints，但 shapes 是 0。這代表關節拓樸已解析，`package://...` 指向的視覺與碰撞 mesh 卻沒有解析；因此當時還不能顯示或進行接觸模擬。
+
+接著用 `ros2 pkg prefix --share` 找到兩個套件的實際位置，建立 Newton 專用的衍生 URDF，把 `package://ur_description/...` 與 `package://robotiq_description/...` 改為絕對路徑。ROS 的原始 Xacro 與 URDF 都沒有修改。第二次載入得到：
+
+```text
+Bodies: 24
+Joints: 24
+Shapes: 54
+```
+
+模型有 shape 後仍未立即出現在 Viewer，因為還需要執行 `newton.eval_fk()`，將關節座標轉換成每個連桿的世界座標。完成 FK 後，實際檢查確認 UR5 連桿連續、Robotiq 位於手腕末端，而且左右手指都存在。
+
+本里程碑只證明靜態幾何與組裝可以進入 Newton。它尚未證明關節方向、mimic 連動、自碰撞、接觸、動力學或 ROS 對機器人的控制。下一個驗收項目是讓一個手臂關節與夾爪主關節運動，並核對所有跟隨關節的回傳值。
+
+### 這次應記住的判斷
+
+- body／joint 數量正確，只代表拓樸可讀。
+- `Shapes: 0` 代表沒有可顯示或碰撞的幾何，不能宣稱模型載入成功。
+- 畫面出現前需要 FK；幾何存在與世界座標初始化是不同步驟。
+- 被動關節雖然沒有馬達，仍必須遵守機械連動關係。
+- 靜態外觀正確仍不能證明運動或抓取正確。
 
 ## 目前的工程決策
 
