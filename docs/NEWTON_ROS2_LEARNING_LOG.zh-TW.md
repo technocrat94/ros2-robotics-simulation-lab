@@ -1,6 +1,14 @@
-# Newton 導入 ROS 2：學習筆記
+# Newton × ROS 2：累積式學習筆記
 
-後續家教式內容集中在[累積式學習筆記](NEWTON_ROS2_LEARNING_LOG.zh-TW.md)，並以新標題追加，保留舊知識點。
+> 本文件保存家教式知識點與工程判斷，採「只在後面追加新里程碑」的方式維護。舊筆記不因後續實作而覆蓋或改寫。英文技術證據請見 [`NEWTON_ROS2_INTEGRATION.md`](NEWTON_ROS2_INTEGRATION.md)。
+
+## 里程碑索引
+
+1. ROS 2 與 Newton 的 Python 環境隔離
+2. 雙向 bridge、狀態回傳與 `STALE` 故障偵測
+3. ROS time、simulation time、wall time 與 physics `dt`
+4. UR5＋Robotiq URDF、主動關節與 mimic 關節
+5. mesh URI 解析、shape 驗證與 forward kinematics
 
 記錄日期：2026-09-10。
 
