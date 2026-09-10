@@ -112,6 +112,10 @@ This milestone proves that the static geometry and assembly can be represented i
 
 The verified bridge contract was reused with a robot endpoint. Calling `/newton/set_running` from ROS started an eight-second prescribed UR5 and Robotiq sequence in Newton; the endpoint returned 12 revolute-joint names and positions through `/newton/joint_states`, plus the current phase and maximum mimic error. During a paused gripper-close phase, ROS received the six UR5 angles, the Robotiq leader angle, and all five follower angles with `mimic_max_error = 0.0 rad`.
 
+![Newton Viser view of the completed ROS-commanded kinematic sequence](images/newton_ros2_kinematic_demo.png)
+
+**Captured evidence.** The image shows the complete UR5/Robotiq assembly and the endpoint panel after the sequence reached `COMPLETE · PAUSED` at `8.00 s`. The panel records `set_running(true)` as the last ROS command, a reopened leader angle of `0.000 rad`, a maximum mimic error of `0.000000 rad`, and returned-state sequence `49899`.
+
 This demonstrates ROS command delivery, Newton-side FK, explicit URDF mimic mapping, and state return to ROS. The trajectory is prescribed kinematics. It is not evidence of dynamic trajectory tracking, contact, grasping, or a complete control loop. The robot state is published on the namespaced `/newton/joint_states`; it has not replaced the authoritative `/joint_states` used by the existing fake-hardware stack.
 
 #### What the program actually computes
@@ -202,9 +206,9 @@ State packets are accepted only when both `type == "state"` and the protocol ver
 
 The command ID is present in the endpoint acknowledgement, but the adapter does not yet correlate that acknowledgement with the service call. Consequently, the service response means "command transmitted." The returned `/newton/running`, `/newton/demo_phase`, `/newton/joint_states`, and `/newton/sim_time` remain the evidence that the requested state change occurred.
 
-#### Documentation image criterion
+#### Documentation image evidence
 
-One portfolio image will be added after the MoveIt-to-Newton trajectory path is operating. It should show the complete UR5/Robotiq model and the Viser status panel in one frame, with the phase, simulation time, last ROS command, gripper leader angle, mimic error, and returned-state sequence readable. A screenshot of the current static or prescribed-motion view is useful for progress tracking, but it would not by itself demonstrate MoveIt control or physical interaction.
+The current portfolio image records the prescribed-kinematics milestone and includes the complete model and readable endpoint state in one frame. A later MoveIt-to-Newton milestone should add one separate image showing an executing MoveIt trajectory and the corresponding Newton feedback. A physical-contact milestone should use a short video or GIF only when object motion and slip over time are part of the acceptance evidence. Terminal screenshots are unnecessary because exact commands and machine-readable outputs are preserved as text.
 
 ## Next acceptance milestone
 

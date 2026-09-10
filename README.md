@@ -27,6 +27,10 @@ On 2026-09-10, a minimal bidirectional bridge was verified while keeping ROS 2 H
 
 On 2026-09-11, the combined UR5/Robotiq model was imported into Newton with 24 bodies, 24 Newton joints, and 54 shapes. A ROS service then controlled an eight-second kinematic sequence, while Newton returned all 12 revolute-joint states and a verified maximum mimic-mapping error of `0.0 rad`.
 
+![ROS 2-commanded UR5 and Robotiq kinematic demonstration in Newton](docs/images/newton_ros2_kinematic_demo.png)
+
+The captured final state shows the complete imported robot, `COMPLETE · PAUSED` at 8.00 s, the last ROS start command, zero reopened-gripper angle, zero mimic-mapping error, and an increasing returned-state sequence. It is evidence of the current kinematic integration milestone, not of MoveIt trajectory execution or physical grasping.
+
 This verifies the command-and-feedback architecture, robot URDF import, forward kinematics, and explicit Robotiq mimic mapping. The demonstration uses prescribed kinematics; Newton has not replaced fake hardware or validated dynamic contact and grasping.
 
 [Read the technical integration record](docs/NEWTON_ROS2_INTEGRATION.md), the [繁體中文累積式學習筆記](docs/NEWTON_ROS2_LEARNING_LOG.zh-TW.md), or the [報告操作單](docs/REPORT_GUIDE_2026-09-12.zh-TW.md).

@@ -5,12 +5,31 @@
 
 [以下為終端機執行指令]
 
-# 1. 展前環境準備 (確保背景服務已開)
-# Terminal 1: 啟動 ROS 環境
+# 0. 若所有程序都已關閉，依序啟動
+# Ubuntu Terminal 1：Newton robot endpoint
+cd ~/ur5_ws
+NEWTON_VIEWER_PORT=8083 ~/newton_ws/lessons/.venv-cpu/bin/python \
+  src/newton_ros_bridge/newton_robot_endpoint.py
+
+# Ubuntu Terminal 2：ROS adapter
+cd ~/ur5_ws
+source /opt/ros/humble/setup.bash
+source ~/ur5_ws/install/setup.bash
+ros2 run newton_ros_bridge ros_adapter
+
+# Mac Terminal：把 VM 的 Viewer 轉到 Mac；此視窗保持開啟
+ssh -i "/Users/mayuhao/Documents/Codex/2026-09-06/users-mayuhao-documents-utm-migration-mac/work/ssh/mac-mini-utm" \
+  -N -L 8768:127.0.0.1:8083 yuhao@192.168.64.2
+
+# Chrome 顯示網址
+# http://127.0.0.1:8768/
+
+
+# 1. 展前環境準備（Ubuntu Terminal 3）
 source /opt/ros/humble/setup.bash
 source ~/ur5_ws/install/setup.bash
 
-# Terminal 2: 監控 Bridge 狀態 (檢查是否連線且 age 近乎 0)
+# 監控 Bridge 狀態（檢查是否連線且 age 近乎 0）
 ros2 topic echo /newton/bridge_status --once
 
 
