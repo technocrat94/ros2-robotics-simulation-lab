@@ -102,6 +102,44 @@ The planned prototype will keep one ROS gripper command and explicitly map the l
 
 Integration is established by tracing commands and measured feedback across a defined boundary. A model that loads or looks correct can still be behaviorally wrong when joint coupling, units, timing, or state ownership differ.
 
+## Engineering judgment: what the project owner must understand
+
+Writing every line of integration code is not the main learning objective. The project owner must be able to define the contract, judge the evidence, diagnose the failed boundary, and defend the limits of the conclusion.
+
+| Judgment | Question to answer | Example in this project |
+|---|---|---|
+| Requirement | What observable result counts as success? | Gripper closure is insufficient; the object must lift and remain supported within a defined slip limit. |
+| State ownership | Which component owns the authoritative state? | Newton should own simulated joint and object state after it replaces fake hardware. |
+| Interface contract | What names, units, frames, rates, and failure rules cross the boundary? | Joint names must match; revolute joints use radians; object pose uses `world`; stale data must be reported. |
+| Model semantics | Does the imported mechanism preserve its intended constraints? | The Robotiq command space is one leader plus five mimic followers, not six independent actuators. |
+| Timing | Which clock and time step define the experiment? | Shell delay, ROS time, Newton simulation time, physics `dt`, and real-time factor are different quantities. |
+| Evidence | Did the actual state change, or was only a target echoed? | `/newton/object_pose` changed after a ROS command and returned to its initial value after reset. |
+| Failure isolation | At which boundary did expected evidence disappear? | `STALE` distinguishes a stopped Newton endpoint from an unchanged but live simulation. |
+| Numerical validity | Is the result stable under a reasonable numerical check? | Contact results should be compared after reducing `dt` or increasing solver iterations. |
+| Physical validity | What real behavior has and has not been represented? | Rigid contact in Newton is more informative than fake hardware, but it is not calibrated Robotiq hardware. |
+| Reproducibility | Can another engineer identify the exact model, versions, configuration, and evidence? | Commit code, parameters, environment versions, observed outputs, and known limitations. |
+
+### Work that can be delegated
+
+Code generation, repetitive configuration edits, command execution, log collection, plotting, and documentation formatting can be delegated to an automation tool. The engineer still reviews the interface and evidence.
+
+### Decisions that remain the engineer's responsibility
+
+- define the task and measurable success criterion;
+- choose which component owns commands, time, and state;
+- check frames, units, joint names, ordering, and constraints;
+- decide whether a test distinguishes competing explanations;
+- reject conclusions that exceed the fidelity of the model or the quality of the evidence;
+- communicate assumptions, limitations, and operational risk.
+
+### Five-sentence review for a professor
+
+1. State the engineering objective and success criterion.
+2. Identify the command path and authoritative feedback path.
+3. Explain one important compatibility decision, such as process isolation or mimic handling.
+4. Cite the test evidence, including a failure-injection result.
+5. State what remains unvalidated and the next acceptance milestone.
+
 ## Contribution
 
 Codex implemented the prototype bridge and prepared the documentation. The project owner executed the build and verification commands, supplied the outputs, and participated in interpreting the integration evidence. The document distinguishes completed tests from planned robot integration.
