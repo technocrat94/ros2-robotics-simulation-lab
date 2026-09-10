@@ -7,7 +7,8 @@ setup(
     packages=find_packages(),
     data_files=[
         ("share/ament_index/resource_index/packages", ["resource/" + package_name]),
-        ("share/" + package_name, ["package.xml", "newton_endpoint.py"]),
+        ("share/" + package_name,
+         ["package.xml", "newton_endpoint.py", "newton_robot_endpoint.py"]),
     ],
     install_requires=["setuptools"],
     zip_safe=True,

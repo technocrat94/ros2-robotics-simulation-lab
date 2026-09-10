@@ -108,6 +108,12 @@ The model still did not appear until `newton.eval_fk()` initialized the world tr
 
 This milestone proves that the static geometry and assembly can be represented in Newton. It does not prove correct joint motion, mimic coupling, self-collision behavior, contact behavior, dynamics, or ROS control of the robot. The reproducible inspection program is stored in `docs/experiments/newton-ros2-bridge/prototype/newton_robot_viewer.py`.
 
+### Verified ROS-commanded kinematic demonstration
+
+The verified bridge contract was reused with a robot endpoint. Calling `/newton/set_running` from ROS started an eight-second prescribed UR5 and Robotiq sequence in Newton; the endpoint returned 12 revolute-joint names and positions through `/newton/joint_states`, plus the current phase and maximum mimic error. During a paused gripper-close phase, ROS received the six UR5 angles, the Robotiq leader angle, and all five follower angles with `mimic_max_error = 0.0 rad`.
+
+This demonstrates ROS command delivery, Newton-side FK, explicit URDF mimic mapping, and state return to ROS. The trajectory is prescribed kinematics. It is not evidence of dynamic trajectory tracking, contact, grasping, or a complete control loop. The robot state is published on the namespaced `/newton/joint_states`; it has not replaced the authoritative `/joint_states` used by the existing fake-hardware stack.
+
 ## Next acceptance milestone
 
 1. Verify link and joint-name correspondence between ROS and Newton.

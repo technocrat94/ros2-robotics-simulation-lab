@@ -8,6 +8,7 @@ import uuid
 import rclpy
 from geometry_msgs.msg import PoseStamped
 from rclpy.node import Node
+from sensor_msgs.msg import JointState
 from std_msgs.msg import Bool, Float64, String
 from std_srvs.srv import SetBool, Trigger
 
@@ -26,6 +27,10 @@ class NewtonRosBridge(Node):
         self.time_pub = self.create_publisher(Float64, "/newton/sim_time", 10)
         self.running_pub = self.create_publisher(Bool, "/newton/running", 10)
         self.status_pub = self.create_publisher(String, "/newton/bridge_status", 10)
+        self.joint_pub = self.create_publisher(JointState, "/newton/joint_states", 10)
+        self.phase_pub = self.create_publisher(String, "/newton/demo_phase", 10)
+        self.mimic_error_pub = self.create_publisher(
+            Float64, "/newton/mimic_max_error", 10)
         self.create_service(SetBool, "/newton/set_running", self.set_running)
         self.create_service(Trigger, "/newton/reset", self.reset)
         self.create_timer(0.01, self.receive)
@@ -51,7 +56,7 @@ class NewtonRosBridge(Node):
     def reset(self, _request, response):
         command_id = self.send_command("reset")
         response.success = True
-        response.message = "command sent; verify sim_time=0 and z=1; id=" + command_id
+        response.message = "command sent; verify returned state reset; id=" + command_id
         return response
 
     def receive(self):
@@ -64,15 +69,26 @@ class NewtonRosBridge(Node):
                 data = json.loads(payload.decode("utf-8"))
                 if data.get("type") != "state" or data.get("protocol") != PROTOCOL:
                     continue
-                position = data["position_m"]
-                orientation = data["orientation_xyzw"]
-                pose = PoseStamped()
-                pose.header.stamp = self.get_clock().now().to_msg()
-                pose.header.frame_id = data["frame_id"]
-                pose.pose.position.x, pose.pose.position.y, pose.pose.position.z = position
-                (pose.pose.orientation.x, pose.pose.orientation.y,
-                 pose.pose.orientation.z, pose.pose.orientation.w) = orientation
-                self.pose_pub.publish(pose)
+                stamp = self.get_clock().now().to_msg()
+                if "position_m" in data:
+                    position = data["position_m"]
+                    orientation = data["orientation_xyzw"]
+                    pose = PoseStamped()
+                    pose.header.stamp = stamp
+                    pose.header.frame_id = data["frame_id"]
+                    pose.pose.position.x, pose.pose.position.y, pose.pose.position.z = position
+                    (pose.pose.orientation.x, pose.pose.orientation.y,
+                     pose.pose.orientation.z, pose.pose.orientation.w) = orientation
+                    self.pose_pub.publish(pose)
+                if "joint_names" in data:
+                    joints = JointState()
+                    joints.header.stamp = stamp
+                    joints.name = [str(name) for name in data["joint_names"]]
+                    joints.position = [float(value) for value in data["joint_positions"]]
+                    self.joint_pub.publish(joints)
+                    self.phase_pub.publish(String(data=str(data["demo_phase"])))
+                    self.mimic_error_pub.publish(
+                        Float64(data=float(data["mimic_max_error_rad"])))
                 self.time_pub.publish(Float64(data=float(data["sim_time_s"])))
                 self.running_pub.publish(Bool(data=bool(data["running"])))
                 self.last_received = time.monotonic()

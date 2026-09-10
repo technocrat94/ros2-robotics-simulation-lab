@@ -187,3 +187,29 @@ Fake hardware 可以驗證 ROS 指令流程，不能驗證重力或抓取。Newt
 ## 貢獻說明
 
 Codex 建立 bridge 程式並整理文件。專案負責人實際執行建置與驗證指令、回傳輸出，並參與判讀結果。UR5／Robotiq 導入 Newton 仍是下一階段工作。
+
+## 里程碑 6：ROS 控制 UR5＋Robotiq 運動學展示（2026-09-11）
+
+ROS 呼叫既有的 `/newton/set_running` 後，Newton 執行八秒的 UR5 移動、夾爪閉合、手腕轉動與返回流程。Newton 將 12 個旋轉關節的名稱與角度回傳 `/newton/joint_states`。實測暫停在 `GRIPPER_CLOSE` 時，主關節為 `0.4815 rad`，五個 follower 分別依 `+1` 或 `-1` 倍率跟隨，`mimic_max_error` 為 `0.0 rad`。
+
+### 工程師應該會判斷什麼
+
+1. **看到機器人移動，不代表動力學正確。** 本次直接指定 joint position 並用 FK 更新連桿，是運動學介面測試。
+2. **命令成功與狀態成功必須分開驗證。** ROS service 是輸入；`/newton/joint_states`、phase 與 mimic error 才是回傳證據。
+3. **`mimic_error = 0` 只證明數學映射一致。** 它不能證明手指接觸力、摩擦或物體抓取正確。
+4. **測試 topic 不是正式狀態來源。** 目前使用 `/newton/joint_states`，尚未取代 fake hardware 的 `/joint_states`，因此不應同時宣稱 Newton 已接管 MoveIt。
+5. **展示範圍必須能一句話說清楚。** 已驗證 ROS 命令、FK、mimic 與回傳；尚未驗證動態控制、碰撞抓取及真實硬體。
+
+### 教授可能會問
+
+**問：這算 ROS 2 與 Newton 整合完成了嗎？**
+
+答：已完成可觀察的命令與狀態橋接，也完成機器人運動學展示；MoveIt 控制、動力學接觸與正式 `/joint_states` ownership 尚未完成。
+
+**問：為什麼 `mimic_error = 0` 還不能證明夾得住物體？**
+
+答：mimic error 只比較 follower joint angle 是否符合 URDF 公式。抓取還取決於碰撞幾何、摩擦、接觸力、物體質量與運動加速度。
+
+**問：這次最重要的架構判斷是什麼？**
+
+答：重用已驗證的 ROS–Newton bridge，只替換 Newton 端模型與狀態內容；同時保留 namespaced topic，避免和現有 fake hardware 爭奪狀態來源。
