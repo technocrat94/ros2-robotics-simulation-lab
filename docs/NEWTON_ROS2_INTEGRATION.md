@@ -149,6 +149,63 @@ The earlier MoveIt workflow and this Newton prototype validate different layers:
 
 The next integration step is to send MoveIt-generated joint trajectory samples to Newton actuator targets and return Newton's simulated joint state as the single authoritative feedback source. Acceptance will require checking names, ordering, units, timing, trajectory tracking error, collision behavior, and state ownership. Directly replacing `/joint_states` before those checks would hide interface faults rather than validate them.
 
+#### Implementation record
+
+The reproducible prototype is committed under `docs/experiments/newton-ros2-bridge/prototype/` and mirrors the operational ROS package used in the VM.
+
+| File | Responsibility |
+|---|---|
+| `newton_robot_endpoint.py` | Load the resolved URDF, receive commands, prescribe `q(t)`, apply mimic mapping, run FK, update Viser, and transmit state |
+| `newton_ros_bridge/ros_adapter.py` | Expose ROS services and topics, translate ROS messages to the versioned UDP/JSON contract, reject invalid state packets, and report freshness |
+| `package.xml`, `setup.py`, `setup.cfg` | Declare ROS dependencies and install the `ros_adapter` executable |
+| `newton_robot_viewer.py` | Reproduce the earlier static URDF import and FK inspection milestone |
+
+The prescribed trajectory is visible in the endpoint rather than hidden behind the viewer. For example, the approach phase directly changes two generalized coordinates:
+
+```python
+s = smoothstep(t / 2.0)
+arm[0] += 0.55 * s
+arm[2] -= 0.35 * s
+```
+
+The endpoint then writes the arm and gripper coordinates, including the five explicit follower mappings, before evaluating FK:
+
+```python
+self.q[:6] = arm
+self.q[6] = grip
+self.q[8] = -grip
+self.q[10] = grip
+self.q[11] = -grip
+self.q[7] = -grip
+self.q[9] = grip
+self.model.joint_q.assign(self.q)
+newton.eval_fk(self.model, self.model.joint_q, self.model.joint_qd, self.state)
+```
+
+The mapping is checked independently of the image. For every follower `i`, the endpoint evaluates
+
+```text
+error_i = abs(q_i - (multiplier_i * q_leader + offset_i))
+mimic_max_error = max(error_i)
+```
+
+and publishes the maximum through `/newton/mimic_max_error`. A zero result verifies the implemented algebra for the transmitted coordinates; it does not verify joint origins, axes, collision geometry, or contact.
+
+On the ROS side, each service command receives a UUID before transmission:
+
+```python
+message = {"protocol": PROTOCOL, "id": command_id, "command": command}
+self.socket.sendto(json.dumps(message).encode("utf-8"), COMMAND_ADDRESS)
+```
+
+State packets are accepted only when both `type == "state"` and the protocol version match. Their joint names and positions become a ROS `sensor_msgs/JointState`. Packet age is measured with a monotonic clock; data older than `0.25 s` is reported as `STALE`. This separates content validity from transport freshness.
+
+The command ID is present in the endpoint acknowledgement, but the adapter does not yet correlate that acknowledgement with the service call. Consequently, the service response means "command transmitted." The returned `/newton/running`, `/newton/demo_phase`, `/newton/joint_states`, and `/newton/sim_time` remain the evidence that the requested state change occurred.
+
+#### Documentation image criterion
+
+One portfolio image will be added after the MoveIt-to-Newton trajectory path is operating. It should show the complete UR5/Robotiq model and the Viser status panel in one frame, with the phase, simulation time, last ROS command, gripper leader angle, mimic error, and returned-state sequence readable. A screenshot of the current static or prescribed-motion view is useful for progress tracking, but it would not by itself demonstrate MoveIt control or physical interaction.
+
 ## Next acceptance milestone
 
 1. Verify link and joint-name correspondence between ROS and Newton.

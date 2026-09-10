@@ -221,6 +221,18 @@ MoveIt 接收末端姿態或關節目標，透過運動學與規劃元件產生�
 
 可以用一句話區分：**MoveIt 決定希望機器人沿哪條軌跡走；Newton 應負責計算在物理條件下實際走成什麼樣。**
 
+### 我如何從程式確認上述說法
+
+不用背程式，但要會找到證據：
+
+- `newton_robot_endpoint.py` 的 `update_pose()` 直接寫 `arm[0]`、`arm[2]`、`arm[5]` 與 `grip`，所以輸入是關節角度，不是末端 pose。
+- 同一函式最後呼叫 `newton.eval_fk()`，所以目前是由關節角度推算連桿姿態的 FK。
+- 程式沒有呼叫 MoveIt、IK solver 或 trajectory planner，因此不能說這段動作是規劃出來的。
+- `ros_adapter.py` 將 `joint_names` 與 `joint_positions` 包成 `/newton/joint_states`，所以可以從 ROS 核對 Newton 回傳的狀態。
+- `publish_status()` 使用封包年齡判定 `OK` 或 `STALE`，所以畫面停止與通訊中斷能被區分。
+
+英文文件會保留這類實作片段、檔案責任、測試證據與限制；本中文文件則保存你需要理解及口頭回答的判斷方法。
+
 ### 工程師應該會判斷什麼
 
 1. **看到機器人移動，不代表動力學正確。** 本次直接指定 joint position 並用 FK 更新連桿，是運動學介面測試。
