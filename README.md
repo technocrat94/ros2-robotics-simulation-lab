@@ -27,14 +27,14 @@ On 2026-09-10, a minimal bidirectional bridge was verified while keeping ROS 2 H
 
 This verifies the command-and-feedback architecture. The UR5/Robotiq model has been expanded and assessed, but it has not yet replaced fake hardware or run in Newton. Robotiq mimic-joint coupling is the next compatibility task.
 
-[Read the technical integration record](docs/NEWTON_ROS2_INTEGRATION.md) ([繁體中文學習筆記](docs/NEWTON_ROS2_INTEGRATION.zh-TW.md)).
+[Read the technical integration record](docs/NEWTON_ROS2_INTEGRATION.md) ([繁體中文累積式學習筆記](docs/NEWTON_ROS2_LEARNING_LOG.zh-TW.md)).
 
 ## Portfolio map
 
 - [Learning journey](docs/LEARNING_JOURNEY.md) ([繁體中文](docs/LEARNING_JOURNEY.zh-TW.md)) — how the project progressed from a UTM environment to a verified integrated demo
 - [Operations guide](docs/OPERATIONS_GUIDE.md) — repeatable startup, execution, and parameter-editing instructions
 - [Troubleshooting record](docs/TROUBLESHOOTING.md) — failures, diagnostic evidence, fixes, and engineering lessons
-- [Newton–ROS 2 integration](docs/NEWTON_ROS2_INTEGRATION.md) ([繁體中文](docs/NEWTON_ROS2_INTEGRATION.zh-TW.md)) — verified bridge, evidence, limitations, and robot-model compatibility decisions
+- [Newton–ROS 2 integration](docs/NEWTON_ROS2_INTEGRATION.md) ([繁體中文累積式學習筆記](docs/NEWTON_ROS2_LEARNING_LOG.zh-TW.md)) — verified bridge, evidence, limitations, and robot-model compatibility decisions
 
 ## Current demo
 

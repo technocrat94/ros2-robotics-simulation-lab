@@ -1,6 +1,6 @@
 # Newton × ROS 2：累積式學習筆記
 
-> 本文件保存家教式知識點與工程判斷，採「只在後面追加新里程碑」的方式維護。舊筆記不因後續實作而覆蓋或改寫。英文技術證據請見 [`NEWTON_ROS2_INTEGRATION.md`](NEWTON_ROS2_INTEGRATION.md)。
+> 本文件保存家教式知識點與工程判斷，採「只在後面追加新里程碑」的方式維護。舊筆記不因後續實作而覆蓋或改寫。每個新里程碑都會加入少量「教授可能會問」與可辯護的回答。英文技術證據請見 [`NEWTON_ROS2_INTEGRATION.md`](NEWTON_ROS2_INTEGRATION.md)。
 
 ## 里程碑索引
 
