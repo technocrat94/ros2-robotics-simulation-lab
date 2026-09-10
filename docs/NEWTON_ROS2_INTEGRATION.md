@@ -114,6 +114,41 @@ The verified bridge contract was reused with a robot endpoint. Calling `/newton/
 
 This demonstrates ROS command delivery, Newton-side FK, explicit URDF mimic mapping, and state return to ROS. The trajectory is prescribed kinematics. It is not evidence of dynamic trajectory tracking, contact, grasping, or a complete control loop. The robot state is published on the namespaced `/newton/joint_states`; it has not replaced the authoritative `/joint_states` used by the existing fake-hardware stack.
 
+#### What the program actually computes
+
+This prototype does not request an end-effector pose and does not solve inverse kinematics. The program defines the joint coordinates directly as functions of simulation time, writes them into Newton's `joint_q`, and calls `newton.eval_fk()` to calculate every link pose in the world frame:
+
+```text
+prescribed time t -> joint coordinates q(t) -> forward kinematics -> link poses
+```
+
+The initial arm coordinates are `(0, -pi/2, +pi/2, -pi/2, -pi/2, 0)` rad. The eight-second sequence is:
+
+| Time | Phase | Prescribed change |
+|---|---|---|
+| 0-2 s | `ARM_APPROACH` | shoulder pan: `0 -> +0.55 rad` (`+31.5 deg`); elbow: `+1.571 -> +1.221 rad` (change `-20.1 deg`) |
+| 2-4 s | `GRIPPER_CLOSE` | Robotiq leader: `0 -> +0.70 rad` (`+40.1 deg`); five followers are derived from the URDF mimic rules |
+| 4-6 s | `WRIST_MOTION` | wrist 3: `0 -> +0.65 -> 0 rad` (maximum `+37.2 deg`) |
+| 6-8 s | `RETURN_AND_OPEN` | the changed arm joints return to the initial coordinates and the gripper leader returns to zero |
+
+The conversion is `degrees = radians * 180 / pi`. The approach and return segments use `s = 3u^2 - 2u^3` so their prescribed position curves start and finish with zero slope. This interpolation choice does not model actuator torque or prove dynamically feasible tracking.
+
+Only three arm joints move in this sequence: shoulder pan, elbow, and wrist 3. Shoulder lift, wrist 1, and wrist 2 remain fixed. The test therefore does not establish that every axis behaves correctly. It specifically checks joint indexing and direction for the exercised axes, gripper coupling, FK visualization, and returned ROS state.
+
+#### Relationship to the existing MoveIt demonstration
+
+The earlier MoveIt workflow and this Newton prototype validate different layers:
+
+| Existing MoveIt fake-hardware workflow | Current Newton kinematic prototype |
+|---|---|
+| accepts a pose or joint objective and uses kinematics and planning components to produce a trajectory | reads a predetermined joint-time sequence; no IK or path planner is called |
+| checks the planned robot path against its planning scene | does not yet request a collision-free path |
+| sends the trajectory to `ros2_control` fake hardware | writes prescribed joint coordinates directly into Newton |
+| validates planning, controller interfaces, and task sequencing | validates the ROS-Newton boundary, imported joint mapping, FK, mimic rules, and feedback |
+| does not prove physical object contact | this kinematic mode also does not prove contact or grasping |
+
+The next integration step is to send MoveIt-generated joint trajectory samples to Newton actuator targets and return Newton's simulated joint state as the single authoritative feedback source. Acceptance will require checking names, ordering, units, timing, trajectory tracking error, collision behavior, and state ownership. Directly replacing `/joint_states` before those checks would hide interface faults rather than validate them.
+
 ## Next acceptance milestone
 
 1. Verify link and joint-name correspondence between ROS and Newton.

@@ -31,3 +31,15 @@ ros2 topic echo /newton/mimic_max_error --once
 
 # 3-3 確認流程狀態
 ros2 topic echo /newton/demo_phase --once
+
+
+# 4. 口頭講解重點（不用現場翻程式碼）
+# 原理：直接指定 joint angle q(t)，再用 FK 算各 link 姿態；本次沒有 IK 或 MoveIt planning。
+# 角度換算：degree = rad * 180 / pi
+# 0-2 s：shoulder_pan 0 -> 0.55 rad (31.5 deg)；elbow 改變 -0.35 rad (-20.1 deg)
+# 2-4 s：gripper leader 0 -> 0.70 rad (40.1 deg)，五個 follower 依 mimic 規則跟隨
+# 4-6 s：wrist_3 0 -> 0.65 -> 0 rad，最大 37.2 deg
+# 6-8 s：手臂返回、夾爪打開
+# 本次只移動 3 個手臂關節，不可宣稱六軸都驗證完成。
+# MoveIt：產生規劃軌跡；Newton：未來接收軌跡並計算物理狀態。
+# mimic error = 0 只證明角度映射，不證明碰撞、摩擦或抓取。

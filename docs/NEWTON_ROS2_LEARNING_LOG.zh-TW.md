@@ -192,6 +192,35 @@ Codex 建立 bridge 程式並整理文件。專案負責人實際執行建置與
 
 ROS 呼叫既有的 `/newton/set_running` 後，Newton 執行八秒的 UR5 移動、夾爪閉合、手腕轉動與返回流程。Newton 將 12 個旋轉關節的名稱與角度回傳 `/newton/joint_states`。實測暫停在 `GRIPPER_CLOSE` 時，主關節為 `0.4815 rad`，五個 follower 分別依 `+1` 或 `-1` 倍率跟隨，`mimic_max_error` 為 `0.0 rad`。
 
+### 程式原理：直接給角度，再做正向運動學
+
+目前程式沒有給末端目標位置，也沒有執行逆向運動學。它依模擬時間直接算出關節角度 `q(t)`，寫入 Newton 的 `joint_q`，再呼叫 `newton.eval_fk()`，由正向運動學算出所有連桿在世界座標中的姿態。
+
+```text
+時間 t → 預先指定的關節角度 q(t) → FK → 各連桿姿態
+```
+
+角度換算公式是 `degree = rad × 180 / pi`。初始六軸角度為 `(0, -90, +90, -90, -90, 0)` 度。
+
+| 模擬時間 | 階段 | 實際指定的變化 |
+|---|---|---|
+| 0–2 秒 | `ARM_APPROACH` | shoulder pan：`0 → +0.55 rad`（`+31.5°`）；elbow：`+1.571 → +1.221 rad`，變化 `-0.35 rad`（`-20.1°`） |
+| 2–4 秒 | `GRIPPER_CLOSE` | 夾爪主關節：`0 → +0.70 rad`（`+40.1°`），其他五軸依 mimic 公式跟隨 |
+| 4–6 秒 | `WRIST_MOTION` | wrist 3：`0 → +0.65 → 0 rad`，最大 `+37.2°` |
+| 6–8 秒 | `RETURN_AND_OPEN` | 上述手臂關節回到初始角度，夾爪回到 0 |
+
+靠近與返回使用 `s = 3u² - 2u³` 的 smoothstep，使指定位置曲線在一段動作的起點與終點斜率為零。這只是讓角度命令平順，沒有計算馬達力矩，也不能證明真實控制器跟得上。
+
+這次只有 shoulder pan、elbow、wrist 3 與夾爪主關節在動。Shoulder lift、wrist 1、wrist 2 保持固定，因此不能說「六軸都測試正常」。能宣稱的是：被測關節的名稱、索引、方向與單位有初步證據，FK 畫面、mimic 映射及 ROS 狀態回傳一致。
+
+### MoveIt 在前一個專案中負責什麼
+
+MoveIt 接收末端姿態或關節目標，透過運動學與規劃元件產生軌跡，並檢查 planning scene 中的碰撞，再把軌跡交給 `ros2_control`。先前使用 fake hardware，所以驗證了規劃、控制器介面與任務順序，沒有驗證物體接觸。
+
+目前 Newton 展示沒有呼叫 MoveIt、IK 或 path planner；它直接指定 `q(t)`，目的是先排除 bridge、joint mapping、FK 與 mimic 的問題。下一階段才是把 MoveIt 產生的 joint trajectory 送到 Newton 的 actuator target，並讓 Newton 回傳唯一的模擬狀態。
+
+可以用一句話區分：**MoveIt 決定希望機器人沿哪條軌跡走；Newton 應負責計算在物理條件下實際走成什麼樣。**
+
 ### 工程師應該會判斷什麼
 
 1. **看到機器人移動，不代表動力學正確。** 本次直接指定 joint position 並用 FK 更新連桿，是運動學介面測試。
@@ -213,3 +242,11 @@ ROS 呼叫既有的 `/newton/set_running` 後，Newton 執行八秒的 UR5 移�
 **問：這次最重要的架構判斷是什麼？**
 
 答：重用已驗證的 ROS–Newton bridge，只替換 Newton 端模型與狀態內容；同時保留 namespaced topic，避免和現有 fake hardware 爭奪狀態來源。
+
+**問：這段動作有用逆向運動學嗎？**
+
+答：沒有。程式直接定義關節角度隨時間的變化，再用 FK 更新連桿姿態。它適合驗證介面與關節對應，不能代表 MoveIt 規劃或動態軌跡追蹤已完成。
+
+**問：`mimic_error = 0`，但畫面上手指互相穿過，模型算正確嗎？**
+
+答：不算。零誤差只證明 follower angle 符合代數公式；還必須檢查 joint axis、origin、mesh、collision geometry 與 self-collision 設定。
