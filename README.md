@@ -21,11 +21,20 @@ CPU sphere-drop experiment with a 0.20 m radius and 1.00 m initial center height
 
 [Read the experiment, learner observations, source code, and data](docs/experiments/newton-radius/README.md).
 
+## Newton–ROS 2 bridge milestone
+
+On 2026-09-10, a minimal bidirectional bridge was verified while keeping ROS 2 Humble on Python 3.10 and Newton 1.5.1 on its validated Python 3.12 environment. ROS services started, paused, and reset a Newton sphere simulation; Newton's measured pose and simulation time returned through ROS topics. Stopping Newton caused the bridge to report stale data instead of treating the last pose as current.
+
+This verifies the command-and-feedback architecture. The UR5/Robotiq model has been expanded and assessed, but it has not yet replaced fake hardware or run in Newton. Robotiq mimic-joint coupling is the next compatibility task.
+
+[Read the technical integration record](docs/NEWTON_ROS2_INTEGRATION.md) ([繁體中文學習筆記](docs/NEWTON_ROS2_INTEGRATION.zh-TW.md)).
+
 ## Portfolio map
 
 - [Learning journey](docs/LEARNING_JOURNEY.md) ([繁體中文](docs/LEARNING_JOURNEY.zh-TW.md)) — how the project progressed from a UTM environment to a verified integrated demo
 - [Operations guide](docs/OPERATIONS_GUIDE.md) — repeatable startup, execution, and parameter-editing instructions
 - [Troubleshooting record](docs/TROUBLESHOOTING.md) — failures, diagnostic evidence, fixes, and engineering lessons
+- [Newton–ROS 2 integration](docs/NEWTON_ROS2_INTEGRATION.md) ([繁體中文](docs/NEWTON_ROS2_INTEGRATION.zh-TW.md)) — verified bridge, evidence, limitations, and robot-model compatibility decisions
 
 ## Current demo
 
