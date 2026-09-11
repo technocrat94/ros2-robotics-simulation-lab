@@ -21,6 +21,14 @@ CPU sphere-drop experiment with a 0.20 m radius and 1.00 m initial center height
 
 [Read the experiment, learner observations, source code, and data](docs/experiments/newton-radius/README.md).
 
+## Newton FEM soft-strip experiment
+
+On 2026-09-11, a `0.40 × 0.05 × 0.02 m` cantilevered rubber-like strip was modeled with Newton's tetrahedral FEM and VBD solver. The experiment verifies mesh topology, fixed-boundary preservation, finite particle state, a quantitative near-settled condition, and longitudinal mesh sensitivity.
+
+The equilibrium free-tip deflection changed by `5.60%` from 20 to 40 longitudinal cells, then by `1.27%` from 40 to 80 cells. The result therefore passes the predefined 5% **X-direction** convergence threshold between the two finest meshes. Material calibration, transient convergence, full 3D mesh convergence, and robot contact remain future work.
+
+[Read the detailed soft-strip experiment and reproduce the prototype](docs/NEWTON_SOFT_STRIP_EXPERIMENT.md).
+
 ## Newton–ROS 2 bridge milestone
 
 On 2026-09-10, a minimal bidirectional bridge was verified while keeping ROS 2 Humble on Python 3.10 and Newton 1.5.1 on its validated Python 3.12 environment. ROS services started, paused, and reset a Newton sphere simulation; Newton's measured pose and simulation time returned through ROS topics. Stopping Newton caused the bridge to report stale data instead of treating the last pose as current.
@@ -41,6 +49,7 @@ This verifies the command-and-feedback architecture, robot URDF import, forward 
 - [Operations guide](docs/OPERATIONS_GUIDE.md) — repeatable startup, execution, and parameter-editing instructions
 - [Troubleshooting record](docs/TROUBLESHOOTING.md) — failures, diagnostic evidence, fixes, and engineering lessons
 - [Newton–ROS 2 integration](docs/NEWTON_ROS2_INTEGRATION.md) ([繁體中文累積式學習筆記](docs/NEWTON_ROS2_LEARNING_LOG.zh-TW.md)) — verified bridge, evidence, limitations, and robot-model compatibility decisions
+- [Newton FEM soft-strip experiment](docs/NEWTON_SOFT_STRIP_EXPERIMENT.md) — deformable-body setup, measurement definitions, longitudinal mesh-convergence evidence, and reproducible source
 
 ## Current demo
 
