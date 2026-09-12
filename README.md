@@ -25,6 +25,10 @@ CPU sphere-drop experiment with a 0.20 m radius and 1.00 m initial center height
 
 On 2026-09-11, a `0.40 × 0.05 × 0.02 m` cantilevered rubber-like strip was modeled with Newton's tetrahedral FEM and VBD solver. The experiment verifies mesh topology, fixed-boundary preservation, finite particle state, a quantitative near-settled condition, and longitudinal mesh sensitivity.
 
+![Newton FEM rubber strip deforming under gravity](docs/experiments/newton-soft-strip/results/soft_strip_oscillation.gif)
+
+The approximately 2× playback shows the 20-cell model deforming and oscillating under gravity while its left face remains fixed. The animation is qualitative evidence; the measurements below provide the numerical acceptance evidence.
+
 The equilibrium free-tip deflection changed by `5.60%` from 20 to 40 longitudinal cells, then by `1.27%` from 40 to 80 cells. The result therefore passes the predefined 5% **X-direction** convergence threshold between the two finest meshes. Material calibration, transient convergence, full 3D mesh convergence, and robot contact remain future work.
 
 [Read the detailed soft-strip experiment and reproduce the prototype](docs/NEWTON_SOFT_STRIP_EXPERIMENT.md).

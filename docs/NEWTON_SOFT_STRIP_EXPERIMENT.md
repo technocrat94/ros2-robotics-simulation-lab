@@ -82,6 +82,10 @@ relative change = abs(deflection_fine - deflection_coarse) / abs(deflection_fine
 
 ## Results
 
+![Newton FEM rubber strip deforming and oscillating under gravity](experiments/newton-soft-strip/results/soft_strip_oscillation.gif)
+
+**Qualitative visual evidence.** The approximately 2× playback shows the `20 × 3 × 2` mesh during an eight-second Newton simulation with `1,000 Pa·s` damping, `dt = 1/600 s`, and 10 solver iterations. The left face remains fixed while the free end deforms and oscillates. The GIF demonstrates the modeled behavior over time; it does not establish accuracy or replace the numerical checks.
+
 | X cells | Mean downward tip deflection | Final 1 s tip range | Result |
 |---:|---:|---:|---|
 | 20 | `0.38028 m` | `3.995 mm` | near-settled |
