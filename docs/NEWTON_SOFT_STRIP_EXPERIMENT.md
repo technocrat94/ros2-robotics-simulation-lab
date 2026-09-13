@@ -1,6 +1,6 @@
-# Newton FEM Soft-Strip Experiment
+# Newton Soft-Strip Modeling Experiments
 
-Recorded on 2026-09-11. This experiment establishes a measurable deformable-body baseline in Newton 1.5.1 before coupling a soft object to the UR5/Robotiq and MoveIt workflow.
+Recorded on 2026-09-11 and extended on 2026-09-14. These experiments establish and compare two measurable soft-strip representations in Newton 1.5.1 before coupling the object to the UR5/Robotiq and MoveIt workflow.
 
 ## Engineering objective
 
@@ -113,6 +113,53 @@ This distinction is central to the result:
 
 The deflection is also comparable to the 0.40 m strip length, so small-deflection beam theory is not an appropriate validation model for this configuration.
 
+## Rigid-segment approximation
+
+The second representation approximates the same `0.40 × 0.05 × 0.02 m`, `0.44 kg` strip as a chain of rigid boxes connected by compliant revolute joints. It is comparable to an articulated ruler: every link is rigid, while the hinges provide bending compliance.
+
+For a rectangular cross-section,
+
+```text
+I = b h^3 / 12 = 3.333333e-8 m^4
+EI = 0.033333 N m^2
+segment length = L / N
+joint stiffness = EI / segment_length
+```
+
+The hinge torque follows the intended spring-damper interpretation:
+
+```text
+torque = -joint_stiffness * angle - joint_damping * angular_velocity
+```
+
+The first segment is kinematic, which exactly imposes the cantilever boundary. A fixed-joint root was tested first, but its root drift decreased only from `0.418 mm` at 10 solver iterations to `0.214 mm` at 40 iterations while computation became slower. The kinematic root produced `0.0 m` root-position error and made the boundary condition explicit.
+
+Joint damping was scaled with segment count from the 20-segment reference value:
+
+```text
+c_joint = 0.02 * segments / 20  N m s/rad
+```
+
+This preserves a consistent distributed-damping rule during refinement; it is a numerical modeling choice, not a calibrated material coefficient.
+
+Self-collision was disabled for this bending comparison. With 40 segments and shape collision enabled, the folded chain generated more contacts than the configured 2,000-contact buffer and emitted repeated contact-buffer overflow warnings. Disabling segment collisions removed that invalid comparison factor and matched the FEM experiment, which also did not claim self-contact validation. Contact must be restored later with suitable collision filtering and capacity for robot grasp tests.
+
+## Segmented-model results
+
+The topology checks passed: the model contained `N` bodies and shapes, `N - 1` revolute joints, equal segment masses totaling `0.44 kg`, and the intended initial geometry. All runs below had finite state and exactly zero kinematic-root position error.
+
+| Segments | Joint stiffness | Joint damping | Mean downward tip deflection | Final 1 s range | RTF |
+|---:|---:|---:|---:|---:|---:|
+| 20 | `1.6667 N m/rad` | `0.020 N m s/rad` | `0.352523 m` | `3.176 mm` | `0.827` |
+| 40 | `3.3333 N m/rad` | `0.040 N m s/rad` | `0.381506 m` | `3.945 mm` | `0.825` |
+| 80 | `6.6667 N m/rad` | `0.080 N m s/rad` | `0.401202 m` | `3.980 mm` | `0.762` |
+
+The 20-to-40 change was `7.60%`, so 20 segments were insufficient under the predefined 5% criterion. The 40-to-80 change was `4.91%`, so the equilibrium deflection narrowly passed the longitudinal refinement criterion. The 80-segment final-window range was `3.980 mm`, only `0.020 mm` below the 4 mm stopping threshold; this is a boundary pass and does not establish robust transient convergence.
+
+The 80-segment result differed from the validated 80-cell FEM deflection (`0.408003 m`) by `1.67%`. Agreement between two discretizations is useful cross-evidence, but it is not experimental material validation because both models use assumptions derived from the same nominal geometry and Young's modulus.
+
+At 80 longitudinal divisions, the segmented model achieved an RTF of `0.762`, versus `0.0943` for the validated FEM case on the same CPU environment. The segmented approximation was therefore about `8.1×` faster by this measurement. Its advantage is speed and direct joint control; its cost is that three-dimensional continuum deformation and local contact deformation are absent.
+
 ## Reproduction
 
 The prototype is stored under `docs/experiments/newton-soft-strip/prototype/`.
@@ -135,6 +182,12 @@ python soft_strip_simulation.py \
 python soft_strip_batch.py \
   --cells-x 80 --damping 1000 --iterations 10 \
   --min-duration 20 --settle-threshold 0.004 --max-duration 60
+
+# Verify the rigid-segment topology and run its finest comparison.
+python segmented_strip_topology.py --segments 80
+python segmented_strip_batch.py \
+  --segments 80 --min-duration 5 \
+  --settle-threshold 0.004 --max-duration 60
 ```
 
 Use the validated Newton virtual environment in the migrated VM when reproducing these commands. The visual program streams live frames and does not replay early motion for a browser that connects late; `--start-delay` provides time to open the viewer.
@@ -147,9 +200,11 @@ Use the validated Newton virtual environment in the migrated VM when reproducing
 | `soft_strip_viewer.py` | Display the undeformed mesh without advancing physics |
 | `soft_strip_simulation.py` | Run and display the gravity-loaded VBD simulation while measuring the tip and fixed boundary |
 | `soft_strip_batch.py` | Run the same model headlessly and stop on a measurable final-window motion threshold |
+| `segmented_strip_topology.py` | Build the rigid-link chain, derive `EI`-based hinge stiffness, and verify mass, topology, and initial geometry |
+| `segmented_strip_batch.py` | Measure the segmented chain's response, automatic stopping, root error, finite state, and runtime |
 
 ## Engineering conclusion
 
-The experiment establishes a reproducible Newton FEM baseline with verified topology, boundary preservation, finite state, and longitudinal equilibrium-deflection convergence at the stated 5% tolerance. It does not yet establish calibrated rubber behavior, transient convergence, full 3D mesh convergence, self-contact validity, robot contact, or grasping.
+The experiment establishes two reproducible Newton baselines with verified topology, boundary preservation, finite state, and longitudinal equilibrium-deflection convergence at the stated 5% tolerance. At the finest tested resolution, the segmented approximation was within `1.67%` of the FEM deflection and ran about `8.1×` faster. Its settling and convergence passes were narrow, and neither model has been calibrated against a physical specimen.
 
-The next modeling comparison will represent a flexible strip as rigid segments connected by compliant joints. Comparing the FEM and segmented models under the same geometry, loading, and measurement definition will show how model choice affects deformation, computation cost, and suitability for robot interaction. MoveIt integration should follow after the deformable-object model and its acceptance measures are explicit.
+The evidence supports using the segmented model for the next fast robot-motion integration experiment and retaining FEM as the higher-fidelity reference. It does not establish calibrated rubber behavior, transient convergence, full 3D convergence, self-contact validity, robot contact, or grasping. MoveIt integration should preserve this distinction between commanded robot motion and Newton-measured object response.

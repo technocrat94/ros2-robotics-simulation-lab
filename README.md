@@ -31,6 +31,8 @@ The approximately 2× playback shows the 20-cell model deforming and oscillating
 
 The equilibrium free-tip deflection changed by `5.60%` from 20 to 40 longitudinal cells, then by `1.27%` from 40 to 80 cells. The result therefore passes the predefined 5% **X-direction** convergence threshold between the two finest meshes. Material calibration, transient convergence, full 3D mesh convergence, and robot contact remain future work.
 
+A second model represented the strip as 20, 40, and 80 rigid segments joined by compliant revolute joints. Its 40-to-80 equilibrium-deflection change was `4.91%`, and the 80-segment result was within `1.67%` of the validated FEM result while running about `8.1×` faster. The convergence and settling checks passed narrowly, so the segmented chain is the fast integration candidate while FEM remains the higher-detail reference.
+
 [Read the detailed soft-strip experiment and reproduce the prototype](docs/NEWTON_SOFT_STRIP_EXPERIMENT.md).
 
 ## Newton–ROS 2 bridge milestone
@@ -53,7 +55,7 @@ This verifies the command-and-feedback architecture, robot URDF import, forward 
 - [Operations guide](docs/OPERATIONS_GUIDE.md) — repeatable startup, execution, and parameter-editing instructions
 - [Troubleshooting record](docs/TROUBLESHOOTING.md) — failures, diagnostic evidence, fixes, and engineering lessons
 - [Newton–ROS 2 integration](docs/NEWTON_ROS2_INTEGRATION.md) ([繁體中文累積式學習筆記](docs/NEWTON_ROS2_LEARNING_LOG.zh-TW.md)) — verified bridge, evidence, limitations, and robot-model compatibility decisions
-- [Newton FEM soft-strip experiment](docs/NEWTON_SOFT_STRIP_EXPERIMENT.md) — deformable-body setup, measurement definitions, longitudinal mesh-convergence evidence, and reproducible source
+- [Newton soft-strip modeling experiments](docs/NEWTON_SOFT_STRIP_EXPERIMENT.md) — FEM and compliant-joint representations, convergence evidence, runtime tradeoff, and reproducible source
 
 ## Current demo
 
