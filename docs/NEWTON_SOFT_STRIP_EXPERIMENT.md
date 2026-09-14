@@ -148,6 +148,10 @@ Self-collision was disabled for this bending comparison. With 40 segments and sh
 
 The topology checks passed: the model contained `N` bodies and shapes, `N - 1` revolute joints, equal segment masses totaling `0.44 kg`, and the intended initial geometry. All runs below had finite state and exactly zero kinematic-root position error.
 
+![Newton compliant-joint strip deforming and oscillating under gravity](experiments/newton-soft-strip/results/segmented_strip_oscillation.gif)
+
+**Qualitative visual evidence.** The recording shows the 20 rigid segments rotating at their compliant joints as gravity bends the chain. The status panel identifies the kinematic root, disabled segment self-collision, joint stiffness, joint damping, and measured tip deflection. The animation demonstrates the model structure and time response; the numerical refinement table provides the acceptance evidence.
+
 | Segments | Joint stiffness | Joint damping | Mean downward tip deflection | Final 1 s range | RTF |
 |---:|---:|---:|---:|---:|---:|
 | 20 | `1.6667 N m/rad` | `0.020 N m s/rad` | `0.352523 m` | `3.176 mm` | `0.827` |
@@ -185,6 +189,8 @@ python soft_strip_batch.py \
 
 # Verify the rigid-segment topology and run its finest comparison.
 python segmented_strip_topology.py --segments 80
+python segmented_strip_simulation.py \
+  --segments 20 --duration 12 --start-delay 10 --port 8084
 python segmented_strip_batch.py \
   --segments 80 --min-duration 5 \
   --settle-threshold 0.004 --max-duration 60
@@ -201,6 +207,7 @@ Use the validated Newton virtual environment in the migrated VM when reproducing
 | `soft_strip_simulation.py` | Run and display the gravity-loaded VBD simulation while measuring the tip and fixed boundary |
 | `soft_strip_batch.py` | Run the same model headlessly and stop on a measurable final-window motion threshold |
 | `segmented_strip_topology.py` | Build the rigid-link chain, derive `EI`-based hinge stiffness, and verify mass, topology, and initial geometry |
+| `segmented_strip_simulation.py` | Display the gravity response and live engineering measurements for qualitative inspection and recording |
 | `segmented_strip_batch.py` | Measure the segmented chain's response, automatic stopping, root error, finite state, and runtime |
 
 ## Engineering conclusion

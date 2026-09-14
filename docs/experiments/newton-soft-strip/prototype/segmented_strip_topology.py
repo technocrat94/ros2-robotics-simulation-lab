@@ -39,6 +39,7 @@ def build_model(
     joint_damping_nm_s_rad=0.0,
     kinematic_root=True,
     enable_shape_collisions=False,
+    add_ground=False,
 ):
     properties = calculated_properties(segments)
     segment_length = properties["segment_length_m"]
@@ -119,6 +120,8 @@ def build_model(
         )
 
     builder.add_articulation(joints, label="segmented_rubber_strip")
+    if add_ground:
+        builder.add_ground_plane()
     model = builder.finalize()
     state = model.state()
     newton.eval_fk(model, model.joint_q, model.joint_qd, state)

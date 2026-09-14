@@ -33,6 +33,10 @@ The equilibrium free-tip deflection changed by `5.60%` from 20 to 40 longitudina
 
 A second model represented the strip as 20, 40, and 80 rigid segments joined by compliant revolute joints. Its 40-to-80 equilibrium-deflection change was `4.91%`, and the 80-segment result was within `1.67%` of the validated FEM result while running about `8.1×` faster. The convergence and settling checks passed narrowly, so the segmented chain is the fast integration candidate while FEM remains the higher-detail reference.
 
+![Newton compliant-joint segmented strip under gravity](docs/experiments/newton-soft-strip/results/segmented_strip_oscillation.gif)
+
+The 20-segment recording makes the representation explicit: each colored link remains rigid while compliant revolute joints create the strip-scale bending and oscillation.
+
 [Read the detailed soft-strip experiment and reproduce the prototype](docs/NEWTON_SOFT_STRIP_EXPERIMENT.md).
 
 ## Newton–ROS 2 bridge milestone
