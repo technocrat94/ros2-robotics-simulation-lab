@@ -39,6 +39,16 @@ The 20-segment recording makes the representation explicit: each colored link re
 
 [Read the detailed soft-strip experiment and reproduce the prototype](docs/NEWTON_SOFT_STRIP_EXPERIMENT.md).
 
+## Newton robot-contact grasp milestone
+
+On 2026-09-15, the imported UR5/Robotiq used Newton collision and friction to lift a pre-positioned 20-segment strip from its center region and release it by opening the gripper. The robot followed prescribed joint coordinates; the strip remained dynamic and had no attachment constraint.
+
+![Newton center grasp, lift, and release](docs/experiments/newton-robot-grasp/results/center_grasp_success.gif)
+
+The grasp region followed a commanded `0.120 m` lift by `0.118685 m`, an absolute error of `1.315 mm`, and dropped `0.388397 m` after opening. Earlier apparent successes were rejected after visual and collision-geometry checks exposed fingertip support, excessive geometric overlap, disabled robot colliders, an incorrect contact height, and a high-moment end grasp. The successful case uses a center grasp, full robot collision geometry, `0.386 rad` closure, and `1.5` friction.
+
+[Read the robot contact-grasp experiment, failed hypotheses, corrected metric, and reproduction steps](docs/NEWTON_ROBOT_GRASP_EXPERIMENT.md).
+
 ## Newton–ROS 2 bridge milestone
 
 On 2026-09-10, a minimal bidirectional bridge was verified while keeping ROS 2 Humble on Python 3.10 and Newton 1.5.1 on its validated Python 3.12 environment. ROS services started, paused, and reset a Newton sphere simulation; Newton's measured pose and simulation time returned through ROS topics. Stopping Newton caused the bridge to report stale data instead of treating the last pose as current.
