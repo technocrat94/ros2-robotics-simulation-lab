@@ -8,15 +8,15 @@ This experiment tests whether the imported UR5 and Robotiq 2F-85 can lift and re
 
 The result establishes one reproducible **pre-positioned contact lift-and-release** case. It is not yet a MoveIt trajectory, an autonomous pickup, a calibrated force-control experiment, or a validation of physical rubber.
 
-![UR5 and Robotiq lifting and releasing the segmented strip through Newton contact](experiments/newton-robot-grasp/results/center_grasp_success.gif)
+![Earlier geometric-capture lift and release at 0.386 rad](experiments/newton-robot-grasp/results/center_grasp_success.gif)
 
-The approximately 4× recording shows the successful configuration: the strip settles between the fingers, follows the commanded lift, remains held during the lift hold, and drops only when the gripper opens. The animation is qualitative evidence; the measured grasp-region trajectory supplies the acceptance evidence.
+The approximately 4× recording shows the earlier `0.386 rad` configuration carrying and releasing the strip. A later zero-friction control also remained captured at this closure, so the recording is retained as evidence of **geometric capture**, not as evidence of a friction-dependent pinch. The revised quantitative result below uses `0.376 rad` and a matched zero-friction control.
 
 ## Model and command sequence
 
 The robot model contains 24 bodies and 54 shapes. All 17 robot collision shapes are enabled, while the robot bodies follow prescribed joint coordinates. The object is the previously compared `0.40 × 0.05 × 0.02 m`, `0.44 kg` segmented strip with 20 rigid links and compliant revolute joints.
 
-The six-second test is:
+The test sequence is:
 
 ```text
 closed contact hold
@@ -32,8 +32,11 @@ The successful parameters were:
 |---|---:|
 | Grasp location | strip center / center-of-mass region |
 | Initial strip center height | `0.309 m` |
-| Gripper leader angle | `0.386 rad` |
+| Gripper leader angle | `0.376 rad` |
 | Contact friction coefficient | `1.5` |
+| Lift duration | `0.25 s` |
+| Estimated peak lift speed | `0.72 m/s` |
+| Estimated peak lift acceleration | `11.52 m/s²` |
 | Collision scope | all robot collision shapes |
 | Time step | `1/600 s` |
 | XPBD iterations | `30` |
@@ -52,22 +55,33 @@ moment arm = 0.20 m
 gravity moment ≈ 4.32 * 0.20 = 0.86 N m
 ```
 
-Moving the grasp to the center-of-mass region greatly reduced this moment. With all other settings held fixed, `0.36625 rad` established contact but the operator observed slip during lifting. Increasing only the leader angle to `0.386 rad` produced the successful lift and release. This one-variable comparison supports insufficient normal clamping action as the main cause of the preceding lift failure. It does not calibrate a physical gripper force.
+Moving the grasp to the center-of-mass region greatly reduced this moment. The subsequent observations refined the mechanism instead of treating every visible lift as the same kind of grasp:
+
+| Closure | Friction | Observation | Interpretation |
+|---:|---:|---|---|
+| `0.356 rad` | `0` or `1.5` | immediate fall | aperture produced insufficient normal action; increasing friction alone could not help |
+| `0.36625 rad` | `0` | immediate fall | no load-bearing geometric lock |
+| `0.36625 rad` | `1.5` | descent slowed from the start but never stopped | friction acted, but its limit was below the static weight requirement |
+| `0.376 rad` | `0` | immediate fall | no load-bearing geometric lock at the selected working point |
+| `0.376 rad` | `1.5` | lifted and released successfully | friction-dependent grasp |
+| `0.386 rad` | `0` or `1.5` | remained captured | geometric interlocking / form closure dominated |
+
+The `0.376 rad` pair changes only friction and therefore provides the cleanest mechanism test. The single Newton material coefficient is interpreted as a Coulomb-friction parameter; it is not a separately calibrated real static and kinetic coefficient.
 
 ## Measurement correction and quantitative acceptance
 
-The first automated check used the mean height of all 20 strip links. That metric reported only `45.48 mm` of lift because the two flexible halves sagged even while the center remained carried. It therefore produced a false failure for a center grasp.
+The first automated check used the mean height of all 20 strip links. That metric underestimated lift because the two flexible halves sagged even while the center remained carried. It therefore produced a false failure for a center grasp.
 
 The corrected metric tracks the two central links located at the gripper. This is the relevant observable for the question, “Did the grasped region follow the robot?”
 
 ```text
-grasp-region z after contact hold = 0.279712 m
-grasp-region z after lift hold    = 0.398397 m
-measured grasp-region rise        = 0.118685 m
+grasp-region z after contact hold = 0.276703 m
+grasp-region z after lift hold    = 0.396272 m
+measured grasp-region rise        = 0.119569 m
 commanded robot lift              = 0.120000 m
-absolute tracking error           = 0.001315 m
+absolute tracking error           = 0.000431 m
 final grasp-region z after release = 0.010000 m
-release drop from lift hold       = 0.388397 m
+release drop from lift hold       = 0.386272 m
 finite state                      = true
 ```
 
@@ -79,9 +93,9 @@ release drop from lift hold > 0.050 m
 all final coordinates are finite
 ```
 
-The run passed all three checks. The strip also settled downward by `29.29 mm` during the initial contact hold. This is recorded rather than hidden: the object begins pre-positioned inside a closed gripper and finds a supported contact configuration before the lift begins.
+The `0.376 rad`, `μ = 1.5`, `0.25 s` lift passed all three checks. The strip settled downward by `32.30 mm` during the initial contact hold and then followed the fast lift. This is recorded rather than hidden: the object begins pre-positioned inside a closed gripper and finds a contact configuration before the lift begins.
 
-Newton's reported contact-count buffer contains collision candidates and is retained only as diagnostic output. It is not used as proof of load-bearing contact. The acceptance instead requires the independently simulated grasp region to follow the robot lift and then separate after the commanded opening.
+The matched `μ = 0` control reached the ground during contact hold, produced essentially `0 m` grasp-region rise, and failed with `0.120 m` tracking error. Both the success and failure runs reported a maximum of 2,200 contact candidates. Newton's contact-count buffer is therefore retained only as diagnostic output; it is not proof of load-bearing contact. Acceptance requires the independently simulated grasp region to follow the robot lift and then separate after the commanded opening.
 
 ## Engineering lessons
 
@@ -90,7 +104,8 @@ Newton's reported contact-count buffer contains collision candidates and is reta
 3. A successful-looking lift can be caused by support, wedging, penetration, or an attachment shortcut. A release test and a deliberately failing comparison help separate these explanations.
 4. Grasping near the center of mass reduces gravity moment, but the best grasp point also depends on accessibility, collision clearance, and the downstream task.
 5. Validation metrics must measure the phenomenon of interest. Whole-object mean height was useful for strip deformation but inappropriate for judging whether the center grasp followed the robot.
-6. Change one variable at a time. Holding geometry, friction, and motion fixed while changing closure from `0.36625` to `0.386 rad` made the result interpretable.
+6. Change one variable at a time. The matched `0.376 rad` tests changed only friction, which separated friction-dependent lifting from geometric interlocking.
+7. Test speed only after identifying the grasp mechanism. A high-speed success at `0.386 rad` was not a valid friction stress test because the zero-friction case also remained geometrically captured.
 
 ## Reproduction
 
@@ -101,18 +116,29 @@ cd docs/experiments/newton-robot-grasp/prototype
 
 GRASP_POSITION=center \
 GRASP_COLLISION_SCOPE=all \
-GRASP_CLOSED_GRIP=0.386 \
+GRASP_CLOSED_GRIP=0.376 \
 GRASP_STRIP_CENTER_Z=0.309 \
 GRASP_FRICTION=1.5 \
+GRASP_LIFT_DURATION=0.25 \
 python robot_segmented_grasp_batch.py
 
 GRASP_POSITION=center \
 GRASP_SHOW_COLLIDERS=1 \
 GRASP_COLLISION_SCOPE=all \
-GRASP_CLOSED_GRIP=0.386 \
+GRASP_CLOSED_GRIP=0.376 \
 GRASP_STRIP_CENTER_Z=0.309 \
 GRASP_FRICTION=1.5 \
+GRASP_LIFT_DURATION=0.25 \
 python robot_segmented_grasp_simulation.py --start-delay 15
+
+# Matched negative control: change friction only.
+GRASP_POSITION=center \
+GRASP_COLLISION_SCOPE=all \
+GRASP_CLOSED_GRIP=0.376 \
+GRASP_STRIP_CENTER_Z=0.309 \
+GRASP_FRICTION=0 \
+GRASP_LIFT_DURATION=0.25 \
+python robot_segmented_grasp_batch.py
 ```
 
 `robot_segmented_grasp_batch.py` builds the scene, prescribes robot motion, advances Newton contact dynamics, measures the whole strip and grasp region separately, and applies the acceptance criteria. `robot_segmented_grasp_simulation.py` displays the same experiment and can switch between visual geometry and collision geometry.

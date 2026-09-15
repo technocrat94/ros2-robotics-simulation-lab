@@ -37,6 +37,18 @@ COLLISION_SCOPE = os.environ.get("GRASP_COLLISION_SCOPE", "all")
 STRIP_CENTER_Z = float(os.environ.get("GRASP_STRIP_CENTER_Z", "0.34"))
 GRASP_POSITION = os.environ.get("GRASP_POSITION", "near_end")
 COMMAND_LIFT_Z = 0.12
+CONTACT_HOLD_DURATION = 1.0
+LIFT_DURATION = float(os.environ.get("GRASP_LIFT_DURATION", "2.0"))
+if LIFT_DURATION <= 0.0:
+    raise ValueError("GRASP_LIFT_DURATION must be greater than zero")
+LIFT_HOLD_DURATION = 1.0
+OPEN_DURATION = 1.0
+RELEASE_DURATION = 1.0
+CONTACT_END = CONTACT_HOLD_DURATION
+LIFT_END = CONTACT_END + LIFT_DURATION
+LIFT_HOLD_END = LIFT_END + LIFT_HOLD_DURATION
+OPEN_END = LIFT_HOLD_END + OPEN_DURATION
+TEST_DURATION = OPEN_END + RELEASE_DURATION
 
 
 def smoothstep(x):
@@ -52,22 +64,24 @@ def grasp_region_links(strip_links):
 
 
 def robot_coordinates(t):
-    if t < 1.0:
+    if t < CONTACT_END:
         arm = BASE_ARM
         grip = CLOSED_GRIP
         phase = "CONTACT_HOLD"
-    elif t < 3.0:
-        s = smoothstep((t - 1.0) / 2.0)
+    elif t < LIFT_END:
+        s = smoothstep((t - CONTACT_END) / LIFT_DURATION)
         arm = BASE_ARM + s * (LIFT_ARM - BASE_ARM)
         grip = CLOSED_GRIP
         phase = "LIFT"
-    elif t < 4.0:
+    elif t < LIFT_HOLD_END:
         arm = LIFT_ARM
         grip = CLOSED_GRIP
         phase = "LIFT_HOLD"
-    elif t < 5.0:
+    elif t < OPEN_END:
         arm = LIFT_ARM
-        grip = CLOSED_GRIP * (1.0 - smoothstep(t - 4.0))
+        grip = CLOSED_GRIP * (
+            1.0 - smoothstep((t - LIFT_HOLD_END) / OPEN_DURATION)
+        )
         phase = "OPEN"
     else:
         arm = LIFT_ARM
@@ -252,7 +266,7 @@ def main():
     previous_robot_q = robot_q.copy()
     wall_start = time.monotonic()
     sim_time = 0.0
-    while sim_time < 6.0:
+    while sim_time < TEST_DURATION:
         for _ in range(SUBSTEPS):
             next_time = sim_time + DT
             robot_q, phase = robot_coordinates(next_time)
@@ -301,6 +315,9 @@ def main():
         "robot_shapes": robot_shapes,
         "active_robot_colliders": active_robot_colliders,
         "contact_friction": CONTACT_FRICTION,
+        "lift_duration_s": LIFT_DURATION,
+        "estimated_peak_lift_speed_m_s": 1.5 * COMMAND_LIFT_Z / LIFT_DURATION,
+        "estimated_peak_lift_acceleration_m_s2": 6.0 * COMMAND_LIFT_Z / LIFT_DURATION**2,
         "closed_grip_rad": CLOSED_GRIP,
         "collision_scope": COLLISION_SCOPE,
         "strip_initial_center_z_setting_m": STRIP_CENTER_Z,

@@ -16,6 +16,8 @@ from robot_segmented_grasp_batch import (
     SUBSTEPS,
     SHOW_COLLIDERS,
     COLLISION_SCOPE,
+    LIFT_DURATION,
+    TEST_DURATION,
     build_scene,
     grasp_region_links,
     robot_coordinates,
@@ -83,7 +85,7 @@ def main():
     try:
         while viewer.is_running():
             remaining = max(0.0, args.start_delay - (time.monotonic() - wall_start))
-            if remaining == 0.0 and sim_time < 6.0:
+            if remaining == 0.0 and sim_time < TEST_DURATION:
                 for _ in range(SUBSTEPS):
                     next_time = sim_time + DT
                     robot_q, phase = robot_coordinates(next_time)
@@ -113,13 +115,14 @@ def main():
             current_q, current_phase = robot_coordinates(sim_time)
             if remaining > 0.0:
                 heading = f"STARTING IN {remaining:.1f} s"
-            elif sim_time < 6.0:
+            elif sim_time < TEST_DURATION:
                 heading = current_phase
             else:
                 heading = "COMPLETE"
             status.content = (
                 f"### {heading}\n"
                 f"- Simulation time: **{sim_time:.2f} s**\n"
+                f"- Lift duration: **{LIFT_DURATION:.2f} s**\n"
                 f"- Gripper leader: **{current_q[6]:.3f} rad**\n"
                 f"- Strip center z: **{center_z:.3f} m**\n"
                 f"- Grasp region z: **{grasp_z:.3f} m**\n"
@@ -132,7 +135,7 @@ def main():
             viewer.log_state(state_0)
             viewer.end_frame()
 
-            if sim_time >= 6.0 and not result_printed:
+            if sim_time >= TEST_DURATION and not result_printed:
                 print(
                     f"GRASP_VIEWER_COMPLETE maximum_lift_m={maximum_z-initial_z:.4f} "
                     f"final_center_z_m={center_z:.4f}",
