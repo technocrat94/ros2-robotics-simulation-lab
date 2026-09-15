@@ -37,7 +37,7 @@ A second model represented the strip as 20, 40, and 80 rigid segments joined by 
 
 The 20-segment recording makes the representation explicit: each colored link remains rigid while compliant revolute joints create the strip-scale bending and oscillation.
 
-[Read the detailed soft-strip experiment and reproduce the prototype](docs/NEWTON_SOFT_STRIP_EXPERIMENT.md).
+[Read the detailed soft-strip experiment and reproduce the prototype](docs/NEWTON_SOFT_STRIP_EXPERIMENT.md) ([繁體中文學習筆記](docs/NEWTON_SOFT_STRIP_EXPERIMENT.zh-TW.md)).
 
 ## Newton robot-contact grasp milestone
 
@@ -47,7 +47,7 @@ On 2026-09-15, the imported UR5/Robotiq used Newton collision and friction to li
 
 The grasp region followed a commanded `0.120 m` lift by `0.118685 m`, an absolute error of `1.315 mm`, and dropped `0.388397 m` after opening. Earlier apparent successes were rejected after visual and collision-geometry checks exposed fingertip support, excessive geometric overlap, disabled robot colliders, an incorrect contact height, and a high-moment end grasp. The successful case uses a center grasp, full robot collision geometry, `0.386 rad` closure, and `1.5` friction.
 
-[Read the robot contact-grasp experiment, failed hypotheses, corrected metric, and reproduction steps](docs/NEWTON_ROBOT_GRASP_EXPERIMENT.md).
+[Read the robot contact-grasp experiment, failed hypotheses, corrected metric, and reproduction steps](docs/NEWTON_ROBOT_GRASP_EXPERIMENT.md) ([繁體中文學習筆記](docs/NEWTON_ROBOT_GRASP_EXPERIMENT.zh-TW.md)).
 
 ## Newton–ROS 2 bridge milestone
 
@@ -61,15 +61,17 @@ The captured final state shows the complete imported robot, `COMPLETE · PAUSED`
 
 This verifies the command-and-feedback architecture, robot URDF import, forward kinematics, and explicit Robotiq mimic mapping. The demonstration uses prescribed kinematics; Newton has not replaced fake hardware or validated dynamic contact and grasping.
 
-[Read the technical integration record](docs/NEWTON_ROS2_INTEGRATION.md), the [繁體中文累積式學習筆記](docs/NEWTON_ROS2_LEARNING_LOG.zh-TW.md), or the [報告操作單](docs/REPORT_GUIDE_2026-09-12.zh-TW.md).
+[Read the technical integration record](docs/NEWTON_ROS2_INTEGRATION.md), its [繁體中文學習筆記](docs/NEWTON_ROS2_INTEGRATION.zh-TW.md), the [中文主題索引](docs/NEWTON_ROS2_LEARNING_LOG.zh-TW.md), or the [報告操作單](docs/REPORT_GUIDE_2026-09-12.zh-TW.md).
 
 ## Portfolio map
 
 - [Learning journey](docs/LEARNING_JOURNEY.md) ([繁體中文](docs/LEARNING_JOURNEY.zh-TW.md)) — how the project progressed from a UTM environment to a verified integrated demo
 - [Operations guide](docs/OPERATIONS_GUIDE.md) — repeatable startup, execution, and parameter-editing instructions
 - [Troubleshooting record](docs/TROUBLESHOOTING.md) — failures, diagnostic evidence, fixes, and engineering lessons
-- [Newton–ROS 2 integration](docs/NEWTON_ROS2_INTEGRATION.md) ([繁體中文累積式學習筆記](docs/NEWTON_ROS2_LEARNING_LOG.zh-TW.md)) — verified bridge, evidence, limitations, and robot-model compatibility decisions
-- [Newton soft-strip modeling experiments](docs/NEWTON_SOFT_STRIP_EXPERIMENT.md) — FEM and compliant-joint representations, convergence evidence, runtime tradeoff, and reproducible source
+- [Newton–ROS 2 integration](docs/NEWTON_ROS2_INTEGRATION.md) ([繁體中文](docs/NEWTON_ROS2_INTEGRATION.zh-TW.md)) — verified bridge, evidence, limitations, and robot-model compatibility decisions
+- [Newton soft-strip modeling experiments](docs/NEWTON_SOFT_STRIP_EXPERIMENT.md) ([繁體中文](docs/NEWTON_SOFT_STRIP_EXPERIMENT.zh-TW.md)) — FEM and compliant-joint representations, convergence evidence, runtime tradeoff, and reproducible source
+- [Newton robot contact-grasp experiment](docs/NEWTON_ROBOT_GRASP_EXPERIMENT.md) ([繁體中文](docs/NEWTON_ROBOT_GRASP_EXPERIMENT.zh-TW.md)) — failed hypotheses, contact geometry, center grasp, corrected metrics, and release evidence
+- [中文學習索引](docs/NEWTON_ROS2_LEARNING_LOG.zh-TW.md) — topic map, milestone sequence, and recommended reading order
 
 ## Current demo
 

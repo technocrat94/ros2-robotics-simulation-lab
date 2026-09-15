@@ -1,5 +1,7 @@
 # Newton–ROS 2 Integration: Verified Bridge and Robot-Model Assessment
 
+> [繁體中文學習筆記](NEWTON_ROS2_INTEGRATION.zh-TW.md) · [Documentation index](NEWTON_ROS2_LEARNING_LOG.zh-TW.md)
+
 Recorded on 2026-09-10. This document describes the first verified integration milestone between ROS 2 Humble and Newton 1.5.1 in the migrated Ubuntu aarch64 VM.
 
 ## Objective

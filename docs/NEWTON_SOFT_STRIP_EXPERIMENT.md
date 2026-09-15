@@ -1,5 +1,7 @@
 # Newton Soft-Strip Modeling Experiments
 
+> [繁體中文學習筆記](NEWTON_SOFT_STRIP_EXPERIMENT.zh-TW.md) · [Documentation index](NEWTON_ROS2_LEARNING_LOG.zh-TW.md)
+
 Recorded on 2026-09-11 and extended on 2026-09-14. These experiments establish and compare two measurable soft-strip representations in Newton 1.5.1 before coupling the object to the UR5/Robotiq and MoveIt workflow.
 
 ## Engineering objective

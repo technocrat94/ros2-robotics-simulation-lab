@@ -1,5 +1,7 @@
 # Newton Robot Contact-Grasp Experiment
 
+> [繁體中文學習筆記](NEWTON_ROBOT_GRASP_EXPERIMENT.zh-TW.md) · [Documentation index](NEWTON_ROS2_LEARNING_LOG.zh-TW.md)
+
 ## Purpose and claim boundary
 
 This experiment tests whether the imported UR5 and Robotiq 2F-85 can lift and release the fast 20-segment strip through Newton collision and friction. The robot follows prescribed joint coordinates and is kinematic; the strip remains dynamic. No fixed joint, attachment constraint, or pose-copy shortcut connects the strip to the gripper.
