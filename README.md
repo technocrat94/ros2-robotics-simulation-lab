@@ -43,9 +43,9 @@ The 20-segment recording makes the representation explicit: each colored link re
 
 On 2026-09-15, the imported UR5/Robotiq used Newton contact to lift a pre-positioned 20-segment strip from its center region and release it by opening the gripper. The robot followed prescribed joint coordinates; the strip remained dynamic and had no attachment constraint.
 
-![Earlier Newton geometric-capture lift and release at 0.386 rad](docs/experiments/newton-robot-grasp/results/center_grasp_success.gif)
+![Newton friction grasp surviving a 180-degree wrist motion before release](docs/experiments/newton-robot-grasp/results/newton_180deg_dance_grasp.gif)
 
-The validated friction-dependent case used `0.376 rad` closure, `1.5` friction, and a `0.25 s` lift with an estimated `11.52 m/s²` peak acceleration. Its grasp region followed the commanded `0.120 m` lift by `0.119569 m`, an absolute error of `0.431 mm`, and dropped `0.386272 m` after opening. A matched zero-friction control fell during contact hold and produced essentially zero lift. The retained GIF shows an earlier `0.386 rad` run; because its zero-friction control also remained captured, it is labeled as geometric capture rather than frictional-pinch evidence.
+The validated friction-dependent case used `0.376 rad` closure, `1.5` friction, and a `0.25 s` lift with an estimated `11.52 m/s²` peak acceleration. Its grasp region followed the commanded `0.120 m` lift by `0.119569 m`, an absolute error of `0.431 mm`, while a matched zero-friction control fell during contact hold. A subsequent prescribed-motion stress test combined shoulder motion with an approximately 180-degree wrist offset; the grasp-region height changed by only `0.88 mm` across the motion and the strip dropped `0.386272 m` after opening. The robot remains kinematic, so this validates simulated object/contact response rather than physical motor torque capability.
 
 [Read the robot contact-grasp experiment, failed hypotheses, corrected metric, and reproduction steps](docs/NEWTON_ROBOT_GRASP_EXPERIMENT.md) ([繁體中文學習筆記](docs/NEWTON_ROBOT_GRASP_EXPERIMENT.zh-TW.md)).
 

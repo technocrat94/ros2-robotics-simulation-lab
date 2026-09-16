@@ -41,13 +41,29 @@ CONTACT_HOLD_DURATION = 1.0
 LIFT_DURATION = float(os.environ.get("GRASP_LIFT_DURATION", "2.0"))
 if LIFT_DURATION <= 0.0:
     raise ValueError("GRASP_LIFT_DURATION must be greater than zero")
-LIFT_HOLD_DURATION = 1.0
+LIFT_HOLD_DURATION = float(os.environ.get("GRASP_LIFT_HOLD_DURATION", "1.0"))
+if LIFT_HOLD_DURATION < 0.0:
+    raise ValueError("GRASP_LIFT_HOLD_DURATION must be zero or greater")
+DANCE_MODE = os.environ.get("GRASP_MOTION_MODE", "lift_only")
+DANCE_DURATION = float(os.environ.get("GRASP_DANCE_DURATION", "4.0"))
+DANCE_CYCLES = float(os.environ.get("GRASP_DANCE_CYCLES", "2.0"))
+DANCE_SHOULDER_AMPLITUDE = float(
+    os.environ.get("GRASP_DANCE_SHOULDER_AMPLITUDE", "0.18")
+)
+DANCE_WRIST_AMPLITUDE = float(
+    os.environ.get("GRASP_DANCE_WRIST_AMPLITUDE", "0.35")
+)
+if DANCE_MODE not in {"lift_only", "dance"}:
+    raise ValueError("GRASP_MOTION_MODE must be 'lift_only' or 'dance'")
+if DANCE_DURATION <= 0.0:
+    raise ValueError("GRASP_DANCE_DURATION must be greater than zero")
 OPEN_DURATION = 1.0
 RELEASE_DURATION = 1.0
 CONTACT_END = CONTACT_HOLD_DURATION
 LIFT_END = CONTACT_END + LIFT_DURATION
 LIFT_HOLD_END = LIFT_END + LIFT_HOLD_DURATION
-OPEN_END = LIFT_HOLD_END + OPEN_DURATION
+DANCE_END = LIFT_HOLD_END + (DANCE_DURATION if DANCE_MODE == "dance" else 0.0)
+OPEN_END = DANCE_END + OPEN_DURATION
 TEST_DURATION = OPEN_END + RELEASE_DURATION
 
 
@@ -77,10 +93,26 @@ def robot_coordinates(t):
         arm = LIFT_ARM
         grip = CLOSED_GRIP
         phase = "LIFT_HOLD"
+    elif DANCE_MODE == "dance" and t < DANCE_END:
+        u = (t - LIFT_HOLD_END) / DANCE_DURATION
+        envelope = math.sin(math.pi * u) ** 2
+        arm = LIFT_ARM.copy()
+        arm[0] += (
+            DANCE_SHOULDER_AMPLITUDE
+            * envelope
+            * math.sin(2.0 * math.pi * DANCE_CYCLES * u)
+        )
+        arm[5] += (
+            DANCE_WRIST_AMPLITUDE
+            * envelope
+            * math.sin(2.0 * math.pi * DANCE_CYCLES * u + math.pi / 2.0)
+        )
+        grip = CLOSED_GRIP
+        phase = "DANCE"
     elif t < OPEN_END:
         arm = LIFT_ARM
         grip = CLOSED_GRIP * (
-            1.0 - smoothstep((t - LIFT_HOLD_END) / OPEN_DURATION)
+            1.0 - smoothstep((t - DANCE_END) / OPEN_DURATION)
         )
         phase = "OPEN"
     else:
@@ -315,10 +347,20 @@ def main():
         "robot_shapes": robot_shapes,
         "active_robot_colliders": active_robot_colliders,
         "contact_friction": CONTACT_FRICTION,
+        "motion_mode": DANCE_MODE,
         "lift_duration_s": LIFT_DURATION,
+        "lift_hold_duration_s": LIFT_HOLD_DURATION,
         "estimated_peak_lift_speed_m_s": 1.5 * COMMAND_LIFT_Z / LIFT_DURATION,
         "estimated_peak_lift_acceleration_m_s2": 6.0 * COMMAND_LIFT_Z / LIFT_DURATION**2,
         "closed_grip_rad": CLOSED_GRIP,
+        "dance_duration_s": DANCE_DURATION if DANCE_MODE == "dance" else 0.0,
+        "dance_cycles": DANCE_CYCLES if DANCE_MODE == "dance" else 0.0,
+        "dance_shoulder_amplitude_rad": (
+            DANCE_SHOULDER_AMPLITUDE if DANCE_MODE == "dance" else 0.0
+        ),
+        "dance_wrist_amplitude_rad": (
+            DANCE_WRIST_AMPLITUDE if DANCE_MODE == "dance" else 0.0
+        ),
         "collision_scope": COLLISION_SCOPE,
         "strip_initial_center_z_setting_m": STRIP_CENTER_Z,
         "grasp_location": GRASP_POSITION,
@@ -330,9 +372,13 @@ def main():
         "lift_m": maximum_center_z - initial_center_z,
         "final_center_z_m": final_center_z,
         "drop_after_peak_m": maximum_center_z - final_center_z,
-        "lift_hold_end_z_m": phase_end_z.get("LIFT_HOLD"),
+        "lift_hold_end_z_m": phase_end_z.get(
+            "LIFT_HOLD", phase_end_z.get("LIFT")
+        ),
         "grasp_region_contact_hold_end_z_m": phase_end_grasp_region_z.get("CONTACT_HOLD"),
-        "grasp_region_lift_hold_end_z_m": phase_end_grasp_region_z.get("LIFT_HOLD"),
+        "grasp_region_lift_hold_end_z_m": phase_end_grasp_region_z.get(
+            "LIFT_HOLD", phase_end_grasp_region_z.get("LIFT")
+        ),
         "final_grasp_region_z_m": final_grasp_region_z,
         "maximum_contact_count": maximum_contacts,
         "contact_substeps": contact_frames,
@@ -354,8 +400,17 @@ def main():
     result["release_drop_from_lift_hold_m"] = (
         result["grasp_region_lift_hold_end_z_m"] - final_grasp_region_z
     )
+    post_motion_z = phase_end_grasp_region_z.get(
+        "DANCE", result["grasp_region_lift_hold_end_z_m"]
+    )
+    result["grasp_region_post_motion_z_m"] = post_motion_z
+    result["motion_retention_error_m"] = abs(
+        post_motion_z - result["grasp_region_lift_hold_end_z_m"]
+    )
+    result["motion_retention_pass"] = bool(result["motion_retention_error_m"] < 0.02)
     result["contact_lift_release_pass"] = bool(
         result["lift_tracking_error_m"] < 0.02
+        and result["motion_retention_pass"]
         and result["release_drop_from_lift_hold_m"] > 0.05
         and result["finite_state"]
     )

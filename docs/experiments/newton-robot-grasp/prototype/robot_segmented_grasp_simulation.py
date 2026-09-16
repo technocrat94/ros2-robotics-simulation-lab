@@ -16,7 +16,12 @@ from robot_segmented_grasp_batch import (
     SUBSTEPS,
     SHOW_COLLIDERS,
     COLLISION_SCOPE,
+    DANCE_MODE,
+    DANCE_DURATION,
+    DANCE_SHOULDER_AMPLITUDE,
+    DANCE_WRIST_AMPLITUDE,
     LIFT_DURATION,
+    LIFT_HOLD_DURATION,
     TEST_DURATION,
     build_scene,
     grasp_region_links,
@@ -69,6 +74,7 @@ def main():
         "is not attached to the gripper.\n\n"
         f"Robot display: **{'collision geometry' if SHOW_COLLIDERS else 'visual geometry'}**"
         f"  \nCollision scope: **{COLLISION_SCOPE}**"
+        f"  \nMotion mode: **{DANCE_MODE}**"
     )
     status = server.gui.add_markdown("Preparing...")
 
@@ -123,6 +129,10 @@ def main():
                 f"### {heading}\n"
                 f"- Simulation time: **{sim_time:.2f} s**\n"
                 f"- Lift duration: **{LIFT_DURATION:.2f} s**\n"
+                f"- Lift hold: **{LIFT_HOLD_DURATION:.2f} s**\n"
+                f"- Dance duration: **{DANCE_DURATION if DANCE_MODE == 'dance' else 0.0:.2f} s**\n"
+                f"- Shoulder offset bound: **±{DANCE_SHOULDER_AMPLITUDE if DANCE_MODE == 'dance' else 0.0:.2f} rad**\n"
+                f"- Wrist offset bound: **±{DANCE_WRIST_AMPLITUDE if DANCE_MODE == 'dance' else 0.0:.2f} rad**\n"
                 f"- Gripper leader: **{current_q[6]:.3f} rad**\n"
                 f"- Strip center z: **{center_z:.3f} m**\n"
                 f"- Grasp region z: **{grasp_z:.3f} m**\n"
