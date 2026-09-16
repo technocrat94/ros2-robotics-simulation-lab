@@ -254,3 +254,27 @@ MoveIt 接收末端姿態或關節目標，透過運動學與規劃元件產生�
 **問：`mimic_error = 0`，但畫面上手指互相穿過，模型算正確嗎？**
 
 答：不算。零誤差只證明 follower angle 符合代數公式；還必須檢查 joint axis、origin、mesh、collision geometry 與 self-collision 設定。
+
+## 里程碑 7：MoveIt 介面盤點與起始姿勢安全檢查（2026-09-17）
+
+目前啟用的手臂控制器是 `joint_trajectory_controller`，MoveIt 透過 `FollowJointTrajectory` action 傳送六軸軌跡。六個關節的名稱與順序和 Newton 前六個手臂座標一致。軌跡點的 `positions` 是弧度；`time_from_start` 是從整條軌跡起點算起的累積到達時間，不是每段各自需要的時間。
+
+控制器狀態中的 `desired` 是希望到達的位置，`actual` 是系統回報的目前位置，`error` 約等於兩者之差。目前使用 fake hardware，所以零誤差可能只是命令值被直接當成回報值，不能證明物理系統真的跟得上。
+
+實際盤點發現：ROS 起始姿勢是 `(0, -1.57, 0, -1.57, 0, 0)` rad；Newton 舊展示是 `(0, -pi/2, +pi/2, -pi/2, -pi/2, 0)` rad。`elbow_joint` 與 `wrist_2_joint` 都相差 `pi/2 rad`，也就是 90 度。如果直接接線，這兩個關節可能瞬間跳動。
+
+因此新增 **start-state guard（起始姿勢安全檢查器）**。它從 `/joint_states` 讀取 ROS 姿勢，再和 Newton 起點比較；允許誤差暫定為 `0.2 rad`（約 11.5 度）。實測正確得到：
+
+```text
+pass=false
+maximum_error_rad=1.5707963267948966
+mismatches=[elbow_joint, wrist_2_joint]
+```
+
+這裡的 `false` 是成功的安全結果，代表系統拒絕不連續的起點。可重用的 trajectory contract 也會檢查關節缺漏或重複、非有限數值、每點資料數量、時間是否嚴格遞增、關節順序與起點連續性。下一階段才會讓 Newton 依 `time_from_start` 執行 MoveIt 軌跡並回傳真正的 `actual`。
+
+### 這階段要會說的一句話
+
+**MoveIt decides where the UR5 should move; Newton predicts what physically happens; both must agree on the robot's current state before execution.**
+
+MoveIt 決定 UR5 應該怎麼走，Newton 預測物理上會發生什麼；執行前兩者必須對機器人目前姿勢有相同認知。

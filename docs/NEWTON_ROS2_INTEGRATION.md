@@ -220,6 +220,29 @@ The current portfolio image records the prescribed-kinematics milestone and incl
 4. Connect robot commands and feedback through the verified bridge protocol.
 5. Ensure that only one component owns authoritative `/joint_states`; the existing fake hardware and Newton must not publish competing robot states.
 
+## MoveIt interface audit and start-state guard (2026-09-17)
+
+The active ROS execution path was inspected before connecting it to Newton. The running arm controller was `joint_trajectory_controller`, exposing `control_msgs/action/FollowJointTrajectory`. Its configured joint order was:
+
+```text
+shoulder_pan_joint, shoulder_lift_joint, elbow_joint,
+wrist_1_joint, wrist_2_joint, wrist_3_joint
+```
+
+This order matches the first six arm coordinates returned by the Newton prototype. A `JointTrajectoryPoint` carries positions in radians, optional velocities and accelerations, and cumulative `time_from_start`. The controller state also exposes `desired`, `actual`, and `error`; with the current fake hardware, desired and actual were identical. That zero error confirms the fake interface was internally consistent, but it is not independent physical evidence because fake hardware may mirror the commanded state.
+
+The audit found a real start-state incompatibility. ROS reported `(0, -1.57, 0, -1.57, 0, 0)` rad, while the prescribed Newton demonstration initialized the arm at `(0, -pi/2, +pi/2, -pi/2, -pi/2, 0)` rad. The elbow and wrist-2 therefore differed by `pi/2 rad` (90 degrees). Sending a trajectory planned from the ROS state directly to that Newton state could introduce a discontinuous jump.
+
+The reusable `trajectory_contract.py` guard now checks the six-joint set, duplicate or missing names, finite values, point size, strictly increasing trajectory time, canonical joint ordering, and start-state continuity. The live `start_state_guard` reads `/joint_states` and applies a configurable `0.2 rad` threshold. The observed result was:
+
+```text
+pass=false
+maximum_error_rad=1.5707963267948966
+mismatches=[elbow_joint, wrist_2_joint]
+```
+
+This rejection is the intended safety result. The guard and package built successfully, and pure contract tests accepted a valid two-point trajectory while rejecting reversed time. Newton trajectory playback and MoveIt controller remapping remain the next implementation stage.
+
 ## Engineering lesson
 
 Integration is established by tracing commands and measured feedback across a defined boundary. A model that loads or looks correct can still be behaviorally wrong when joint coupling, units, timing, or state ownership differ.

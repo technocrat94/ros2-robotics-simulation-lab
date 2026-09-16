@@ -16,5 +16,10 @@ setup(
     maintainer_email="yuhao@example.com",
     description="Minimal observable bridge between ROS 2 Humble and Newton",
     license="Apache-2.0",
-    entry_points={"console_scripts": ["ros_adapter = newton_ros_bridge.ros_adapter:main"]},
+    entry_points={
+        "console_scripts": [
+            "ros_adapter = newton_ros_bridge.ros_adapter:main",
+            "start_state_guard = newton_ros_bridge.start_state_guard:main",
+        ]
+    },
 )
