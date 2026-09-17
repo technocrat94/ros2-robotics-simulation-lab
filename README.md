@@ -4,6 +4,45 @@ ROS 2 Humble learning project that combines a UR5 arm and a Robotiq 2F-85 grippe
 
 The ROS 2 robot demo uses fake hardware and RViz. It does not simulate gravity, contact, friction, or grasped-object physics. A separate Newton physics learning experiment is documented below.
 
+## Presentation quick path
+
+The project asks one engineering question: **how can a planned UR5 motion be evaluated against physical effects that fake hardware does not represent?**
+
+```text
+MoveIt 2 plans the desired UR5 trajectory
+                  ↓
+ROS 2 controllers execute and expose the reference state
+                  ↓
+ROS–Newton bridge validates, synchronizes, and translates state
+                  ↓
+Newton represents robot motion, gravity, contact, friction, and deformable objects
+                  ↓
+Measured state and errors return to ROS 2
+```
+
+### This week's verified progression
+
+| Milestone | Evidence | Engineering conclusion |
+|---|---|---|
+| ROS–Newton process bridge | start, pause, reset, returned pose/time, and stale-data detection | Commands and measured state cross the Python 3.10/3.12 boundary observably. |
+| UR5 + Robotiq import | 24 bodies, 24 Newton joints, 54 shapes, zero mimic-mapping error | The combined mechanism loads and its one-leader/five-follower gripper mapping is explicit. |
+| Deformable-strip study | FEM convergence plus a faster compliant-joint approximation | Model resolution changes both runtime and predicted deflection; the segmented model is the integration candidate. |
+| Contact grasp | center grasp lifts and releases; zero-friction control falls | Contact and friction, rather than a hidden attachment, support the strip. |
+| 180-degree stress motion | grasp-height change `0.88 mm`; drop only after opening | Newton preserves the dynamic object response during a large prescribed robot motion. |
+| MoveIt shadow execution | full task succeeds; start guard passes after synchronization; final max error `3.4e-8 rad` | MoveIt reference motion now reaches the Newton robot through the bridge, while the existing fake controller remains authoritative. |
+
+### Report media
+
+- [Sphere-drop physics replay](docs/experiments/newton-radius/results/lesson01_replay.gif)
+- [FEM rubber-strip oscillation](docs/experiments/newton-soft-strip/results/soft_strip_oscillation.gif)
+- [Compliant-joint segmented-strip oscillation](docs/experiments/newton-soft-strip/results/segmented_strip_oscillation.gif)
+- [Center-grasp success](docs/experiments/newton-robot-grasp/results/center_grasp_success.gif)
+- [180-degree grasp stress test](docs/experiments/newton-robot-grasp/results/newton_180deg_dance_grasp.gif) ([20-second MOV](docs/experiments/newton-robot-grasp/results/newton_180deg_dance_grasp.mov))
+- [MoveIt-to-Newton shadow execution](docs/experiments/newton-ros2-bridge/results/moveit_newton_shadow_execution.gif) ([MOV](docs/experiments/newton-ros2-bridge/results/moveit_newton_shadow_execution.mov))
+- [ROS 2-commanded Newton robot screenshot](docs/images/newton_ros2_kinematic_demo.png)
+
+For a concise spoken walkthrough, use the [Traditional Chinese presentation guide](docs/REPORT_GUIDE_2026-09-18.zh-TW.md). Detailed English evidence remains in the linked experiment records below.
+
 ## Verified milestone
 
 On 2026-09-03, the complete task was verified in RViz with all four controllers active. The approach, lift/transport, and automatic-return Cartesian paths each reached 100%, and the process finished cleanly.
@@ -61,7 +100,15 @@ The captured final state shows the complete imported robot, `COMPLETE · PAUSED`
 
 This verifies the command-and-feedback architecture, robot URDF import, forward kinematics, and explicit Robotiq mimic mapping. The demonstration uses prescribed kinematics; Newton has not replaced fake hardware or validated dynamic contact and grasping.
 
-[Read the technical integration record](docs/NEWTON_ROS2_INTEGRATION.md), its [繁體中文學習筆記](docs/NEWTON_ROS2_INTEGRATION.zh-TW.md), the [中文主題索引](docs/NEWTON_ROS2_LEARNING_LOG.zh-TW.md), or the [報告操作單](docs/REPORT_GUIDE_2026-09-12.zh-TW.md).
+On 2026-09-17, MoveIt's active `FollowJointTrajectory` path and six-joint order were audited. A start-state guard correctly rejected the original Newton demonstration pose because its elbow and wrist-2 each differed from ROS by `1.5708 rad`. An explicit paused-state synchronization reduced the maximum difference to `5.25e-8 rad`, after which a shadow-execution mode forwarded the live controller reference into Newton. The complete existing MoveIt task again reached 100% for approach, lift/transport, and return and ended with `PICK AND PLACE DEMO SUCCEEDED`; Newton reported `MOVEIT_SHADOW` with a final maximum arm error of `3.40e-8 rad`.
+
+![MoveIt Cartesian task mirrored by the Newton UR5](docs/experiments/newton-ros2-bridge/results/moveit_newton_shadow_execution.gif)
+
+A separate presentation-motion trial made the Cartesian displacement visually clear: approach `(0.03, 0.10, -0.05) m`, transport `(-0.03, -0.30, 0.10) m`, and automatically computed return `(0.00, 0.20, -0.05) m`. All three paths reached 100%, the final Cartesian target matched the work-start pose, and the final shadow error was `5.86e-8 rad`. The enlarged values are a verified fake-hardware/shadow demonstration, not validated real-robot limits.
+
+This is a verified planning-to-simulator data path and visual execution milestone. The fake controller still owns `/joint_states`; Newton is not yet the dynamic trajectory controller, and the contact-grasp scene has not yet been combined with the MoveIt task.
+
+[Read the technical integration record](docs/NEWTON_ROS2_INTEGRATION.md), its [繁體中文學習筆記](docs/NEWTON_ROS2_INTEGRATION.zh-TW.md), the [中文主題索引](docs/NEWTON_ROS2_LEARNING_LOG.zh-TW.md), or the [報告操作單](docs/REPORT_GUIDE_2026-09-18.zh-TW.md).
 
 ## Portfolio map
 

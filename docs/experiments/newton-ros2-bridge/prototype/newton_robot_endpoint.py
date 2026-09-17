@@ -55,11 +55,13 @@ class RobotDemo:
         self.q = np.zeros(self.model.joint_q.shape[0], dtype=np.float32)
         self.sim_time = 0.0
         self.phase = "READY"
+        self.last_external_update = None
         self.update_pose()
 
     def reset(self):
         self.sim_time = 0.0
         self.phase = "READY"
+        self.last_external_update = None
         self.update_pose()
 
     def step(self, dt):
@@ -107,10 +109,45 @@ class RobotDemo:
         self.q[11] = -grip     # right inner knuckle
         self.q[7] = -grip      # left finger tip
         self.q[9] = grip       # right finger tip
+        self.update_fk()
+
+    def update_fk(self):
         self.model.joint_q.assign(self.q)
         newton.eval_fk(
             self.model, self.model.joint_q, self.model.joint_qd, self.state
         )
+
+    def set_robot_positions(self, value, synchronized=False):
+        names = [str(name) for name in value["joint_names"]]
+        positions = [float(position) for position in value["joint_positions"]]
+        expected = JOINT_NAMES[:6]
+        if len(names) != 6 or len(positions) != 6 or set(names) != set(expected):
+            raise ValueError("robot command must contain the six UR5 arm joints")
+        if not all(math.isfinite(position) for position in positions):
+            raise ValueError("robot command contains a non-finite arm position")
+        by_name = dict(zip(names, positions))
+        self.q[:6] = [by_name[name] for name in expected]
+
+        grip = float(value.get("gripper_position", self.q[6]))
+        if not math.isfinite(grip):
+            raise ValueError("robot command contains a non-finite gripper position")
+        self.q[6] = grip
+        self.q[8] = -grip
+        self.q[10] = grip
+        self.q[11] = -grip
+        self.q[7] = -grip
+        self.q[9] = grip
+
+        now = time.monotonic()
+        if synchronized:
+            self.last_external_update = None
+            self.phase = "ROS_SYNCHRONIZED"
+        else:
+            if self.last_external_update is not None:
+                self.sim_time += min(0.1, max(0.0, now - self.last_external_update))
+            self.last_external_update = now
+            self.phase = "MOVEIT_SHADOW"
+        self.update_fk()
 
     def positions(self):
         return [float(self.q[index]) for index in JOINT_Q_INDICES]
@@ -187,6 +224,16 @@ try:
                 demo.reset()
                 running = False
                 last_command = "reset"
+            elif kind == "sync_robot_state":
+                if running:
+                    raise ValueError("cannot synchronize while prescribed demo is running")
+                demo.set_robot_positions(command["value"], synchronized=True)
+                last_command = "sync_robot_state"
+            elif kind == "set_robot_positions":
+                if running:
+                    raise ValueError("cannot shadow MoveIt while prescribed demo is running")
+                demo.set_robot_positions(command["value"], synchronized=False)
+                last_command = "set_robot_positions"
             else:
                 raise ValueError("unknown command")
             last_command_id = str(command.get("id", ""))

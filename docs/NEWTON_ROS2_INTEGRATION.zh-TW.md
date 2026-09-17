@@ -278,3 +278,86 @@ mismatches=[elbow_joint, wrist_2_joint]
 **MoveIt decides where the UR5 should move; Newton predicts what physically happens; both must agree on the robot's current state before execution.**
 
 MoveIt 決定 UR5 應該怎麼走，Newton 預測物理上會發生什麼；執行前兩者必須對機器人目前姿勢有相同認知。
+
+## 里程碑 8：MoveIt 影子執行（2026-09-17）
+
+為了保留已驗證的 MoveIt 系統，本階段先採用 **shadow execution（影子執行）**。MoveIt 照常把軌跡交給 fake controller；bridge 同時讀取控制器的 `desired` 六軸位置，依正式關節順序送到 Newton。夾爪主關節從 `/joint_states` 取得，Newton 端再套用五個 mimic 關係。
+
+```text
+MoveIt → fake controller → desired state → bridge → Newton UR5
+```
+
+同步前，安全檢查器正確回報兩個 90 度差異。呼叫 `/newton/sync_robot_state` 後，最大起點誤差降到 `5.25e-8 rad`，檢查結果變成 `pass=true`。接著啟用 `/newton/set_trajectory_shadow` 並執行完整任務：named target 成功，approach、lift/transport、return 都是 100%，最後輸出 `PICK AND PLACE DEMO SUCCEEDED`。
+
+Newton 回報階段為 `MOVEIT_SHADOW`，最終六軸最大差異為 `3.40e-8 rad`。這證明關節名稱、順序、ROS–Newton 傳輸與運動學播放一致。它還不是動力學追蹤誤差，因為 Newton 現在直接套用轉送角度並做 FK；正式 `/joint_states` 仍由 fake hardware 擁有。
+
+### 工程師應如何描述這個成果
+
+可以說：**MoveIt 的執行參考值已經安全地傳到 Newton，Newton 中的 UR5 能同步重現完整任務。**
+
+不能說：Newton 已取代控制器、已驗證馬達扭矩，或 MoveIt 已操作同一個柔性膠條場景。
+
+下一步是讓 Newton 接收帶有 `time_from_start` 的完整軌跡，透過 actuator target 執行，並把 Newton 狀態升級為正式 feedback，再與已驗證的膠條接觸場景合併。
+
+### 你需要會看的四段程式
+
+第一，不能假設陣列順序永遠正確。bridge 先用名稱建立對照，再排成正式六軸順序：
+
+```python
+by_name = dict(zip(message.joint_names, message.desired.positions))
+arm = [by_name[name] for name in ARM_JOINT_NAMES]
+```
+
+第二，影子模式預設關閉，必須由使用者明確啟用；轉送最快每 `0.02 s` 一次，也就是最多約 50 Hz，避免 UDP 指令塞滿。
+
+第三，Newton 收到六軸角度後仍以名稱核對，不能只相信位置索引。夾爪只接收 leader，其他五軸依正負倍率產生，再執行 FK 更新所有連桿姿勢。
+
+第四，bridge 將控制器目標與 Newton 回傳值逐軸相減，發布最大值：
+
+```text
+maximum shadow error = max(abs(desired[i] - newton[i]))
+```
+
+這個誤差很小，證明傳輸與座標播放一致；因為目前角度是直接指定的，所以不能把它稱為馬達或物理追蹤性能。真正的動力學測試必須讓 Newton 根據 actuator、質量、慣性、接觸與時間積分算出 `actual`。
+
+### 大位移測試：如何自己判斷結果
+
+為了讓畫面上的運動更容易辨認，本次只放大 Cartesian 位移，其他系統保持相同：
+
+```text
+工作起點 S = (-0.093, 0.446, 0.504) m
+
+Approach = (+0.03, +0.10, -0.05) m
+A        = (-0.063, 0.546, 0.454) m
+
+Transport = (-0.03, -0.30, +0.10) m
+B         = (-0.093, 0.246, 0.554) m
+
+Return = -(Approach + Transport)
+       = (0.00, +0.20, -0.05) m
+
+B + Return = S
+```
+
+三段 Cartesian path 都是 `100.0%`，任務輸出 `PICK AND PLACE DEMO SUCCEEDED`，Newton 最終影子誤差為 `5.8610852e-08 rad`，而且最後目標確實等於工作起點。
+
+#### 這次腦力激盪最重要的修正
+
+一開始只看到 approach target 與 transport target，錯把 `approach_dy`、`approach_dz` 當成零，因此誤判返回位置不正確。重新讀取完整原始碼後，發現實際值是：
+
+```cpp
+approach_dy = 0.10;
+approach_dz = -0.05;
+```
+
+把完整三軸與兩個階段都放入向量加法後，返回公式完全閉合。這次錯誤本身值得保留，因為它說明工程判斷的原則：
+
+1. **不要用未確認的零補齊缺少的資料。** 必須讀完 X、Y、Z 和所有動作階段。
+2. **`SUCCEEDED` 不是唯一證據。** 還要檢查完成率、起點與終點是否閉合、ROS–Newton 誤差是否合理。
+3. **規劃成功不等於實體安全。** 這組大位移只在 fake hardware 與 shadow execution 中驗證，不能直接當成實體 UR5 的安全範圍。
+4. **改小卻看不出差異時先查 build。** C++ 原始碼修改後若沒有重新編譯及重新 `source`，執行的仍可能是舊版本。
+5. **改大被拒絕時不要降低安全門檻。** 先看 Cartesian 完成率、碰撞、關節限制與 1 rad 保護，再縮小單一變數尋找可行邊界。
+
+這就是 controlled experiment（控制變因實驗）：一次只改一項、先寫預測、留下輸出，再依證據決定下一個值。
+
+錄影證據：[GIF](experiments/newton-ros2-bridge/results/moveit_newton_shadow_execution.gif)／[MOV](experiments/newton-ros2-bridge/results/moveit_newton_shadow_execution.mov)。

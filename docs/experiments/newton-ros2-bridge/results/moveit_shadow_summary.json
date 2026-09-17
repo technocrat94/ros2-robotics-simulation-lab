@@ -1,0 +1,39 @@
+{
+  "date": "2026-09-17",
+  "mode": "moveit_shadow_execution",
+  "controller_state_source": "/joint_trajectory_controller/state",
+  "newton_state_topic": "/newton/joint_states",
+  "before_sync": {
+    "pass": false,
+    "maximum_error_rad": 1.5707963267948966,
+    "mismatched_joints": ["elbow_joint", "wrist_2_joint"]
+  },
+  "after_sync": {
+    "pass": true,
+    "maximum_error_rad": 5.245208734017126e-08
+  },
+  "moveit_task": {
+    "named_target": "success",
+    "approach_cartesian_completion_percent": 100.0,
+    "lift_transport_cartesian_completion_percent": 100.0,
+    "return_cartesian_completion_percent": 100.0,
+    "final_result": "PICK AND PLACE DEMO SUCCEEDED"
+  },
+  "newton": {
+    "phase": "MOVEIT_SHADOW",
+    "final_maximum_arm_error_rad": 3.4024624229189726e-08
+  },
+  "presentation_motion_run": {
+    "approach_displacement_m": [0.03, 0.1, -0.05],
+    "transport_displacement_m": [-0.03, -0.3, 0.1],
+    "automatic_return_displacement_m": [0.0, 0.2, -0.05],
+    "work_start_m": [-0.093, 0.446, 0.504],
+    "final_target_m": [-0.093, 0.446, 0.504],
+    "approach_cartesian_completion_percent": 100.0,
+    "lift_transport_cartesian_completion_percent": 100.0,
+    "return_cartesian_completion_percent": 100.0,
+    "final_maximum_arm_error_rad": 5.8610851505491723e-08,
+    "final_result": "PICK AND PLACE DEMO SUCCEEDED"
+  },
+  "claim_limit": "Verified mapping and kinematic shadow playback; fake hardware remains authoritative and Newton actuator dynamics are not yet used."
+}

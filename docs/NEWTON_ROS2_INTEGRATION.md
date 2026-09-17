@@ -243,6 +243,95 @@ mismatches=[elbow_joint, wrist_2_joint]
 
 This rejection is the intended safety result. The guard and package built successfully, and pure contract tests accepted a valid two-point trajectory while rejecting reversed time. Newton trajectory playback and MoveIt controller remapping remain the next implementation stage.
 
+## MoveIt shadow execution milestone (2026-09-17)
+
+A staged integration was selected so the verified MoveIt stack could remain operational while Newton received the same live arm reference. The adapter now subscribes to `/joint_trajectory_controller/state`, maps its six-joint `desired` positions into canonical order, and forwards them over the versioned UDP bridge. It also mirrors the Robotiq leader position observed on `/joint_states`; the Newton endpoint applies the five existing mimic relationships before FK evaluation.
+
+Synchronization is explicit. `/newton/sync_robot_state` is accepted only while the prescribed Newton demonstration is paused, and `/newton/set_trajectory_shadow` separately enables or disables forwarding. The guard was upgraded to compare live `/joint_states` against live `/newton/joint_states` instead of comparing against a hard-coded constant.
+
+The observed sequence was:
+
+```text
+before synchronization:
+  pass=false, maximum_error=1.5707963268 rad
+  mismatches=[elbow_joint, wrist_2_joint]
+
+after synchronization:
+  pass=true, maximum_error=5.2452087e-08 rad
+
+MoveIt execution:
+  named-target planning and execution succeeded
+  approach Cartesian completion=100%
+  lift/transport Cartesian completion=100%
+  return Cartesian completion=100%
+  final result=PICK AND PLACE DEMO SUCCEEDED
+
+Newton returned state:
+  phase=MOVEIT_SHADOW
+  final maximum arm error=3.4024624e-08 rad
+```
+
+The adapter publishes the observed maximum difference between controller `desired` and Newton joint state on `/newton/trajectory_shadow_error`. The tiny final value verifies transport, mapping, and kinematic playback after the final command. It is not a dynamic tracking result: the endpoint currently assigns the forwarded coordinates and evaluates FK, while fake hardware remains the authoritative ROS controller.
+
+This milestone closes the planning-to-Newton **data path** without claiming controller replacement. The next technical step is to make Newton execute timestamped trajectory points through actuator targets, publish the authoritative feedback state, and then combine that path with the validated strip-contact scene.
+
+### Shadow-execution implementation path
+
+The controller-state callback converts names to a dictionary before constructing canonical order. This prevents an array-order assumption from silently commanding the wrong joint:
+
+```python
+by_name = dict(zip(message.joint_names, message.desired.positions))
+self.latest_desired_arm = [float(by_name[name]) for name in ARM_JOINT_NAMES]
+```
+
+Forwarding is rate-limited to one packet per `0.02 s` and remains disabled until explicitly enabled:
+
+```python
+if not self.shadow_enabled or self.latest_desired_arm is None:
+    return
+if now - self.last_shadow_send < 0.02:
+    return
+self.send_command("set_robot_positions", value)
+```
+
+The Newton endpoint again maps by name, updates the six arm coordinates, derives all five gripper follower coordinates from the leader, and calls FK. Returned state is independently parsed by the adapter, which publishes:
+
+```python
+max(abs(desired - actual) for desired, actual in zip(reference, newton_state))
+```
+
+This code path explains why the current metric tests transport and coordinate playback. A future dynamics result must compare actuator targets with a Newton state produced by integration, constraints, and contact rather than direct coordinate assignment.
+
+### Cartesian-variation reasoning audit
+
+A second shadow run deliberately enlarged the Cartesian motion so that it could be judged visually. Only the task-space translations were changed; the planner, controller, bridge, starting configuration, and shadow mechanism were held constant.
+
+```text
+work-start S = (-0.093, 0.446, 0.504) m
+
+approach displacement = (+0.03, +0.10, -0.05) m
+approach target A     = (-0.063, 0.546, 0.454) m
+
+transport displacement = (-0.03, -0.30, +0.10) m
+transport target B     = (-0.093, 0.246, 0.554) m
+
+automatic return = -(approach + transport)
+                 = (0.00, +0.20, -0.05) m
+B + automatic return = S
+```
+
+All three Cartesian paths reported `100.0%`, the task ended with `PICK AND PLACE DEMO SUCCEEDED`, and `/newton/trajectory_shadow_error` reported `5.8610852e-08 rad`. The final target exactly recovered the work-start pose under the logged coordinates.
+
+The review also exposed a useful reasoning failure. An initial interpretation treated the approach Y and Z components as zero and therefore concluded that the return target was wrong. Reading the complete source values showed that the learner had also changed `approach_dy` to `+0.10 m` and `approach_dz` to `-0.05 m`; the return equation was correct. The correction establishes three review rules:
+
+1. Reconstruct a Cartesian motion from all three components and all stages; never fill missing values with an unstated zero.
+2. Treat `SUCCEEDED` as necessary but insufficient evidence. Also check path completion, start/final pose closure, and the returned cross-system error.
+3. Separate algorithmic validity from physical validity. These displacements are feasible for the present MoveIt model and fake controller, but they are not certified limits for a physical UR5 workspace.
+
+When parameter changes appear ineffective, the first diagnostic is whether the edited C++ source was rebuilt and the updated overlay sourced. When a larger change is rejected, inspect Cartesian completion, collision checks, joint limits, and the one-radian guard instead of weakening the checks. This turns parameter tuning into a controlled experiment rather than trial-and-error editing.
+
+Evidence: [GIF](experiments/newton-ros2-bridge/results/moveit_newton_shadow_execution.gif) and [original MOV](experiments/newton-ros2-bridge/results/moveit_newton_shadow_execution.mov).
+
 ## Engineering lesson
 
 Integration is established by tracing commands and measured feedback across a defined boundary. A model that loads or looks correct can still be behaviorally wrong when joint coupling, units, timing, or state ownership differ.

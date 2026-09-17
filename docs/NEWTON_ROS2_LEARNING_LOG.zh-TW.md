@@ -21,6 +21,8 @@
 7. 建立 FEM 橡膠條並檢查 X 向網格收斂。
 8. 建立剛體分段柔性近似並與 FEM 比較。
 9. 以 Newton 接觸與摩擦完成中心夾持、抬升與釋放。
+10. 盤點 MoveIt `FollowJointTrajectory` 介面，以 start-state guard 找出兩個 90 度起點差異。
+11. 同步起點後完成 MoveIt shadow execution，並用三維向量閉合、100% 路徑完成率與 returned-state error 共同驗證。
 
 ## 建議閱讀方式
 
@@ -39,4 +41,4 @@ ROS 2 傳送命令並接收狀態
 Newton 計算接觸、重力、變形、滑動與釋放
 ```
 
-目前已驗證 bridge、機器人運動學、兩種柔性條模型及預先放置的接觸夾持。下一階段是以 MoveIt 軌跡取代 Newton 測試程式內預先指定的關節運動。
+目前已驗證 bridge、機器人運動學、兩種柔性條模型、預先放置的接觸夾持，以及 MoveIt reference 到 Newton 的影子執行。下一階段是讓 Newton 依帶有 `time_from_start` 的 actuator trajectory 產生實際狀態，取代直接指定關節座標，最後再和柔性膠條場景合併。
