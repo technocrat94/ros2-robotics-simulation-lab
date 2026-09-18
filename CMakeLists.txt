@@ -41,6 +41,11 @@ add_executable(
   src/move_xyz.cpp
 )
 
+add_executable(
+  pick_at_position
+  src/pick_at_position.cpp
+)
+
 # ======================================================
 # ROS dependencies
 # ======================================================
@@ -54,9 +59,23 @@ ament_target_dependencies(
   geometry_msgs
 )
 
+ament_target_dependencies(
+  pick_at_position
+  rclcpp
+  rclcpp_action
+  control_msgs
+  moveit_ros_planning_interface
+  geometry_msgs
+)
+
 # std::thread 使用的 thread library
 target_link_libraries(
   move_xyz
+  Threads::Threads
+)
+
+target_link_libraries(
+  pick_at_position
   Threads::Threads
 )
 
@@ -69,6 +88,7 @@ target_link_libraries(
 install(
   TARGETS
     move_xyz
+    pick_at_position
   DESTINATION
     lib/${PROJECT_NAME}
 )

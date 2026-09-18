@@ -4,6 +4,14 @@ ROS 2 Humble learning project that combines a UR5 arm and a Robotiq 2F-85 grippe
 
 The ROS 2 robot demo uses fake hardware and RViz. It does not simulate gravity, contact, friction, or grasped-object physics. A separate Newton physics learning experiment is documented below.
 
+## Rebuild on another Ubuntu computer
+
+Use the [school Ubuntu migration handoff](docs/SCHOOL_COMPUTER_HANDOFF.md)
+and run `scripts/bootstrap_school_ubuntu.sh` after cloning this repository.
+The [Codex continuation prompt](docs/SCHOOL_CODEX_PROMPT.md) transfers the
+verified state, next objective, and tutoring requirements without relying on
+the original conversation history.
+
 ## Presentation quick path
 
 The project asks one engineering question: **how can a planned UR5 motion be evaluated against physical effects that fake hardware does not represent?**
