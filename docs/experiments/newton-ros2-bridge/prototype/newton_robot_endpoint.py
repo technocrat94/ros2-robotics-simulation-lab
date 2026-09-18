@@ -15,8 +15,10 @@ import viser
 import warp as wp
 from newton.viewer import ViewerViser
 
-STATE_ADDRESS = ("127.0.0.1", 15100)
-COMMAND_ADDRESS = ("127.0.0.1", 15101)
+STATE_PORT = int(os.environ.get("NEWTON_STATE_PORT", "15100"))
+COMMAND_PORT = int(os.environ.get("NEWTON_COMMAND_PORT", "15101"))
+STATE_ADDRESS = ("127.0.0.1", STATE_PORT)
+COMMAND_ADDRESS = ("127.0.0.1", COMMAND_PORT)
 PROTOCOL = 1
 VIEWER_PORT = int(os.environ.get("NEWTON_VIEWER_PORT", "8083"))
 URDF = os.environ.get(
@@ -204,7 +206,8 @@ status = server.gui.add_markdown("Preparing...")
 
 print(
     f"ROBOT_ENDPOINT_READY bodies={demo.model.body_count} joints={demo.model.joint_count} "
-    f"shapes={demo.model.shape_count} command=15101 state=15100 viewer={VIEWER_PORT}",
+    f"shapes={demo.model.shape_count} command={COMMAND_PORT} "
+    f"state={STATE_PORT} viewer={VIEWER_PORT}",
     flush=True,
 )
 

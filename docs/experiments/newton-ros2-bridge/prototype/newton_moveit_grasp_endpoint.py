@@ -26,8 +26,10 @@ from robot_segmented_grasp_batch import (  # noqa: E402
     grasp_region_links,
 )
 
-STATE_ADDRESS = ("127.0.0.1", 15100)
-COMMAND_ADDRESS = ("127.0.0.1", 15101)
+STATE_PORT = int(os.environ.get("NEWTON_STATE_PORT", "15100"))
+COMMAND_PORT = int(os.environ.get("NEWTON_COMMAND_PORT", "15101"))
+STATE_ADDRESS = ("127.0.0.1", STATE_PORT)
+COMMAND_ADDRESS = ("127.0.0.1", COMMAND_PORT)
 PROTOCOL = 1
 VIEWER_PORT = int(os.environ.get("NEWTON_VIEWER_PORT", "8086"))
 JOINT_NAMES = [
@@ -153,7 +155,7 @@ print(
     f"strip_bodies={len(strip_links)} strip_shapes={len(strip_shapes)} "
     f"active_robot_colliders={active_robot_colliders} friction={CONTACT_FRICTION} "
     f"object_center=(0.4869,0.10915,{initial_center_z:.5f}) "
-    f"command=15101 state=15100 viewer={VIEWER_PORT}",
+    f"command={COMMAND_PORT} state={STATE_PORT} viewer={VIEWER_PORT}",
     flush=True,
 )
 

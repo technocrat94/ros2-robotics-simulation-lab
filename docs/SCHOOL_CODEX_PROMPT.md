@@ -36,3 +36,19 @@ or visual checks when that improves learning.
 Do not claim contact success yet. The new absolute-position MoveIt program and
 bridge startup are verified, but the combined Newton contact grasp still needs
 visual and numerical acceptance testing.
+
+This is a shared laboratory computer. Treat other users' work as an absolute
+boundary. Write only inside the current user's `$HOME/ur5_ws`,
+`$HOME/newton_ws`, and `$HOME/.config/yuhao_robotics`. Before any mutation,
+verify the current user and repository root. Do not modify or remove another
+user's files, processes, containers, ports, virtual environments, terminals,
+or settings. Do not use broad process commands such as `sudo pkill` or
+`killall`; verify process ownership and stop only exact PIDs belonging to the
+current user. Do not use `sudo` unless the project owner explicitly authorizes
+the concrete command and it complies with laboratory policy.
+
+At the beginning of every terminal, source
+`scripts/lab_session_env.sh`. Preserve `ROS_LOCALHOST_ONLY=1`, the per-user
+`ROS_DOMAIN_ID`, and the per-user Newton state, command, and viewer ports. If a
+port is occupied, inspect its owner before choosing another unused port; never
+terminate an unknown listener.

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """ROS 2 Humble process: translate loopback UDP state and commands."""
 import json
+import os
 import socket
 import time
 import uuid
@@ -13,8 +14,10 @@ from sensor_msgs.msg import JointState
 from std_msgs.msg import Bool, Float64, String
 from std_srvs.srv import SetBool, Trigger
 
-STATE_ADDRESS = ("127.0.0.1", 15100)
-COMMAND_ADDRESS = ("127.0.0.1", 15101)
+STATE_PORT = int(os.environ.get("NEWTON_STATE_PORT", "15100"))
+COMMAND_PORT = int(os.environ.get("NEWTON_COMMAND_PORT", "15101"))
+STATE_ADDRESS = ("127.0.0.1", STATE_PORT)
+COMMAND_ADDRESS = ("127.0.0.1", COMMAND_PORT)
 PROTOCOL = 1
 ARM_JOINT_NAMES = [
     "shoulder_pan_joint", "shoulder_lift_joint", "elbow_joint",
@@ -62,7 +65,10 @@ class NewtonRosBridge(Node):
         self.latest_gripper = 0.0
         self.shadow_enabled = False
         self.last_shadow_send = 0.0
-        self.get_logger().info("ROS_ADAPTER_READY protocol=1 state=15100 command=15101")
+        self.get_logger().info(
+            "ROS_ADAPTER_READY protocol=1 state=%d command=%d"
+            % (STATE_PORT, COMMAND_PORT)
+        )
 
     def send_command(self, command, value=None):
         command_id = str(uuid.uuid4())
