@@ -36,4 +36,3 @@ or visual checks when that improves learning.
 Do not claim contact success yet. The new absolute-position MoveIt program and
 bridge startup are verified, but the combined Newton contact grasp still needs
 visual and numerical acceptance testing.
-

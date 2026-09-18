@@ -160,4 +160,3 @@ and grasp failure are different diagnoses and must be reported separately.
 Newton contains a physical ground plane, but the MoveIt planning scene does
 not yet contain the matching floor collision object. Adding the same floor to
 MoveIt is the next safety improvement after the first contact run is diagnosed.
-
