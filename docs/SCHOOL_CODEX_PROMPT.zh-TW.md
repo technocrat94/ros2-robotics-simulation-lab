@@ -26,6 +26,12 @@ https://github.com/technocrat94/ros2-robotics-simulation-lab
 - 絕對物體座標 MoveIt 與 Newton 柔性膠條接觸場景的最終整合驗收。
 - 不可以只看到 MoveIt success 就宣稱抓取成功；必須檢查膠條確實升高、沒有穿模、閉爪期間保持，並且只在開爪後掉落。
 
+目前確定採用兩台電腦分工：
+- 家中 UTM 是主要開發與學習基準：Ubuntu 22.04、ROS 2 Humble、MoveIt、Newton 1.5.1，先用快速的 segmented strip 完成整合與驗收。
+- 學校 RTX 電腦是高算力驗證端：不要先把專案改寫成 Jazzy；應在隔離的 Ubuntu 22.04 + Humble Docker 環境重現同一 commit 與 segmented baseline，成功後只替換成高解析 FEM strip。
+- 兩種膠條必須使用相同 world frame、SI 單位、尺寸、初始位置、地面、MoveIt 軌跡、夾爪命令、bridge protocol 與驗收指標。
+- FEM 只是 higher-fidelity model，不可以直接叫「真實橡膠」；還需要用實體量測校正 density、Young's modulus、Poisson ratio、damping、friction 與尺寸。
+
 學校電腦已知資料：Ubuntu 24.04.4、x86_64/amd64、host ROS Jazzy、Docker 可用。原專案合約是 Ubuntu 22.04 + ROS 2 Humble + Newton 1.5.1，所以先規劃隔離環境，不要覆蓋主系統 Jazzy。
 
 這是共享實驗室電腦。只可以操作我的：

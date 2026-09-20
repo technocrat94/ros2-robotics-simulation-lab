@@ -1,6 +1,6 @@
 # Current Session Handoff
 
-Updated: 2026-09-18
+Updated: 2026-09-20
 
 ## Recovery rule
 
@@ -48,12 +48,49 @@ The combined absolute-position MoveIt plus Newton contact grasp has not yet
 passed visual and numerical acceptance. A successful MoveIt plan alone does
 not prove that the flexible strip was lifted by valid contact.
 
-## Immediate objective
+## Two-computer development decision
 
-Reproduce the pinned Humble/Newton environment safely on the school computer,
-run the baseline checks, and then execute the absolute-position grasp while
-checking strip lift, penetration, retention, and release. Do one stage at a
-time and record the evidence before changing parameters.
+The home UTM environment remains the canonical development and teaching
+baseline. It already matches Ubuntu 22.04, ROS 2 Humble, MoveIt, and Newton
+1.5.1, so integration logic should be completed and tested there with the
+fast segmented strip.
+
+The school RTX computer is the high-compute validation target. Do not rewrite
+the project for the host's ROS 2 Jazzy installation at this stage. Reproduce
+the pinned Ubuntu 22.04 / ROS 2 Humble contract in an isolated Docker
+environment, check GPU passthrough, run the same repository commit, and then
+replace only the strip physics backend with the higher-resolution FEM model.
+
+The robot-side interface must remain unchanged across both backends:
+
+- same `world` frame, SI units, object dimensions, initial pose, and ground;
+- same MoveIt joint trajectory and gripper commands;
+- same bridge protocol and returned timestamps;
+- comparable measurements for lift height, slip/release time, penetration,
+  deformation, finite state, and runtime.
+
+The segmented model and FEM model are two numerical representations of the
+same experiment. Higher-resolution FEM is not automatically "real rubber".
+A physical claim additionally requires calibrated density, Young's modulus,
+Poisson ratio, damping, friction, dimensions, and comparison with measured
+hardware data.
+
+## Immediate objectives
+
+### Home baseline
+
+Complete the combined absolute-position MoveIt plus segmented-strip contact
+grasp. Accept it only when the strip lifts, remains between the fingers without
+penetration, and drops after the gripper opens. Preserve the trajectory and
+machine-readable metrics as the reference case.
+
+### School GPU validation
+
+Reproduce the pinned Humble/Newton environment safely without modifying the
+host Jazzy installation. First prove that the same segmented reference case
+runs from the same commit. Then enable the FEM backend and compare it against
+the reference under identical commands. Change one model or material variable
+at a time and record the evidence.
 
 ## Next session start
 
@@ -66,7 +103,9 @@ time and record the evidence before changing parameters.
 4. If the repository is not present, clone the GitHub repository into
    `$HOME/ur5_ws/src/ur5_moveit_demo` without touching existing unknown files.
 5. Continue with the isolated Ubuntu 22.04 / ROS 2 Humble bootstrap only after
-   the environment boundary is understood.
+   the environment boundary is understood. Do not begin a Jazzy port.
+6. Verify the segmented reference before enabling GPU FEM; this separates
+   environment failures from physics-model differences.
 
 ## Required session close
 
