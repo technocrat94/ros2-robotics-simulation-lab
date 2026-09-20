@@ -16,6 +16,25 @@ You are continuing a ROS 2 Humble, MoveIt, UR5/Robotiq, and Newton 1.5.1
 learning project. Begin by verifying the school Ubuntu environment and Git
 commit. Do not overwrite working code before the baseline build passes.
 
+## Mandatory read-only intake audit
+
+Before installing, editing, building, or starting project processes, report the
+following items from the repository documents and current machine inspection:
+
+1. current branch, exact commit, and whether the working tree is clean;
+2. the home computer's role and the school computer's role;
+3. three verified milestones and the exact unverified integration boundary;
+4. why the host Jazzy installation must not trigger an immediate Jazzy port;
+5. the single next home experiment and the later school GPU experiment;
+6. the observable acceptance evidence for a successful contact grasp;
+7. writable directories, process/port restrictions, and logout procedure.
+
+Explicitly distinguish MoveIt planning, bridge transport, Newton physics, the
+segmented reference strip, and the FEM validation strip. Cite the document
+section used for each conclusion. If any item cannot be answered, stop and
+re-read the handoff documents. Do not modify the project until the owner has a
+complete audit to review.
+
 The immediate objective is to validate an absolute-object-position grasp:
 
 - MoveIt plans to object center `(0.4869, 0.10915, 0.0100) m` in `world`.

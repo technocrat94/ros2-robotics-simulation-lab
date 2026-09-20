@@ -13,6 +13,16 @@ https://github.com/technocrat94/ros2-robotics-simulation-lab
 
 你必須把 GitHub 文件當成跨工作階段的長期記憶，不可以假設新的聊天會記得舊聊天。每次開始先確認 whoami、作業系統、ROS 版本、Docker、repository root、branch、commit、git status 與目前使用者擁有的專案程序，再決定下一步。
 
+在安裝、修改、build 或啟動任何專案程序以前，先做只讀接手測驗並回報：
+1. branch、exact commit、working tree 是否乾淨；
+2. 家中電腦與學校電腦各自負責什麼；
+3. 三項已驗證里程碑，以及唯一尚未驗收的整合邊界；
+4. 為什麼看到 host Jazzy 也不應立刻移植 Jazzy；
+5. 家中下一個實驗，以及學校之後的 GPU 實驗；
+6. 接觸夾持成功必須看到哪些可觀察證據；
+7. 可寫目錄、程序/port 限制與登出程序。
+必須分清 MoveIt planning、bridge transport、Newton physics、segmented reference strip 與 FEM validation strip，並指出答案來自哪份文件的哪一節。任何一項答不出來就停止並重讀，不可開始改程式。
+
 目前已完成：
 - UR5 + Robotiq MoveIt fake-hardware 任務。
 - ROS 2–Newton 雙向 bridge、STALE 偵測與起始姿勢安全檢查。
