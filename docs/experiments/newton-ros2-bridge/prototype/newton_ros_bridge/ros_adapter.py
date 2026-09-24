@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ROS 2 Humble process: translate loopback UDP state and commands."""
+"""ROS 2 process: translate loopback UDP state and commands."""
 import json
 import os
 import socket
@@ -51,7 +51,7 @@ class NewtonRosBridge(Node):
             JointState, "/joint_states", self.receive_ros_joint_state, 10)
         self.create_subscription(
             JointTrajectoryControllerState,
-            "/joint_trajectory_controller/state",
+            "/joint_trajectory_controller/controller_state",
             self.receive_controller_state,
             10,
         )
@@ -99,9 +99,12 @@ class NewtonRosBridge(Node):
         self.maybe_send_shadow()
 
     def receive_controller_state(self, message):
-        if len(message.joint_names) != len(message.desired.positions):
+        reference = getattr(message, "reference", None)
+        if reference is None:
+            reference = getattr(message, "desired", None)
+        if reference is None or len(message.joint_names) != len(reference.positions):
             return
-        by_name = dict(zip(message.joint_names, message.desired.positions))
+        by_name = dict(zip(message.joint_names, reference.positions))
         if all(name in by_name for name in ARM_JOINT_NAMES):
             self.latest_desired_arm = [float(by_name[name]) for name in ARM_JOINT_NAMES]
             self.maybe_send_shadow()

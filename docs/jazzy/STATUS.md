@@ -7,98 +7,74 @@ Last updated: 2026-09-24 (Asia/Taipei)
 - Machine: Ubuntu 24.04, native ROS 2 Jazzy, amd64.
 - Branch: `jazzy-port`.
 - Humble reference baseline visible in history: `3925912`.
-- Checked-out HEAD before this Jazzy progress commit: `3925912`.
-- The pre-existing school changes from `main` are preserved in `stash@{0}` with message `pre-jazzy-port school changes 2026-09-24`; they were not mixed into this port.
+- Previous verified Jazzy commit: `abccf2b39ab0f87abf6667981cd1e91efba43e5a`.
+- The pre-existing school changes from `main` remain preserved in `stash@{0}` and were not mixed into this port.
 - No Docker Humble environment was started. No Humble build, install, log, or ARM virtual environment was copied.
 
 ## Completed
 
-- Adapted the UR5 and Robotiq Xacro to the Jazzy UR description macros.
-- Configured both UR5 and Robotiq to use `mock_components/GenericSystem`.
-- Adapted the SRDF macro invocation and MoveIt controller, kinematics, and OMPL configuration to Jazzy.
-- Replaced the obsolete upstream UR MoveIt launch inclusion with a project-owned MoveIt configuration so the combined UR5 and Robotiq model is used consistently.
-- Updated the C++ MoveIt plan member names required by MoveIt 2.12.
-- Built the three source packages in independent Jazzy output directories.
-- Started robot state publication, ros2_control, MoveGroup, and RViz.
-- Executed the `move_xyz` fake-hardware pick-and-place motion successfully.
+- Ported the UR5 and Robotiq Xacro, SRDF, MoveIt configuration, launch files, and C++ plan API to Jazzy.
+- Built and ran the native Jazzy MoveIt fake-hardware stack with all four controllers active.
+- Executed the `move_xyz` fake-hardware pick-and-place motion successfully in RViz.
+- Created a fresh Python 3.12 amd64 environment at `~/newton_ws/.venv-cpu` with Newton 1.5.1, Warp 1.17.0, Viser 1.0.26, and NumPy 2.5.3.
+- Generated `~/newton_ws/ros_bridge_assets/ur5_robotiq.newton.urdf` from the Jazzy Xacro with all package mesh paths resolved.
+- Built `newton_ros_bridge` on Jazzy and discovered its `ros_adapter` and `start_state_guard` executables.
+- Ported the adapter from the Humble controller topic and `desired.positions` field to Jazzy's `/joint_trajectory_controller/controller_state` and `reference.positions`.
+- Displayed the UR5, Robotiq, and 20-segment strip in the localhost Newton Viser viewer.
+- Ran the complete measured-object-pose MoveIt–Newton ground-grasp workflow.
 
 ## Rebuild and run
 
-Build from a new terminal:
+Use the idempotent Jazzy bootstrap:
 
 ```bash
-cd ~/ur5_ws
-source src/ur5_moveit_demo/scripts/lab_session_env.sh
-source /opt/ros/jazzy/setup.bash
-colcon --log-base log_jazzy_port build \
-  --build-base build_jazzy_port \
-  --install-base install_jazzy_port \
-  --symlink-install \
-  --packages-select robotiq_controllers robotiq_description ur5_moveit_demo
+cd ~/ur5_ws/src/ur5_moveit_demo
+./scripts/bootstrap_school_jazzy.sh
 ```
 
-Start MoveIt and RViz in terminal 1:
-
-```bash
-cd ~/ur5_ws
-source src/ur5_moveit_demo/scripts/lab_session_env.sh
-source /opt/ros/jazzy/setup.bash
-source install_jazzy_port/setup.bash
-ros2 launch ur5_moveit_demo ur5_robotiq_bringup.launch.py
-```
-
-After MoveGroup prints `You can start planning now!`, run the demonstration in terminal 2:
-
-```bash
-cd ~/ur5_ws
-source src/ur5_moveit_demo/scripts/lab_session_env.sh
-source /opt/ros/jazzy/setup.bash
-source install_jazzy_port/setup.bash
-ros2 launch ur5_moveit_demo move_xyz.launch.py
-```
+Use [NEWTON_RUNBOOK.md](NEWTON_RUNBOOK.md) for the verified four-terminal launch sequence. Run only one `ur5_robotiq_bringup.launch.py` instance per ROS domain.
 
 ## Actual test evidence
 
-The Jazzy build completed on 2026-09-24:
+The MoveIt-only demonstration reached the named configuration, completed all three Cartesian paths at `100.0%`, operated the gripper, and ended with `PICK AND PLACE DEMO SUCCEEDED`.
+
+Newton CPU execution passed a 20-segment headless simulation with finite state. The Viser server accepted a browser connection at `http://127.0.0.1:30000`.
+
+The integrated Jazzy bridge reported:
 
 ```text
-Finished <<< robotiq_controllers
-Finished <<< robotiq_description
-Finished <<< ur5_moveit_demo
-Summary: 3 packages finished
+object pose = (0.48689985, 0.10915001, 0.00999984) m in world
+START_STATE_GUARD pass=true maximum_error_rad=5.6182855e-08
+trajectory shadow enabled
+bridge status = OK
+trajectory_shadow_error = 5.6578260e-08 rad
+mimic_max_error = 0.0 rad
 ```
 
-At runtime, all required controllers were active:
+The absolute-position task consumed `/newton/object_pose`, completed its global pre-grasp plan and both Cartesian paths at `100.0%`, closed and reopened the gripper, and ended with `ABSOLUTE POSITION PICK SUCCEEDED`.
+
+Newton's final physical result was:
 
 ```text
-robotiq_activation_controller  active
-joint_trajectory_controller    active
-robotiq_gripper_controller     active
-joint_state_broadcaster        active
+closed_seen=true
+lift_started=true
+release_seen=true
+grasp_region_lift_m=0.0006303657
+minimum_strip_bottom_z_m=-5.5157e-07
+maximum_contact_count=1900
+finite_state=true
+candidate_contact_grasp_pass=false
 ```
 
-MoveGroup loaded the KDL solver and OMPL planning pipeline. RViz reported that it was ready for the `ur_manipulator` planning group. The `move_xyz` run then reported:
-
-```text
-UR5 reached 'test_configuration'.
-Approach Cartesian path completed: 100.0%
-Approach Cartesian motion completed.
-Gripper reached position 0.7929
-Lift and transport Cartesian path completed: 100.0%
-Lift and transport Cartesian motion completed.
-Return to work start Cartesian path completed: 100.0%
-PICK AND PLACE DEMO SUCCEEDED
-```
-
-This evidence establishes native Jazzy MoveIt planning and fake-hardware execution with visible RViz motion. It does not establish Newton contact physics or a successful physical ground grasp.
+This reproduces the Humble boundary: planning, controller execution, ROS–Newton transport, state synchronization, trajectory shadow, contact generation, and visualization work; the dynamic ground pickup still does not retain the strip during lift.
 
 ## Unresolved
 
-- `~/newton_ws` is absent on this machine, so Newton, the ROS–Newton bridge, the segmented strip, and the Newton viewer cannot yet be started here.
-- `pick_at_position` has been ported to the Jazzy API and builds, but its end-to-end `/newton/object_pose` workflow has not been tested because Newton is absent.
-- The Humble reference still has an unresolved ground-lift failure: bilateral contact exists, but the strip remains on the floor. Jazzy must not treat MoveIt `SUCCEEDED` as proof of a physical grasp.
-- Jazzy warns that `ROS_LOCALHOST_ONLY` is deprecated. It is still honored and currently prevents discovery outside this host; migrating the isolation script to the newer discovery settings remains future cleanup.
+- The physical ground grasp still fails. MoveIt success is not physical grasp success.
+- Contact instrumentation still reports aggregate magnitude. The next experiment must record per-finger world-frame `|Fx|`, `|Fy|`, and `|Fz|` during closure and the first lift frames before changing friction or compression again.
+- `ROS_LOCALHOST_ONLY` is deprecated in Jazzy but remains honored. Migrating the isolation script to the newer discovery settings is future cleanup.
+- The run intentionally forced CPU execution. FEM/GPU testing remains deferred until the segmented reference passes.
 
 ## Next step
 
-Populate `~/newton_ws` only from the committed Newton source and environment specification, create a fresh amd64 environment there, and verify that the Newton viewer can display the segmented-strip scene before connecting the bridge. Continue ground-grasp force analysis only after the bridge reproduces the Humble baseline.
+Add per-finger `|Fx|`, `|Fy|`, and `|Fz|` measurements to `newton_moveit_grasp_endpoint.py`, rerun one clean ground-grasp trial, and save the machine-readable force trace before changing any contact parameter.
