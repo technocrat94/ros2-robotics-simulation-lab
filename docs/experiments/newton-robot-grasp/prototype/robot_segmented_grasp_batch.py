@@ -34,6 +34,7 @@ CLOSED_GRIP = float(os.environ.get("GRASP_CLOSED_GRIP", "0.78"))
 CONTACT_FRICTION = float(os.environ.get("GRASP_FRICTION", "1.5"))
 SHOW_COLLIDERS = os.environ.get("GRASP_SHOW_COLLIDERS", "0") == "1"
 COLLISION_SCOPE = os.environ.get("GRASP_COLLISION_SCOPE", "all")
+GRAVITY = float(os.environ.get("GRASP_GRAVITY", "9.81"))
 STRIP_CENTER_Z = float(os.environ.get("GRASP_STRIP_CENTER_Z", "0.34"))
 GRASP_POSITION = os.environ.get("GRASP_POSITION", "near_end")
 COMMAND_LIFT_Z = 0.12
@@ -134,7 +135,7 @@ def build_scene():
     newton.use_coord_layout_targets = True
     wp.init()
     wp.set_device("cpu")
-    builder = newton.ModelBuilder()
+    builder = newton.ModelBuilder(gravity=(0.0, 0.0, -GRAVITY))
     builder.add_urdf(
         URDF,
         floating=False,

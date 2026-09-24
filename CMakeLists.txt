@@ -23,7 +23,9 @@ find_package(rclcpp REQUIRED)
 find_package(rclcpp_action REQUIRED)
 find_package(control_msgs REQUIRED)
 find_package(moveit_ros_planning_interface REQUIRED)
+find_package(moveit_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(shape_msgs REQUIRED)
 find_package(Threads REQUIRED)
 
 # ======================================================
@@ -65,7 +67,9 @@ ament_target_dependencies(
   rclcpp_action
   control_msgs
   moveit_ros_planning_interface
+  moveit_msgs
   geometry_msgs
+  shape_msgs
 )
 
 # std::thread 使用的 thread library
@@ -91,6 +95,15 @@ install(
     pick_at_position
   DESTINATION
     lib/${PROJECT_NAME}
+)
+
+install(
+  PROGRAMS
+    scripts/object_debug_marker.py
+  DESTINATION
+    lib/${PROJECT_NAME}
+  RENAME
+    object_debug_marker
 )
 
 # ======================================================
