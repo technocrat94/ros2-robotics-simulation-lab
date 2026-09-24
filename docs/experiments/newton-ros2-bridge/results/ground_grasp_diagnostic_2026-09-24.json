@@ -1,0 +1,52 @@
+{
+  "date": "2026-09-24",
+  "environment": {
+    "os": "Ubuntu 22.04",
+    "architecture": "aarch64",
+    "ros_distribution": "humble",
+    "newton_version": "1.5.1"
+  },
+  "object": {
+    "model": "20-segment compliant-joint strip",
+    "dimensions_m": [0.4, 0.05, 0.02],
+    "clean_initial_center_m": [0.4869, 0.10915, 0.01]
+  },
+  "gripper_calibration": {
+    "object_width_mm": 50.0,
+    "two_mm_compression_command_rad": 0.3751450512,
+    "two_mm_compression_closure_drop_mm": 10.57812394,
+    "four_mm_compression_command_rad_approx": 0.3937
+  },
+  "parameter_trials": {
+    "friction_coefficients": [1.5, 3.0, 10.0],
+    "total_compression_mm": [2.0, 4.0]
+  },
+  "representative_closed_state": {
+    "object_center_m": [0.687, 0.109, 0.01],
+    "gripper_leader_rad": 0.394,
+    "left_finger_strip_contacts": 327,
+    "right_finger_strip_contacts": 316,
+    "left_loaded_contacts": 25,
+    "right_loaded_contacts": 22,
+    "left_contact_force_magnitude_sum": 231.335,
+    "right_contact_force_magnitude_sum": 250.229,
+    "closed_loaded_contact_z_range_m": [-0.0001, 0.0206],
+    "measured_closed_grip_lift_m": 0.0,
+    "minimum_strip_bottom_m": -0.0000,
+    "maximum_object_rise_m": 0.0,
+    "attachment_constraint": "none"
+  },
+  "isolated_lift_observation": "The gripper rose and the strip immediately remained on the ground.",
+  "accepted_components": [
+    "absolute object-pose feedback",
+    "MoveIt pre-grasp planning",
+    "floor collision object",
+    "stage-isolation modes",
+    "width-to-command interpolation",
+    "closure-drop compensation",
+    "ROS-to-Newton trajectory shadow",
+    "bilateral loaded-contact instrumentation"
+  ],
+  "ground_grasp_pass": false,
+  "next_experiment": "Reset the scene and measure per-finger absolute |Fx|, |Fy|, and |Fz| during closure and the first lift frames."
+}

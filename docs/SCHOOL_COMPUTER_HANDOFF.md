@@ -3,16 +3,19 @@
 This document rebuilds the project on the school computer without copying the
 home virtual machine. The GitHub repository is the source of truth.
 
-## Required platform
+## Reference and target platforms
 
-- Ubuntu 22.04 (native installation is preferred)
-- ROS 2 Humble
-- Git and Internet access
-- CPU execution is supported; an NVIDIA GPU is optional
+- Reference: Ubuntu 22.04, ROS 2 Humble, Newton 1.5.1.
+- Long-term school target: Ubuntu 24.04, ROS 2 Jazzy, `x86_64`, NVIDIA GPU.
+- Git and Internet access are required for reconstruction.
+- CPU execution is supported; GPU/FEM validation follows the segmented test.
 
-The current home reference system is Ubuntu 22.04 `aarch64`. A school
-`x86_64` computer does not need to match the CPU architecture, but it should
-use ROS 2 Humble and the pinned Python package versions below.
+The current home reference system is Ubuntu 22.04 `aarch64`. Build products
+and virtual environments are not portable to the school `x86_64` computer.
+The Humble bootstrap below reconstructs the reference contract. A separate
+Jazzy port is the long-term target and must follow `docs/JAZZY_PORT_PLAN.md`;
+do not mix Humble and Jazzy setup files in one shell or overwrite the reference
+branch.
 
 ### Identify the CPU architecture
 
@@ -213,6 +216,9 @@ and grasp failure are different diagnoses and must be reported separately.
 
 ## Current limitation
 
-Newton contains a physical ground plane, but the MoveIt planning scene does
-not yet contain the matching floor collision object. Adding the same floor to
-MoveIt is the next safety improvement after the first contact run is diagnosed.
+The MoveIt planning scene now contains a matching floor collision object, and
+the absolute-position stages and bilateral contact instrumentation are
+verified. The combined ground pickup is not accepted because the strip did not
+follow the isolated lift despite loaded contact. Continue from
+`docs/NEWTON_GROUND_GRASP_DIAGNOSTIC.md`; do not treat a MoveIt success line as
+physical grasp evidence.

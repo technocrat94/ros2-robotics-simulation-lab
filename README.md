@@ -39,6 +39,25 @@ Measured state and errors return to ROS 2
 | 180-degree stress motion | grasp-height change `0.88 mm`; drop only after opening | Newton preserves the dynamic object response during a large prescribed robot motion. |
 | MoveIt shadow execution | full task succeeds; start guard passes after synchronization; final max error `3.4e-8 rad` | MoveIt reference motion now reaches the Newton robot through the bridge, while the existing fake controller remains authoritative. |
 
+### Current ground-pick boundary
+
+The next integration stage uses Newton's measured strip pose as an absolute
+MoveIt target, adds a matching floor to the planning scene, and derives the
+Robotiq command and vertical compensation from a width calibration. Planning,
+stage-isolation modes, fake-hardware execution, trajectory shadow, and
+bilateral contact-force instrumentation are verified.
+
+The physical ground pickup is **not yet accepted**. Both fingers produced
+loaded contact, but an isolated lift left the strip on the ground. Raising the
+friction coefficient to a diagnostic value of `10.0` and increasing nominal
+compression did not correct the failure. The next controlled test records
+world-frame `|Fx|`, `|Fy|`, and `|Fz|` during closure and initial lift instead
+of increasing scalar parameters again.
+
+[Read the English diagnostic record](docs/NEWTON_GROUND_GRASP_DIAGNOSTIC.md)
+([繁體中文學習筆記](docs/NEWTON_GROUND_GRASP_DIAGNOSTIC.zh-TW.md)) and the
+[Jazzy port plan](docs/JAZZY_PORT_PLAN.md).
+
 ### Report media
 
 - [Sphere-drop physics replay](docs/experiments/newton-radius/results/lesson01_replay.gif)

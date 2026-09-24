@@ -12,9 +12,11 @@ Read these files before changing code:
 5. `docs/NEWTON_SOFT_STRIP_EXPERIMENT.md`
 6. `docs/NEWTON_ROS2_INTEGRATION.zh-TW.md`
 
-You are continuing a ROS 2 Humble, MoveIt, UR5/Robotiq, and Newton 1.5.1
-learning project. Begin by verifying the school Ubuntu environment and Git
-commit. Do not overwrite working code before the baseline build passes.
+You are continuing a ROS 2, MoveIt, UR5/Robotiq, and Newton 1.5.1 learning
+project. Humble is the current reproducible reference; Jazzy is the future
+primary platform after a separate port passes comparison tests. Begin by
+verifying the school Ubuntu environment and Git commit. Do not overwrite
+working code before the baseline and port boundaries are understood.
 
 ## Mandatory read-only intake audit
 
@@ -24,8 +26,9 @@ following items from the repository documents and current machine inspection:
 1. current branch, exact commit, and whether the working tree is clean;
 2. the home computer's role and the school computer's role;
 3. three verified milestones and the exact unverified integration boundary;
-4. why the host Jazzy installation must not trigger an immediate Jazzy port;
-5. the single next home experiment and the later school GPU experiment;
+4. why Jazzy is the long-term target but must remain separate from the current
+   Humble reference until the ground-grasp baseline passes;
+5. the single next home diagnostic and the staged Jazzy/GPU validation;
 6. the observable acceptance evidence for a successful contact grasp;
 7. writable directories, process/port restrictions, and logout procedure.
 
@@ -56,9 +59,11 @@ keep the detailed portfolio record in English. Keep responses concise because
 the owner is controlling token usage. Ask the owner to perform simple terminal
 or visual checks when that improves learning.
 
-Do not claim contact success yet. The new absolute-position MoveIt program and
-bridge startup are verified, but the combined Newton contact grasp still needs
-visual and numerical acceptance testing.
+Do not claim ground-contact success yet. Absolute-position MoveIt planning,
+bridge startup, width calibration, and bilateral loaded-contact measurement are
+verified, but the strip did not follow an isolated lift. Read
+`docs/NEWTON_GROUND_GRASP_DIAGNOSTIC.md` before proposing another parameter
+change.
 
 ## Persistent project memory
 
