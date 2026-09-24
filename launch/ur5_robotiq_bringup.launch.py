@@ -1,22 +1,15 @@
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription, TimerAction
-from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import Command, FindExecutable, PathJoinSubstitution
+from launch.actions import TimerAction
+from launch.substitutions import PathJoinSubstitution
 
 from launch_ros.actions import Node
-from launch_ros.parameter_descriptions import ParameterValue
 from launch_ros.substitutions import FindPackageShare
+from moveit_configs_utils import MoveItConfigsBuilder
 
 
 def generate_launch_description():
 
     package_share = FindPackageShare("ur5_moveit_demo")
-
-    xacro_file = PathJoinSubstitution([
-        package_share,
-        "urdf",
-        "ur5_robotiq.urdf.xacro",
-    ])
 
     controllers_file = PathJoinSubstitution([
         package_share,
@@ -24,24 +17,39 @@ def generate_launch_description():
         "combined_controllers.yaml",
     ])
 
-    robot_description_content = Command([
-        FindExecutable(name="xacro"),
-        " ",
-        xacro_file,
-        " ",
-        "name:=ur",
-        " ",
-        "ur_type:=ur5",
-        " ",
-        "use_fake_hardware:=true",
-    ])
-
-    robot_description = {
-        "robot_description": ParameterValue(
-            robot_description_content,
-            value_type=str,
+    moveit_config = (
+        MoveItConfigsBuilder("ur", package_name="ur5_moveit_demo")
+        .robot_description(
+            file_path="urdf/ur5_robotiq.urdf.xacro",
+            mappings={
+                "name": "ur",
+                "ur_type": "ur5",
+                "use_fake_hardware": "true",
+            },
         )
-    }
+        .robot_description_semantic(
+            file_path="srdf/ur5_robotiq.srdf.xacro",
+            mappings={"name": "ur", "prefix": ""},
+        )
+        .robot_description_kinematics(file_path="config/kinematics.yaml")
+        .joint_limits(file_path="config/joint_limits.yaml")
+        .trajectory_execution(
+            file_path="config/controllers.yaml",
+            moveit_manage_controllers=False,
+        )
+        .planning_pipelines(
+            default_planning_pipeline="ompl",
+            pipelines=["ompl"],
+            load_all=False,
+        )
+        .planning_scene_monitor(
+            publish_robot_description=True,
+            publish_robot_description_semantic=True,
+        )
+        .to_moveit_configs()
+    )
+
+    robot_description = moveit_config.robot_description
 
     # 發布 UR5＋Robotiq 的完整 TF
     robot_state_publisher = Node(
@@ -106,24 +114,32 @@ def generate_launch_description():
         ],
     )
 
-    # 官方 MoveIt，但改用我們的 UR5＋Robotiq 組合模型
-    moveit = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            PathJoinSubstitution([
-                FindPackageShare("ur_moveit_config"),
-                "launch",
-                "ur_moveit.launch.py",
-            ])
-        ),
-        launch_arguments={
-            "ur_type": "ur5",
-            "description_package": "ur5_moveit_demo",
-            "description_file": "ur5_robotiq.urdf.xacro",
-            "moveit_config_package": "ur5_moveit_demo",
-            "moveit_config_file": "ur5_robotiq.srdf.xacro",
-            "launch_rviz": "true",
-            "use_sim_time": "true",
-        }.items(),
+    move_group = Node(
+        package="moveit_ros_move_group",
+        executable="move_group",
+        output="screen",
+        parameters=[
+            moveit_config.to_dict(),
+            {"use_sim_time": False},
+        ],
+    )
+
+    rviz_config = PathJoinSubstitution([
+        package_share,
+        "rviz",
+        "view_robot.rviz",
+    ])
+
+    rviz = Node(
+        package="rviz2",
+        executable="rviz2",
+        name="rviz2_moveit",
+        output="screen",
+        arguments=["-d", rviz_config],
+        parameters=[
+            moveit_config.to_dict(),
+            {"use_sim_time": False},
+        ],
     )
 
     return LaunchDescription([
@@ -152,6 +168,6 @@ def generate_launch_description():
 
         TimerAction(
             period=5.0,
-            actions=[moveit],
+            actions=[move_group, rviz],
         ),
     ])

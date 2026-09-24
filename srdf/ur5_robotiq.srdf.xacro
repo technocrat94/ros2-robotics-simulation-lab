@@ -8,7 +8,7 @@
 
   <xacro:include filename="$(find ur_moveit_config)/srdf/ur_macro.srdf.xacro"/>
 
-  <xacro:ur_srdf name="$(arg name)" prefix="$(arg prefix)"/>
+  <xacro:ur_srdf/>
 
   <!-- Expected internal contacts in the Robotiq mechanism -->
   <disable_collisions link1="ur_to_robotiq_link" link2="wrist_3_link" reason="Adjacent"/>

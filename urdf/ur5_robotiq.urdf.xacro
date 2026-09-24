@@ -32,6 +32,7 @@
   <xacro:arg name="output_recipe_filename" default="rtde_output_recipe.txt"/>
 
   <xacro:include filename="$(find ur_description)/urdf/ur_macro.xacro"/>
+  <xacro:include filename="$(find ur_description)/urdf/ros2_control_mock_hardware.xacro"/>
 
   <xacro:include
     filename="$(find robotiq_description)/urdf/ur_to_robotiq_adapter.urdf.xacro"/>
@@ -45,23 +46,21 @@
     name="$(arg name)"
     tf_prefix="$(arg prefix)"
     parent="world"
-    ur_type="$(arg ur_type)"
     joint_limits_parameters_file="$(arg joint_limit_params)"
     kinematics_parameters_file="$(arg kinematics_params)"
     physical_parameters_file="$(arg physical_params)"
     visual_parameters_file="$(arg visual_params)"
     safety_limits="$(arg safety_limits)"
     safety_pos_margin="$(arg safety_pos_margin)"
-    safety_k_position="$(arg safety_k_position)"
-    use_fake_hardware="$(arg use_fake_hardware)"
-    generate_ros2_control_tag="true"
-    robot_ip="$(arg robot_ip)"
-    script_filename="$(arg script_filename)"
-    input_recipe_filename="$(arg input_recipe_filename)"
-    output_recipe_filename="$(arg output_recipe_filename)">
+    safety_k_position="$(arg safety_k_position)">
 
     <origin xyz="0 0 0" rpy="0 0 0"/>
   </xacro:ur_robot>
+
+  <xacro:ur_ros2_control
+    name="$(arg name)"
+    tf_prefix="$(arg prefix)"
+    mock_sensor_commands="false"/>
 
   <xacro:ur_to_robotiq
     prefix=""
@@ -71,9 +70,9 @@
 
   <xacro:robotiq_gripper
     name="RobotiqGripperHardwareInterface"
+    use_fake_hardware="$(arg use_fake_hardware)"
     prefix=""
     parent="robotiq_mount"
-    use_fake_hardware="$(arg use_fake_hardware)"
     include_ros2_control="true">
 
     <origin xyz="0 0 0" rpy="0 0 0"/>

@@ -284,7 +284,7 @@ bool move_relative(
   }
 
   MoveGroup::Plan plan;
-  plan.trajectory_ = trajectory;
+  plan.trajectory = trajectory;
 
   const bool executed =
     static_cast<bool>(move_group.execute(plan));

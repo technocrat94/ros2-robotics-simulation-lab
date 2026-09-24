@@ -360,15 +360,15 @@ bool move_relative(
   }
 
   MoveGroup::Plan plan;
-  moveit::core::robotStateToRobotStateMsg(*current_state, plan.start_state_);
-  plan.trajectory_ = trajectory;
+  moveit::core::robotStateToRobotStateMsg(*current_state, plan.start_state);
+  plan.trajectory = trajectory;
 
   if (!execute_motion)
   {
     DisplayTrajectory display;
     display.model_id = move_group.getRobotModel()->getName();
-    display.trajectory_start = plan.start_state_;
-    display.trajectory.push_back(plan.trajectory_);
+    display.trajectory_start = plan.start_state;
+    display.trajectory.push_back(plan.trajectory);
     display_publisher->publish(display);
     RCLCPP_INFO(
       logger,
@@ -522,8 +522,8 @@ bool move_to_pose_target(
   {
     DisplayTrajectory display;
     display.model_id = move_group.getRobotModel()->getName();
-    display.trajectory_start = plan.start_state_;
-    display.trajectory.push_back(plan.trajectory_);
+    display.trajectory_start = plan.start_state;
+    display.trajectory.push_back(plan.trajectory);
     display_publisher->publish(display);
     RCLCPP_INFO(
       logger,
