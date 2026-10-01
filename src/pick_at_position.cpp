@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <array>
 #include <chrono>
 #include <condition_variable>
@@ -17,6 +18,8 @@
 #include <moveit/move_group_interface/move_group_interface.h>
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
 #include <moveit/robot_state/conversions.h>
+#include <moveit/robot_trajectory/robot_trajectory.h>
+#include <moveit/trajectory_processing/iterative_time_parameterization.h>
 #include <moveit_msgs/msg/collision_object.hpp>
 #include <moveit_msgs/msg/display_trajectory.hpp>
 #include <rclcpp/rclcpp.hpp>
@@ -243,6 +246,7 @@ bool move_relative(
   double dy,
   double dz,
   const std::string & stage_name,
+  double velocity_scaling,
   bool execute_motion = true)
 {
   const auto current_state = move_group.getCurrentState(10.0);
@@ -359,6 +363,30 @@ bool move_relative(
     }
   }
 
+  robot_trajectory::RobotTrajectory timed_trajectory(
+    move_group.getRobotModel(), move_group.getName());
+  timed_trajectory.setRobotTrajectoryMsg(*current_state, trajectory);
+  trajectory_processing::IterativeParabolicTimeParameterization time_parameterization;
+  if (!time_parameterization.computeTimeStamps(
+      timed_trajectory, velocity_scaling, velocity_scaling))
+  {
+    RCLCPP_ERROR(
+      logger,
+      "%s: Cartesian time parameterization failed.",
+      stage_name.c_str());
+    return false;
+  }
+  timed_trajectory.getRobotTrajectoryMsg(trajectory);
+
+  const auto & duration = trajectory.joint_trajectory.points.back().time_from_start;
+  const double duration_seconds =
+    static_cast<double>(duration.sec) +
+    static_cast<double>(duration.nanosec) * 1.0e-9;
+  RCLCPP_INFO(
+    logger,
+    "%s Cartesian timing: duration=%.3f s velocity_scale=%.3f",
+    stage_name.c_str(), duration_seconds, velocity_scaling);
+
   MoveGroup::Plan plan;
   moveit::core::robotStateToRobotStateMsg(*current_state, plan.start_state_);
   plan.trajectory_ = trajectory;
@@ -449,6 +477,161 @@ geometry_msgs::msg::Quaternion quaternion_from_rpy_degrees(
   result.y = cr * sp * cy + sr * cp * sy;
   result.z = cr * cp * sy - sr * sp * cy;
   return result;
+}
+
+
+bool move_staged_cartesian_to_pose(
+  MoveGroup & move_group,
+  const rclcpp::Publisher<DisplayTrajectory>::SharedPtr & display_publisher,
+  const rclcpp::Logger & logger,
+  const geometry_msgs::msg::Pose & target,
+  double safe_transit_margin,
+  double maximum_joint_travel,
+  double maximum_wrist_3_travel,
+  double velocity_scaling,
+  bool execute_motion)
+{
+  const auto current_state = move_group.getCurrentState(10.0);
+  if (!current_state)
+  {
+    RCLCPP_ERROR(logger, "Safe pre-grasp: cannot obtain current robot state.");
+    return false;
+  }
+
+  const auto current_pose = move_group.getCurrentPose("tool0").pose;
+  const double safe_z =
+    std::max(current_pose.position.z, target.position.z) + safe_transit_margin;
+
+  auto raised_pose = current_pose;
+  raised_pose.position.z = safe_z;
+
+  auto oriented_pose = raised_pose;
+  oriented_pose.orientation = target.orientation;
+
+  auto above_target_pose = target;
+  above_target_pose.position.z = safe_z;
+
+  const std::vector<geometry_msgs::msg::Pose> waypoints = {
+    raised_pose,
+    oriented_pose,
+    above_target_pose,
+    target,
+  };
+
+  RCLCPP_INFO(
+    logger,
+    "SAFE_PREGRASP_ROUTE current=(%.3f, %.3f, %.3f) safe_z=%.3f "
+    "target=(%.3f, %.3f, %.3f)",
+    current_pose.position.x, current_pose.position.y, current_pose.position.z,
+    safe_z, target.position.x, target.position.y, target.position.z);
+
+  move_group.setStartStateToCurrentState();
+  moveit_msgs::msg::RobotTrajectory trajectory;
+  const double fraction = move_group.computeCartesianPath(
+    waypoints, 0.005, 0.0, trajectory, true);
+
+  RCLCPP_INFO(
+    logger, "Safe pre-grasp Cartesian path completed: %.1f%%",
+    fraction * 100.0);
+  if (fraction < 0.99)
+  {
+    RCLCPP_ERROR(
+      logger,
+      "Safe pre-grasp path is incomplete; refusing preview or execution.");
+    return false;
+  }
+
+  const auto & points = trajectory.joint_trajectory.points;
+  const auto & names = trajectory.joint_trajectory.joint_names;
+  if (points.size() < 2)
+  {
+    RCLCPP_ERROR(logger, "Safe pre-grasp trajectory has too few points.");
+    return false;
+  }
+
+  const std::size_t joint_count = points.front().positions.size();
+  std::vector<double> cumulative_travel(joint_count, 0.0);
+  std::vector<double> maximum_step(joint_count, 0.0);
+  for (std::size_t point = 1; point < points.size(); ++point)
+  {
+    if (points[point].positions.size() != joint_count ||
+      points[point - 1].positions.size() != joint_count)
+    {
+      RCLCPP_ERROR(logger, "Safe pre-grasp trajectory dimensions are invalid.");
+      return false;
+    }
+    for (std::size_t joint = 0; joint < joint_count; ++joint)
+    {
+      const double step = std::abs(
+        points[point].positions[joint] -
+        points[point - 1].positions[joint]);
+      cumulative_travel[joint] += step;
+      maximum_step[joint] = std::max(maximum_step[joint], step);
+    }
+  }
+
+  for (std::size_t joint = 0; joint < joint_count; ++joint)
+  {
+    const char * joint_name =
+      joint < names.size() ? names[joint].c_str() : "unknown_joint";
+    const bool is_wrist_3 = std::string(joint_name) == "wrist_3_joint";
+    const double allowed_travel =
+      is_wrist_3 ? maximum_wrist_3_travel : maximum_joint_travel;
+    RCLCPP_INFO(
+      logger,
+      "SAFE_PREGRASP_JOINT_TRAVEL joint=%s cumulative=%.3f rad "
+      "limit=%.3f rad max_step=%.3f rad",
+      joint_name, cumulative_travel[joint], allowed_travel, maximum_step[joint]);
+    if (cumulative_travel[joint] > allowed_travel ||
+      maximum_step[joint] > 0.35)
+    {
+      RCLCPP_ERROR(
+        logger,
+        "Safe pre-grasp rejected: %s cumulative=%.3f rad max_step=%.3f rad.",
+        joint_name, cumulative_travel[joint], maximum_step[joint]);
+      return false;
+    }
+  }
+
+  robot_trajectory::RobotTrajectory timed_trajectory(
+    move_group.getRobotModel(), move_group.getName());
+  timed_trajectory.setRobotTrajectoryMsg(*current_state, trajectory);
+  trajectory_processing::IterativeParabolicTimeParameterization time_parameterization;
+  if (!time_parameterization.computeTimeStamps(
+      timed_trajectory, velocity_scaling, velocity_scaling))
+  {
+    RCLCPP_ERROR(logger, "Safe pre-grasp time parameterization failed.");
+    return false;
+  }
+  timed_trajectory.getRobotTrajectoryMsg(trajectory);
+
+  MoveGroup::Plan plan;
+  moveit::core::robotStateToRobotStateMsg(*current_state, plan.start_state_);
+  plan.trajectory_ = trajectory;
+
+  if (!execute_motion)
+  {
+    DisplayTrajectory display;
+    display.model_id = move_group.getRobotModel()->getName();
+    display.trajectory_start = plan.start_state_;
+    display.trajectory.push_back(plan.trajectory_);
+    display_publisher->publish(display);
+    RCLCPP_INFO(
+      logger,
+      "SAFE_PREGRASP_PLAN_ONLY_SUCCEEDED; four-stage preview published; "
+      "no robot command was sent.");
+    std::this_thread::sleep_for(500ms);
+    return true;
+  }
+
+  if (!static_cast<bool>(move_group.execute(plan)))
+  {
+    RCLCPP_ERROR(logger, "Safe pre-grasp execution failed.");
+    return false;
+  }
+  RCLCPP_INFO(logger, "Safe staged pre-grasp completed.");
+  std::this_thread::sleep_for(500ms);
+  return true;
 }
 
 
@@ -586,6 +769,7 @@ int main(int argc, char * argv[])
   const double grasp_center_offset = parameter("grasp_center_offset", 0.1090);
   double closed_grip = parameter("closed_grip", 0.3760);
   const double velocity_scale = parameter("velocity_scale", 0.15);
+  const double lift_velocity_scale = parameter("lift_velocity_scale", 0.03);
   const bool use_newton_object_pose =
     bool_parameter("use_newton_object_pose", true);
   const bool pose_only = bool_parameter("pose_only", false);
@@ -599,7 +783,17 @@ int main(int argc, char * argv[])
   const double floor_size = parameter("floor_size", 3.0);
   const double floor_thickness = parameter("floor_thickness", 0.02);
   const bool plan_only = bool_parameter("plan_only", false);
+  const bool use_safe_pregrasp_path =
+    bool_parameter("use_safe_pregrasp_path", true);
+  const double safe_transit_margin =
+    parameter("safe_transit_margin", 0.0500);
+  const double maximum_pregrasp_joint_travel =
+    parameter("maximum_pregrasp_joint_travel", 1.6000);
+  const double maximum_wrist_3_travel =
+    parameter("maximum_wrist_3_travel", 3.2500);
   const bool pregrasp_only = bool_parameter("pregrasp_only", false);
+  const bool skip_pregrasp_motion =
+    bool_parameter("skip_pregrasp_motion", false);
   const bool use_named_start = bool_parameter("use_named_start", false);
   const bool approach_plan_only = bool_parameter("approach_plan_only", false);
   const bool approach_only = bool_parameter("approach_only", false);
@@ -648,12 +842,15 @@ int main(int argc, char * argv[])
       solution->bracket_low_rad, solution->bracket_high_rad);
   }
 
-  const std::array<double, 19> values = {
+  const std::array<double, 23> values = {
     object_x, object_y, object_z, pregrasp_clearance, approach_distance,
     lift_distance, grasp_center_offset, closed_grip, velocity_scale,
+    lift_velocity_scale,
     object_pose_timeout, grasp_roll_deg, grasp_pitch_deg, grasp_yaw_deg,
     floor_z, floor_size, floor_thickness, object_width_mm,
-    total_compression_mm, uncompensated_approach_distance};
+    total_compression_mm, uncompensated_approach_distance,
+    safe_transit_margin, maximum_pregrasp_joint_travel,
+    maximum_wrist_3_travel};
   for (const double value : values)
   {
     if (!std::isfinite(value))
@@ -666,7 +863,8 @@ int main(int argc, char * argv[])
   if (pregrasp_clearance <= 0.0 || approach_distance <= 0.0 ||
       approach_distance > pregrasp_clearance || lift_distance <= 0.0 ||
       grasp_center_offset <= 0.0 || velocity_scale <= 0.0 ||
-      velocity_scale > 1.0 || object_pose_timeout <= 0.0)
+      velocity_scale > 1.0 || lift_velocity_scale <= 0.0 ||
+      lift_velocity_scale > 1.0 || object_pose_timeout <= 0.0)
   {
     RCLCPP_ERROR(
       logger,
@@ -677,6 +875,12 @@ int main(int argc, char * argv[])
   if (floor_size <= 0.0 || floor_thickness <= 0.0)
   {
     RCLCPP_ERROR(logger, "Floor size and thickness must be positive.");
+    rclcpp::shutdown();
+    return 1;
+  }
+  if (safe_transit_margin <= 0.0 || maximum_pregrasp_joint_travel <= 0.0)
+  {
+    RCLCPP_ERROR(logger, "Safe pre-grasp limits must be positive.");
     rclcpp::shutdown();
     return 1;
   }
@@ -756,9 +960,9 @@ int main(int argc, char * argv[])
   RCLCPP_INFO(
     logger,
     "GRASP_CONFIG offset=%.4f m clearance=%.4f m approach=%.4f m "
-    "lift=%.4f m closed=%.4f rad",
+    "lift=%.4f m closed=%.4f rad lift_velocity_scale=%.3f",
     grasp_center_offset, pregrasp_clearance, approach_distance,
-    lift_distance, closed_grip);
+    lift_distance, closed_grip, lift_velocity_scale);
   RCLCPP_INFO(
     logger,
     "GRASP_ORIENTATION roll=%.1f pitch=%.1f yaw=%.1f deg",
@@ -794,9 +998,15 @@ int main(int argc, char * argv[])
 
   if (plan_only)
   {
-    const bool planned = move_to_pose_target(
-      move_group, display_publisher, logger, pregrasp_tool_pose,
-      "Absolute pre-grasp", false);
+    const bool planned = use_safe_pregrasp_path ?
+      move_staged_cartesian_to_pose(
+        move_group, display_publisher, logger, pregrasp_tool_pose,
+        safe_transit_margin, maximum_pregrasp_joint_travel,
+        maximum_wrist_3_travel,
+        velocity_scale, false) :
+      move_to_pose_target(
+        move_group, display_publisher, logger, pregrasp_tool_pose,
+        "Absolute pre-grasp", false);
     executor.cancel();
     spinner.join();
     rclcpp::shutdown();
@@ -826,7 +1036,7 @@ int main(int argc, char * argv[])
     const bool planned = move_relative(
       move_group, display_publisher, logger,
       0.0, 0.0, -approach_distance,
-      "Vertical grasp approach", false);
+      "Vertical grasp approach", velocity_scale, false);
     executor.cancel();
     spinner.join();
     rclcpp::shutdown();
@@ -860,7 +1070,7 @@ int main(int argc, char * argv[])
 
     const bool lifted = move_relative(
       move_group, display_publisher, logger,
-      0.0, 0.0, lift_distance, "Low test lift");
+      0.0, 0.0, lift_distance, "Low test lift", lift_velocity_scale);
     if (lifted)
     {
       RCLCPP_INFO(
@@ -892,9 +1102,36 @@ int main(int argc, char * argv[])
       logger,
       "PREGRASP_CENTER world=(%.4f, %.4f, %.4f) m",
       object_x, object_y, object_z + pregrasp_clearance);
-    success = move_to_pose_target(
-      move_group, display_publisher, logger, pregrasp_tool_pose,
-      "Absolute pre-grasp");
+    if (skip_pregrasp_motion)
+    {
+      const auto current = move_group.getCurrentPose("tool0").pose.position;
+      const double position_error = std::sqrt(
+        std::pow(current.x - pregrasp_tool_pose.position.x, 2) +
+        std::pow(current.y - pregrasp_tool_pose.position.y, 2) +
+        std::pow(current.z - pregrasp_tool_pose.position.z, 2));
+      RCLCPP_INFO(
+        logger, "PREGRASP_MOTION_SKIPPED position_error=%.4f m",
+        position_error);
+      if (position_error > 0.02)
+      {
+        RCLCPP_ERROR(
+          logger,
+          "Cannot skip pre-grasp motion: position error exceeds 0.02 m.");
+        success = false;
+      }
+    }
+    else
+    {
+      success = use_safe_pregrasp_path ?
+        move_staged_cartesian_to_pose(
+          move_group, display_publisher, logger, pregrasp_tool_pose,
+          safe_transit_margin, maximum_pregrasp_joint_travel,
+          maximum_wrist_3_travel,
+          velocity_scale, true) :
+        move_to_pose_target(
+          move_group, display_publisher, logger, pregrasp_tool_pose,
+          "Absolute pre-grasp");
+    }
   }
 
   if (success && pregrasp_only)
@@ -912,7 +1149,7 @@ int main(int argc, char * argv[])
   {
     success = move_relative(
       move_group, display_publisher, logger, 0.0, 0.0, -approach_distance,
-      "Vertical grasp approach");
+      "Vertical grasp approach", velocity_scale);
   }
 
   if (success && approach_only)
@@ -936,7 +1173,7 @@ int main(int argc, char * argv[])
     std::this_thread::sleep_for(1s);
     success = move_relative(
       move_group, display_publisher, logger, 0.0, 0.0, lift_distance,
-      "Vertical lift");
+      "Vertical lift", lift_velocity_scale);
   }
 
   if (success)

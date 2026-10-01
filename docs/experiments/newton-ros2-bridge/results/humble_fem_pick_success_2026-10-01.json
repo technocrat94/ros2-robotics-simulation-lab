@@ -1,0 +1,59 @@
+{
+  "recorded_at": "2026-10-01T16:13:18Z",
+  "reference_platform": {
+    "os": "Ubuntu 22.04 in UTM",
+    "architecture": "aarch64",
+    "ros_distribution": "humble",
+    "newton_version": "1.5.1",
+    "warp_version": "1.17.0",
+    "device": "cpu"
+  },
+  "acceptance": {
+    "moveit_process_succeeded": true,
+    "operator_observed_strip_lift": true,
+    "operator_observed_release_after_opening": true,
+    "automated_per_run_strip_lift_metric_available": false
+  },
+  "object_target_m": [0.4869, 0.1109, 0.0110],
+  "grasp": {
+    "object_width_mm": 50.0,
+    "total_compression_mm": 2.0,
+    "leader_command_rad": 0.375145,
+    "closure_drop_mm": 10.578,
+    "uncompensated_approach_m": 0.105,
+    "compensated_approach_m": 0.094422,
+    "lift_m": 0.120,
+    "lift_velocity_scale": 0.030
+  },
+  "moveit_evidence": {
+    "safe_pregrasp_path_fraction": 1.0,
+    "approach_path_fraction": 1.0,
+    "lift_path_fraction": 1.0,
+    "lift_trajectory_duration_s": 3.515,
+    "whole_process_wall_elapsed_s": 19.230750488,
+    "final_message": "ABSOLUTE POSITION PICK SUCCEEDED"
+  },
+  "newton_configuration": {
+    "object_model": "fem_strip",
+    "density_kg_m3": 1100,
+    "youngs_modulus_pa": 1000000,
+    "poisson_ratio": 0.45,
+    "soft_damping_pa_s": 1000,
+    "robot_friction": 10.0,
+    "strip_friction": 10.0,
+    "ground_friction": 1.5,
+    "soft_contact_ke": 1000,
+    "soft_contact_kd": 10,
+    "proxy_inset_m": 0.001,
+    "substeps": 10,
+    "command_dt_s": 0.02
+  },
+  "timing_estimate": {
+    "basis": "endpoint process lifetime sample, not per-run instrumentation",
+    "simulated_time_s": 1611.816666705313,
+    "wall_elapsed_s": 19180,
+    "real_time_factor": 0.0840,
+    "wall_seconds_per_simulated_second": 11.9
+  },
+  "source_log": "/home/yuhao/.ros/log/pick_at_position_9253_1790853579235.log"
+}
