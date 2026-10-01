@@ -1,5 +1,5 @@
 {
-  "recorded_at": "2026-10-01T16:13:18Z",
+  "recorded_at": "2026-10-01T20:38:16+08:00",
   "reference_platform": {
     "os": "Ubuntu 22.04 in UTM",
     "architecture": "aarch64",
@@ -10,11 +10,18 @@
   },
   "acceptance": {
     "moveit_process_succeeded": true,
+    "operator_observed_no_large_initial_detour": true,
     "operator_observed_strip_lift": true,
     "operator_observed_release_after_opening": true,
     "automated_per_run_strip_lift_metric_available": false
   },
-  "object_target_m": [0.4869, 0.1109, 0.0110],
+  "controlled_change": {
+    "parameter": "use_named_start",
+    "previous_value": true,
+    "accepted_value": false,
+    "other_verified_grasp_and_physics_parameters_preserved": true
+  },
+  "object_target_m": [0.4869, 0.1093, 0.0110],
   "grasp": {
     "object_width_mm": 50.0,
     "total_compression_mm": 2.0,
@@ -29,8 +36,9 @@
     "safe_pregrasp_path_fraction": 1.0,
     "approach_path_fraction": 1.0,
     "lift_path_fraction": 1.0,
-    "lift_trajectory_duration_s": 3.515,
-    "whole_process_wall_elapsed_s": 19.230750488,
+    "lift_trajectory_duration_s": 3.517,
+    "logged_moveit_sequence_elapsed_s": 12.765,
+    "named_start_event_present": false,
     "final_message": "ABSOLUTE POSITION PICK SUCCEEDED"
   },
   "newton_configuration": {
@@ -55,5 +63,6 @@
     "real_time_factor": 0.0840,
     "wall_seconds_per_simulated_second": 11.9
   },
-  "source_log": "/home/yuhao/.ros/log/pick_at_position_9253_1790853579235.log"
+  "source_log": "docs/experiments/newton-ros2-bridge/results/humble_fem_pick_success_2026-10-01.log",
+  "runtime_log": "/home/yuhao/ur5_ws/run_logs/humble_fem_pick_20261001_203816.log"
 }

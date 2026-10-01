@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -eo pipefail
 
 cd "${HOME}/ur5_ws"
 source /opt/ros/humble/setup.bash
 source install/setup.bash
+set -u
 
 mkdir -p run_logs
 log="run_logs/humble_fem_pick_$(date +%Y%m%d_%H%M%S).log"
@@ -17,7 +18,7 @@ ros2 service call /newton/set_trajectory_shadow \
 
 set +e
 ros2 launch ur5_moveit_demo pick_at_position.launch.py \
-  use_named_start:=true \
+  use_named_start:=false \
   use_safe_pregrasp_path:=true \
   safe_transit_margin:=0.050 \
   maximum_pregrasp_joint_travel:=1.600 \
