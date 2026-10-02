@@ -54,7 +54,10 @@ machine-readable measurements, and timing interpretation are recorded in the
 [English success record](docs/HUMBLE_FEM_PICK_SUCCESS.md)
 ([繁體中文摘要](docs/HUMBLE_FEM_PICK_SUCCESS.zh-TW.md)). The school-computer
 Jazzy port remains a separate validation target and must reproduce this
-observable behavior.
+observable behavior. The full failure reasoning and VBD/FEM teaching record is
+in [English](docs/NEWTON_FEM_GRASP_LEARNING_JOURNEY.md) and
+[繁體中文](docs/NEWTON_FEM_GRASP_LEARNING_JOURNEY.zh-TW.md); the diagnostic
+index is [here](docs/NEWTON_GROUND_GRASP_DIAGNOSTIC.md).
 
 ### Report media
 
