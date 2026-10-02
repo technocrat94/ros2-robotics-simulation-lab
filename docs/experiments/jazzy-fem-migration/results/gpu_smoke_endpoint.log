@@ -1,0 +1,28 @@
+Laboratory isolation environment
+  user=aisc216 uid=1000
+  ROS_DOMAIN_ID=24 ROS_LOCALHOST_ONLY=1
+  Newton state=20240 command=20241 viewer=30240
+Warp 1.17.0 initialized:
+   CUDA Toolkit 12.9, Driver 13.0
+   Devices:
+     "cpu"      : "x86_64"
+     "cuda:0"   : "NVIDIA GeForce RTX 3080" (10 GiB, sm_86, mempool enabled)
+   Kernel cache:
+     /home/aisc216/.cache/warp/1.17.0
+Module newton._src.geometry.inertia 060c986 load on device 'cuda:0' took 1627.49 ms  (compiled)
+Module newton._src.utils.mesh 92b663b load on device 'cpu' took 0.90 ms  (cached)
+Module warp._src.coloring 811e0ea load on device 'cpu' took 0.21 ms  (cached)
+Module validate_and_correct_inertia_kernel_1ff2ac62 1ff2ac6 load on device 'cuda:0' took 185.18 ms  (compiled)
+Module newton._src.geometry.bvh 580694b load on device 'cuda:0' took 648.26 ms  (compiled)
+Module newton._src.solvers.vbd.rigid_vbd_kernels e50922b load on device 'cpu' took 0.26 ms  (cached)
+Module newton._src.solvers.solver d7b7ff4 load on device 'cuda:0' took 650.82 ms  (compiled)
+Module newton._src.sim.articulation 8520e2f load on device 'cuda:0' took 11134.20 ms  (compiled)
+╭──────────────── viser ─────────────────╮
+│             ╷                          │
+│   HTTP      │ http://127.0.0.1:30240   │
+│   Websocket │ ws://127.0.0.1:30240     │
+│             ╵                          │
+╰────────────────────────────────────────╯
+Viser server running at: http://localhost:30240
+Module newton._src.viewer.kernels 1248c6a load on device 'cuda:0' took 2435.93 ms  (compiled)
+MOVEIT_GRASP_ENDPOINT_READY robot_bodies=24 robot_shapes=58 strip_bodies=0 strip_shapes=0 particles=252 tetrahedra=600 particle_radius=0.0010 robot_particle_colliders=4 active_robot_colliders=17 robot_friction=1.5 strip_friction=1.5 ground_friction=1.5 density=1100.0 youngs_modulus=1000000.0 soft_contact_ke=1000.0 soft_contact_kd=10.0 soft_contact_margin=0.0050 substeps=10 command_dt=0.020 max_hold=0.500 command_queue_capacity=4096 object_center=(0.4869,0.10915,0.01100) command=20241 state=20240 viewer=30240

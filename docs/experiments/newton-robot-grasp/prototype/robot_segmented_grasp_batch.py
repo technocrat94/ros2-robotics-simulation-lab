@@ -16,13 +16,21 @@ URDF = os.environ.get(
     "NEWTON_ROBOT_URDF",
     str(Path.home() / "newton_ws/ros_bridge_assets/ur5_robotiq.newton.urdf"),
 )
+DEVICE = os.environ.get("GRASP_DEVICE", "cpu")
 LENGTH = 0.40
 WIDTH = 0.05
 THICKNESS = 0.02
-DENSITY = 1100.0
+DENSITY = float(os.environ.get("GRASP_DENSITY", "1100.0"))
+if DENSITY <= 0.0:
+    raise ValueError("GRASP_DENSITY must be greater than zero")
+YOUNGS_MODULUS = float(os.environ.get("GRASP_YOUNGS_MODULUS", "1000000.0"))
+if YOUNGS_MODULUS <= 0.0:
+    raise ValueError("GRASP_YOUNGS_MODULUS must be greater than zero")
 SEGMENTS = 20
 FRAME_DT = 1.0 / 60.0
-SUBSTEPS = 10
+SUBSTEPS = int(os.environ.get("GRASP_SUBSTEPS", "10"))
+if SUBSTEPS <= 0:
+    raise ValueError("GRASP_SUBSTEPS must be greater than zero")
 DT = FRAME_DT / SUBSTEPS
 BASE_ARM = np.array(
     [0.0, -math.pi / 2, math.pi / 2, -math.pi / 2, -math.pi / 2, 0.0]
@@ -32,11 +40,35 @@ LIFT_ARM = np.array(
 )
 CLOSED_GRIP = float(os.environ.get("GRASP_CLOSED_GRIP", "0.78"))
 CONTACT_FRICTION = float(os.environ.get("GRASP_FRICTION", "1.5"))
+STRIP_FRICTION = float(
+    os.environ.get("GRASP_STRIP_FRICTION", str(CONTACT_FRICTION))
+)
+GROUND_FRICTION = float(
+    os.environ.get("GRASP_GROUND_FRICTION", str(CONTACT_FRICTION))
+)
 SHOW_COLLIDERS = os.environ.get("GRASP_SHOW_COLLIDERS", "0") == "1"
 COLLISION_SCOPE = os.environ.get("GRASP_COLLISION_SCOPE", "all")
-GRAVITY = float(os.environ.get("GRASP_GRAVITY", "9.81"))
 STRIP_CENTER_Z = float(os.environ.get("GRASP_STRIP_CENTER_Z", "0.34"))
 GRASP_POSITION = os.environ.get("GRASP_POSITION", "near_end")
+OBJECT_MODEL = os.environ.get("GRASP_OBJECT_MODEL", "segmented_strip")
+if OBJECT_MODEL not in {"segmented_strip", "rigid_block", "fem_strip"}:
+    raise ValueError(
+        "GRASP_OBJECT_MODEL must be 'segmented_strip', 'rigid_block', or 'fem_strip'"
+    )
+POISSON_RATIO = float(os.environ.get("GRASP_POISSON_RATIO", "0.45"))
+if not 0.0 <= POISSON_RATIO < 0.5:
+    raise ValueError("GRASP_POISSON_RATIO must be in [0, 0.5)")
+SOFT_DAMPING = float(os.environ.get("GRASP_SOFT_DAMPING", "1000.0"))
+if SOFT_DAMPING < 0.0:
+    raise ValueError("GRASP_SOFT_DAMPING must be zero or greater")
+SOFT_CONTACT_KE = float(os.environ.get("GRASP_SOFT_CONTACT_KE", "1000.0"))
+SOFT_CONTACT_KD = float(os.environ.get("GRASP_SOFT_CONTACT_KD", "10.0"))
+FEM_PROXY_INSET = float(os.environ.get("GRASP_FEM_PROXY_INSET", "0.001"))
+SHOW_FEM_PROXIES = os.environ.get("GRASP_SHOW_FEM_PROXIES", "0") == "1"
+if SOFT_CONTACT_KE <= 0.0 or SOFT_CONTACT_KD < 0.0:
+    raise ValueError("FEM contact stiffness must be positive and damping nonnegative")
+if FEM_PROXY_INSET < 0.0:
+    raise ValueError("GRASP_FEM_PROXY_INSET must be nonnegative")
 COMMAND_LIFT_Z = 0.12
 CONTACT_HOLD_DURATION = 1.0
 LIFT_DURATION = float(os.environ.get("GRASP_LIFT_DURATION", "2.0"))
@@ -134,8 +166,8 @@ def robot_coordinates(t):
 def build_scene():
     newton.use_coord_layout_targets = True
     wp.init()
-    wp.set_device("cpu")
-    builder = newton.ModelBuilder(gravity=(0.0, 0.0, -GRAVITY))
+    wp.set_device(DEVICE)
+    builder = newton.ModelBuilder()
     builder.add_urdf(
         URDF,
         floating=False,
@@ -153,6 +185,7 @@ def build_scene():
         if "finger_link" in label or "finger_tip_link" in label
     }
     active_robot_colliders = []
+    fem_contact_proxies = []
     for shape_index in range(robot_shapes):
         body_index = builder.shape_body[shape_index]
         is_collider = bool(
@@ -164,13 +197,62 @@ def build_scene():
         if enabled:
             active_robot_colliders.append(shape_index)
             builder.shape_material_mu[shape_index] = CONTACT_FRICTION
+            if OBJECT_MODEL == "fem_strip":
+                if body_index in finger_bodies:
+                    # The imported Robotiq collision meshes have no CPU SDF.
+                    # VBD full-surface contact therefore cannot use them
+                    # directly.  Replace their particle contact with a hidden
+                    # analytic box fitted just inside each collision mesh.
+                    builder.shape_flags[shape_index] &= ~(
+                        newton.ShapeFlags.COLLIDE_PARTICLES
+                    )
+                    vertices = np.asarray(
+                        builder.shape_source[shape_index].vertices,
+                        dtype=np.float32,
+                    ) * np.asarray(builder.shape_scale[shape_index], dtype=np.float32)
+                    lower = vertices.min(axis=0)
+                    upper = vertices.max(axis=0)
+                    center = 0.5 * (lower + upper)
+                    half = np.maximum(
+                        0.5 * (upper - lower) - FEM_PROXY_INSET, 0.001
+                    )
+                    source_xform = builder.shape_transform[shape_index]
+                    proxy_center = wp.transform_point(
+                        source_xform, wp.vec3(*center.tolist())
+                    )
+                    proxy_rotation = wp.transform_get_rotation(source_xform)
+                    proxy_cfg = builder.ShapeConfig(
+                        density=0.0,
+                        mu=CONTACT_FRICTION,
+                        restitution=0.0,
+                        has_shape_collision=False,
+                        has_particle_collision=True,
+                        is_visible=SHOW_FEM_PROXIES,
+                    )
+                    proxy = builder.add_shape_box(
+                        body_index,
+                        xform=wp.transform(proxy_center, proxy_rotation),
+                        hx=float(half[0]),
+                        hy=float(half[1]),
+                        hz=float(half[2]),
+                        cfg=proxy_cfg,
+                        label=f"fem_contact_proxy_{shape_index}",
+                    )
+                    fem_contact_proxies.append(proxy)
+                else:
+                    builder.shape_flags[shape_index] &= ~(
+                        newton.ShapeFlags.COLLIDE_PARTICLES
+                    )
         elif is_collider:
             builder.shape_flags[shape_index] &= ~(
                 newton.ShapeFlags.COLLIDE_SHAPES
                 | newton.ShapeFlags.COLLIDE_PARTICLES
             )
 
-    segment_length = LENGTH / SEGMENTS
+    # Include the hidden FEM contact proxies in the robot-shape range returned
+    # to diagnostics.  In rigid-object modes this remains the imported count.
+    robot_shapes = builder.shape_count
+
     grasp_point = np.array([0.4869, 0.10915, STRIP_CENTER_Z])
     if GRASP_POSITION == "center":
         start_x = grasp_point[0] - LENGTH / 2.0
@@ -182,76 +264,143 @@ def build_scene():
         density=DENSITY,
         ke=5.0e4,
         kd=500.0,
-        mu=CONTACT_FRICTION,
+        mu=STRIP_FRICTION,
         restitution=0.0,
         collision_filter_parent=True,
         has_shape_collision=True,
     )
     links = []
     shapes = []
-    for index in range(SEGMENTS):
+    if OBJECT_MODEL == "fem_strip":
+        cells_x, cells_y, cells_z = 20, 3, 2
+        particle_count = (cells_x + 1) * (cells_y + 1) * (cells_z + 1)
+        cell_count = cells_x * cells_y * cells_z
+        # add_soft_grid assigns one cell-volume mass to every grid node.  Scale
+        # the input density so the nodal mass sum still equals rho * volume.
+        grid_density = DENSITY * cell_count / particle_count
+        k_mu = YOUNGS_MODULUS / (2.0 * (1.0 + POISSON_RATIO))
+        k_lambda = (
+            YOUNGS_MODULUS
+            * POISSON_RATIO
+            / ((1.0 + POISSON_RATIO) * (1.0 - 2.0 * POISSON_RATIO))
+        )
+        builder.add_soft_grid(
+            pos=wp.vec3(
+                grasp_point[0] - LENGTH / 2.0,
+                grasp_point[1] - WIDTH / 2.0,
+                0.001,
+            ),
+            rot=wp.quat_identity(),
+            vel=wp.vec3(0.0, 0.0, 0.0),
+            dim_x=cells_x,
+            dim_y=cells_y,
+            dim_z=cells_z,
+            cell_x=LENGTH / cells_x,
+            cell_y=WIDTH / cells_y,
+            cell_z=THICKNESS / cells_z,
+            density=grid_density,
+            k_mu=k_mu,
+            k_lambda=k_lambda,
+            k_damp=SOFT_DAMPING,
+            fix_left=False,
+            particle_radius=0.001,
+            label="grasp_fem_rubber_strip",
+        )
+        links = []
+        shapes = []
+    elif OBJECT_MODEL == "rigid_block":
         link = builder.add_link(
             xform=wp.transform(
-                p=wp.vec3(
-                    start_x + (index + 0.5) * segment_length,
-                    grasp_point[1],
-                    grasp_point[2],
-                ),
+                p=wp.vec3(grasp_point[0], grasp_point[1], grasp_point[2]),
                 q=wp.quat_identity(),
             ),
-            label=f"grasp_strip_segment_{index:02d}",
+            label="grasp_rigid_block",
         )
         shape = builder.add_shape_box(
             link,
-            hx=segment_length / 2.0,
+            hx=LENGTH / 2.0,
             hy=WIDTH / 2.0,
             hz=THICKNESS / 2.0,
             cfg=shape_cfg,
-            color=wp.vec3(0.15 + 0.03 * (index % 4), 0.55, 0.85),
-            label=f"grasp_strip_shape_{index:02d}",
+            color=wp.vec3(0.15, 0.55, 0.85),
+            label="grasp_rigid_block_shape",
         )
-        links.append(link)
-        shapes.append(shape)
-
-    joints = [builder.add_joint_free(child=links[0], label="free_strip_root")]
-    inertia = WIDTH * THICKNESS**3 / 12.0
-    stiffness = 1_000_000.0 * inertia / segment_length
-    damping = 0.02
-    for index in range(1, SEGMENTS):
-        joints.append(
-            builder.add_joint_revolute(
-                parent=links[index - 1],
-                child=links[index],
-                axis=wp.vec3(0.0, 1.0, 0.0),
-                parent_xform=wp.transform(
-                    p=wp.vec3(segment_length / 2.0, 0.0, 0.0),
+        links = [link]
+        shapes = [shape]
+        joints = [builder.add_joint_free(child=link, label="free_rigid_block")]
+        builder.add_articulation(joints, label="free_rigid_block")
+    else:
+        segment_length = LENGTH / SEGMENTS
+        for index in range(SEGMENTS):
+            link = builder.add_link(
+                xform=wp.transform(
+                    p=wp.vec3(
+                        start_x + (index + 0.5) * segment_length,
+                        grasp_point[1],
+                        grasp_point[2],
+                    ),
                     q=wp.quat_identity(),
                 ),
-                child_xform=wp.transform(
-                    p=wp.vec3(-segment_length / 2.0, 0.0, 0.0),
-                    q=wp.quat_identity(),
-                ),
-                target_pos=0.0,
-                target_vel=0.0,
-                target_ke=stiffness,
-                target_kd=damping,
-                limit_lower=-math.pi,
-                limit_upper=math.pi,
-                actuator_mode=newton.JointTargetMode.POSITION,
-                label=f"grasp_strip_hinge_{index:02d}",
+                label=f"grasp_strip_segment_{index:02d}",
             )
-        )
-    builder.add_articulation(joints, label="free_segmented_strip")
+            shape = builder.add_shape_box(
+                link,
+                hx=segment_length / 2.0,
+                hy=WIDTH / 2.0,
+                hz=THICKNESS / 2.0,
+                cfg=shape_cfg,
+                color=wp.vec3(0.15 + 0.03 * (index % 4), 0.55, 0.85),
+                label=f"grasp_strip_shape_{index:02d}",
+            )
+            links.append(link)
+            shapes.append(shape)
+
+        joints = [builder.add_joint_free(child=links[0], label="free_strip_root")]
+        inertia = WIDTH * THICKNESS**3 / 12.0
+        stiffness = YOUNGS_MODULUS * inertia / segment_length
+        damping = 0.02
+        for index in range(1, SEGMENTS):
+            joints.append(
+                builder.add_joint_revolute(
+                    parent=links[index - 1],
+                    child=links[index],
+                    axis=wp.vec3(0.0, 1.0, 0.0),
+                    parent_xform=wp.transform(
+                        p=wp.vec3(segment_length / 2.0, 0.0, 0.0),
+                        q=wp.quat_identity(),
+                    ),
+                    child_xform=wp.transform(
+                        p=wp.vec3(-segment_length / 2.0, 0.0, 0.0),
+                        q=wp.quat_identity(),
+                    ),
+                    target_pos=0.0,
+                    target_vel=0.0,
+                    target_ke=stiffness,
+                    target_kd=damping,
+                    limit_lower=-math.pi,
+                    limit_upper=math.pi,
+                    actuator_mode=newton.JointTargetMode.POSITION,
+                    label=f"grasp_strip_hinge_{index:02d}",
+                )
+            )
+        builder.add_articulation(joints, label="free_segmented_strip")
 
     for a, shape_a in enumerate(shapes):
         for shape_b in shapes[a + 1 :]:
             builder.add_shape_collision_filter_pair(shape_a, shape_b)
 
     ground_shape = builder.add_ground_plane()
+    builder.shape_material_mu[ground_shape] = GROUND_FRICTION
     for robot_shape in active_robot_colliders:
         builder.add_shape_collision_filter_pair(robot_shape, ground_shape)
 
+    if OBJECT_MODEL == "fem_strip":
+        builder.color()
     model = builder.finalize()
+    if OBJECT_MODEL == "fem_strip":
+        model.soft_contact_ke = SOFT_CONTACT_KE
+        model.soft_contact_kd = SOFT_CONTACT_KD
+        model.soft_contact_mu = STRIP_FRICTION
     return (
         model,
         links,

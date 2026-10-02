@@ -1,0 +1,47 @@
+Laboratory isolation environment
+  user=aisc216 uid=1000
+  ROS_DOMAIN_ID=24 ROS_LOCALHOST_ONLY=1
+  Newton state=20240 command=20241 viewer=30240
+Warp 1.17.0 initialized:
+   CUDA Toolkit 12.9, Driver 13.0
+   Devices:
+     "cpu"      : "x86_64"
+     "cuda:0"   : "NVIDIA GeForce RTX 3080" (10 GiB, sm_86, mempool enabled)
+   Kernel cache:
+     /home/aisc216/.cache/warp/1.17.0
+Module newton._src.geometry.inertia 060c986 load on device 'cuda:0' took 0.77 ms  (cached)
+Module newton._src.utils.mesh 92b663b load on device 'cpu' took 0.91 ms  (cached)
+Module warp._src.coloring 811e0ea load on device 'cpu' took 0.21 ms  (cached)
+Module validate_and_correct_inertia_kernel_1ff2ac62 1ff2ac6 load on device 'cuda:0' took 0.41 ms  (cached)
+Module newton._src.geometry.bvh 580694b load on device 'cuda:0' took 0.51 ms  (cached)
+Module newton._src.solvers.vbd.rigid_vbd_kernels e50922b load on device 'cpu' took 0.31 ms  (cached)
+Module newton._src.solvers.solver d7b7ff4 load on device 'cuda:0' took 0.62 ms  (cached)
+Module newton._src.sim.articulation 8520e2f load on device 'cuda:0' took 5.03 ms  (cached)
+╭──────────────── viser ─────────────────╮
+│             ╷                          │
+│   HTTP      │ http://127.0.0.1:30240   │
+│   Websocket │ ws://127.0.0.1:30240     │
+│             ╵                          │
+╰────────────────────────────────────────╯
+Viser server running at: http://localhost:30240
+Module newton._src.viewer.kernels 1248c6a load on device 'cuda:0' took 1.88 ms  (cached)
+MOVEIT_GRASP_ENDPOINT_READY robot_bodies=24 robot_shapes=58 strip_bodies=0 strip_shapes=0 particles=252 tetrahedra=600 particle_radius=0.0010 robot_particle_colliders=4 active_robot_colliders=17 robot_friction=1.5 strip_friction=1.5 ground_friction=1.5 density=1100.0 youngs_modulus=1000000.0 soft_contact_ke=1000.0 soft_contact_kd=10.0 soft_contact_margin=0.0050 substeps=10 command_dt=0.020 max_hold=0.500 command_queue_capacity=4096 object_center=(0.4869,0.10915,0.01100) command=20241 state=20240 viewer=30240
+Module newton._src.sim.collide 0a49039 load on device 'cuda:0' took 1.37 ms  (cached)
+Module narrow_phase_primitive_write_contact ee19489 load on device 'cuda:0' took 0.60 ms  (cached)
+Module narrow_phase_gjk_mpr_True_write_contact_support_map_lean_post_process_minkowski_only e357ee6 load on device 'cuda:0' took 1.46 ms  (cached)
+Module newton._src.geometry.narrow_phase bde062a load on device 'cuda:0' took 4.90 ms  (cached)
+Module newton._src.geometry.contact_reduction_global c0ffbb3 load on device 'cuda:0' took 0.43 ms  (cached)
+Module newton._src.geometry.narrow_phase 041f35c load on device 'cuda:0' took 0.72 ms  (cached)
+Module newton._src.geometry.sdf_contact c0f00ec load on device 'cuda:0' took 0.29 ms  (cached)
+Module narrow_phase_mesh_plane_write_contact_to_reducer_True 5468f32 load on device 'cuda:0' took 0.29 ms  (cached)
+Module mesh_triangle_contacts_to_reducer_kernel_e41ecfb6 0702137 load on device 'cuda:0' took 2.16 ms  (cached)
+Module newton._src.geometry.contact_reduction_global cc89f63 load on device 'cuda:0' took 0.44 ms  (cached)
+Module sdf_contact_write_contact_to_reducer_False_True fddf43e load on device 'cuda:0' took 1.09 ms  (cached)
+Module export_reduced_contacts_write_contact c210743 load on device 'cuda:0' took 0.31 ms  (cached)
+Module newton._src.geometry.kernels 2a884e1 load on device 'cuda:0' took 2.51 ms  (cached)
+Module newton._src.geometry.soft_contacts_sdf 03af0de load on device 'cuda:0' took 7.81 ms  (cached)
+Module newton._src.solvers.vbd.rigid_vbd_kernels 12968aa load on device 'cuda:0' took 11177.86 ms  (compiled)
+Module newton._src.solvers.xpbd.kernels 6dff273 load on device 'cuda:0' took 15343.13 ms  (compiled)
+Module newton._src.solvers.vbd.particle_vbd_kernels 2da76a4 load on device 'cuda:0' took 4056.51 ms  (compiled)
+MOVEIT_GRASP_RESULT {"object": "fem_strip", "closed_seen": false, "lift_started": false, "release_seen": false, "initial_grasp_region_z_m": 0.010999999940395355, "prelift_grasp_region_z_m": null, "maximum_closed_grasp_region_z_m": 0.010999999940395355, "grasp_region_lift_m": 0.0, "release_start_grasp_region_z_m": null, "minimum_post_release_grasp_region_z_m": null, "release_drop_m": 0.0, "minimum_strip_bottom_z_m": -1.7649144865572453e-05, "maximum_contact_count": 0, "maximum_soft_contact_count": 591, "maximum_left_finger_soft_contacts": 0, "maximum_right_finger_soft_contacts": 0, "maximum_closed_left_loaded_soft_contacts": 0, "maximum_closed_right_loaded_soft_contacts": 0, "maximum_lift_left_loaded_soft_contacts": 0, "maximum_lift_right_loaded_soft_contacts": 0, "bilateral_closed_soft_contact_samples": 0, "bilateral_lift_soft_contact_samples": 0, "maximum_soft_contact_activation_depth_m": 0.0, "maximum_particle_surface_penetration_m": 0.0, "maximum_floor_penetration_m": 1.7649144865572453e-05, "maximum_allowed_penetration_m": 0.005, "command_queue_capacity": 4096, "command_queue_overflow_count": 0, "maximum_command_backlog": 0, "pending_robot_commands_at_shutdown": 0, "maximum_left_force_abs_xyz_n": [0.0, 0.0, 0.0], "maximum_right_force_abs_xyz_n": [0.0, 0.0, 0.0], "lift_bilateral_force_sample_count": 0, "mean_lift_left_force_on_strip_xyz_n": [0.0, 0.0, 0.0], "mean_lift_right_force_on_strip_xyz_n": [0.0, 0.0, 0.0], "mean_lift_combined_force_on_strip_xyz_n": [0.0, 0.0, 0.0], "minimum_lift_combined_force_z_n": null, "maximum_lift_combined_force_z_n": null, "maximum_mimic_error_rad": 0.0, "finite_state": true, "simulated_time_s": 16.81666666666761, "wall_elapsed_s": 207.01676838798448, "candidate_contact_grasp_pass": false}
+(viser) Server stopped

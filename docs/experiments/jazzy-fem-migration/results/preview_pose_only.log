@@ -1,0 +1,21 @@
+[INFO] [launch]: All log files can be found below /home/aisc216/.ros/log/2026-10-01-17-46-17-882986-aisc-3080-284439
+[INFO] [launch]: Default logging verbosity is set to INFO
+WARNING:root:[33;21mCannot infer URDF from `/home/aisc216/ur5_ws/install_jazzy_port/ur5_moveit_demo/share/ur5_moveit_demo`. -- using config/ur.urdf[0m
+WARNING:root:[33;21mCannot infer SRDF from `/home/aisc216/ur5_ws/install_jazzy_port/ur5_moveit_demo/share/ur5_moveit_demo`. -- using config/ur.srdf[0m
+[INFO] [pick_at_position-1]: process started with pid [284442]
+[pick_at_position-1] [WARN] [1790847978.117835156] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[pick_at_position-1] [WARN] [1790847978.117845325] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+[pick_at_position-1] [INFO] [1790847978.132771103] [pick_at_position]: Waiting up to 5.0 s for measured object pose on /newton/object_pose...
+[pick_at_position-1] [INFO] [1790847980.534945534] [pick_at_position]: MEASURED_OBJECT_POSE topic=/newton/object_pose frame=world center=(0.4869, 0.1092, 0.0110) m
+[pick_at_position-1] [WARN] [1790847980.535689676] [rcl.logging_rosout]: Publisher already registered for node name: 'pick_at_position'. If this is due to multiple nodes with the same name then all logs for the logger named 'pick_at_position' will go out over the existing publisher. As soon as any node with that name is destructed it will unregister the publisher, preventing any further logs for that name from being published on the rosout topic.
+[pick_at_position-1] [INFO] [1790847980.542698215] [pick_at_position.moveit.ros.rdf_loader]: Loaded robot model in 0.00262363 seconds
+[pick_at_position-1] [INFO] [1790847980.542746050] [pick_at_position.moveit.core.robot_model]: Loading robot model 'ur'...
+[pick_at_position-1] [INFO] [1790847980.542761146] [pick_at_position.moveit.core.robot_model]: No root/virtual joint specified in SRDF. Assuming fixed joint
+[pick_at_position-1] [INFO] [1790847980.552863596] [pick_at_position.moveit.kinematics.kdl_kinematics_plugin]: Joint weights for group 'ur_manipulator': 1 1 1 1 1 1
+[pick_at_position-1] [INFO] [1790847980.567188363] [pick_at_position.moveit.ros.move_group_interface]: Ready to take commands for planning group ur_manipulator.
+[pick_at_position-1] [INFO] [1790847980.571887011] [pick_at_position]: Planning frame: world
+[pick_at_position-1] [INFO] [1790847980.571905273] [pick_at_position]: OBJECT_TARGET source=newton_feedback frame=world center=(0.4869, 0.1092, 0.0110) m
+[pick_at_position-1] [INFO] [1790847980.571915105] [pick_at_position]: GRASP_CONFIG offset=0.1090 m clearance=0.1500 m approach=0.1000 m lift=0.1200 m closed=0.3760 rad lift_velocity_scale=0.030
+[pick_at_position-1] [INFO] [1790847980.571923290] [pick_at_position]: GRASP_ORIENTATION roll=180.0 pitch=0.0 yaw=90.0 deg
+[pick_at_position-1] [INFO] [1790847980.571930879] [pick_at_position]: POSE_ONLY_CHECK_SUCCEEDED; no robot command was sent.
+[INFO] [pick_at_position-1]: process has finished cleanly [pid 284442]

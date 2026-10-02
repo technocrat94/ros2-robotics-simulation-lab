@@ -1,0 +1,59 @@
+[INFO] [launch]: All log files can be found below /home/aisc216/.ros/log/2026-10-01-17-59-02-631523-aisc-3080-287480
+[INFO] [launch]: Default logging verbosity is set to INFO
+WARNING:root:[33;21mCannot infer URDF from `/home/aisc216/ur5_ws/install_jazzy_port/ur5_moveit_demo/share/ur5_moveit_demo`. -- using config/ur.urdf[0m
+WARNING:root:[33;21mCannot infer SRDF from `/home/aisc216/ur5_ws/install_jazzy_port/ur5_moveit_demo/share/ur5_moveit_demo`. -- using config/ur.srdf[0m
+[INFO] [pick_at_position-1]: process started with pid [287483]
+[pick_at_position-1] [WARN] [1790848742.865882566] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[pick_at_position-1] [WARN] [1790848742.865893522] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+[pick_at_position-1] [WARN] [1790848742.881095023] [rcl.logging_rosout]: Publisher already registered for node name: 'pick_at_position'. If this is due to multiple nodes with the same name then all logs for the logger named 'pick_at_position' will go out over the existing publisher. As soon as any node with that name is destructed it will unregister the publisher, preventing any further logs for that name from being published on the rosout topic.
+[pick_at_position-1] [INFO] [1790848742.885647613] [pick_at_position.moveit.ros.rdf_loader]: Loaded robot model in 0.00246191 seconds
+[pick_at_position-1] [INFO] [1790848742.885706425] [pick_at_position.moveit.core.robot_model]: Loading robot model 'ur'...
+[pick_at_position-1] [INFO] [1790848742.885717140] [pick_at_position.moveit.core.robot_model]: No root/virtual joint specified in SRDF. Assuming fixed joint
+[pick_at_position-1] [INFO] [1790848742.894575126] [pick_at_position.moveit.kinematics.kdl_kinematics_plugin]: Joint weights for group 'ur_manipulator': 1 1 1 1 1 1
+[pick_at_position-1] [INFO] [1790848745.763954590] [pick_at_position.moveit.ros.move_group_interface]: Ready to take commands for planning group ur_manipulator.
+[pick_at_position-1] [INFO] [1790848745.768566026] [pick_at_position]: Planning frame: world
+[pick_at_position-1] [INFO] [1790848745.768583779] [pick_at_position]: OBJECT_TARGET source=parameters frame=world center=(0.4869, 0.1091, 0.0100) m
+[pick_at_position-1] [INFO] [1790848745.768590550] [pick_at_position]: GRASP_CONFIG offset=0.1090 m clearance=0.1500 m approach=0.1000 m lift=0.1200 m closed=0.3760 rad lift_velocity_scale=0.030
+[pick_at_position-1] [INFO] [1790848745.768595714] [pick_at_position]: GRASP_ORIENTATION roll=180.0 pitch=0.0 yaw=90.0 deg
+[pick_at_position-1] [INFO] [1790848745.779388383] [pick_at_position]: PLANNING_SCENE_FLOOR_ADDED size=3.00 m top_z=-0.0010 m
+[pick_at_position-1] [INFO] [1790848745.783304017] [pick_at_position]: Waiting for gripper action server...
+[pick_at_position-1] [INFO] [1790848745.783396620] [pick_at_position]: Sending gripper command: position=0.0000
+[pick_at_position-1] [INFO] [1790848745.834100846] [pick_at_position]: Gripper reached position 0.0000
+[pick_at_position-1] [INFO] [1790848745.834143552] [pick_at_position]: Moving UR5 to named target: test_configuration
+[pick_at_position-1] [INFO] [1790848745.834280535] [pick_at_position.moveit.ros.move_group_interface]: MoveGroup action client/server ready
+[pick_at_position-1] [INFO] [1790848745.834879252] [pick_at_position.moveit.ros.move_group_interface]: Planning request accepted
+[pick_at_position-1] [INFO] [1790848745.866542383] [pick_at_position.moveit.ros.move_group_interface]: Planning request complete!
+[pick_at_position-1] [INFO] [1790848745.867299898] [pick_at_position.moveit.ros.move_group_interface]: time taken to generate plan: 0.0242535 seconds
+[pick_at_position-1] [INFO] [1790848745.867699618] [pick_at_position.moveit.ros.move_group_interface]: Execute request accepted
+[pick_at_position-1] [INFO] [1790848749.925060289] [pick_at_position.moveit.ros.move_group_interface]: Execute request success!
+[pick_at_position-1] [INFO] [1790848749.925372665] [pick_at_position]: UR5 reached 'test_configuration'.
+[pick_at_position-1] [INFO] [1790848750.426399117] [pick_at_position.moveit.ros.current_state_monitor]: Listening to joint states on topic 'joint_states'
+[pick_at_position-1] [INFO] [1790848750.426845660] [pick_at_position]: PREGRASP_CENTER world=(0.4869, 0.1091, 0.1600) m
+[pick_at_position-1] [INFO] [1790848750.426873147] [pick_at_position]: Absolute pre-grasp tool0 target: X=0.4869 Y=0.1091 Z=0.2690
+[pick_at_position-1] [INFO] [1790848750.426951156] [pick_at_position.moveit.ros.move_group_interface]: MoveGroup action client/server ready
+[pick_at_position-1] [INFO] [1790848750.427268269] [pick_at_position.moveit.ros.move_group_interface]: Planning request accepted
+[pick_at_position-1] [INFO] [1790848750.474095931] [pick_at_position.moveit.ros.move_group_interface]: Planning request complete!
+[pick_at_position-1] [INFO] [1790848750.474565180] [pick_at_position.moveit.ros.move_group_interface]: time taken to generate plan: 0.0367424 seconds
+[pick_at_position-1] [INFO] [1790848750.474829269] [pick_at_position.moveit.ros.move_group_interface]: Execute request accepted
+[pick_at_position-1] [INFO] [1790848757.583048189] [pick_at_position.moveit.ros.move_group_interface]: Execute request success!
+[pick_at_position-1] [INFO] [1790848757.583154480] [pick_at_position]: Absolute pre-grasp completed.
+[pick_at_position-1] [INFO] [1790848758.086865356] [pick_at_position]: Vertical grasp approach Cartesian target: X=0.487 Y=0.109 Z=0.169
+[pick_at_position-1] [INFO] [1790848758.091754769] [pick_at_position]: Vertical grasp approach Cartesian path completed: 100.0%
+[pick_at_position-1] [INFO] [1790848758.092590495] [pick_at_position]: Vertical grasp approach Cartesian timing: duration=1.213 s velocity_scale=0.150
+[pick_at_position-1] [INFO] [1790848758.092854621] [pick_at_position.moveit.ros.move_group_interface]: Execute request accepted
+[pick_at_position-1] [INFO] [1790848759.350980278] [pick_at_position.moveit.ros.move_group_interface]: Execute request success!
+[pick_at_position-1] [INFO] [1790848759.351614902] [pick_at_position]: Vertical grasp approach Cartesian motion completed.
+[pick_at_position-1] [INFO] [1790848759.851736112] [pick_at_position]: Waiting for gripper action server...
+[pick_at_position-1] [INFO] [1790848759.851842163] [pick_at_position]: Sending gripper command: position=0.3760
+[pick_at_position-1] [INFO] [1790848759.902279097] [pick_at_position]: Gripper reached position 0.3760
+[pick_at_position-1] [INFO] [1790848760.904851154] [pick_at_position]: Vertical lift Cartesian target: X=0.487 Y=0.109 Z=0.289
+[pick_at_position-1] [INFO] [1790848760.910154853] [pick_at_position]: Vertical lift Cartesian path completed: 100.0%
+[pick_at_position-1] [INFO] [1790848760.912808838] [pick_at_position]: Vertical lift Cartesian timing: duration=4.125 s velocity_scale=0.030
+[pick_at_position-1] [INFO] [1790848760.913123375] [pick_at_position.moveit.ros.move_group_interface]: Execute request accepted
+[pick_at_position-1] [INFO] [1790848765.071067812] [pick_at_position.moveit.ros.move_group_interface]: Execute request success!
+[pick_at_position-1] [INFO] [1790848765.071492423] [pick_at_position]: Vertical lift Cartesian motion completed.
+[pick_at_position-1] [INFO] [1790848766.571663688] [pick_at_position]: Waiting for gripper action server...
+[pick_at_position-1] [INFO] [1790848766.571787290] [pick_at_position]: Sending gripper command: position=0.0000
+[pick_at_position-1] [INFO] [1790848766.622295656] [pick_at_position]: Gripper reached position 0.0000
+[pick_at_position-1] [INFO] [1790848766.622324662] [pick_at_position]: ========== ABSOLUTE POSITION PICK SUCCEEDED ==========
+[INFO] [pick_at_position-1]: process has finished cleanly [pid 287483]

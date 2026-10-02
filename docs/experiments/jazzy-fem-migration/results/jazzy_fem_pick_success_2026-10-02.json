@@ -1,0 +1,32 @@
+{
+  "date": "2026-10-02",
+  "platform": "Ubuntu 24.04 / ROS 2 Jazzy / amd64",
+  "branch": "jazzy-final-fem-pick",
+  "source_of_truth": "origin/main@35466726c948cd45cabe4ff6292e47dbcb50aa3f",
+  "software": {
+    "bridge_status": "OK",
+    "start_state_guard": true,
+    "start_state_max_error_rad": 1.9436783116333345e-07,
+    "safe_pregrasp_stage_fractions": {"raise": 1.0, "orient": 1.0, "translate": 1.0, "descend": 1.0},
+    "approach_cartesian_fraction": 1.0,
+    "lift_cartesian_fraction": 1.0,
+    "absolute_position_pick_succeeded": true,
+    "named_start_detour": false
+  },
+  "physics": {
+    "object_model": "fem_strip",
+    "particles": 252,
+    "tetrahedra": 600,
+    "finite_state": true,
+    "grasp_region_initial_z_m": 0.010948608629405499,
+    "grasp_region_peak_z_m": 0.12829630076885223,
+    "grasp_region_lift_m": 0.11734769213944673,
+    "object_center_peak_z_m": 0.07029878348112106,
+    "viewer_confirmation": "strip rose between fingers and released after reopening"
+  },
+  "logs": {
+    "moveit": "/home/aisc216/ur5_ws/run_logs/jazzy_fem_pick_20261002_160716.log",
+    "newton_endpoint": "/home/aisc216/ur5_ws/run_logs/jazzy_fem_endpoint_20261002_160259.log",
+    "preview": "/home/aisc216/ur5_ws/run_logs/jazzy_fem_preview_20261002_160453.log"
+  }
+}

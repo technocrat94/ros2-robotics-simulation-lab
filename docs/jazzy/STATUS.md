@@ -1,6 +1,16 @@
 # Jazzy port status
 
-Last updated: 2026-09-24 (Asia/Taipei)
+Last updated: 2026-10-02 (Asia/Taipei)
+
+## 2026-10-02 direct FEM ground-pick verification
+
+Native Jazzy was visually verified in the Newton viewer after starting from the Humble-success IK pose:
+
+- `START_STATE_GUARD pass=true`, maximum error `1.9436783e-07 rad`; bridge status `OK`.
+- Target came from `/newton/object_pose`; safe pre-grasp, approach, and lift Cartesian paths were all `100.0%`.
+- No named-start or `test_configuration` detour appeared; MoveIt ended with `ABSOLUTE POSITION PICK SUCCEEDED`.
+- Newton FEM grasp-region height rose from about `0.01095 m` to `0.12830 m` (`0.11735 m` lift); the viewer showed the strip rising between the fingers and releasing after reopening.
+- Full logs are retained under `/home/aisc216/ur5_ws/run_logs/`; the machine-readable summary is `docs/experiments/jazzy-fem-migration/results/jazzy_fem_pick_success_2026-10-02.json`.
 
 ## Scope and source state
 

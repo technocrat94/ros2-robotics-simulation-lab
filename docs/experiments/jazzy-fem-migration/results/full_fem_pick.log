@@ -1,0 +1,61 @@
+[INFO] [launch]: All log files can be found below /home/aisc216/.ros/log/2026-10-01-18-01-26-831244-aisc-3080-288168
+[INFO] [launch]: Default logging verbosity is set to INFO
+WARNING:root:[33;21mCannot infer URDF from `/home/aisc216/ur5_ws/install_jazzy_port/ur5_moveit_demo/share/ur5_moveit_demo`. -- using config/ur.urdf[0m
+WARNING:root:[33;21mCannot infer SRDF from `/home/aisc216/ur5_ws/install_jazzy_port/ur5_moveit_demo/share/ur5_moveit_demo`. -- using config/ur.srdf[0m
+[INFO] [pick_at_position-1]: process started with pid [288171]
+[pick_at_position-1] [WARN] [1790848887.070228769] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[pick_at_position-1] [WARN] [1790848887.070240828] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+[pick_at_position-1] [INFO] [1790848887.086639228] [pick_at_position]: Waiting up to 5.0 s for measured object pose on /newton/object_pose...
+[pick_at_position-1] [INFO] [1790848889.504067696] [pick_at_position]: MEASURED_OBJECT_POSE topic=/newton/object_pose frame=world center=(0.4869, 0.1092, 0.0110) m
+[pick_at_position-1] [WARN] [1790848889.504841651] [rcl.logging_rosout]: Publisher already registered for node name: 'pick_at_position'. If this is due to multiple nodes with the same name then all logs for the logger named 'pick_at_position' will go out over the existing publisher. As soon as any node with that name is destructed it will unregister the publisher, preventing any further logs for that name from being published on the rosout topic.
+[pick_at_position-1] [INFO] [1790848889.512311949] [pick_at_position.moveit.ros.rdf_loader]: Loaded robot model in 0.0026269 seconds
+[pick_at_position-1] [INFO] [1790848889.512350621] [pick_at_position.moveit.core.robot_model]: Loading robot model 'ur'...
+[pick_at_position-1] [INFO] [1790848889.512360097] [pick_at_position.moveit.core.robot_model]: No root/virtual joint specified in SRDF. Assuming fixed joint
+[pick_at_position-1] [INFO] [1790848889.523207602] [pick_at_position.moveit.kinematics.kdl_kinematics_plugin]: Joint weights for group 'ur_manipulator': 1 1 1 1 1 1
+[pick_at_position-1] [INFO] [1790848889.537626908] [pick_at_position.moveit.ros.move_group_interface]: Ready to take commands for planning group ur_manipulator.
+[pick_at_position-1] [INFO] [1790848889.543188288] [pick_at_position]: Planning frame: world
+[pick_at_position-1] [INFO] [1790848889.543205942] [pick_at_position]: OBJECT_TARGET source=newton_feedback frame=world center=(0.4869, 0.1092, 0.0110) m
+[pick_at_position-1] [INFO] [1790848889.543212922] [pick_at_position]: GRASP_CONFIG offset=0.1090 m clearance=0.1500 m approach=0.1000 m lift=0.1200 m closed=0.3760 rad lift_velocity_scale=0.030
+[pick_at_position-1] [INFO] [1790848889.543218191] [pick_at_position]: GRASP_ORIENTATION roll=180.0 pitch=0.0 yaw=90.0 deg
+[pick_at_position-1] [INFO] [1790848889.556459278] [pick_at_position]: PLANNING_SCENE_FLOOR_ADDED size=3.00 m top_z=-0.0010 m
+[pick_at_position-1] [INFO] [1790848889.560819981] [pick_at_position]: Waiting for gripper action server...
+[pick_at_position-1] [INFO] [1790848889.560902296] [pick_at_position]: Sending gripper command: position=0.0000
+[pick_at_position-1] [INFO] [1790848889.611589620] [pick_at_position]: Gripper reached position 0.0000
+[pick_at_position-1] [INFO] [1790848889.611617441] [pick_at_position]: Moving UR5 to named target: test_configuration
+[pick_at_position-1] [INFO] [1790848889.611715625] [pick_at_position.moveit.ros.move_group_interface]: MoveGroup action client/server ready
+[pick_at_position-1] [INFO] [1790848889.612258383] [pick_at_position.moveit.ros.move_group_interface]: Planning request accepted
+[pick_at_position-1] [INFO] [1790848889.643380858] [pick_at_position.moveit.ros.move_group_interface]: Planning request complete!
+[pick_at_position-1] [INFO] [1790848889.643570045] [pick_at_position.moveit.ros.move_group_interface]: time taken to generate plan: 0.0235409 seconds
+[pick_at_position-1] [INFO] [1790848889.643970302] [pick_at_position.moveit.ros.move_group_interface]: Execute request accepted
+[pick_at_position-1] [INFO] [1790848893.701655162] [pick_at_position.moveit.ros.move_group_interface]: Execute request success!
+[pick_at_position-1] [INFO] [1790848893.701672576] [pick_at_position]: UR5 reached 'test_configuration'.
+[pick_at_position-1] [INFO] [1790848894.202477359] [pick_at_position.moveit.ros.current_state_monitor]: Listening to joint states on topic 'joint_states'
+[pick_at_position-1] [INFO] [1790848894.203444935] [pick_at_position]: PREGRASP_CENTER world=(0.4869, 0.1092, 0.1610) m
+[pick_at_position-1] [INFO] [1790848894.203468611] [pick_at_position]: Absolute pre-grasp tool0 target: X=0.4869 Y=0.1092 Z=0.2700
+[pick_at_position-1] [INFO] [1790848894.203542505] [pick_at_position.moveit.ros.move_group_interface]: MoveGroup action client/server ready
+[pick_at_position-1] [INFO] [1790848894.203823694] [pick_at_position.moveit.ros.move_group_interface]: Planning request accepted
+[pick_at_position-1] [INFO] [1790848894.263445485] [pick_at_position.moveit.ros.move_group_interface]: Planning request complete!
+[pick_at_position-1] [INFO] [1790848894.263631103] [pick_at_position.moveit.ros.move_group_interface]: time taken to generate plan: 0.0453389 seconds
+[pick_at_position-1] [INFO] [1790848894.263958173] [pick_at_position.moveit.ros.move_group_interface]: Execute request accepted
+[pick_at_position-1] [INFO] [1790848901.371668787] [pick_at_position.moveit.ros.move_group_interface]: Execute request success!
+[pick_at_position-1] [INFO] [1790848901.371893118] [pick_at_position]: Absolute pre-grasp completed.
+[pick_at_position-1] [INFO] [1790848901.875463694] [pick_at_position]: Vertical grasp approach Cartesian target: X=0.487 Y=0.109 Z=0.170
+[pick_at_position-1] [INFO] [1790848901.880152769] [pick_at_position]: Vertical grasp approach Cartesian path completed: 100.0%
+[pick_at_position-1] [INFO] [1790848901.880862599] [pick_at_position]: Vertical grasp approach Cartesian timing: duration=1.213 s velocity_scale=0.150
+[pick_at_position-1] [INFO] [1790848901.881117206] [pick_at_position.moveit.ros.move_group_interface]: Execute request accepted
+[pick_at_position-1] [INFO] [1790848903.137603304] [pick_at_position.moveit.ros.move_group_interface]: Execute request success!
+[pick_at_position-1] [INFO] [1790848903.137938971] [pick_at_position]: Vertical grasp approach Cartesian motion completed.
+[pick_at_position-1] [INFO] [1790848903.638056707] [pick_at_position]: Waiting for gripper action server...
+[pick_at_position-1] [INFO] [1790848903.638159251] [pick_at_position]: Sending gripper command: position=0.3760
+[pick_at_position-1] [INFO] [1790848903.688699319] [pick_at_position]: Gripper reached position 0.3760
+[pick_at_position-1] [INFO] [1790848904.691495022] [pick_at_position]: Vertical lift Cartesian target: X=0.487 Y=0.109 Z=0.290
+[pick_at_position-1] [INFO] [1790848904.696809185] [pick_at_position]: Vertical lift Cartesian path completed: 100.0%
+[pick_at_position-1] [INFO] [1790848904.699670860] [pick_at_position]: Vertical lift Cartesian timing: duration=4.124 s velocity_scale=0.030
+[pick_at_position-1] [INFO] [1790848904.699989895] [pick_at_position.moveit.ros.move_group_interface]: Execute request accepted
+[pick_at_position-1] [INFO] [1790848908.857675831] [pick_at_position.moveit.ros.move_group_interface]: Execute request success!
+[pick_at_position-1] [INFO] [1790848908.857908163] [pick_at_position]: Vertical lift Cartesian motion completed.
+[pick_at_position-1] [INFO] [1790848910.358097784] [pick_at_position]: Waiting for gripper action server...
+[pick_at_position-1] [INFO] [1790848910.358191572] [pick_at_position]: Sending gripper command: position=0.0000
+[pick_at_position-1] [INFO] [1790848910.408655089] [pick_at_position]: Gripper reached position 0.0000
+[pick_at_position-1] [INFO] [1790848910.408683990] [pick_at_position]: ========== ABSOLUTE POSITION PICK SUCCEEDED ==========
+[INFO] [pick_at_position-1]: process has finished cleanly [pid 288171]

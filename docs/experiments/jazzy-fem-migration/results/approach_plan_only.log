@@ -1,0 +1,25 @@
+[INFO] [launch]: All log files can be found below /home/aisc216/.ros/log/2026-10-01-17-54-55-694507-aisc-3080-286140
+[INFO] [launch]: Default logging verbosity is set to INFO
+WARNING:root:[33;21mCannot infer URDF from `/home/aisc216/ur5_ws/install_jazzy_port/ur5_moveit_demo/share/ur5_moveit_demo`. -- using config/ur.urdf[0m
+WARNING:root:[33;21mCannot infer SRDF from `/home/aisc216/ur5_ws/install_jazzy_port/ur5_moveit_demo/share/ur5_moveit_demo`. -- using config/ur.srdf[0m
+[INFO] [pick_at_position-1]: process started with pid [286143]
+[pick_at_position-1] [WARN] [1790848495.924292063] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[pick_at_position-1] [WARN] [1790848495.924302270] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+[pick_at_position-1] [WARN] [1790848495.939181655] [rcl.logging_rosout]: Publisher already registered for node name: 'pick_at_position'. If this is due to multiple nodes with the same name then all logs for the logger named 'pick_at_position' will go out over the existing publisher. As soon as any node with that name is destructed it will unregister the publisher, preventing any further logs for that name from being published on the rosout topic.
+[pick_at_position-1] [INFO] [1790848495.943795121] [pick_at_position.moveit.ros.rdf_loader]: Loaded robot model in 0.00251765 seconds
+[pick_at_position-1] [INFO] [1790848495.943859763] [pick_at_position.moveit.core.robot_model]: Loading robot model 'ur'...
+[pick_at_position-1] [INFO] [1790848495.943869979] [pick_at_position.moveit.core.robot_model]: No root/virtual joint specified in SRDF. Assuming fixed joint
+[pick_at_position-1] [INFO] [1790848495.952489676] [pick_at_position.moveit.kinematics.kdl_kinematics_plugin]: Joint weights for group 'ur_manipulator': 1 1 1 1 1 1
+[pick_at_position-1] [INFO] [1790848496.857467268] [pick_at_position.moveit.ros.move_group_interface]: Ready to take commands for planning group ur_manipulator.
+[pick_at_position-1] [INFO] [1790848496.862006940] [pick_at_position]: Planning frame: world
+[pick_at_position-1] [INFO] [1790848496.862024915] [pick_at_position]: OBJECT_TARGET source=parameters frame=world center=(0.4869, 0.1091, 0.0100) m
+[pick_at_position-1] [INFO] [1790848496.862031812] [pick_at_position]: GRASP_CONFIG offset=0.1090 m clearance=0.1500 m approach=0.1000 m lift=0.1200 m closed=0.3760 rad lift_velocity_scale=0.030
+[pick_at_position-1] [INFO] [1790848496.862037147] [pick_at_position]: GRASP_ORIENTATION roll=180.0 pitch=0.0 yaw=90.0 deg
+[pick_at_position-1] [INFO] [1790848496.870260047] [pick_at_position]: PLANNING_SCENE_FLOOR_ADDED size=3.00 m top_z=-0.0010 m
+[pick_at_position-1] [INFO] [1790848496.874226484] [pick_at_position.moveit.ros.current_state_monitor]: Listening to joint states on topic 'joint_states'
+[pick_at_position-1] [INFO] [1790848497.750569391] [pick_at_position]: PREGRASP_START_ERROR position=0.0001 m
+[pick_at_position-1] [INFO] [1790848497.754448039] [pick_at_position]: Vertical grasp approach Cartesian target: X=0.487 Y=0.109 Z=0.169
+[pick_at_position-1] [INFO] [1790848497.759029678] [pick_at_position]: Vertical grasp approach Cartesian path completed: 100.0%
+[pick_at_position-1] [ERROR] [1790848497.759201606] [planning_scene_interface_109402662367616.pick_at_position.moveit.core.time_optimal_trajectory_generation]: No acceleration limit was defined for joint shoulder_pan_joint! You have to define acceleration limits in the URDF or joint_limits.yaml
+[pick_at_position-1] [ERROR] [1790848497.759237758] [pick_at_position]: Vertical grasp approach: Cartesian time parameterization failed.
+[ERROR] [pick_at_position-1]: process has died [pid 286143, exit code 1, cmd '/home/aisc216/ur5_ws/install_jazzy_port/ur5_moveit_demo/lib/ur5_moveit_demo/pick_at_position --ros-args -r __node:=pick_at_position --params-file /tmp/launch_params_hgofhuc7 --params-file /tmp/launch_params_9n4n8qc7 --params-file /tmp/launch_params_dssei75v --params-file /tmp/launch_params_82wap16q --params-file /tmp/launch_params_lixympd3 --params-file /tmp/launch_params_fwwpczfs --params-file /tmp/launch_params_6kefcd35 --params-file /tmp/launch_params_cftccokg --params-file /tmp/launch_params_qx9wh2_z --params-file /tmp/launch_params_qgzu2hlz --params-file /tmp/launch_params_d3vh3fg_ --params-file /tmp/launch_params_gebae9qh --params-file /tmp/launch_params_q1o0jj04 --params-file /tmp/launch_params_f1w49613 --params-file /tmp/launch_params_k9h3xj0s --params-file /tmp/launch_params_r__nr8xk'].

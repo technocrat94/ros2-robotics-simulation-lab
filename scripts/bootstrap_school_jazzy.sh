@@ -31,6 +31,7 @@ source /opt/ros/jazzy/setup.bash
 if [[ -f "${INSTALL_DIR}/setup.bash" ]]; then
   source "${INSTALL_DIR}/setup.bash"
 fi
+set -u
 
 mkdir -p "${BRIDGE_DIR}" "${LESSON_DIR}" "${ASSET_DIR}"
 cp -a "${REPO_DIR}/docs/experiments/newton-ros2-bridge/prototype/." "${BRIDGE_DIR}/"
@@ -53,7 +54,9 @@ colcon --log-base "${LOG_DIR}" build \
     robotiq_description \
     ur5_moveit_demo \
     newton_ros_bridge
+set +u
 source "${INSTALL_DIR}/setup.bash"
+set -u
 
 xacro "${REPO_DIR}/urdf/ur5_robotiq.urdf.xacro" \
   name:=ur ur_type:=ur5 use_fake_hardware:=true \
@@ -76,8 +79,25 @@ text = text.replace(
 )
 if "package://" in text:
     raise SystemExit("ERROR: unresolved package:// URI remains in Newton URDF")
+if "/opt/ros/humble/" in text or "/home/yuhao/" in text:
+    raise SystemExit("ERROR: Humble or /home/yuhao path remains in Newton URDF")
 target.write_text(text, encoding="utf-8")
+
+import xml.etree.ElementTree as ET
+
+root = ET.fromstring(text)
+mesh_paths = sorted({
+    element.attrib["filename"]
+    for element in root.iter("mesh")
+    if "filename" in element.attrib
+})
+if not mesh_paths:
+    raise SystemExit("ERROR: generated Newton URDF contains no mesh paths")
+missing = [path for path in mesh_paths if not Path(path).is_file()]
+if missing:
+    raise SystemExit("ERROR: missing Newton URDF meshes:\\n" + "\\n".join(missing))
 print(f"Generated: {target}")
+print(f"Verified mesh paths: {len(mesh_paths)}")
 PY
 
 CUDA_VISIBLE_DEVICES="" "${VENV_DIR}/bin/python" - <<'PY'
