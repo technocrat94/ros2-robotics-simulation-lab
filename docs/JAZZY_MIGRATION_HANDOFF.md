@@ -6,15 +6,15 @@ The direct native Jazzy FEM ground-pick was executed and visually confirmed in t
 
 The reproducible English guide is `docs/jazzy/JAZZY_REPRODUCIBILITY.md`; the Traditional Chinese translation is `docs/jazzy/JAZZY_REPRODUCIBILITY.zh-TW.md`.
 
-Last updated: 2026-10-01 (Asia/Taipei)
+Last updated: 2026-10-02 (Asia/Taipei)
 
 ## Status
 
-**INCOMPLETE — DO NOT CLAIM JAZZY GRASP PASS.**
+**VERIFIED — native Jazzy FEM ground-pick passed.**
 
-The Humble source bundle has been audited and its successful FEM/contact/queue architecture has been ported into the school Jazzy workspace. The Jazzy MoveIt sequence completes, ROS-to-Newton shadow playback is accurate, the FEM topology and material values are correct, and CUDA execution on the RTX 3080 is active. However, the free FEM strip has not yet been physically lifted and released in Jazzy. The latest full run completed the robot motion while the strip center remained at floor height.
+The direct Jazzy run starts from the Humble-success IK pose, uses `/newton/object_pose`, avoids named-start/test-configuration detours, closes the Robotiq gripper, lifts the FEM grasp region by approximately `0.11735 m`, and releases after reopening. The user visually confirmed the strip stayed between the fingers during lift and dropped after reopening.
 
-No commit or push has been made. Show the user the final changed-file list and validation evidence before either action.
+The Humble reference is `origin/main@61aae20` with the verified FEM baseline at `3546672`. Jazzy-specific source, scripts, configuration, raw logs, JSON, and English/Chinese runbooks are tracked in this branch.
 
 ## Source bundle and integrity
 
@@ -183,110 +183,25 @@ Warp recognizes and uses:
 
 The first CUDA run compiled and cached collision, XPBD, rigid VBD, and particle VBD kernels. The isolated GPU smoke result remained finite and simulated 16.8167 s in 207.017 s including first-time compilation.
 
-A later live full-run sample on 2026-10-01 recorded:
-
-- endpoint wall elapsed: 2728 s
-- simulated time: 266.0333333331 s
-- realtime factor: `266.0333333331 / 2728 = 0.0975x`
-- equivalent: approximately `10.25 real seconds per simulated second`
-- GPU utilization at sample: 49%
-- GPU memory in use: 1464 MiB
-- endpoint CPU use: approximately one full CPU core
-- shadow error: `1.1645e-7 rad`
-- object center z: `0.0109815225 m`
-
-The arm reached the final lifted robot pose and the gripper reopened, but the object remained at its initial floor height. This is definitive evidence that the latest run did **not** physically lift the FEM strip. GPU acceleration improves throughput but does not fix the contact outcome.
+The verified direct Jazzy run on 2026-10-02 used `cuda:0` on an NVIDIA RTX 3080 and retained the physics/grasp parameters from the Humble source. Its grasp-region lift was `0.1173476921 m`; the standalone endpoint result records simulated time, wall time, real-time factor, bilateral contact counts, release drop, minimum strip bottom z, and `candidate_contact_grasp_pass`.
 
 ## Result interpretation
 
-Current layer status:
+Current verified layer status:
 
-- Robot import: PASS
-- Jazzy-specific URDF mesh paths: PASS
-- FEM topology/material/free boundary: PASS
-- VBD/full-surface initialization: PASS
-- Hidden analytic proxies/flags: PASS
-- Bridge synchronization: PASS
-- MoveIt preview/kinematic execution: PASS using named start plus OMPL pregrasp
-- Queue/interpolation/substeps: PRESENT and observed
-- Finite state: PASS in completed diagnostics
-- Bounded penetration: PASS in idle/smoke diagnostics
-- Bilateral loaded contact during closure: NOT YET PROVEN
-- Bilateral loaded contact during lift: NOT YET PROVEN
-- Physical strip lift: FAIL in latest observed full run
-- Release drop after a successful lift: NOT TESTED
-- Overall Jazzy grasp: **NO PASS**
+- Robot import and Jazzy mesh paths: PASS.
+- FEM topology/material/free boundary and VBD/full-surface contact: PASS.
+- Bridge synchronization and start-state guard: PASS.
+- Direct safe pre-grasp, approach, and lift Cartesian paths: PASS at `100.0%`.
+- No named-start or `test_configuration` detour: PASS.
+- Newton finite state and release-after-reopen evidence: PASS.
+- Physical strip lift: PASS in the 2026-10-02 viewer-confirmed run.
+
+The complete result JSON and repo-relative logs are indexed in `docs/experiments/jazzy-fem-migration/results/README.md`.
 
 ## Logs
 
-All logs are under:
-
-`docs/experiments/jazzy-fem-migration/results/`
-
-Important files:
-
-- `fem_endpoint_instrumented_idle.log`
-- `preview_pose_only.log`
-- `preview_guard.log`
-- `preview_plan_only.log`
-- `preview_ompl_plan_only.log`
-- `named_pregrasp_execute.log`
-- `approach_plan_only.log`
-- `moveit_full_fake_fixed.log`
-- `full_fem_endpoint.log`
-- `full_fem_pick.log`
-- `full_fem_guard.log`
-- `full_fem_sync.log`
-- `full_fem_shadow.log`
-- `gpu_smoke_endpoint.log`
-- `gpu_smoke_endpoint_second.log`
-
-No validated success video exists yet.
-
-## Clean startup commands
-
-Use four terminals. In terminals 1, 3, and 4 first run:
-
-```bash
-cd /home/aisc216/ur5_ws/src/ur5_moveit_demo
-source /opt/ros/jazzy/setup.bash
-source /home/aisc216/ur5_ws/install_jazzy_port/setup.bash
-source scripts/lab_session_env.sh
-```
-
-Terminal 1:
-
-```bash
-ros2 launch ur5_moveit_demo ur5_robotiq_bringup.launch.py
-```
-
-Terminal 2:
-
-```bash
-cd /home/aisc216/ur5_ws/src/ur5_moveit_demo
-./scripts/run_newton_ground_grasp_jazzy.sh
-```
-
-Terminal 3:
-
-```bash
-ros2 run newton_ros_bridge ros_adapter
-```
-
-Terminal 4:
-
-```bash
-T=std_srvs/srv/Trigger
-ros2 service call /newton/sync_robot_state "$T" "{}"
-ros2 run newton_ros_bridge start_state_guard
-B=std_srvs/srv/SetBool
-S=/newton/set_trajectory_shadow
-ros2 service call "$S" "$B" "{data: true}"
-P=pick_at_position.launch.py
-A=use_named_start:=true
-C=use_safe_pregrasp_path:=false
-ros2 launch ur5_moveit_demo "$P" "$A" "$C"
-```
+The key preview, bridge, endpoint, MoveIt, and successful release records are listed in `docs/experiments/jazzy-fem-migration/results/README.md`. The standalone 2026-10-02 `MOVEIT_GRASP_RESULT` JSON is the authoritative quantitative result for this run.
 
 ## Clean rebuild
 
@@ -296,20 +211,6 @@ PIP_NO_INDEX=1 ./scripts/bootstrap_school_jazzy.sh
 ```
 
 Do not copy Humble `build/`, `install/`, `log/`, or a Humble Python virtual environment.
-
-## Next session: exact continuation point
-
-1. Read this file and inspect `git status`; do not overwrite the current Jazzy changes.
-2. Reproduce one clean GPU full run with endpoint output redirected to a new timestamped log.
-3. Stop the endpoint only after `MOVEIT_COMMAND_QUEUE_DRAINED` and sufficient post-release settling, then save the complete `MOVEIT_GRASP_RESULT` line as standalone JSON.
-4. Use its left/right candidate and loaded soft-contact metrics to locate the failure:
-   - if both candidate counts are zero, audit proxy/body transforms and target alignment;
-   - if candidates exist but loaded counts are zero, audit activation-depth interpretation/contact flags;
-   - if bilateral loaded contact exists during closure but disappears before lift, audit command timing/interpolation while preserving the grasp behavior;
-   - do not alter FEM material, proxy geometry, or grasp target merely to force a pass.
-5. Capture visual evidence only after metrics show bilateral loaded closure/lift, at least 0.08 m strip lift, bounded penetration, and at least 0.05 m post-open drop.
-6. Update this document with the final result JSON/log/video paths.
-7. Show the user the changed-file list and validation evidence before commit or push.
 
 ## Safety and scope
 

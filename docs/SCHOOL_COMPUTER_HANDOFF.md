@@ -149,36 +149,23 @@ source install/setup.bash
 ros2 run newton_ros_bridge ros_adapter
 ```
 
-Terminal 3 — Newton contact endpoint:
+Terminal 3 — Newton FEM contact endpoint:
 
 ```bash
-cd ~/ur5_ws
-source src/ur5_moveit_demo/scripts/lab_session_env.sh
-GRASP_STRIP_CENTER_Z=0.01 \
-GRASP_POSITION=center \
-GRASP_FRICTION=1.5 \
-GRASP_COLLISION_SCOPE=all \
-~/newton_ws/lessons/.venv-cpu/bin/python \
-  src/newton_ros_bridge/newton_moveit_grasp_endpoint.py
+~/ur5_ws/src/ur5_moveit_demo/scripts/start_humble_fem_endpoint.sh
 ```
 
-Open `http://127.0.0.1:$NEWTON_VIEWER_PORT/` on the school computer. The
-environment script prints the numerical port to use.
-
-Terminal 4 — synchronize, verify, and execute:
+Terminal 4 — synchronize, guard, execute the accepted parameters, and save a
+timestamped log:
 
 ```bash
-cd ~/ur5_ws
-source src/ur5_moveit_demo/scripts/lab_session_env.sh
-source /opt/ros/humble/setup.bash
-source install/setup.bash
-
-ros2 service call /newton/sync_robot_state std_srvs/srv/Trigger
-ros2 run newton_ros_bridge start_state_guard
-ros2 service call /newton/set_trajectory_shadow \
-  std_srvs/srv/SetBool "{data: true}"
-ros2 launch ur5_moveit_demo pick_at_position.launch.py
+~/ur5_ws/src/ur5_moveit_demo/scripts/run_humble_fem_pick.sh
 ```
+
+The scripts freeze the accepted Humble physics and MoveIt parameters. For a
+Jazzy port, keep their values unchanged while adapting only distribution-
+specific package and API differences. Open `http://127.0.0.1:8086/` locally,
+or forward port `8086` when viewing the UTM endpoint remotely.
 
 Default object center:
 
@@ -216,9 +203,9 @@ and grasp failure are different diagnoses and must be reported separately.
 
 ## Current limitation
 
-The MoveIt planning scene now contains a matching floor collision object, and
-the absolute-position stages and bilateral contact instrumentation are
-verified. The combined ground pickup is not accepted because the strip did not
-follow the isolated lift despite loaded contact. Continue from
-`docs/NEWTON_GROUND_GRASP_DIAGNOSTIC.md`; do not treat a MoveIt success line as
-physical grasp evidence.
+The UTM Humble reference ground pickup is accepted and frozen in
+`docs/HUMBLE_FEM_PICK_SUCCESS.md`. The remaining boundary is portability:
+the school-computer ROS 2 Jazzy build must reproduce the same measured target,
+100% safe pre-grasp/descent/lift paths, observed strip lift, bounded
+penetration, and release after opening. A successful build or MoveIt success
+line alone is insufficient.

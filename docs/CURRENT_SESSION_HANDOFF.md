@@ -45,26 +45,25 @@ environments between machines. See `docs/JAZZY_PORT_PLAN.md`.
 9. The combined Newton endpoint reports loaded contacts, force magnitudes,
    penetration, lift, release, finite state, and a machine-readable result.
 
-## Current unverified boundary
+## Verified Humble ground-pick reference
 
-The dynamic ground pickup has not passed. A representative manual close at
-about `0.394 rad` reported left/right loaded contacts `25/22` and force-
-magnitude sums `231.335/250.229`, but a 30 mm isolated lift left the strip on
-the ground immediately.
+On 2026-10-01 the current UTM source completed the accepted FEM ground-pick
+sequence. MoveIt used the measured Newton object pose, executed the safe
+four-stage pre-grasp route, descended, closed to `0.375145 rad`, lifted
+`0.120 m` at velocity scale `0.030`, and reopened. The operator observed the
+strip rise and release; MoveIt reported `ABSOLUTE POSITION PICK SUCCEEDED`.
 
-Friction trials `1.5`, `3.0`, and `10.0`, and nominal compression trials
-`2 mm` and `4 mm`, did not produce retained lift. These results rule out
-continuing to tune only scalar friction or nominal compression. The scene was
-also no longer clean: object center `x` had moved from about `0.487 m` to
-`0.687 m` after accumulated tests.
+The exact source copies, physics environment, run scripts, and measurements
+are versioned in `docs/HUMBLE_FEM_PICK_SUCCESS.md`. Treat that record as the
+Humble reconstruction source. Earlier scalar-friction failures remain useful
+diagnostic history but are no longer the current boundary.
 
-## Single next experiment
+## Next validation
 
-Restart the Newton endpoint to restore the clean object pose. Extend contact
-instrumentation to record per-finger absolute world-frame `|Fx|`, `|Fy|`, and
-`|Fz|` during closure and the first lift frames. This will distinguish
-longitudinal pushing, opposing lateral pinch, and upward friction. Do not
-increase friction or compression again before collecting that evidence.
+Reproduce this reference on the school computer under ROS 2 Jazzy without
+changing the physics or grasp parameters. Then add automated per-run checks
+for strip rise, bounded penetration, retention during lift, and release after
+opening.
 
 ## Runtime lessons
 

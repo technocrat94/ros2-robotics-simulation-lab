@@ -2,31 +2,101 @@
   "date": "2026-10-02",
   "platform": "Ubuntu 24.04 / ROS 2 Jazzy / amd64",
   "branch": "jazzy-final-fem-pick",
-  "source_of_truth": "origin/main@35466726c948cd45cabe4ff6292e47dbcb50aa3f",
+  "source_of_truth": "origin/main@61aae20fdd256e120af87d4da78d70ae2c14a58c",
+  "humble_reference": "origin/main@3546672 (CPU)",
+  "jazzy_runtime": {
+    "device": "cuda:0",
+    "gpu": "NVIDIA GeForce RTX 3080",
+    "warp_version": "1.17.0",
+    "newton_version": "1.5.1",
+    "real_time_factor": 0.102285,
+    "humble_device_statement": "Humble reference run used CPU; this Jazzy run used cuda:0 (RTX 3080)."
+  },
   "software": {
     "bridge_status": "OK",
     "start_state_guard": true,
     "start_state_max_error_rad": 1.9436783116333345e-07,
-    "safe_pregrasp_stage_fractions": {"raise": 1.0, "orient": 1.0, "translate": 1.0, "descend": 1.0},
+    "safe_pregrasp_stage_fractions": {
+      "raise": 1.0,
+      "orient": 1.0,
+      "translate": 1.0,
+      "descend": 1.0
+    },
     "approach_cartesian_fraction": 1.0,
     "lift_cartesian_fraction": 1.0,
     "absolute_position_pick_succeeded": true,
     "named_start_detour": false
   },
-  "physics": {
+  "grasp": {
+    "object_width_mm": 50.0,
+    "total_compression_mm": 2.0,
+    "leader_command_rad": 0.375145,
+    "closure_drop_mm": 10.578,
+    "uncompensated_approach_m": 0.105,
+    "compensated_approach_m": 0.094422,
+    "lift_m": 0.12,
+    "lift_velocity_scale": 0.03
+  },
+  "newton_configuration": {
     "object_model": "fem_strip",
+    "dimensions_m": [
+      0.4,
+      0.05,
+      0.02
+    ],
+    "mesh_cells": [
+      20,
+      3,
+      2
+    ],
     "particles": 252,
     "tetrahedra": 600,
+    "surface_triangles": 424,
+    "density_kg_m3": 1100,
+    "youngs_modulus_pa": 1000000,
+    "poisson_ratio": 0.45,
+    "soft_damping_pa_s": 1000,
+    "robot_friction": 10.0,
+    "strip_friction": 10.0,
+    "ground_friction": 1.5,
+    "soft_contact_ke": 1000,
+    "soft_contact_kd": 10,
+    "proxy_inset_m": 0.001,
+    "strip_center_z_m": 0.01,
+    "position": "center",
+    "substeps": 10,
+    "command_dt_s": 0.02,
+    "max_hold_seconds": 0.5,
+    "device_default": "cpu",
+    "runtime_device": "cuda:0"
+  },
+  "physics": {
     "finite_state": true,
-    "grasp_region_initial_z_m": 0.010948608629405499,
-    "grasp_region_peak_z_m": 0.12829630076885223,
-    "grasp_region_lift_m": 0.11734769213944673,
-    "object_center_peak_z_m": 0.07029878348112106,
-    "viewer_confirmation": "strip rose between fingers and released after reopening"
+    "candidate_contact_grasp_pass": true,
+    "grasp_region_initial_z_m": 0.010999999940395355,
+    "prelift_grasp_region_z_m": 0.01106469240039587,
+    "grasp_region_peak_z_m": 0.12835527956485748,
+    "grasp_region_lift_m": 0.11729058716446161,
+    "release_start_grasp_region_z_m": 0.12296929210424423,
+    "release_drop_m": 0.11225931812077761,
+    "minimum_post_release_grasp_region_z_m": 0.010709973983466625,
+    "minimum_strip_bottom_z_m": -0.0008204657351598144,
+    "bilateral_closed_soft_contact_samples": 34,
+    "bilateral_lift_soft_contact_samples": 229,
+    "maximum_left_finger_soft_contacts": 33,
+    "maximum_right_finger_soft_contacts": 37,
+    "maximum_floor_penetration_m": 0.0008204657351598144,
+    "maximum_particle_surface_penetration_m": 0.0013515625466776525,
+    "maximum_allowed_penetration_m": 0.005
+  },
+  "timing": {
+    "simulated_time_s": 35.833333333316986,
+    "wall_elapsed_s": 350.70060650701635,
+    "real_time_factor": 0.102285
   },
   "logs": {
-    "moveit": "/home/aisc216/ur5_ws/run_logs/jazzy_fem_pick_20261002_160716.log",
-    "newton_endpoint": "/home/aisc216/ur5_ws/run_logs/jazzy_fem_endpoint_20261002_160259.log",
-    "preview": "/home/aisc216/ur5_ws/run_logs/jazzy_fem_preview_20261002_160453.log"
+    "moveit": "docs/experiments/jazzy-fem-migration/results/jazzy_fem_pick_20261002_173033.log",
+    "newton_endpoint": "docs/experiments/jazzy-fem-migration/results/jazzy_fem_endpoint_20261002_172956.log",
+    "preview": "docs/experiments/jazzy-fem-migration/results/jazzy_fem_preview_20261002_160453.log"
   }
 }

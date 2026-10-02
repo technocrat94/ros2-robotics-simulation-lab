@@ -1,0 +1,20 @@
+{
+  "recorded_at": "2026-10-02T17:35:00+08:00",
+  "source": "MOVEIT_GRASP_RESULT from jazzy_fem_endpoint_20261002_172956.log",
+  "object": "fem_strip",
+  "closed_seen": true,
+  "lift_started": true,
+  "release_seen": true,
+  "grasp_region_lift_m": 0.11729058716446161,
+  "release_drop_m": 0.11225931812077761,
+  "minimum_strip_bottom_z_m": -0.0008204657351598144,
+  "bilateral_closed_soft_contact_samples": 34,
+  "bilateral_lift_soft_contact_samples": 229,
+  "maximum_left_finger_soft_contacts": 33,
+  "maximum_right_finger_soft_contacts": 37,
+  "simulated_time_s": 35.833333333316986,
+  "wall_elapsed_s": 350.70060650701635,
+  "real_time_factor": 0.102285,
+  "finite_state": true,
+  "candidate_contact_grasp_pass": true
+}

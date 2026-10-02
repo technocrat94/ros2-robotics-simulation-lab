@@ -1,4 +1,0 @@
-[WARN] [1790848881.033057071] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
-[WARN] [1790848881.033082659] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
-[INFO] [1790848881.118957642] [newton_start_state_guard]: Waiting for /joint_states and /newton/joint_states
-START_STATE_GUARD {"pass":true,"threshold_rad":0.2,"maximum_error_rad":5.245208734017126e-08,"mismatches":[]}

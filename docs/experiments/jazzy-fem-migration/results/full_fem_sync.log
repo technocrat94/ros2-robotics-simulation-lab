@@ -1,8 +1,0 @@
-[WARN] [1790848878.411092926] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
-[WARN] [1790848878.411115131] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
-waiting for service to become available...
-requester: making request: std_srvs.srv.Trigger_Request()
-
-response:
-std_srvs.srv.Trigger_Response(success=True, message='synchronization sent; verify start_state_guard; id=4d7e3d70-6ea0-43f0-82c9-e27d006bb253')
-

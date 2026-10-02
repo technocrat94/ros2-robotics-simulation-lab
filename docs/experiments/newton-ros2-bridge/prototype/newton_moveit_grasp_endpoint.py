@@ -60,6 +60,8 @@ MAX_ALLOWED_PENETRATION = float(
 )
 if MAX_ALLOWED_PENETRATION < 0.0:
     raise ValueError("GRASP_MAX_ALLOWED_PENETRATION must be nonnegative")
+GRIPPER_CLOSED_MIN = 0.05
+GRIPPER_CLOSED_MAX = 0.60
 JOINT_NAMES = [
     "shoulder_pan_joint", "shoulder_lift_joint", "elbow_joint",
     "wrist_1_joint", "wrist_2_joint", "wrist_3_joint",
@@ -687,7 +689,7 @@ try:
             current_mimic_error = mimic_error(latest_robot_q)
             maximum_mimic_error = max(maximum_mimic_error, current_mimic_error)
 
-            if grip >= 0.20 and not release_seen:
+            if GRIPPER_CLOSED_MIN < grip <= GRIPPER_CLOSED_MAX and not release_seen:
                 closed_seen = True
                 if FEM_MODE and not lift_started:
                     maximum_closed_left_loaded_soft_contacts = max(

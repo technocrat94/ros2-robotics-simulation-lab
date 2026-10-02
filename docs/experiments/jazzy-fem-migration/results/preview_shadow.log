@@ -1,8 +1,0 @@
-[WARN] [1790847974.933107380] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
-[WARN] [1790847974.933127217] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
-waiting for service to become available...
-requester: making request: std_srvs.srv.SetBool_Request(data=True)
-
-response:
-std_srvs.srv.SetBool_Response(success=True, message='trajectory shadow enabled')
-

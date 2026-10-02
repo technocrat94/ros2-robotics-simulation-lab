@@ -1,3 +1,0 @@
-[WARN] [1790848274.304938259] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
-[WARN] [1790848274.304961480] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
-[INFO] [1790848274.371320186] [newton_ros_bridge]: ROS_ADAPTER_READY protocol=1 state=20200 command=20201

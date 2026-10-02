@@ -1,6 +1,10 @@
 # MoveIt–Newton 地面夾取診斷筆記
 
-更新日期：2026-09-24
+更新日期：2026-10-01
+
+這份文件是故障診斷索引。完整心路歷程與 VBD 教學請看
+[`NEWTON_FEM_GRASP_LEARNING_JOURNEY.zh-TW.md`](NEWTON_FEM_GRASP_LEARNING_JOURNEY.zh-TW.md)；
+最後可重建的成功配方請看 [`HUMBLE_FEM_PICK_SUCCESS.zh-TW.md`](HUMBLE_FEM_PICK_SUCCESS.zh-TW.md)。
 
 ## 目前已證明什麼
 
@@ -10,7 +14,8 @@
 - 夾爪寬度校正會同時計算閉合角度與閉合造成的指尖下降量。
 - Newton 能量測左右接觸數、承載接觸、接觸力大小、穿透與物體升高量。
 
-這些證明規劃、命令傳輸和接觸量測成立，但尚未證明地面膠條被成功夾起。
+這些是初期驗證，證明規劃、命令傳輸和接觸量測成立，但當時尚未證明地面膠條
+被成功夾起。
 
 ## 夾爪校正
 
@@ -47,6 +52,21 @@
 
 取得方向資料前，不再增加摩擦或壓縮量。這是在練習工程師最重要的能力：
 用量測區分「有碰撞」與「能承載的夾持」。
+
+## 結案：直接 FEM 地面夾取成功
+
+後續受控測試保留 FEM、接觸、摩擦、夾爪校正與抬升參數，只把
+`use_named_start` 從 `true` 改成 `false`，因此不再先繞到
+`test_configuration`。
+
+MoveIt 的安全 pre-grasp、垂直 approach、垂直 lift 路徑皆為 `100%`；夾爪命令
+`0.375145 rad`，抬升 `0.120 m`，velocity scale `0.030`。操作者在 Newton
+畫面確認：沒有大繞路、膠條隨閉合夾爪上升、只有重新開爪後掉落。
+
+終端最後顯示 `ABSOLUTE POSITION PICK SUCCEEDED`。這個版本已在 commit
+`3546672` 成為 Humble 成功基準。前面的失敗數據仍然保留，因為它們證明只有
+接觸數或力的大小不能作為夾持成功判斷。自動 rise、retention、penetration、
+release 驗收仍是下一步。
 
 ## 版本方向
 

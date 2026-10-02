@@ -39,24 +39,25 @@ Measured state and errors return to ROS 2
 | 180-degree stress motion | grasp-height change `0.88 mm`; drop only after opening | Newton preserves the dynamic object response during a large prescribed robot motion. |
 | MoveIt shadow execution | full task succeeds; start guard passes after synchronization; final max error `3.4e-8 rad` | MoveIt reference motion now reaches the Newton robot through the bridge, while the existing fake controller remains authoritative. |
 
-### Current ground-pick boundary
+### Verified FEM ground-pick reference
 
-The next integration stage uses Newton's measured strip pose as an absolute
-MoveIt target, adds a matching floor to the planning scene, and derives the
-Robotiq command and vertical compensation from a width calibration. Planning,
-stage-isolation modes, fake-hardware execution, trajectory shadow, and
-bilateral contact-force instrumentation are verified.
+On 2026-10-01, the UTM Humble reference completed an accepted FEM-strip
+ground pickup. MoveIt consumed Newton's measured object position, followed a
+four-stage collision-aware pre-grasp path, descended vertically, closed the
+Robotiq gripper from the width calibration, lifted 0.120 m at low speed, and
+released the strip. All three Cartesian paths reached 100%, MoveIt reported
+`ABSOLUTE POSITION PICK SUCCEEDED`, and the operator observed lift and release
+in the Newton viewer.
 
-The physical ground pickup is **not yet accepted**. Both fingers produced
-loaded contact, but an isolated lift left the strip on the ground. Raising the
-friction coefficient to a diagnostic value of `10.0` and increasing nominal
-compression did not correct the failure. The next controlled test records
-world-frame `|Fx|`, `|Fy|`, and `|Fz|` during closure and initial lift instead
-of increasing scalar parameters again.
-
-[Read the English diagnostic record](docs/NEWTON_GROUND_GRASP_DIAGNOSTIC.md)
-([繁體中文學習筆記](docs/NEWTON_GROUND_GRASP_DIAGNOSTIC.zh-TW.md)) and the
-[Jazzy port plan](docs/JAZZY_PORT_PLAN.md).
+The accepted configuration, current source snapshot, exact startup scripts,
+machine-readable measurements, and timing interpretation are recorded in the
+[English success record](docs/HUMBLE_FEM_PICK_SUCCESS.md)
+([繁體中文摘要](docs/HUMBLE_FEM_PICK_SUCCESS.zh-TW.md)). The school-computer
+Jazzy port remains a separate validation target and must reproduce this
+observable behavior. The full failure reasoning and VBD/FEM teaching record is
+in [English](docs/NEWTON_FEM_GRASP_LEARNING_JOURNEY.md) and
+[繁體中文](docs/NEWTON_FEM_GRASP_LEARNING_JOURNEY.zh-TW.md); the diagnostic
+index is [here](docs/NEWTON_GROUND_GRASP_DIAGNOSTIC.md).
 
 ### Report media
 
@@ -146,6 +147,7 @@ This is a verified planning-to-simulator data path and visual execution mileston
 - [Newton soft-strip modeling experiments](docs/NEWTON_SOFT_STRIP_EXPERIMENT.md) ([繁體中文](docs/NEWTON_SOFT_STRIP_EXPERIMENT.zh-TW.md)) — FEM and compliant-joint representations, convergence evidence, runtime tradeoff, and reproducible source
 - [Newton robot contact-grasp experiment](docs/NEWTON_ROBOT_GRASP_EXPERIMENT.md) ([繁體中文](docs/NEWTON_ROBOT_GRASP_EXPERIMENT.zh-TW.md)) — failed hypotheses, contact geometry, center grasp, corrected metrics, and release evidence
 - [中文學習索引](docs/NEWTON_ROS2_LEARNING_LOG.zh-TW.md) — topic map, milestone sequence, and recommended reading order
+- [Verified Humble FEM ground pick](docs/HUMBLE_FEM_PICK_SUCCESS.md) ([繁體中文摘要](docs/HUMBLE_FEM_PICK_SUCCESS.zh-TW.md)) — exact successful source, commands, parameters, evidence, and timing
 
 ## Current demo
 

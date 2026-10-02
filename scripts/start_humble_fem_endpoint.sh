@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd "${HOME}/ur5_ws"
+
+exec env \
+  GRASP_OBJECT_MODEL=fem_strip \
+  GRASP_DENSITY=1100 \
+  GRASP_YOUNGS_MODULUS=1000000 \
+  GRASP_POISSON_RATIO=0.45 \
+  GRASP_SOFT_DAMPING=1000 \
+  GRASP_FRICTION=10 \
+  GRASP_STRIP_FRICTION=10 \
+  GRASP_GROUND_FRICTION=1.5 \
+  GRASP_SOFT_CONTACT_KE=1000 \
+  GRASP_SOFT_CONTACT_KD=10 \
+  GRASP_FEM_PROXY_INSET=0.001 \
+  GRASP_STRIP_CENTER_Z=0.01 \
+  GRASP_POSITION=center \
+  GRASP_SUBSTEPS=10 \
+  NEWTON_COMMAND_DT=0.02 \
+  NEWTON_MAX_HOLD_SECONDS=0.5 \
+  NEWTON_VIEWER_PORT=8086 \
+  "${HOME}/newton_ws/lessons/.venv-cpu/bin/python" \
+  src/newton_ros_bridge/newton_moveit_grasp_endpoint.py

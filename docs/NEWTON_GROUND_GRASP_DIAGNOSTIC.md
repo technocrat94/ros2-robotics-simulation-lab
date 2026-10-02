@@ -1,6 +1,11 @@
 # MoveIt-to-Newton Ground Grasp Diagnostic
 
-Updated: 2026-09-24
+Updated: 2026-10-01
+
+This file is the failure index. The complete teaching timeline is in
+[`NEWTON_FEM_GRASP_LEARNING_JOURNEY.md`](NEWTON_FEM_GRASP_LEARNING_JOURNEY.md);
+the concise reproducible recipe is in
+[`HUMBLE_FEM_PICK_SUCCESS.md`](HUMBLE_FEM_PICK_SUCCESS.md).
 
 ## Engineering question
 
@@ -62,7 +67,7 @@ calibration and must be validated against the actual collision surfaces.
 
 ## Controlled diagnostic results
 
-The combined ground-grasp acceptance test has not passed. Increasing a single
+The initial combined ground-grasp acceptance test did not pass. Increasing a single
 parameter family at a time produced the following result:
 
 - friction coefficient `1.5`, `3.0`, and diagnostic value `10.0`: no retained
@@ -131,3 +136,24 @@ The school system is Ubuntu 24.04 `x86_64` with ROS 2 Jazzy and an NVIDIA GPU.
 After the Humble ground-grasp baseline passes, a separate Jazzy port will
 rebuild every package and compare the same machine-readable acceptance
 metrics. See `JAZZY_PORT_PLAN.md`.
+
+## Resolution: accepted direct FEM ground pick
+
+The later controlled run preserved the FEM, contact, friction, calibration, and
+lift parameters and changed the path variable `use_named_start` from `true` to
+`false`. The named `test_configuration` detour disappeared. The safe pre-grasp,
+vertical approach, and vertical lift paths all reached `100%`; the leader
+command was `0.375145 rad`, and the lift was `0.120 m` at velocity scale
+`0.030`.
+
+The operator observed all three physical conditions in the Newton viewer:
+
+1. no large initial arm detour;
+2. the FEM strip rose with the closed fingers;
+3. the strip fell only after the gripper opened.
+
+The terminal log ended with `ABSOLUTE POSITION PICK SUCCEEDED`. This is now the
+accepted Humble reference in commit `3546672`. The earlier measurements remain
+valuable because they explain why contact count and force magnitude alone were
+rejected as acceptance criteria. Automated rise, retention, penetration, and
+release assertions remain future work.
