@@ -131,6 +131,75 @@ particle-to-surface distance field, so it cannot replace the FEM contact path.
 
 ## Failure investigation and decisions
 
+### Why the strip was not our first suspect after MoveIt integration
+
+Before the absolute-position MoveIt task existed, the project had already
+lifted a center-grasped segmented strip, retained it during faster motion and an
+approximately 180-degree wrist sweep, and released it after opening. A
+zero-friction comparison had also shown that at least one working point depended
+on friction rather than an attachment constraint.
+
+Given that evidence, it was reasonable to begin the MoveIt failure diagnosis by
+checking what had changed: robot start state, object coordinates, approach
+height, gripper command, ground collision, trajectory shape, and command timing.
+The visual object was still “the strip,” so the initial working assumption was
+that the grasp geometry or MoveIt execution was wrong.
+
+The assumption became invalid only after the controls accumulated. The earlier
+successful strip was a chain of rigid segments and compliant joints, while the
+ground object was a volumetric tetrahedral FEM body. They looked similar but
+used different physical contact paths. The earlier success proved robot motion,
+gripper kinematics, rigid contact, and a plausible grasp strategy; it did **not**
+prove that VBD particles could collide with the original Robotiq mesh.
+
+This distinction was the turning point. It explains why increasing friction and
+compression could not repair the FEM run: the missing information was a stable
+particle-to-finger distance and normal, not a larger coefficient.
+
+### MoveIt integration sequence and what each step established
+
+1. **Controller and joint-order audit.** The active trajectory controller was
+   confirmed to command the six UR5 joints in the expected order. This prevented
+   a joint-name mismatch from being mistaken for bad IK.
+2. **Start-state guard.** ROS and Newton initially disagreed by about `π/2` at
+   the elbow and wrist. The guard made that mismatch visible. Explicit
+   synchronization ensured both systems started from the same joint vector
+   before trajectory shadowing was enabled.
+3. **Relative-motion shadow test.** The existing `move_xyz` task was enlarged so
+   motion was visually obvious. All Cartesian segments reached 100%, and the
+   Newton shadow error was approximately `5.86×10^-8 rad`. This established that
+   the bridge could reproduce MoveIt reference joints accurately.
+4. **Absolute object pose.** Newton published `/newton/object_pose` in `world`.
+   The new MoveIt node combined that pose with the `tool0`-to-fingertip-midpoint
+   offset and used IK for a top-down grasp. This replaced trial-and-error relative
+   displacement with a measurable target.
+5. **Planning-scene floor and staged preview.** Plan-only, approach-only, and
+   grasp-only modes separated path planning from execution. A floor collision
+   object and a staged raise/orient/translate/descend route addressed paths that
+   crossed the floor or made large joint detours.
+6. **Manual gripper checks.** Commands around `0.35–0.40 rad` were compared with
+   the visible gap. Contact without lift showed that “the fingers reached the
+   object” was not yet the same as “the contact could carry load.”
+7. **Closure-drop calibration.** Closing the linkage moved the fingertip midpoint
+   downward. Measuring that drop converted the 50 mm object width into both a
+   leader angle and a corrected approach height.
+8. **Full run and physical rejection.** MoveIt completed, bilateral contact was
+   reported, and the gripper lifted, but the strip stayed on the floor. This was
+   the first decisive evidence that planning success and contact existence were
+   insufficient.
+9. **Single-variable diagnostics.** Friction, compression, height, and isolated
+   lift were changed separately. None produced retained FEM lift, so the search
+   moved from tuning to model representation.
+10. **Rigid control and FEM observation.** A same-size rigid body responded,
+    while the FEM strip did not indent or was penetrated by the fingers. That
+    observation localized the fault to mesh-to-particle contact.
+11. **Contact and time-path repair.** Analytic proxies, full-surface VBD contact,
+    a bounded command queue, and interpolation supplied the geometry and timing
+    required by the FEM solver.
+12. **Path cleanup and final acceptance.** After physical lift worked, the final
+    controlled change disabled the named start. The grasp still lifted and
+    released correctly without the large detour.
+
 ### Visual motion was not proof of a grasp
 
 Large closure angles could cause friction holding, geometric capture, finger
@@ -204,16 +273,42 @@ computer is Ubuntu 24.04, ROS 2 Jazzy, x86_64/amd64, with an NVIDIA GPU. Build
 directories, ARM binaries, and virtual environments cannot be copied between
 them.
 
-The Jazzy port rebuilt the URDF/Xacro, SRDF, MoveIt configuration, controllers,
-bridge, and a Python 3.12 amd64 Newton environment. It adapted the controller
-state topic to `/joint_trajectory_controller/controller_state` and the state
-field to `reference.positions`. The earlier Jazzy integrated test proved build,
-planning, bridge, and visualization, but its grasp-region rise was only
-`0.000630 m` and its physical acceptance flag was false.
+The first Jazzy integrated test rebuilt the URDF/Xacro, SRDF, MoveIt
+configuration, controllers, bridge, and a Python 3.12 amd64 Newton environment.
+It adapted the controller state topic to
+`/joint_trajectory_controller/controller_state` and the state field to
+`reference.positions`. It proved build, planning, bridge, and visualization,
+but its grasp-region rise was only `0.000630 m`; physical acceptance was false.
 
-Therefore the next Jazzy test must start from Humble commit `3546672`, preserve
-the Jazzy API differences and user isolation, and compare the same measured
-lift, retained contact, penetration, and release criteria.
+That failure led to an architecture audit rather than another friction change.
+The audit found that the school runtime did not yet contain every condition from
+the Humble success path: the full free tetrahedral strip, VBD construction,
+full-surface contact, four analytic particle proxies, particle-collision flags,
+bounded queue, command interpolation, and all physics substeps. Those features
+were ported while preserving the Jazzy controller and MoveIt API differences.
+The Jazzy URDF was regenerated from Jazzy Xacro, and all 34 mesh paths were
+verified rather than copying Humble absolute paths or ARM artifacts.
+
+The verified native Jazzy run on 2026-10-02 used an RTX 3080 (`cuda:0`) and
+passed both layers:
+
+```text
+safe pre-grasp stages              100% each
+approach / lift Cartesian paths    100% / 100%
+named-start detour                 false
+grasp-region lift                  0.117290587 m
+release drop                       0.112259318 m
+bilateral lift contact samples     229
+maximum floor penetration          0.000820466 m (< 0.005 m limit)
+finite state                       true
+candidate contact grasp pass       true
+real-time factor                   0.102285
+```
+
+The viewer confirmed that the strip stayed between the fingers during lift and
+fell after reopening. This completed the migration: Jazzy success was accepted
+only after reproducing the Humble physical behavior, not merely after compiling
+or printing a MoveIt success line.
 
 ## Engineering skills demonstrated
 

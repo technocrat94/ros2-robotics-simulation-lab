@@ -1,524 +1,437 @@
-給 Gemini 的簡報製作要求
-========================
+# MoveIt 到 Newton FEM 地面夾取：完整工程敘事
 
-請將以下內容製作成 16～18 頁的繁體中文工程專題簡報。
-風格：大學工程專題、乾淨、專業、重視實驗證據與推理。
-請保留英文專有名詞及所有數據，不要把尚未驗證的內容寫成已成功。
-每頁以 3～6 個重點為主，公式與數據可做成圖表。失敗歷程請做成
-「現象 → 假設 → 實驗 → 結論 → 修正」流程圖。
+狀態：Humble 成功基準為 Git commit `3546672`；本文件記錄從 MoveIt 整合開始的
+判斷、誤判、對照實驗、修正原理與最終驗收。
 
-專題名稱
-========
+## 1. 為什麼 MoveIt 之後，我們一開始沒有懷疑膠條模型
 
-ROS 2 MoveIt 與 Newton 柔體物理整合：
-UR5 + Robotiq 2F-85 地面橡膠條夾取、故障分析與 Jazzy 移植
+在整合 MoveIt 之前，我們已經在 Newton 做過一系列「直接指定機器人動作」的
+夾取測試：
 
-GitHub：
-https://github.com/technocrat94/ros2-robotics-simulation-lab
+- 夾爪能在膠條中心形成接觸並抬升。
+- 膠條能在較快運動與約 180° 手腕旋轉時留在兩指之間。
+- 沒有 attachment constraint；開爪後膠條才掉落。
+- 零摩擦對照曾讓其中一個工作點失敗，表示至少部分成功來自摩擦，不只是把
+  物體偷偷黏在手上。
 
-最終 Humble 成功基準：commit 3546672
+所以 MoveIt 地面夾取第一次失敗時，我們沒有立刻懷疑「膠條根本不能被模擬」。
+當時最合理的想法是：以前夾得起來，現在新加入的是 MoveIt、絕對座標、地板、
+IK、路徑與新的起始姿態，因此應該先檢查這些新增部分。
 
-本報告的心路歷程起點不是最後的 FEM 成功，而是最初的陽春地面夾取：先用
-簡化 segmented／近似剛體膠條確認手臂、夾爪、ROS 命令與 Newton 接觸能運作，
-再逐步換成 FEM、加入 MoveIt 絕對位置、診斷摩擦與穿模，最後才修好剛柔接觸、
-夾爪高度補償和路徑繞行。簡報應按這條時間線講，讓每次修正都對應一個前一階段
-尚未解決的問題。
+這個判斷並不愚蠢，但少了一個重要區分：早期成功的膠條主要是
+**segmented compliant-joint model**，由多個剛體片段與彈簧／阻尼關節組成；後來
+地面夾取使用的是 **tetrahedral FEM volumetric body**。兩者外觀看起來都像膠條，
+但碰撞與求解管線不同。
 
+早期成功真正證明的是：
 
-第 1 頁｜研究動機與核心問題
-============================
+- UR5／Robotiq 動作與 mimic joints 可以工作；
+- 剛體接觸與摩擦能形成某些有效夾持；
+- 中心夾取比邊緣夾取合理；
+- Newton 能在指定動作下讓物體保持與釋放。
 
-研究問題：MoveIt 規劃成功後，如何確認機器人在含有重力、摩擦、接觸與柔體
-變形的環境中，真的能把物體夾起來？
+它沒有證明：Robotiq 原始三角 mesh 能對 VBD 的 FEM particles 提供可靠的距離、
+法向與全表面接觸。這個差異是後來所有推理的轉折點。
 
-- MoveIt fake hardware 可以驗證路徑、逆向運動學與控制流程。
-- fake hardware 不會模擬橡膠變形、摩擦、滑落及穿透。
-- Newton 用來計算柔體、接觸、摩擦和重力造成的實際結果。
-- 最終目標不是畫面看似成功，而是建立可重建、可量測、可解釋的夾取流程。
+## 2. 第一步：先確定 MoveIt 控制的是哪六個關節
 
-一句話結論：
-MoveIt 回答「機械手應該怎麼走」，Newton 回答「照這樣走之後，物體實際會
-發生什麼」。
+我們先檢查 `joint_trajectory_controller` 的 joints：
 
+```text
+shoulder_pan_joint
+shoulder_lift_joint
+elbow_joint
+wrist_1_joint
+wrist_2_joint
+wrist_3_joint
+```
 
-第 2 頁｜系統架構與資料流
-========================
+原因：MoveIt 的 trajectory point 只提供一串 positions，數值必須依 joint_names
+順序解讀。如果順序或名稱錯了，即使數字本身合理，實際動作也會完全不同。
 
-MoveIt 2
-  → 根據物體絕對位置進行 IK（Inverse Kinematics）與路徑規劃
-  → ROS 2 controllers 執行 UR5 與 Robotiq 命令
-  → ROS–Newton bridge 同步、翻譯並插值離散關節狀態
-  → Newton 計算重力、摩擦、碰撞與 FEM 柔體變形
-  → 實際物體位置、模擬時間、接觸及誤差回傳 ROS 2
+我們也讀取 controller state，學會區分：
 
-各元件角色：
+- desired/reference：控制器想去的位置；
+- actual/feedback：目前量到的位置；
+- error：兩者差值。
 
-- UR5 / Robotiq：被描述、控制與模擬的機械系統。
-- MoveIt：IK、碰撞感知規劃與 Cartesian motion。
-- ros2_control：控制器、action 與關節狀態。
-- bridge：連接 ROS Python 3.10 與 Newton Python 3.12，並處理兩套時間尺度。
-- Newton：柔體動力學與剛柔接觸驗證。
+當 error 接近 0，只能說控制器已追到目標；不能推論物體已被夾起。
 
+這一步排除了「MoveIt 把關節值送錯順序」這個根因。
 
-第 3 頁｜第一階段：建立 ROS 2–Newton Bridge
-==========================================
+## 3. 第二步：ROS 與 Newton 起始姿態不一致
 
-完成項目：
+最早的 `start_state_guard` 顯示 elbow 與 wrist_2 約有 `π/2` 的誤差。原因是 ROS
+fake hardware 的當前姿態與 Newton endpoint 內部初始化的 `BASE_ARM` 不同。
 
-- ROS service 控制 Newton start、pause、reset。
-- ROS topics 回傳 object pose、simulation time、running state、bridge status。
-- stale-data detection 能辨識 Newton 是否停止回傳資料。
-- start-state guard 比較 ROS 與 Newton 的初始關節角。
-- trajectory shadow 將 MoveIt 軌跡映射到 Newton robot。
+若兩套系統從不同姿態開始，後續即使收到相同 trajectory：
 
-重要驗證：
+- Newton 可能先瞬間跳到另一個姿態；
+- 指尖產生極大的等效速度；
+- viewer 中看到的動作與 RViz 不同；
+- 接觸與穿透結果不再可信。
 
-- bridge status 可顯示 OK 或 STALE。
-- reset 後模擬時間回到 0，物體回到初始位置。
-- MoveIt shadow 最大關節誤差曾達約 3.4×10^-8 rad，證明資料對接精確。
+修正原理：
 
-工程判斷：service 回覆「command sent」只代表指令已送出；仍須從回傳 topic
-確認 Newton 的實際狀態。
+1. `/newton/sync_robot_state` 把 ROS 現在的關節狀態送給 Newton。
+2. `start_state_guard` 比較兩邊每個關節。
+3. guard 通過後才開啟 trajectory shadow。
 
+這像在比賽前讓兩支碼表都歸零。若起點不同，後面誤差再小也沒有意義。
 
-第 4 頁｜UR5 與 Robotiq 模型匯入
-================================
+## 4. 第三步：先用相對運動證明 bridge，而不是直接挑戰地面夾取
 
-URDF/Xacro 展開後：
+我們先使用既有的 `move_xyz`，並故意把位移改大，因為小動作在 RViz 與 Newton
+中很難看清楚。三段 Cartesian path 都達到 `100%`，trajectory shadow error
+約 `5.86×10^-8 rad`。
 
-- 24 links / bodies
-- 23 URDF joints；Newton 匯入後包含基座關係共 24 joints
-- 54 collision / visual shapes
-- 關節型態包含 fixed 與 revolute
+這個實驗證明：
 
-Robotiq 2F-85 的運動學：
+- MoveIt 能產生軌跡；
+- controller 能執行；
+- bridge 能把參考關節狀態送到 Newton；
+- Newton robot 能近乎一致地重播 MoveIt 動作。
 
-- 只有一個 leader joint 接收主要命令。
-- 其他五個 movable joints 依 URDF mimic multiplier 跟隨。
-- mimic mapping 最大誤差驗證為 0 rad。
+它仍沒有證明接觸物理正確。這是第一個重要分層：先驗證 transport，再驗證
+contact。
 
-工程判斷：模型成功顯示不代表運動正確；還必須確認 joint order、mimic 方向、
-關節限制與碰撞幾何。
+## 5. 第四步：從相對位移改成物體絕對位置
 
+早期程式只知道「從目前位置往某方向移動多少」。真正的抓取應該由物體位置
+決定，因此我們讓 Newton 發布：
 
-第 5 頁｜柔體橡膠條與 FEM 網格
-==============================
+```text
+/newton/object_pose
+frame_id: world
+```
 
-橡膠條尺寸：0.40 × 0.05 × 0.02 m
-網格：20 × 3 × 2 cells
+MoveIt node 讀取物體中心，再加上 `tool0` 到兩指中點的 offset，建立 top-down
+grasp pose，最後由 IK 把末端位姿轉成六個 UR5 關節角。
 
-- 252 particles（粒子／FEM 頂點）
-  (20+1)(3+1)(2+1) = 252
-  保存位置、速度與質量，是柔體的自由度。
+這裡的原理是：
 
-- 600 tetrahedra（四面體元素）
-  20×3×2×5 = 600
-  計算拉伸、剪切與體積改變，負責傳遞內部材料力。
+```text
+物體 world pose
+  + 抓取方向
+  + tool0-to-fingertip offset
+  = tool0 目標 pose
+  → IK
+  = UR5 joint trajectory
+```
 
-- 424 surface triangles（表面三角形）
-  4(20×3 + 20×2 + 3×2) = 424
-  定義柔體外表面及接觸邊界。
+因此不是我們手算六個軸，也不是 MoveIt 自己「看到」膠條；物體 pose 必須由
+Newton 或未來的相機提供。
 
-關鍵觀念：增加 cells 是提高 mesh resolution（網格解析度），不是提高 material
-density（材料密度）。網格更細會增加計算量，也可能改變預測變形，因此必須做
-mesh convergence（網格收斂）比較。
+## 6. 第五步：路徑會穿地、繞路，因此先做 plan-only
 
+一開始的全域規劃有時會繞一大圈、手腕大幅旋轉，甚至看起來穿過地板。原因是
+只給末端終點時，規劃器可以找到許多 IK 解與關節路徑；數學上可達，不代表工程
+上合理。
 
-第 6 頁｜VBD 與橡膠材料參數
-===========================
+我們加入：
 
-Newton 使用 VBD（Vertex Block Descent，頂點區塊下降法）求解體積柔體。
+- planning scene floor：讓 MoveIt 知道地板是障礙物；
+- plan-only：只預覽，不執行；
+- pre-grasp-only、approach-only、grasp-only、lift-only：逐段隔離問題；
+- 四階段路徑：先抬高、調姿態、水平移到物體上方、最後垂直下降；
+- joint cumulative travel 與 maximum step 檢查；
+- wrist_3 獨立上限，避免手腕為等價姿態轉太多圈。
 
-白話說明：膠條內有許多互相影響的節點，VBD 逐一更新頂點，反覆降低系統能量，
-同時滿足材料變形與接觸條件。
+後來又發現 named start `test_configuration` 本身會造成大繞路。最終設定
+`use_named_start=false`，直接從同步後的實際起始姿態規劃。
 
-最終參考設定：
+## 7. 第六步：指尖看似碰到，為什麼仍夾不起來
 
-- Young's modulus：1,000,000 Pa
-- Poisson ratio：0.45
-- density：1,100 kg/m³
-- damping：1,000 Pa·s
-- VBD iterations：10
-- frame rate：60 Hz
-- substeps：10
-- physics dt = (1/60)/10 = 1/600 s = 0.001667 s
+在 RViz 中，指尖接近膠條時有時會顯示紅色；那代表 MoveIt collision model 的
+碰撞／接近狀態，不等於 Newton 已建立可承載的柔體接觸。
 
-工程判斷：Young's modulus 控制剛硬程度；Poisson ratio 接近 0.5 代表接近不可
-壓縮；damping 影響振動衰減。材料參數、網格與時間步都會共同影響結果。
+我們手動測試不同 gripper command：
 
+- 有時指尖仍有空隙；
+- 有時剛好接觸；
+- 有時看起來穿進膠條；
+- 夾爪抬升後，膠條仍留在地面。
 
-第 7 頁｜兩種柔體模型與學到的事情
-==================================
+這讓我們先懷疑三件事：
 
-模型 A：Tetrahedral FEM
+1. 夾爪閉得不夠；
+2. 摩擦力不夠；
+3. approach 高度不對。
 
-- 每個四面體描述連續材料變形。
-- 物理意義完整，但 CPU 計算慢。
-- 網格 20 cells 的 real-time factor 約 0.265；40 cells 約 0.144；80 cells 約 0.094。
-- 網格變細後，預測撓度與收斂時間也改變。
+這些都是合理假設，因為早期模型確實曾因夾持位置、摩擦與中心／邊緣差異而
+改變結果。
 
-模型 B：Segmented compliant-joint strip
+## 8. 第七步：發現夾爪閉合時還會向下
 
-- 由 20～80 個剛體片段與彈簧／阻尼關節組成。
-- 可用 EI 與 segment length 推導 joint stiffness。
-- 速度較快，適合早期整合與控制測試，但不是完整連續體 FEM。
+Robotiq 不是兩片平行板水平靠近。leader joint 帶動連桿旋轉，兩指閉合時，
+fingertip midpoint 也會向下移動。
 
-工程結論：簡化模型用來快速定位問題，FEM 用來驗證真正柔體接觸；兩者用途
-不同，不是重複做同一件事。
+校正量測：
 
+| command | estimated gap | closure drop |
+|---:|---:|---:|
+| 0.35 rad | 50.716 mm | 10.109 mm |
+| 0.40 rad | 45.315 mm | 11.042 mm |
 
-第 8 頁｜SDF、碰撞代理與全表面接觸
-===================================
+50 mm 物體、總壓縮 2 mm，目標 gap 為 48 mm。線性插值得到：
 
-SDF（Signed Distance Field，符號距離場）用來回答：
+```text
+leader command = 0.375145 rad
+closure drop = 10.578 mm
+```
 
-- 粒子距離指尖表面多遠？
-- 是否已經穿透？
-- 接觸法向量朝哪裡？
+若原本想下降 `0.105 m`：
 
-概念式：
+```text
+compensated approach
+= 0.105000 - 0.010578
+= 0.094422 m
+```
 
-phi(p) > 0：表面外部
-phi(p) = 0：位於表面
-phi(p) < 0：已穿透
+修正原理：手臂先停得稍高，留出閉爪連桿向下的空間。這避免「位置規劃本來
+正確，閉爪後卻把指尖推進地板」。
 
-penetration = max(0, -phi(p))
-normal = normalized(gradient(phi(p)))
+## 9. 第八步：有左右接觸和很大的力，仍然抬升 0 m
 
-問題：Robotiq 的三角 mesh 很複雜，當時 CPU VBD 路徑無法提供可靠的
-mesh-to-particle 距離查詢。
+某次閉爪量測：
 
-最終修正：
+```text
+left/right loaded contacts = 25 / 22
+left/right force magnitude sum = 231.335 / 250.229
+measured lift = 0 m
+```
 
-- 保留原始 mesh 作為漂亮的視覺模型。
-- 關閉原始 finger mesh 對 FEM particles 的碰撞。
-- 在四個 finger / fingertip collider 內加入隱藏 analytic box proxy。
-- proxy 向內縮 1 mm，避免突出外觀模型。
-- 啟用 full-surface rigid–soft contact，使壓力與摩擦分布在接觸面。
+一開始很容易下結論：「既然兩邊都有力，應該只是摩擦不夠。」所以我們曾把
+摩擦提高到診斷值 10，也增加壓縮量，但仍無法保持抬升。
 
-白話說明：畫面看到真實手指，物理引擎實際使用穩定的隱形方盒計算柔體接觸。
+這個結果推翻了單純摩擦假設。原因是 force magnitude 沒有方向：
 
+- 力可能沿膠條長度把它推出去；
+- 可能把膠條壓向地板；
+- 可能閉爪時存在，但第一幀抬升就消失；
+- 接觸候選數也可能包含不能承載的接觸。
 
-第 9 頁｜早期夾取測試：看似成功不等於真正夾持
-==================================================
+因此「有碰撞」與「能承載」必須分開。後續正確量測應看左右手指世界座標的
+`Fx/Fy/Fz`、接觸是否持續，以及 grasp region 是否真的上升。
 
-早期現象：較大的閉合角度能把膠條帶起來。
+## 10. 第九步：為什麼後來才重新懷疑膠條／接觸模型
 
-可能原因：
+到這裡，位置、IK、路徑、夾爪角度、閉合高度、摩擦與壓縮都已逐步檢查，失敗
+仍然存在。這時才有足夠證據回頭問：「早期成功的膠條，真的和現在的 FEM 是
+同一種物理模型嗎？」
 
-- 摩擦夾持（friction-dependent grasp）
-- 幾何卡合（geometric capture）
-- 指尖托住物體
-- 穿模後被模型卡住
+答案是否定的：
 
-診斷方式：matched control（配對對照實驗）
+- segmented strip：多個剛體片段＋compliant joints，主要走剛體碰撞管線；
+- FEM strip：particles＋tetrahedra＋surface triangles，由 VBD 求解體積變形。
 
-- 0.376 rad、mu=1.5：能抬起，開爪後掉落。
-- 0.376 rad、mu=0：接觸期間落地，證明此工作點依賴摩擦。
-- 0.386 rad、mu=0 與 mu=1.5 都能抬起，顯示主要是幾何卡合。
+兩者外觀與尺寸可以相同，接觸演算法卻不同。早期成功讓我們合理地相信抓取策略
+本身可行，但不能替 FEM particle contact 背書。
 
-中心夾取的工程理由：
+## 11. 第十步：rigid block 對照把問題定位到 FEM contact
 
-- 膠條質量約 0.44 kg，重量約 4.32 N。
-- 夾末端時力臂約 0.20 m，重力力矩約 0.86 N·m。
-- 改夾 center-of-mass region，可降低旋轉與滑出的力矩。
+我們把物體暫時換成同尺寸 rigid block。目的不是把問題偷偷簡化成最終答案，
+而是做 diagnostic control：
 
+- 如果 rigid block 也完全無反應，應繼續查位置、IK、robot collider 或 bridge；
+- 如果 rigid block 有反應、FEM 卻不凹陷，問題集中在 rigid-soft contact。
 
-第 10 頁｜180 度壓力測試
-=========================
+實驗中 rigid block 能產生接觸反應，但 FEM 膠條會被指尖穿過或完全不變形。
+因此問題不再是「物體太重」或「摩擦係數太小」，而是原始 Robotiq mesh 沒有
+為 VBD particles 提供可靠的距離與法向。
 
-在已驗證的中心夾取工作點加入更快、更大的動作：
+## 12. VBD、SDF 與 analytic proxy：修正原理
 
-- 肩部掃動
-- 約 180 度手腕偏轉
-- 加速與姿態改變
+### VBD 是什麼
 
-觀察結果：
+正確名稱是 VBD（Vertex Block Descent，頂點區塊下降法），不是 VBM。
 
-- 膠條在舞動期間保持於兩指之間。
-- 沒有穿過機械手臂。
-- 只有夾爪張開後才掉落。
-- 舞動前後夾持區高度差約 0.88 mm。
+FEM 膠條由 252 particles、600 tetrahedra、424 surface triangles 組成。VBD 將
+一個時間步寫成材料能量與接觸約束問題，反覆更新局部頂點，使系統能量下降、
+材料與接觸條件趨於一致。
 
-結論：Newton 能在指定 kinematic robot motion 下保持接觸與柔體反應。
-限制：這不等於真實 UR5 馬達一定能提供相同扭矩與頻寬。
+它不是說物理中沒有 `F=ma`；它表示數值上不是只做一次顯式力積分，而是用隱式
+能量／約束方法求解耦合變形與接觸。
 
+### SDF 提供什麼
 
-第 11 頁｜MoveIt 絕對位置地面夾取
-==================================
+SDF `phi(p)` 告訴求解器某粒子到剛體表面的帶符號距離：
 
-原先的 MoveIt 範例使用相對位移，例如「從現在位置往 Y 移動 0.1 m」。
-新流程改為：
+```text
+phi > 0：表面外
+phi = 0：表面上
+phi < 0：已穿透
+penetration = max(0, -phi)
+normal ≈ normalized(gradient(phi))
+```
 
-1. Newton 在 /newton/object_pose 回傳膠條 world 座標。
-2. MoveIt 讀取物體中心的絕對位置。
-3. 加上 tool0 到兩指中點的 0.109 m offset。
-4. MoveIt 使用 IK 將末端目標位姿轉成六個 UR5 關節角。
-5. 先到 pre-grasp，再垂直下降、閉爪、抬升與開爪。
-6. Planning scene 加入 floor，避免規劃穿過地面。
+距離決定穿透量，gradient 決定應該往哪個方向推回去。
 
-最後測得物體中心：
-(0.4869, 0.1093, 0.0110) m in world
+### 為什麼用 analytic box proxy
 
-工程判斷：MoveIt 不會從影像猜物體位置；它依賴 Newton 或感測器提供 pose，
-再進行 IK 與碰撞感知規劃。
+原始 Robotiq 三角 mesh 很漂亮，但當時 CPU VBD 路徑沒有穩定的
+particle-to-mesh SDF。修正方式：
 
+- 視覺仍保留原始 mesh；
+- 關閉原始 mesh 對 FEM particles 的不可靠碰撞；
+- 在四個 finger／fingertip 區域放入隱藏 analytic boxes；
+- box 向內縮 1 mm，避免突出視覺表面；
+- 啟用 full-surface rigid-soft contact。
 
-第 12 頁｜夾爪寬度與高度補償
-================================
+Box 有封閉解析距離，可以快速、連續地提供 SDF 與 normal。這不是宣稱真實手指
+是方盒，而是選擇可控、可驗證的 collision proxy。
 
-Robotiq 指尖沿連桿圓弧閉合，因此 leader angle 增加時：
+## 13. 第十一步：ROS 命令插值，避免指尖「瞬移」穿透
 
-- pad gap 變小；
-- fingertip midpoint 同時向下移動。
+即使碰撞幾何正確，ROS 關節狀態若一筆一筆直接跳到 Newton：
 
-若忽略下降量，手臂到達正確高度後再閉爪，指尖仍會向下穿入地板或膠條。
+```text
+v_effective ≈ (q[k+1] - q[k]) / dt
+```
 
-50 mm 膠條、總壓縮量 2 mm：
-
-target gap = 50 - 2 = 48 mm
-
-校正資料：
-
-- 0.35 rad → gap 50.716 mm，closure drop 10.109 mm
-- 0.40 rad → gap 45.315 mm，closure drop 11.042 mm
-
-線性插值結果：
-
-- gripper command = 0.375145 rad
-- closure drop = 10.578 mm
-- uncompensated approach = 0.105000 m
-- compensated approach = 0.105000 - 0.010578 = 0.094422 m
-
-工程意義：物體寬度同時決定夾爪角度與閉爪前的 tool0 高度。
-
-
-第 13 頁｜最大失敗：有接觸力，物體仍完全不抬升
-=================================================
-
-量測曾顯示：
-
-- 左右 loaded contacts：25 / 22
-- 左右接觸力大小總和：231.335 / 250.229
-- 物體抬升量：0 m
-
-錯誤直覺：「接觸點很多、力量很大，所以應該已經夾住。」
-
-實際判斷：
-
-- force magnitude 沒有告訴我們方向。
-- 力可能把物體沿長度推走、壓向地板，或在抬升瞬間消失。
-- 將摩擦提高到 10、增加壓縮量，仍然沒有解決。
-- 所以根因不是單純「太重、摩擦不足或夾得不夠緊」。
-
-診斷對照：
-
-- 改成同尺寸 rigid block，剛體碰撞會產生反應。
-- 換回 FEM 後，膠條不凹陷且被 mesh 指尖穿過。
-- 因此將問題定位到 FEM particles 與 Robotiq mesh 沒有可靠剛柔接觸。
-
-
-第 14 頁｜時間離散問題：等效速度與指令插值
-================================================
-
-ROS 送來的是離散關節位置。如果 Newton 直接從 q_k 跳到 q_(k+1)：
-
-v_effective ≈ (q_(k+1) - q_k) / delta_t
-
-單步跳動過大時：
-
-- 指尖可能在兩幀間跨過膠條表面。
-- 產生漏碰撞、深穿透或巨大的非物理接觸脈衝。
-- 再好的 SDF 與碰撞代理也可能失效。
+單步位移過大時，指尖可能在兩次碰撞查詢之間越過膠條表面。Newton 看到的是
+很大的等效速度與深穿透，而不是平滑運動。
 
 修正：
 
-- sync_robot_state 先同步 ROS 與 Newton 初始姿態。
-- 使用 bounded command queue。
-- 每筆 ROS 命令以 NEWTON_COMMAND_DT = 0.02 s 插值。
-- 每個 1/60 s frame 再分成 10 個 physics substeps。
+- bounded command queue：命令依序處理，不讓舊命令無限堆積；
+- `NEWTON_COMMAND_DT=0.02 s`：在兩筆 ROS 命令間插值；
+- 60 Hz frame 再分 10 substeps，physics `dt=1/600 s`；
+- 每個 substep 更新中間關節姿態後再求碰撞與 VBD。
 
-工程結論：正確的幾何模型必須搭配正確的時間輸入。
+原理是讓幾何接觸有足夠時間解析度。正確模型配上瞬移命令仍然可能穿模。
 
+## 14. 第十二步：物理成功後，仍要修掉 MoveIt 大繞路
 
-第 15 頁｜MoveIt 路徑修正與最終成功
-====================================
+當 FEM 終於能跟著夾爪上升後，流程還有一個工程問題：手臂會先前往 named
+target `test_configuration`，造成大繞路。
 
-曾發生的路徑問題：
+這與物理夾持是兩個獨立問題。為了確認取消繞路不會破壞夾取，我們做單一變因
+測試：保留 FEM、proxy、摩擦、校正、下降與抬升參數，只改：
 
-- 直接前往 pre-grasp 可能繞行、穿地或讓 wrist 大幅旋轉。
-- named start 的 test_configuration 造成不必要的大繞路。
-- 重複啟動兩套 bringup 會產生 duplicate action servers、unknown goal response
-  或執行被中止。
+```text
+use_named_start=true → false
+```
 
-最終修正：
+結果：沒有大繞路，膠條仍成功抬起，開爪後才掉落。因此可以判斷 named start
+不是成功所需條件，應移除。
 
-- 四階段安全 Cartesian route：先抬高、調整姿態、水平移到物體上方、垂直下降。
-- 檢查每個關節 cumulative travel 與 maximum single step。
-- 抬升獨立使用 velocity scale 0.030。
-- use_named_start=false，取消 test_configuration 大繞路。
-- 每次只允許一套 MoveIt / controller bringup。
+## 15. 最終 Humble 驗收
 
-最終 Humble 成功證據（commit 3546672）：
+```text
+object center                 (0.4869, 0.1093, 0.0110) m
+leader command                0.375145 rad
+closure drop                 10.578 mm
+compensated approach          0.094422 m
+lift distance                 0.120 m
+lift velocity scale           0.030
+pre-grasp / approach / lift   100% / 100% / 100%
+lift trajectory               3.517 s
+MoveIt logged sequence        約 12.765 s
+final message                 ABSOLUTE POSITION PICK SUCCEEDED
+```
 
-- Safe pre-grasp path：100%
-- Vertical approach path：100%
-- Vertical lift path：100%
-- Lift distance：0.120 m
-- Lift trajectory duration：3.517 s
-- MoveIt 記錄段：約 12.765 s
-- 終端：ABSOLUTE POSITION PICK SUCCEEDED
-- 人工物理驗收：沒有大繞路、膠條成功抬起、開爪後才掉落。
+人工物理驗收：
 
-重要區分：MoveIt SUCCEEDED 證明規劃與控制器完成；Newton 畫面中的抬升與
-釋放才證明物理夾取成功。本次兩層皆通過。
+- 手臂不再先繞一大圈；
+- 閉爪後 FEM 膠條跟著上升；
+- 抬升時膠條留在兩指之間；
+- 開爪後才掉落；
+- 沒有明顯穿地、穿手或 NaN。
 
+所以成功不是來自某個神奇參數，而是一整條條件同時成立：正確 pose、同步起點、
+合理路徑、夾爪運動學補償、可靠 collision proxy、VBD full-surface contact、
+平滑命令時間史，以及同時檢查 command layer 和 physics layer。
 
-第 16 頁｜學校電腦 Jazzy 移植
-================================
+## 16. 這段歷程教會我們如何當工程師
 
-參考平台：
+1. 以前成功過，是合理的先驗證據，但必須確認「模型與管線是否真的相同」。
+2. 畫面共同移動、MoveIt SUCCEEDED、contact count、force magnitude 都不是單獨
+   足夠的夾取證據。
+3. 調參數前先定位問題層級：planning、transport、rigid collision、soft contact、
+   material solve 或 validation metric。
+4. 每次只改一個變因，才能說明因果。
+5. control experiment 的價值是排除假設：zero friction、rigid block、plan-only、
+   isolated lift 都不是多餘測試。
+6. 修正必須能說明原理：proxy 修的是幾何距離、interpolation 修的是時間離散、
+   closure compensation 修的是夾爪連桿運動學、staged path 修的是規劃自由度。
 
-- 家中 UTM：Ubuntu 22.04、ROS 2 Humble、aarch64、CPU
-- 學校電腦：Ubuntu 24.04、ROS 2 Jazzy、x86_64 / amd64、NVIDIA GPU
+## 17. Jazzy 移植：第一次軟體成功，物理仍失敗
 
-不能直接複製的內容：
+學校電腦是 Ubuntu 24.04、ROS 2 Jazzy、x86_64/amd64、RTX 3080。不能直接複製
+Humble aarch64 的 `build/`、`install/` 或 Python venv，所以必須從 source 重建。
 
-- build/、install/、log/
-- ARM binaries
-- Python virtual environment
+第一次 Jazzy 整合已完成 build、MoveIt、controllers、bridge、同步與 viewer，
+MoveIt 也顯示成功，但 grasp-region lift 只有約 `0.000630 m`，
+`candidate_contact_grasp_pass=false`。
 
-必須移植並重新建構的內容：
+這再次證明「移植成功」至少有兩層：
 
-- source code、URDF/Xacro、SRDF
-- MoveIt / ros2_control configuration
-- calibration data、launch files、bridge protocol
-- Newton Python 3.12 amd64 environment
+- software portability：能編譯、啟動、規劃與傳輸命令；
+- physics equivalence：相同模型和參數必須重現抬升、保持、穿透界線與釋放。
 
-已完成的 Jazzy 工作：
+## 18. Jazzy 架構稽核：不是再調摩擦，而是比對成功條件
 
-- 原生 Jazzy UR5 + Robotiq MoveIt fake-hardware 建置成功。
-- 四個 controllers active，RViz 中 pick-and-place 三段路徑皆 100%。
-- 建立 Newton 1.5.1 / Warp 1.17.0 / Python 3.12 amd64 環境。
-- 解析 Jazzy Xacro 並產生 Newton URDF，所有 package:// mesh paths 已解析。
-- Jazzy controller topic 改為 /joint_trajectory_controller/controller_state。
-- controller state 欄位由 Humble 的 desired.positions 適配為 Jazzy 的
-  reference.positions。
-- bridge、start-state guard、trajectory shadow 與 Newton viewer 可運作。
+因為 Humble 已有成功基準，Jazzy 失敗時最有效的方法不是盲目調參，而是逐項
+比較兩邊架構。稽核發現最初 Jazzy runtime 尚未完整包含：
 
-Jazzy 量測證據：
+- 自由的 `20×3×2` tetrahedral FEM strip；
+- `SolverVBD` 與 10 iterations；
+- full-surface rigid-soft contact；
+- 四個 hidden analytic finger proxies；
+- 原始 finger mesh 關閉 particle collision、proxy 開啟 particle collision；
+- bounded queue、`0.02 s` command interpolation、10 substeps；
+- Humble 已驗證的夾爪校正、下降補償與慢速抬升。
 
-- start-state guard maximum error：5.62×10^-8 rad
-- trajectory shadow error：5.66×10^-8 rad
-- mimic maximum error：0 rad
-- object pose：(0.48689985, 0.10915001, 0.00999984) m
+同時必須保留 Jazzy 自己的 API 差異：
 
+- controller topic 使用 `/joint_trajectory_controller/controller_state`；
+- state 使用 `reference.positions`；
+- MoveIt plan fields 與 Humble 不同；
+- Cartesian time parameterization 使用 Jazzy 的
+  `TimeOptimalTrajectoryGeneration`；
+- URDF 必須從 Jazzy Xacro 重新產生，34 個 mesh paths 全部重新驗證。
 
-第 17 頁｜Jazzy 目前邊界與正確的後續策略
-=========================================
+原理：移植不是把能跑的檔案搬過去，而是保持「物理與驗收契約」不變，只改平台
+相容層。
 
-當時學校 Jazzy 整合結果：
+## 19. Jazzy 最終成功與量化證據
 
-- MoveIt 流程完成並顯示 ABSOLUTE POSITION PICK SUCCEEDED。
-- closed_seen、lift_started、release_seen 均為 true。
-- grasp-region lift 只有 0.000630 m（約 0.63 mm）。
-- candidate_contact_grasp_pass = false。
+2026-10-02 的原生 Jazzy 版本使用 RTX 3080 `cuda:0`，最終同時通過軟體層與
+物理層：
 
-因此：
+```text
+safe pre-grasp 各階段          100%
+approach / lift paths          100% / 100%
+named-start detour             false
+grasp-region lift              0.117290587 m
+release drop                   0.112259318 m
+閉爪雙側接觸樣本               34
+抬升雙側接觸樣本               229
+maximum floor penetration      0.000820466 m
+allowed penetration limit      0.005 m
+finite state                   true
+candidate_contact_grasp_pass   true
+real-time factor               0.102285
+```
 
-- Jazzy 已成功移植「建置、規劃、控制、bridge、同步、接觸與顯示」。
-- 當時尚未重現真正的動態 FEM 地面夾取。
-- 學校版本建立在較早的 Humble 參考上；最新成功修正現已固化於 commit 3546672。
+viewer 目視確認膠條在兩指之間上升，並在開爪後釋放。這次成功不是因為 Jazzy
+「可以編譯」，而是因為它完整重現 Humble 成功所需的物理表示、接觸、時間輸入、
+路徑與驗收條件。
 
-下一次 Jazzy 工作的正確做法：
+## 20. 下一步
 
-1. 從 GitHub commit 3546672 更新 source。
-2. 保持最終 Humble 的 FEM、proxy、full-surface contact、插值、夾爪校正與
-   use_named_start=false。
-3. 只修改 Jazzy API／套件相容部分，不同時調物理參數。
-4. 重新驗證無繞路、抬升、保持、穿透限制與開爪釋放。
-5. 通過相同驗收後，Jazzy 才能取代 Humble 成為主要開發平台。
+後續自動化與研究應記錄：
 
+- 左右指尖世界座標 `Fx/Fy/Fz`；
+- grasp-region rise；
+- contact retention；
+- minimum penetration／strip bottom；
+- release time；
+- 單次 real-time factor；
+- CPU 與 GPU 結果差異與收斂；
+- 真實橡膠材料與摩擦校正；
+- 實體 UR5 的扭矩、速度、網路與安全限制。
 
-第 18 頁｜兩週內培養的工程判斷能力與下一步
-================================================
-
-培養的能力：
-
-1. 分開「規劃成功」與「物理成功」。
-2. 分開「有接觸」與「有承載能力」。
-3. 一次只改一個變因，才能建立因果關係。
-4. 先檢查幾何與時間，再調摩擦和材料參數。
-5. 使用 rigid block、zero-friction 等 control experiment 定位問題層級。
-6. 選擇直接回答研究問題的 metric，例如 grasp-region rise，而不是整條柔體平均高度。
-7. 保留失敗 log、參數與推理，使結果可以重建與移植。
-
-目前限制：
-
-- friction=10 是模擬成功參數，尚未以真實橡膠材料校正。
-- analytic box proxy 是可靠近似，不是 Robotiq 真實指尖幾何的完全等價物。
-- Newton 中的 robot 由關節位置驅動，尚未證明真實馬達扭矩與控制頻寬足夠。
-- Humble 物理成功仍包含人工視覺驗收，尚未完成全自動 pass/fail 判斷。
-
-下一步：
-
-- 自動記錄 object rise、bilateral loaded contact、penetration、retention、release。
-- 記錄單次實驗的精確 real-time factor；目前 UTM 長時間估算約 0.084，
-  即 1 秒模擬時間約需 11.9 秒實際時間。
-- 將最新成功 commit 移植到 Jazzy 並做相同驗收。
-- 在 Jazzy CPU 基準一致後，再啟用 NVIDIA GPU 與更高解析度 FEM。
-- 最後加入真實相機 pose、材料校正與實體 UR5 安全驗證。
-
-
-可放在結尾的口頭總結
-====================
-
-「這兩週我不是只把一個動畫做出來，而是建立了一條從感測位置、MoveIt IK 與
-路徑規劃、ROS 控制、bridge 時間同步，到 Newton FEM 接觸驗證的完整工程鏈。
-最重要的成果是：我曾經看到接觸點和很大的力，卻仍然夾不起膠條；透過摩擦
-對照、剛體方塊對照與 FEM 變形觀察，我把問題定位到 mesh-to-particle 接觸與
-離散命令的等效速度。最後使用解析碰撞代理、VBD 全表面接觸、命令插值、夾爪
-高度補償與安全路徑，才得到無繞路、能抬升並在開爪後釋放的成功版本。學校的
-Jazzy 平台已完成軟體與 bridge 移植，下一步是用最新基準重現同一個物理結果。」
-
-
-建議插圖／影片素材
-==================
-
-1. 系統架構流程圖：MoveIt → controllers → bridge → Newton → feedback。
-2. FEM 網格示意：particles、tetrahedra、surface triangles。
-3. 解析 box proxy 與 Robotiq 外觀 mesh 疊圖。
-4. 失敗案例：有接觸力但物體沒有升高。
-5. 成功案例：無繞路地面夾取、抬升、開爪釋放。
-6. Humble aarch64 UTM 與 Jazzy amd64 學校電腦比較表。
-7. GitHub 成功紀錄：
-   https://github.com/technocrat94/ros2-robotics-simulation-lab/blob/main/docs/HUMBLE_FEM_PICK_SUCCESS.md
-
-
-教授可能提問與建議回答
-======================
-
-Q1：MoveIt 已經顯示成功，為什麼還需要 Newton？
-A：MoveIt 的成功只證明軌跡與控制器完成。它的 fake hardware 不模擬柔體變形、
-   摩擦與滑落；Newton 用來驗證物體是否真的被夾起及何時釋放。
-
-Q2：為什麼把摩擦力調很大仍然夾不起來？
-A：摩擦必須建立在正確的法向接觸上。當 FEM particles 與 mesh 指尖沒有可靠
-   距離／法向資料時，增加摩擦不會修好接觸管線。
-
-Q3：為什麼要使用隱藏 box，而不直接使用真實 mesh？
-A：當時 CPU VBD 路徑需要穩定的 particle distance query。analytic box 能提供
-   連續且便宜的距離與法向；原始 mesh 繼續保留作為視覺幾何。
-
-Q4：如何證明不是把物體偷偷 attachment 在夾爪上？
-A：系統沒有 attachment constraint；零摩擦對照會失敗，成功案例在閉爪時保持，
-   並且只有開爪後才掉落，因此行為來自接觸、摩擦與幾何。
-
-Q5：Jazzy 移植成功了嗎？
-A：軟體建置、MoveIt、controller、bridge、同步與 Newton 整合已成功；較早測試的
-   動態抬升只有 0.63 mm，所以物理夾取尚未通過。現在已有 commit 3546672 的
-   Humble 成功基準，下一步是以相同參數重新驗收 Jazzy。
-
-Q6：目前最大的研究限制是什麼？
-A：摩擦與材料參數尚未用真實橡膠校正，指尖使用解析代理，robot 仍是位置驅動，
-   且物理成功仍含人工畫面判斷。下一步是自動量測及實體校正。
+Jazzy 已完成本次模擬移植驗收；下一個研究邊界是把模擬參數和成功判斷逐步連到
+真實材料與實體機器人。
