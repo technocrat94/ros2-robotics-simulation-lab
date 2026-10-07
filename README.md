@@ -1,14 +1,32 @@
 # UR5 + Robotiq 2F-85 MoveIt Demo
 
-ROS 2 Humble learning project that combines a UR5 arm and a Robotiq 2F-85 gripper into one robot description, one `ros2_control` bringup, and one sequential MoveIt task.
+[![CI](https://github.com/technocrat94/ros2-robotics-simulation-lab/actions/workflows/ci.yml/badge.svg)](https://github.com/technocrat94/ros2-robotics-simulation-lab/actions/workflows/ci.yml)
 
-The ROS 2 robot demo uses fake hardware and RViz. It does not simulate gravity, contact, friction, or grasped-object physics. A separate Newton physics learning experiment is documented below.
+ROS 2 robotics project that combines a UR5 arm and a Robotiq 2F-85 gripper into one robot description, one `ros2_control` bringup, and MoveIt tasks, then evaluates the planned motion in the NVIDIA Newton physics engine through a ROS–Newton bridge.
+
+The ROS 2 robot itself runs on fake hardware and RViz. Gravity, contact, friction, and the deformable FEM strip are simulated in Newton, not in `ros2_control`.
+
+## Project status
+
+| | |
+|---|---|
+| Source of truth | `main` on GitHub. Other machines and branches sync from it. |
+| Primary platform | Ubuntu 24.04 `x86_64`, ROS 2 Jazzy, Newton 1.5.1 (CPU default, CUDA optional via `GRASP_DEVICE`) |
+| Frozen baseline | Ubuntu 22.04 `aarch64` (UTM), ROS 2 Humble — tag [`humble-fem-baseline`](https://github.com/technocrat94/ros2-robotics-simulation-lab/tree/humble-fem-baseline) |
+| Research baseline release | [`v0.2.0-fem-grasp`](https://github.com/technocrat94/ros2-robotics-simulation-lab/releases/tag/v0.2.0-fem-grasp) |
+| Latest accepted result | Jazzy FEM ground pick, `candidate_contact_grasp_pass=true` (2026-10-02) |
+
+Latest `main` targets Jazzy. To run the Humble version, check out `humble-fem-baseline` and rebuild.
 
 ## Rebuild on another Ubuntu computer
 
-Use the [school Ubuntu migration handoff](docs/SCHOOL_COMPUTER_HANDOFF.md)
-and run `scripts/bootstrap_school_ubuntu.sh` after cloning this repository.
-The [Codex continuation prompt](docs/SCHOOL_CODEX_PROMPT.md) transfers the
+For the primary Jazzy platform, follow
+[`docs/jazzy/JAZZY_REPRODUCIBILITY.md`](docs/jazzy/JAZZY_REPRODUCIBILITY.md)
+and run `scripts/bootstrap_school_jazzy.sh` after cloning this repository.
+The Humble reconstruction path (`scripts/bootstrap_school_ubuntu.sh` and the
+[school Ubuntu migration handoff](docs/SCHOOL_COMPUTER_HANDOFF.md)) applies to
+the `humble-fem-baseline` tag. The
+[Codex continuation prompt](docs/SCHOOL_CODEX_PROMPT.md) transfers the
 verified state, next objective, and tutoring requirements without relying on
 the original conversation history.
 
@@ -52,9 +70,18 @@ in the Newton viewer.
 The accepted configuration, current source snapshot, exact startup scripts,
 machine-readable measurements, and timing interpretation are recorded in the
 [English success record](docs/HUMBLE_FEM_PICK_SUCCESS.md)
-([繁體中文摘要](docs/HUMBLE_FEM_PICK_SUCCESS.zh-TW.md)). The school-computer
-Jazzy port remains a separate validation target and must reproduce this
-observable behavior. The full failure reasoning and VBD/FEM teaching record is
+([繁體中文摘要](docs/HUMBLE_FEM_PICK_SUCCESS.zh-TW.md)).
+
+On 2026-10-02, native ROS 2 Jazzy reproduced the pick with the same physics
+and grasp parameters and passed the automated acceptance check
+(`candidate_contact_grasp_pass=true`): 0.117 m lift, 0.112 m drop after
+reopening, bilateral finger contact through the lift, and 0.8 mm maximum
+ground penetration. The Humble run used CPU; the Jazzy run used `cuda:0`
+(RTX 3080). Evidence is indexed in
+[`docs/experiments/jazzy-fem-migration/results/`](docs/experiments/jazzy-fem-migration/results/README.md)
+and summarized in [`docs/jazzy/STATUS.md`](docs/jazzy/STATUS.md).
+
+The full failure reasoning and VBD/FEM teaching record is
 in [English](docs/NEWTON_FEM_GRASP_LEARNING_JOURNEY.md) and
 [繁體中文](docs/NEWTON_FEM_GRASP_LEARNING_JOURNEY.zh-TW.md); the diagnostic
 index is [here](docs/NEWTON_GROUND_GRASP_DIAGNOSTIC.md).
@@ -190,9 +217,10 @@ All relative translations use the MoveIt planning frame (`world`), not the gripp
 
 ## Environment
 
-- Ubuntu 22.04 (aarch64, running in UTM)
-- ROS 2 Humble
+- Primary: Ubuntu 24.04 (`x86_64`), ROS 2 Jazzy
+- Frozen baseline: Ubuntu 22.04 (`aarch64`, UTM), ROS 2 Humble — tag `humble-fem-baseline`
 - MoveIt 2
+- Newton 1.5.1 and Warp 1.17.0 in a separate Python 3.12 environment
 - Universal Robots ROS 2 packages
 - Robotiq ROS 2 packages from [`robotiq/ros`](https://github.com/robotiq/ros)
 
@@ -214,11 +242,16 @@ Do not copy this project's `build`, `install`, or `log` directories into Git.
 
 ## Build
 
+On the primary Jazzy platform, `scripts/bootstrap_school_jazzy.sh` builds into
+`install_jazzy_port`; see [`docs/jazzy/JAZZY_REPRODUCIBILITY.md`](docs/jazzy/JAZZY_REPRODUCIBILITY.md).
+The manual commands below use the default `install` directory. On the Humble
+baseline, replace `jazzy` with `humble`.
+
 From the workspace root:
 
 ```bash
 cd ~/ur5_ws
-source /opt/ros/humble/setup.bash
+source /opt/ros/jazzy/setup.bash
 
 rosdep install --from-paths src --ignore-src -r -y
 
@@ -237,7 +270,7 @@ Terminal 1 — launch the robot, controllers, MoveIt, and RViz:
 
 ```bash
 cd ~/ur5_ws
-source /opt/ros/humble/setup.bash
+source /opt/ros/jazzy/setup.bash
 source install/setup.bash
 
 ros2 launch ur5_moveit_demo ur5_robotiq_bringup.launch.py
@@ -249,7 +282,7 @@ Terminal 2 — run the task:
 
 ```bash
 cd ~/ur5_ws
-source /opt/ros/humble/setup.bash
+source /opt/ros/jazzy/setup.bash
 source install/setup.bash
 
 ros2 launch ur5_moveit_demo move_xyz.launch.py
@@ -339,6 +372,15 @@ rviz/view_robot.rviz                     RViz display configuration
 - Motion offsets are expressed in `world`, not a gripper TCP frame
 - MoveIt's current end-effector link is `tool0`, not a dedicated grasp-centre frame
 
+## Continuous integration
+
+GitHub Actions runs `scripts/ci_checks.py` on every push and pull request. It
+needs no GPU, ROS, or Newton: it compiles all Python files, syntax-checks shell
+scripts, parses YAML/JSON/XML/Xacro, verifies license consistency, and checks
+that the gripper-width solver still reproduces the verified FEM pick command
+(`0.375145 rad`, `10.578 mm` closure drop). Physical grasp acceptance still
+requires a full Jazzy run.
+
 ## License
 
-Apache-2.0, matching `package.xml`.
+Apache-2.0 ([`LICENSE`](LICENSE)), matching every `package.xml`.

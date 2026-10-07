@@ -1,0 +1,28 @@
+name: CI
+
+# GPU-free checks only: no ROS, MoveIt, or Newton runtime is started here.
+# Physical grasp acceptance still requires a full Jazzy run (see docs/jazzy).
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  static-checks:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install check dependencies
+        run: python -m pip install pyyaml
+
+      - name: Run repository checks
+        run: python scripts/ci_checks.py

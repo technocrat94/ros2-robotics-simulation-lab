@@ -1,8 +1,28 @@
 # Jazzy port status
 
-Last updated: 2026-10-02 (Asia/Taipei)
+Last updated: 2026-10-08 (Asia/Taipei)
 
-## 2026-10-02 direct FEM ground-pick verification
+Jazzy is the primary platform. `main` is the source of truth; the verified
+state is released as `v0.2.0-fem-grasp`.
+
+## Accepted result — 2026-10-02 17:29 run
+
+The rerun kept the endpoint alive through release settling and printed a
+complete `MOVEIT_GRASP_RESULT`
+(`docs/experiments/jazzy-fem-migration/results/jazzy_fem_pick_result_2026-10-02.json`):
+
+```text
+candidate_contact_grasp_pass=true
+grasp_region_lift_m=0.1173
+release_drop_m=0.1123
+minimum_strip_bottom_z_m=-0.00082
+bilateral_closed_soft_contact_samples=34
+bilateral_lift_soft_contact_samples=229
+finite_state=true
+device=cuda:0 (RTX 3080), real_time_factor=0.102
+```
+
+## 2026-10-02 first direct FEM ground-pick verification (visual)
 
 Native Jazzy was visually verified in the Newton viewer after starting from the Humble-success IK pose:
 
@@ -10,15 +30,13 @@ Native Jazzy was visually verified in the Newton viewer after starting from the 
 - Target came from `/newton/object_pose`; safe pre-grasp, approach, and lift Cartesian paths were all `100.0%`.
 - No named-start or `test_configuration` detour appeared; MoveIt ended with `ABSOLUTE POSITION PICK SUCCEEDED`.
 - Newton FEM grasp-region height rose from about `0.01095 m` to `0.12830 m` (`0.11735 m` lift); the viewer showed the strip rising between the fingers and releasing after reopening.
-- Full logs are retained under `/home/aisc216/ur5_ws/run_logs/`; the machine-readable summary is `docs/experiments/jazzy-fem-migration/results/jazzy_fem_pick_success_2026-10-02.json`.
+- The machine-readable summary is `docs/experiments/jazzy-fem-migration/results/jazzy_fem_pick_success_2026-10-02.json`; repo-relative logs are indexed in `docs/experiments/jazzy-fem-migration/results/README.md`.
 
 ## Scope and source state
 
-- Machine: Ubuntu 24.04, native ROS 2 Jazzy, amd64.
-- Branch: `jazzy-final-fem-pick`.
-- Humble source of truth: `origin/main@61aae20`; verified Humble FEM baseline: `3546672`.
-- Previous verified Jazzy commit: `abccf2b39ab0f87abf6667981cd1e91efba43e5a`.
-- The pre-existing school changes from `main` remain preserved in `stash@{0}` and were not mixed into this port.
+- Machine: Ubuntu 24.04, native ROS 2 Jazzy, amd64, NVIDIA RTX 3080.
+- Source: `main` (the former `jazzy-final-fem-pick` branch was fast-forwarded into `main` at `7f4d715`, tag `jazzy-fem-grasp-v1`).
+- Humble baseline: tag `humble-fem-baseline` (`3546672`), CPU.
 - No Docker Humble environment was started. No Humble build, install, log, or ARM virtual environment was copied.
 
 ## Completed
@@ -64,7 +82,7 @@ The viewer was checked by the user: the strip rose between the fingers and relea
 
 ## Reproducibility status
 
-- The source branch is `jazzy-final-fem-pick`; Humble reference code remains available in `origin/main`.
+- The source is `main`; Humble reference code remains available at tag `humble-fem-baseline`.
 - `scripts/bootstrap_school_jazzy.sh` rebuilds the Jazzy workspace from tracked source and verifies 34 mesh paths.
 - `docs/jazzy/JAZZY_REPRODUCIBILITY.md` is the English runbook; `JAZZY_REPRODUCIBILITY.zh-TW.md` is the Chinese translation.
 - Use exactly one bringup, one move_group/controller_manager, one adapter, and one endpoint per isolated ROS domain.
