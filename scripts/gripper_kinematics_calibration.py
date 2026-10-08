@@ -90,7 +90,13 @@ class Calibrator(Node):
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--positions", nargs="+", type=float, default=[0.0, 0.1, 0.2, 0.3, 0.35]
+        "--positions",
+        nargs="+",
+        type=float,
+        default=[
+            0.0, 0.1, 0.2, 0.3, 0.35, 0.4, 0.45, 0.5,
+            0.55, 0.6, 0.65, 0.7, 0.75, 0.8,
+        ],
     )
     parser.add_argument("--max-effort", type=float, default=20.0)
     parser.add_argument("--settle-seconds", type=float, default=0.5)

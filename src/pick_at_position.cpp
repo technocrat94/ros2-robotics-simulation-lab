@@ -63,13 +63,21 @@ std::optional<GripperCalibrationSolution> solve_gripper_calibration(
     double closure_drop_m;
   };
 
-  static constexpr std::array<Sample, 6> samples = {{
+  static constexpr std::array<Sample, 14> samples = {{
     {0.00, 0.0850000000, 0.0000000000},
     {0.10, 0.0759588652, 0.0034926322},
     {0.20, 0.0662655355, 0.0065165122},
     {0.30, 0.0560168635, 0.0090414263},
     {0.35, 0.0507160854, 0.0101086854},
     {0.40, 0.0453152505, 0.0110421465},
+    {0.45, 0.0398278050, 0.0118394494},
+    {0.50, 0.0342675700, 0.0124986762},
+    {0.55, 0.0286483953, 0.0130180717},
+    {0.60, 0.0229843219, 0.0133964717},
+    {0.65, 0.0172895227, 0.0136328042},
+    {0.70, 0.0115781826, 0.0137265325},
+    {0.75, 0.0058646306, 0.0136774778},
+    {0.80, 0.0001631189, 0.0134856403},
   }};
 
   const double target_gap_m =
@@ -837,7 +845,7 @@ int main(int argc, char * argv[])
     {
       RCLCPP_ERROR(
         logger,
-        "Target pad gap %.2f mm is outside the calibrated range 45.32--85.00 mm.",
+        "Target pad gap %.2f mm is outside the calibrated range 0.16--85.00 mm.",
         object_width_mm - total_compression_mm);
       rclcpp::shutdown();
       return 1;

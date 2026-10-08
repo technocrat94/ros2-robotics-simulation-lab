@@ -1,0 +1,49 @@
+{
+  "date": "2026-10-08",
+  "platform": "Ubuntu 24.04 amd64, ROS 2 Jazzy, RTX 3080",
+  "branch": "experiment/fem-cable",
+  "object": "rod_cable",
+  "status": "not_accepted",
+  "operator_observation": "MoveIt motion looked correct, but the cable was not retained and lifted.",
+  "endpoint": {
+    "device": "cuda:0",
+    "robot_bodies": 24,
+    "cable_bodies": 40,
+    "cable_shapes": 40,
+    "initial_center_m": [0.4869, 0.10915, 0.004],
+    "final_result_present": false
+  },
+  "moveit": {
+    "measured_object_center_m": [0.4869, 0.1091, 0.003],
+    "target_pad_gap_mm": 6.0,
+    "gripper_command_rad": 0.748815,
+    "closure_drop_compensation_mm": 13.679,
+    "approach_distance_m": 0.091321,
+    "commanded_lift_m": 0.12,
+    "safe_pregrasp_stage_fractions": {
+      "raise": 1.0,
+      "orient": 1.0,
+      "translate": 1.0,
+      "descend": 1.0
+    },
+    "approach_fraction": 1.0,
+    "lift_fraction": 1.0,
+    "reported_absolute_position_pick_succeeded": true
+  },
+  "newton_contact_summary": {
+    "logged_contact_samples": 3208,
+    "samples_with_any_loaded_finger_contact": 71,
+    "bilateral_loaded_contact_samples": 71,
+    "maximum_left_loaded_contacts": 23,
+    "maximum_right_loaded_contacts": 22,
+    "first_loaded_contact_sim_time_s": 64.1833333332912,
+    "last_loaded_contact_sim_time_s": 65.34999999995681,
+    "settled_grasp_region_z_m": 0.003,
+    "maximum_observed_grasp_region_z_m": 0.012563713826239109,
+    "approximate_maximum_grasp_region_rise_m": 0.009563713826239108,
+    "required_grasp_region_lift_m": 0.08,
+    "contact_was_lost_during_lift": true
+  },
+  "candidate_contact_grasp_pass": false,
+  "candidate_result_basis": "Derived from saved contact samples and operator observation because the endpoint final result was not emitted."
+}

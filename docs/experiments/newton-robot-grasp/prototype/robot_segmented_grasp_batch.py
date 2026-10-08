@@ -11,6 +11,16 @@ import newton
 import numpy as np
 import warp as wp
 
+from rod_cable_topology import (
+    CONTACT_FRICTION as CABLE_CONTACT_FRICTION,
+    CONTACT_GAP_M as CABLE_CONTACT_GAP,
+    CONTACT_KD_N_S_M as CABLE_CONTACT_KD,
+    CONTACT_KE_N_M as CABLE_CONTACT_KE,
+    LENGTH_M as CABLE_LENGTH,
+    RADIUS_M as CABLE_RADIUS,
+    add_rod_cable,
+)
+
 
 URDF = os.environ.get(
     "NEWTON_ROBOT_URDF",
@@ -51,10 +61,14 @@ COLLISION_SCOPE = os.environ.get("GRASP_COLLISION_SCOPE", "all")
 STRIP_CENTER_Z = float(os.environ.get("GRASP_STRIP_CENTER_Z", "0.34"))
 GRASP_POSITION = os.environ.get("GRASP_POSITION", "near_end")
 OBJECT_MODEL = os.environ.get("GRASP_OBJECT_MODEL", "segmented_strip")
-if OBJECT_MODEL not in {"segmented_strip", "rigid_block", "fem_strip"}:
+if OBJECT_MODEL not in {
+    "segmented_strip", "rigid_block", "fem_strip", "rod_cable"
+}:
     raise ValueError(
-        "GRASP_OBJECT_MODEL must be 'segmented_strip', 'rigid_block', or 'fem_strip'"
+        "GRASP_OBJECT_MODEL must be 'segmented_strip', 'rigid_block', "
+        "'fem_strip', or 'rod_cable'"
     )
+OBJECT_HALF_THICKNESS = CABLE_RADIUS if OBJECT_MODEL == "rod_cable" else THICKNESS / 2.0
 POISSON_RATIO = float(os.environ.get("GRASP_POISSON_RATIO", "0.45"))
 if not 0.0 <= POISSON_RATIO < 0.5:
     raise ValueError("GRASP_POISSON_RATIO must be in [0, 0.5)")
@@ -308,6 +322,20 @@ def build_scene():
         )
         links = []
         shapes = []
+    elif OBJECT_MODEL == "rod_cable":
+        shape_start = builder.shape_count
+        links, _cable_joints = add_rod_cable(
+            builder,
+            wp.vec3(
+                grasp_point[0] - CABLE_LENGTH / 2.0,
+                grasp_point[1],
+                grasp_point[2],
+            ),
+            damping_scale=1.0,
+            fix_root=False,
+            label="grasp_rod_cable",
+        )
+        shapes = list(range(shape_start, builder.shape_count))
     elif OBJECT_MODEL == "rigid_block":
         link = builder.add_link(
             xform=wp.transform(
@@ -385,12 +413,25 @@ def build_scene():
             )
         builder.add_articulation(joints, label="free_segmented_strip")
 
-    for a, shape_a in enumerate(shapes):
-        for shape_b in shapes[a + 1 :]:
-            builder.add_shape_collision_filter_pair(shape_a, shape_b)
+    if OBJECT_MODEL != "rod_cable":
+        for a, shape_a in enumerate(shapes):
+            for shape_b in shapes[a + 1 :]:
+                builder.add_shape_collision_filter_pair(shape_a, shape_b)
 
-    ground_shape = builder.add_ground_plane()
-    builder.shape_material_mu[ground_shape] = GROUND_FRICTION
+    if OBJECT_MODEL == "rod_cable":
+        ground_cfg = builder.ShapeConfig(
+            density=0.0,
+            ke=CABLE_CONTACT_KE,
+            kd=CABLE_CONTACT_KD,
+            mu=CABLE_CONTACT_FRICTION,
+            restitution=0.0,
+            margin=0.0,
+            gap=CABLE_CONTACT_GAP,
+        )
+        ground_shape = builder.add_ground_plane(cfg=ground_cfg)
+    else:
+        ground_shape = builder.add_ground_plane()
+        builder.shape_material_mu[ground_shape] = GROUND_FRICTION
     for robot_shape in active_robot_colliders:
         builder.add_shape_collision_filter_pair(robot_shape, ground_shape)
 

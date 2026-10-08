@@ -172,6 +172,8 @@ This is a verified planning-to-simulator data path and visual execution mileston
 - [Troubleshooting record](docs/TROUBLESHOOTING.md) — failures, diagnostic evidence, fixes, and engineering lessons
 - [Newton–ROS 2 integration](docs/NEWTON_ROS2_INTEGRATION.md) ([繁體中文](docs/NEWTON_ROS2_INTEGRATION.zh-TW.md)) — verified bridge, evidence, limitations, and robot-model compatibility decisions
 - [Newton soft-strip modeling experiments](docs/NEWTON_SOFT_STRIP_EXPERIMENT.md) ([繁體中文](docs/NEWTON_SOFT_STRIP_EXPERIMENT.zh-TW.md)) — FEM and compliant-joint representations, convergence evidence, runtime tradeoff, and reproducible source
+- [Experimental FEM/rod cable](docs/FEM_CABLE_EXPERIMENT.md) ([繁體中文學習筆記](docs/FEM_CABLE_EXPERIMENT.zh-TW.md)) — cable topology, mass correction, split stretch/bend/twist behavior, CUDA diagnostics, and staged path toward grasping
+- [Rod cable × MoveIt 初次夾取操作單](docs/CABLE_MOVEIT_PICK.zh-TW.md) — four-terminal CUDA workflow, 6 mm gripper calibration, plan-only gate, and bilateral-contact acceptance
 - [Newton robot contact-grasp experiment](docs/NEWTON_ROBOT_GRASP_EXPERIMENT.md) ([繁體中文](docs/NEWTON_ROBOT_GRASP_EXPERIMENT.zh-TW.md)) — failed hypotheses, contact geometry, center grasp, corrected metrics, and release evidence
 - [中文學習索引](docs/NEWTON_ROS2_LEARNING_LOG.zh-TW.md) — topic map, milestone sequence, and recommended reading order
 - [Verified Humble FEM ground pick](docs/HUMBLE_FEM_PICK_SUCCESS.md) ([繁體中文摘要](docs/HUMBLE_FEM_PICK_SUCCESS.zh-TW.md)) — exact successful source, commands, parameters, evidence, and timing

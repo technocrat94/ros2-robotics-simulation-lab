@@ -8,6 +8,7 @@
 |---|---|---|
 | ROS 2 bridge、時間、URDF、mimic 與運動學 | [Newton–ROS 2 Integration](NEWTON_ROS2_INTEGRATION.md) | [Newton 導入 ROS 2](NEWTON_ROS2_INTEGRATION.zh-TW.md) |
 | FEM、分段柔性模型與收斂 | [Newton Soft-Strip Experiments](NEWTON_SOFT_STRIP_EXPERIMENT.md) | [Newton 柔性條建模實驗](NEWTON_SOFT_STRIP_EXPERIMENT.zh-TW.md) |
+| FEM／rod 細線、節點質量與 CUDA 驗證 | [FEM Cable Experiment](FEM_CABLE_EXPERIMENT.md) | [Newton FEM／rod 細線實驗](FEM_CABLE_EXPERIMENT.zh-TW.md) |
 | 接觸夾持、失敗推導與量測修正 | [Newton Robot Contact-Grasp](NEWTON_ROBOT_GRASP_EXPERIMENT.md) | [Newton 機械手接觸夾持](NEWTON_ROBOT_GRASP_EXPERIMENT.zh-TW.md) |
 
 ## 里程碑順序
@@ -23,6 +24,8 @@
 9. 以 Newton 接觸與摩擦完成中心夾持、抬升與釋放。
 10. 盤點 MoveIt `FollowJointTrajectory` 介面，以 start-state guard 找出兩個 90 度起點差異。
 11. 同步起點後完成 MoveIt shadow execution，並用三維向量閉合、100% 路徑完成率與 returned-state error 共同驗證。
+12. 將 FEM 軟條縮成細線，修正 structured-grid 節點質量，並在 CUDA 上分開驗證穩定性與物理合理性。
+13. 將 rod cable 接到 MoveIt；第一次路徑全部成功但 lift 初期滑脫，證明 MoveIt success 不能取代 Newton 接觸與抬升量測。
 
 ## 建議閱讀方式
 
