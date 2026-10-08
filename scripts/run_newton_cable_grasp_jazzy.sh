@@ -20,8 +20,16 @@ source /opt/ros/jazzy/setup.bash
 source "${HOME}/ur5_ws/install_jazzy_port/setup.bash"
 set -u
 
-export CUDA_VISIBLE_DEVICES="0"
-export GRASP_DEVICE="cuda:0"
+if [[ -z "${GRASP_DEVICE:-}" ]]; then
+  if command -v nvidia-smi >/dev/null 2>&1 && nvidia-smi >/dev/null 2>&1; then
+    export CUDA_VISIBLE_DEVICES="${CUDA_VISIBLE_DEVICES:-0}"
+    export GRASP_DEVICE="cuda:0"
+  else
+    export CUDA_VISIBLE_DEVICES=""
+    export GRASP_DEVICE="cpu"
+  fi
+fi
+echo "NEWTON_DEVICE ${GRASP_DEVICE}"
 export NEWTON_ROBOT_URDF="${ASSET}"
 export GRASP_OBJECT_MODEL="rod_cable"
 # Radius 3 mm plus the validated 1 mm contact gap places the cable on the floor.
