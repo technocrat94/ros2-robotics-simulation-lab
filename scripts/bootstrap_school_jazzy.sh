@@ -79,8 +79,8 @@ text = text.replace(
 )
 if "package://" in text:
     raise SystemExit("ERROR: unresolved package:// URI remains in Newton URDF")
-if "/opt/ros/humble/" in text or "/home/yuhao/" in text:
-    raise SystemExit("ERROR: Humble or /home/yuhao path remains in Newton URDF")
+if "/opt/ros/humble/" in text:
+    raise SystemExit("ERROR: Humble path remains in Newton URDF")
 target.write_text(text, encoding="utf-8")
 
 import xml.etree.ElementTree as ET

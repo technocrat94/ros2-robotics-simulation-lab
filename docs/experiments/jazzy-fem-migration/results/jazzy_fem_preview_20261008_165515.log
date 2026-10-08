@@ -1,0 +1,36 @@
+[INFO] [launch]: All log files can be found below /home/yuhao/.ros/log/2026-10-08-16-55-20-459140-robo-jazzy-28767
+[INFO] [launch]: Default logging verbosity is set to INFO
+WARNING:root:[33;21mCannot infer URDF from `/home/yuhao/ur5_ws/install_jazzy_port/ur5_moveit_demo/share/ur5_moveit_demo`. -- using config/ur.urdf[0m
+WARNING:root:[33;21mCannot infer SRDF from `/home/yuhao/ur5_ws/install_jazzy_port/ur5_moveit_demo/share/ur5_moveit_demo`. -- using config/ur.srdf[0m
+[INFO] [pick_at_position-1]: process started with pid [28771]
+[pick_at_position-1] [WARN] [1791449720.628461442] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[pick_at_position-1] [WARN] [1791449720.628616192] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+[pick_at_position-1] [INFO] [1791449720.642275526] [pick_at_position]: WIDTH_CALIBRATION width=50.00 mm compression=2.00 mm gap=48.00 mm command=0.375145 rad closure_drop=10.578 mm approach=0.094422 m bracket=[0.35, 0.40] rad
+[pick_at_position-1] [INFO] [1791449720.644332865] [pick_at_position]: Waiting up to 5.0 s for measured object pose on /newton/object_pose...
+[pick_at_position-1] [INFO] [1791449721.159455822] [pick_at_position]: MEASURED_OBJECT_POSE topic=/newton/object_pose frame=world center=(0.4869, 0.1092, 0.0110) m
+[pick_at_position-1] [WARN] [1791449721.159687906] [rcl.logging_rosout]: Publisher already registered for node name: 'pick_at_position'. If this is due to multiple nodes with the same name then all logs for the logger named 'pick_at_position' will go out over the existing publisher. As soon as any node with that name is destructed it will unregister the publisher, preventing any further logs for that name from being published on the rosout topic.
+[pick_at_position-1] [INFO] [1791449721.166552553] [pick_at_position.moveit.ros.rdf_loader]: Loaded robot model in 0.00212492 seconds
+[pick_at_position-1] [INFO] [1791449721.166600178] [pick_at_position.moveit.core.robot_model]: Loading robot model 'ur'...
+[pick_at_position-1] [INFO] [1791449721.166607219] [pick_at_position.moveit.core.robot_model]: No root/virtual joint specified in SRDF. Assuming fixed joint
+[pick_at_position-1] [INFO] [1791449721.178593965] [pick_at_position.moveit.kinematics.kdl_kinematics_plugin]: Joint weights for group 'ur_manipulator': 1 1 1 1 1 1
+[pick_at_position-1] [INFO] [1791449722.171782942] [pick_at_position.moveit.ros.move_group_interface]: Ready to take commands for planning group ur_manipulator.
+[pick_at_position-1] [INFO] [1791449722.176521331] [pick_at_position]: Planning frame: world
+[pick_at_position-1] [INFO] [1791449722.176538956] [pick_at_position]: OBJECT_TARGET source=newton_feedback frame=world center=(0.4869, 0.1092, 0.0110) m
+[pick_at_position-1] [INFO] [1791449722.176543998] [pick_at_position]: GRASP_CONFIG offset=0.1090 m clearance=0.1500 m approach=0.0944 m lift=0.1200 m closed=0.3751 rad lift_velocity_scale=0.030
+[pick_at_position-1] [INFO] [1791449722.176548165] [pick_at_position]: GRASP_ORIENTATION roll=180.0 pitch=0.0 yaw=90.0 deg
+[pick_at_position-1] [INFO] [1791449722.184503273] [pick_at_position]: PLANNING_SCENE_FLOOR_ADDED size=3.00 m top_z=-0.0010 m
+[pick_at_position-1] [INFO] [1791449722.190346291] [pick_at_position.moveit.ros.current_state_monitor]: Listening to joint states on topic 'joint_states'
+[pick_at_position-1] [INFO] [1791449722.196143309] [pick_at_position]: SAFE_PREGRASP_ROUTE current=(0.488, 0.116, 0.301) safe_z=0.351 target=(0.487, 0.109, 0.270)
+[pick_at_position-1] [INFO] [1791449722.203792791] [pick_at_position]: SAFE_PREGRASP_STAGE_FRACTION stage=raise prefix=100.0%
+[pick_at_position-1] [INFO] [1791449722.211431689] [pick_at_position]: SAFE_PREGRASP_STAGE_FRACTION stage=orient prefix=100.0%
+[pick_at_position-1] [INFO] [1791449722.217007206] [pick_at_position]: SAFE_PREGRASP_STAGE_FRACTION stage=translate prefix=100.0%
+[pick_at_position-1] [INFO] [1791449722.227418905] [pick_at_position]: SAFE_PREGRASP_STAGE_FRACTION stage=descend prefix=100.0%
+[pick_at_position-1] [INFO] [1791449722.236517892] [pick_at_position]: Safe pre-grasp Cartesian path completed: 100.0%
+[pick_at_position-1] [INFO] [1791449722.236579267] [pick_at_position]: SAFE_PREGRASP_JOINT_TRAVEL joint=shoulder_pan_joint cumulative=0.011 rad limit=1.600 rad max_step=0.005 rad
+[pick_at_position-1] [INFO] [1791449722.236588225] [pick_at_position]: SAFE_PREGRASP_JOINT_TRAVEL joint=shoulder_lift_joint cumulative=0.061 rad limit=1.600 rad max_step=0.007 rad
+[pick_at_position-1] [INFO] [1791449722.236593809] [pick_at_position]: SAFE_PREGRASP_JOINT_TRAVEL joint=elbow_joint cumulative=0.262 rad limit=1.600 rad max_step=0.029 rad
+[pick_at_position-1] [INFO] [1791449722.236599059] [pick_at_position]: SAFE_PREGRASP_JOINT_TRAVEL joint=wrist_1_joint cumulative=0.312 rad limit=1.600 rad max_step=0.036 rad
+[pick_at_position-1] [INFO] [1791449722.236603559] [pick_at_position]: SAFE_PREGRASP_JOINT_TRAVEL joint=wrist_2_joint cumulative=0.000 rad limit=1.600 rad max_step=0.000 rad
+[pick_at_position-1] [INFO] [1791449722.236608600] [pick_at_position]: SAFE_PREGRASP_JOINT_TRAVEL joint=wrist_3_joint cumulative=0.011 rad limit=3.250 rad max_step=0.005 rad
+[pick_at_position-1] [INFO] [1791449722.237816312] [pick_at_position]: SAFE_PREGRASP_PLAN_ONLY_SUCCEEDED; four-stage preview published; no robot command was sent.
+[INFO] [pick_at_position-1]: process has finished cleanly [pid 28771]

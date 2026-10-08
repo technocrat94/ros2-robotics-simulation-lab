@@ -10,5 +10,10 @@ Key artifacts for the verified 2026-10-02 native Jazzy run. The Humble CPU refer
 | `jazzy_fem_preview_20261002_160453.log` | Plan-only preview; confirms no named-start detour and complete safe path fractions. |
 | `jazzy_fem_pick_20261002_173033.log` | Clean Jazzy MoveIt run: bridge/guard, 100% paths, and `ABSOLUTE POSITION PICK SUCCEEDED`. |
 | `jazzy_fem_endpoint_20261002_172956.log` | GPU Newton endpoint run kept alive through release settling; includes `MOVEIT_GRASP_RESULT`. |
+| `jazzy_arm64_utm_validation_2026-10-08.json` | ARM64 UTM CPU validation: build, safe path, full pick, FEM lift, bilateral contacts, and queue-drain evidence. |
+| `jazzy_arm64_utm_validation_2026-10-08.md` | Concise interpretation of the ARM64 UTM migration result and the two portability fixes. |
+| `jazzy_fem_preview_20261008_165515.log` | ARM64 UTM plan-only preview; all four safe pre-grasp stages completed 100%. |
+| `jazzy_fem_pick_20261008_165538.log` | ARM64 UTM MoveIt run; approach, grasp, lift, reopen, and the complete pick succeeded. |
+| `jazzy_fem_endpoint_20261008_165353.log` | ARM64 UTM Newton FEM contact samples and command-queue drain evidence. |
 
 Runtime viewer during the run: `http://127.0.0.1:30000/`.

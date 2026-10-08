@@ -1,0 +1,69 @@
+{
+  "date": "2026-10-08",
+  "platform": "Ubuntu 24.04 / ROS 2 Jazzy / aarch64 / UTM CPU",
+  "source_of_truth": "origin/main@a467c5f3fbaea2a89ba642678726aaf2d78daea8",
+  "runtime": {
+    "device": "cpu",
+    "newton_version": "1.5.1",
+    "warp_version": "1.17.0",
+    "numpy_version": "2.5.3",
+    "viewer_port": 30000
+  },
+  "build": {
+    "workspace": "/home/yuhao/ur5_ws",
+    "build_directory": "build_jazzy_port",
+    "install_directory": "install_jazzy_port",
+    "packages_built": [
+      "robotiq_controllers",
+      "robotiq_description",
+      "newton_ros_bridge",
+      "ur5_moveit_demo"
+    ],
+    "urdf_mesh_paths_verified": 34
+  },
+  "software": {
+    "bridge_status": "OK",
+    "start_state_guard": true,
+    "start_state_max_error_rad": 1.9436783116333345e-07,
+    "safe_pregrasp_stage_fractions": {
+      "raise": 1.0,
+      "orient": 1.0,
+      "translate": 1.0,
+      "descend": 1.0
+    },
+    "approach_cartesian_fraction": 1.0,
+    "lift_cartesian_fraction": 1.0,
+    "absolute_position_pick_succeeded": true,
+    "named_start_detour": false
+  },
+  "grasp": {
+    "object_width_mm": 50.0,
+    "total_compression_mm": 2.0,
+    "leader_command_rad": 0.375145,
+    "closure_drop_mm": 10.578,
+    "compensated_approach_m": 0.094422,
+    "lift_m": 0.12
+  },
+  "physics": {
+    "contact_samples": 368,
+    "object_center_initial_z_m": 0.01098253671079874,
+    "object_center_peak_z_m": 0.07040541619062424,
+    "grasp_region_initial_z_m": 0.01098110806196928,
+    "grasp_region_peak_z_m": 0.1284598857164383,
+    "grasp_region_lift_m": 0.11747877765446901,
+    "bilateral_soft_contact_samples": 256,
+    "maximum_left_finger_soft_contacts": 33,
+    "maximum_right_finger_soft_contacts": 37,
+    "maximum_command_queue_backlog": 411,
+    "command_queue_drained": true
+  },
+  "portability_fixes_under_review": [
+    "Allow valid /home/<user> mesh paths while still rejecting Humble paths in the Jazzy bootstrap.",
+    "Select cuda:0 when NVIDIA is available and CPU otherwise in the Jazzy Newton runner."
+  ],
+  "logs": {
+    "preview": "jazzy_fem_preview_20261008_165515.log",
+    "moveit": "jazzy_fem_pick_20261008_165538.log",
+    "newton_endpoint": "jazzy_fem_endpoint_20261008_165353.log"
+  }
+}
