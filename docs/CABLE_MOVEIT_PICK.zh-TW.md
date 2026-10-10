@@ -68,15 +68,27 @@ source install_jazzy_port/setup.bash
 ros2 run newton_ros_bridge ros_adapter
 ```
 
-### Terminal 3：CUDA cable endpoint
+### Terminal 3：依電腦選擇固定執行環境
+
+家裡 ARM64 UTM 固定使用 CPU：
 
 ```bash
 cd ~/ur5_ws/src/ur5_moveit_demo
-./scripts/run_newton_cable_grasp_jazzy.sh
+./scripts/run_newton_cable_grasp_home_cpu.sh
 ```
 
-Terminal 應顯示 `GRASP_DEVICE=cuda:0` 對應的 CUDA 裝置，並提供 localhost
-viewer URL。若 endpoint 沒有顯示 `cuda:0`，不要進行夾取。
+應顯示 `CABLE_RUNTIME_PROFILE home-cpu`、`NEWTON_DEVICE cpu` 與 localhost
+viewer URL。CPU 物理步進會比真實時間慢。
+
+學校 RTX 電腦固定使用 GPU：
+
+```bash
+cd ~/ur5_ws/src/ur5_moveit_demo
+./scripts/run_newton_cable_grasp_school_gpu.sh
+```
+
+應顯示 `CABLE_RUNTIME_PROFILE school-gpu` 與 `NEWTON_DEVICE cuda:0`。如果
+NVIDIA driver 無法使用，學校啟動器會直接停止，不會靜默退回 CPU。
 
 ### Terminal 4：一定先做 plan-only preview
 
