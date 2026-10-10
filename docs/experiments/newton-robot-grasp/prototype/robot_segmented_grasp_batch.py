@@ -79,10 +79,22 @@ SOFT_CONTACT_KE = float(os.environ.get("GRASP_SOFT_CONTACT_KE", "1000.0"))
 SOFT_CONTACT_KD = float(os.environ.get("GRASP_SOFT_CONTACT_KD", "10.0"))
 FEM_PROXY_INSET = float(os.environ.get("GRASP_FEM_PROXY_INSET", "0.001"))
 SHOW_FEM_PROXIES = os.environ.get("GRASP_SHOW_FEM_PROXIES", "0") == "1"
+CONTACT_PROXY_INSET = float(
+    os.environ.get("GRASP_CONTACT_PROXY_INSET", str(FEM_PROXY_INSET))
+)
+SHOW_CONTACT_PROXIES = (
+    os.environ.get(
+        "GRASP_SHOW_CONTACT_PROXIES",
+        os.environ.get("GRASP_SHOW_FEM_PROXIES", "0"),
+    )
+    == "1"
+)
 if SOFT_CONTACT_KE <= 0.0 or SOFT_CONTACT_KD < 0.0:
     raise ValueError("FEM contact stiffness must be positive and damping nonnegative")
 if FEM_PROXY_INSET < 0.0:
     raise ValueError("GRASP_FEM_PROXY_INSET must be nonnegative")
+if CONTACT_PROXY_INSET < 0.0:
+    raise ValueError("GRASP_CONTACT_PROXY_INSET must be nonnegative")
 COMMAND_LIFT_Z = 0.12
 CONTACT_HOLD_DURATION = 1.0
 LIFT_DURATION = float(os.environ.get("GRASP_LIFT_DURATION", "2.0"))
@@ -200,6 +212,7 @@ def build_scene():
     }
     active_robot_colliders = []
     fem_contact_proxies = []
+    rod_contact_proxies = []
     for shape_index in range(robot_shapes):
         body_index = builder.shape_body[shape_index]
         is_collider = bool(
@@ -209,51 +222,75 @@ def build_scene():
             COLLISION_SCOPE == "all" or body_index in finger_bodies
         )
         if enabled:
-            active_robot_colliders.append(shape_index)
             builder.shape_material_mu[shape_index] = CONTACT_FRICTION
-            if OBJECT_MODEL == "fem_strip":
-                if body_index in finger_bodies:
-                    # The imported Robotiq collision meshes have no CPU SDF.
-                    # VBD full-surface contact therefore cannot use them
-                    # directly.  Replace their particle contact with a hidden
-                    # analytic box fitted just inside each collision mesh.
+            use_contact_proxy = (
+                body_index in finger_bodies
+                and OBJECT_MODEL in {"fem_strip", "rod_cable"}
+            )
+            if use_contact_proxy:
+                if OBJECT_MODEL == "fem_strip":
+                    # Keep the imported shape for rigid contacts, but route
+                    # VBD particle contact through the analytic proxy.
+                    active_robot_colliders.append(shape_index)
                     builder.shape_flags[shape_index] &= ~(
                         newton.ShapeFlags.COLLIDE_PARTICLES
                     )
-                    vertices = np.asarray(
-                        builder.shape_source[shape_index].vertices,
-                        dtype=np.float32,
-                    ) * np.asarray(builder.shape_scale[shape_index], dtype=np.float32)
-                    lower = vertices.min(axis=0)
-                    upper = vertices.max(axis=0)
-                    center = 0.5 * (lower + upper)
-                    half = np.maximum(
-                        0.5 * (upper - lower) - FEM_PROXY_INSET, 0.001
+                else:
+                    # Capsule-chain cable contact is rigid-rigid.  Disable the
+                    # detailed finger mesh and use a convex analytic box so
+                    # both distance and contact normals remain well defined.
+                    builder.shape_flags[shape_index] &= ~(
+                        newton.ShapeFlags.COLLIDE_SHAPES
                     )
-                    source_xform = builder.shape_transform[shape_index]
-                    proxy_center = wp.transform_point(
-                        source_xform, wp.vec3(*center.tolist())
-                    )
-                    proxy_rotation = wp.transform_get_rotation(source_xform)
-                    proxy_cfg = builder.ShapeConfig(
-                        density=0.0,
-                        mu=CONTACT_FRICTION,
-                        restitution=0.0,
-                        has_shape_collision=False,
-                        has_particle_collision=True,
-                        is_visible=SHOW_FEM_PROXIES,
-                    )
-                    proxy = builder.add_shape_box(
-                        body_index,
-                        xform=wp.transform(proxy_center, proxy_rotation),
-                        hx=float(half[0]),
-                        hy=float(half[1]),
-                        hz=float(half[2]),
-                        cfg=proxy_cfg,
-                        label=f"fem_contact_proxy_{shape_index}",
-                    )
+
+                vertices = np.asarray(
+                    builder.shape_source[shape_index].vertices,
+                    dtype=np.float32,
+                ) * np.asarray(builder.shape_scale[shape_index], dtype=np.float32)
+                lower = vertices.min(axis=0)
+                upper = vertices.max(axis=0)
+                center = 0.5 * (lower + upper)
+                half = np.maximum(
+                    0.5 * (upper - lower) - CONTACT_PROXY_INSET, 0.001
+                )
+                source_xform = builder.shape_transform[shape_index]
+                proxy_center = wp.transform_point(
+                    source_xform, wp.vec3(*center.tolist())
+                )
+                proxy_rotation = wp.transform_get_rotation(source_xform)
+                proxy_cfg = builder.ShapeConfig(
+                    density=0.0,
+                    mu=CONTACT_FRICTION,
+                    restitution=0.0,
+                    has_shape_collision=OBJECT_MODEL == "rod_cable",
+                    has_particle_collision=OBJECT_MODEL == "fem_strip",
+                    is_visible=(
+                        SHOW_FEM_PROXIES
+                        if OBJECT_MODEL == "fem_strip"
+                        else SHOW_CONTACT_PROXIES
+                    ),
+                )
+                proxy = builder.add_shape_box(
+                    body_index,
+                    xform=wp.transform(proxy_center, proxy_rotation),
+                    hx=float(half[0]),
+                    hy=float(half[1]),
+                    hz=float(half[2]),
+                    cfg=proxy_cfg,
+                    label=(
+                        f"fem_contact_proxy_{shape_index}"
+                        if OBJECT_MODEL == "fem_strip"
+                        else f"rod_cable_contact_proxy_{shape_index}"
+                    ),
+                )
+                if OBJECT_MODEL == "fem_strip":
                     fem_contact_proxies.append(proxy)
                 else:
+                    rod_contact_proxies.append(proxy)
+                    active_robot_colliders.append(proxy)
+            else:
+                active_robot_colliders.append(shape_index)
+                if OBJECT_MODEL == "fem_strip":
                     builder.shape_flags[shape_index] &= ~(
                         newton.ShapeFlags.COLLIDE_PARTICLES
                     )
@@ -263,8 +300,18 @@ def build_scene():
                 | newton.ShapeFlags.COLLIDE_PARTICLES
             )
 
-    # Include the hidden FEM contact proxies in the robot-shape range returned
-    # to diagnostics.  In rigid-object modes this remains the imported count.
+    # The cable must collide with the proxies, but the proxies must not collide
+    # with their own robot or with one another.  Cable shapes are created later,
+    # so they intentionally are not part of these filter pairs.
+    for proxy in rod_contact_proxies:
+        for robot_shape in range(robot_shapes):
+            builder.add_shape_collision_filter_pair(proxy, robot_shape)
+    for proxy_index, proxy_a in enumerate(rod_contact_proxies):
+        for proxy_b in rod_contact_proxies[proxy_index + 1 :]:
+            builder.add_shape_collision_filter_pair(proxy_a, proxy_b)
+
+    # Include hidden contact proxies in the robot-shape range returned to
+    # diagnostics.  Modes without proxies retain the imported shape count.
     robot_shapes = builder.shape_count
 
     grasp_point = np.array([0.4869, 0.10915, STRIP_CENTER_Z])

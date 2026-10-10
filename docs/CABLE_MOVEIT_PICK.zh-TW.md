@@ -146,3 +146,19 @@ Newton endpoint log 顯示：
 診斷，檢查 finger pad 接觸位置與垂直抓取高度，不應先任意增加摩擦、阻尼、壓縮量或
 cable stiffness。版本化證據在
 [`experiments/newton-cable-grasp/results/`](experiments/newton-cable-grasp/results/README.md)。
+
+## 2026-10-10 單一變因修正：指尖解析碰撞代理
+
+檢查程式後發現，`rod_cable` 雖然已用 40 段 capsule chain 簡化細線，指尖卻仍以
+Robotiq 的複雜 mesh 與 cable 做剛體接觸；先前成功的 FEM strip 才有四個解析 box
+proxy。因此這次先不改摩擦、壓縮、路徑或 cable 材料，只修正接觸幾何：
+
+- 保留 Robotiq mesh 作為畫面外觀；
+- 停用四個 finger/fingertip mesh 的 rigid-shape collision；
+- 依各 mesh 邊界建立四個隱形 analytic box proxy；
+- proxy 與 cable 保持碰撞，但排除 proxy 與機器人本體、proxy 彼此的自碰撞；
+- 家用 CPU 與學校 GPU 啟動器都使用同一份修正，不需手動改程式。
+
+啟動時 `MOVEIT_GRASP_ENDPOINT_READY` 應由 `robot_shapes=54` 變為
+`robot_shapes=58`。這只證明四個代理已載入；是否解決滑落仍須由
+`grasp_region_lift_rise_m`、左右 loaded contact 與 release drop 驗證，不能只看動畫。
