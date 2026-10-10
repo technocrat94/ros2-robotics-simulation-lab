@@ -1,0 +1,61 @@
+[INFO] [launch]: All log files can be found below /home/yuhao/.ros/log/2026-10-10-23-41-52-720356-robo-jazzy-4424
+[INFO] [launch]: Default logging verbosity is set to INFO
+WARNING:root:Cannot infer URDF from `/home/yuhao/ur5_ws/install_jazzy_port/ur5_moveit_demo/share/ur5_moveit_demo`. -- using config/ur.urdf
+WARNING:root:Cannot infer SRDF from `/home/yuhao/ur5_ws/install_jazzy_port/ur5_moveit_demo/share/ur5_moveit_demo`. -- using config/ur.srdf
+[INFO] [pick_at_position-1]: process started with pid [4428]
+[pick_at_position-1] [WARN] [1791646912.901491356] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[pick_at_position-1] [WARN] [1791646912.901502939] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+[pick_at_position-1] [INFO] [1791646912.921684469] [pick_at_position]: WIDTH_CALIBRATION width=6.00 mm compression=2.00 mm gap=4.00 mm command=0.766352 rad closure_drop=13.615 mm approach=0.091385 m bracket=[0.75, 0.80] rad
+[pick_at_position-1] [INFO] [1791646912.923780466] [pick_at_position]: Waiting up to 5.0 s for measured object pose on /newton/object_pose...
+[pick_at_position-1] [INFO] [1791646913.210969428] [pick_at_position]: MEASURED_OBJECT_POSE topic=/newton/object_pose frame=world center=(0.4869, 0.1092, 0.0040) m
+[pick_at_position-1] [WARN] [1791646913.211222298] [rcl.logging_rosout]: Publisher already registered for node name: 'pick_at_position'. If this is due to multiple nodes with the same name then all logs for the logger named 'pick_at_position' will go out over the existing publisher. As soon as any node with that name is destructed it will unregister the publisher, preventing any further logs for that name from being published on the rosout topic.
+[pick_at_position-1] [INFO] [1791646913.218832055] [pick_at_position.moveit.ros.rdf_loader]: Loaded robot model in 0.0043842 seconds
+[pick_at_position-1] [INFO] [1791646913.218869763] [pick_at_position.moveit.core.robot_model]: Loading robot model 'ur'...
+[pick_at_position-1] [INFO] [1791646913.218892179] [pick_at_position.moveit.core.robot_model]: No root/virtual joint specified in SRDF. Assuming fixed joint
+[pick_at_position-1] [INFO] [1791646913.229507540] [pick_at_position.moveit.kinematics.kdl_kinematics_plugin]: Joint weights for group 'ur_manipulator': 1 1 1 1 1 1
+[pick_at_position-1] [INFO] [1791646914.453551101] [pick_at_position.moveit.ros.move_group_interface]: Ready to take commands for planning group ur_manipulator.
+[pick_at_position-1] [INFO] [1791646914.469529062] [pick_at_position]: Planning frame: world
+[pick_at_position-1] [INFO] [1791646914.469548395] [pick_at_position]: OBJECT_TARGET source=newton_feedback frame=world center=(0.4869, 0.1092, 0.0040) m
+[pick_at_position-1] [INFO] [1791646914.469553936] [pick_at_position]: GRASP_CONFIG offset=0.1090 m clearance=0.1500 m approach=0.0914 m lift=0.1200 m closed=0.7664 rad lift_velocity_scale=0.030
+[pick_at_position-1] [INFO] [1791646914.469557686] [pick_at_position]: GRASP_ORIENTATION roll=180.0 pitch=0.0 yaw=90.0 deg
+[pick_at_position-1] [INFO] [1791646914.481130572] [pick_at_position]: PLANNING_SCENE_FLOOR_ADDED size=3.00 m top_z=-0.0010 m
+[pick_at_position-1] [INFO] [1791646914.485386984] [pick_at_position]: Waiting for gripper action server...
+[pick_at_position-1] [INFO] [1791646914.485444899] [pick_at_position]: Sending gripper command: position=0.0000
+[pick_at_position-1] [INFO] [1791646914.542915586] [pick_at_position]: Gripper reached position 0.0000
+[pick_at_position-1] [INFO] [1791646914.544037688] [pick_at_position.moveit.ros.current_state_monitor]: Listening to joint states on topic 'joint_states'
+[pick_at_position-1] [INFO] [1791646914.550453221] [pick_at_position]: PREGRASP_CENTER world=(0.4869, 0.1092, 0.1540) m
+[pick_at_position-1] [INFO] [1791646914.555894276] [pick_at_position]: SAFE_PREGRASP_ROUTE current=(0.488, 0.116, 0.301) safe_z=0.351 target=(0.487, 0.109, 0.263)
+[pick_at_position-1] [INFO] [1791646914.566848007] [pick_at_position]: SAFE_PREGRASP_STAGE_FRACTION stage=raise prefix=100.0%
+[pick_at_position-1] [INFO] [1791646914.574326144] [pick_at_position]: SAFE_PREGRASP_STAGE_FRACTION stage=orient prefix=100.0%
+[pick_at_position-1] [INFO] [1791646914.583487830] [pick_at_position]: SAFE_PREGRASP_STAGE_FRACTION stage=translate prefix=100.0%
+[pick_at_position-1] [INFO] [1791646914.590043069] [pick_at_position]: SAFE_PREGRASP_STAGE_FRACTION stage=descend prefix=100.0%
+[pick_at_position-1] [INFO] [1791646914.596512477] [pick_at_position]: Safe pre-grasp Cartesian path completed: 100.0%
+[pick_at_position-1] [INFO] [1791646914.596552226] [pick_at_position]: SAFE_PREGRASP_JOINT_TRAVEL joint=shoulder_pan_joint cumulative=0.012 rad limit=1.600 rad max_step=0.005 rad
+[pick_at_position-1] [INFO] [1791646914.596556518] [pick_at_position]: SAFE_PREGRASP_JOINT_TRAVEL joint=shoulder_lift_joint cumulative=0.066 rad limit=1.600 rad max_step=0.008 rad
+[pick_at_position-1] [INFO] [1791646914.596559226] [pick_at_position]: SAFE_PREGRASP_JOINT_TRAVEL joint=elbow_joint cumulative=0.273 rad limit=1.600 rad max_step=0.030 rad
+[pick_at_position-1] [INFO] [1791646914.596561768] [pick_at_position]: SAFE_PREGRASP_JOINT_TRAVEL joint=wrist_1_joint cumulative=0.328 rad limit=1.600 rad max_step=0.037 rad
+[pick_at_position-1] [INFO] [1791646914.596564351] [pick_at_position]: SAFE_PREGRASP_JOINT_TRAVEL joint=wrist_2_joint cumulative=0.000 rad limit=1.600 rad max_step=0.000 rad
+[pick_at_position-1] [INFO] [1791646914.596566643] [pick_at_position]: SAFE_PREGRASP_JOINT_TRAVEL joint=wrist_3_joint cumulative=0.012 rad limit=3.250 rad max_step=0.005 rad
+[pick_at_position-1] [INFO] [1791646914.598010321] [pick_at_position.moveit.ros.move_group_interface]: Execute request accepted
+[pick_at_position-1] [INFO] [1791646916.559040017] [pick_at_position.moveit.ros.move_group_interface]: Execute request success!
+[pick_at_position-1] [INFO] [1791646916.559992998] [pick_at_position]: Safe staged pre-grasp completed.
+[pick_at_position-1] [INFO] [1791646917.064038804] [pick_at_position]: Vertical grasp approach Cartesian target: X=0.487 Y=0.109 Z=0.172
+[pick_at_position-1] [INFO] [1791646917.069044871] [pick_at_position]: Vertical grasp approach Cartesian path completed: 100.0%
+[pick_at_position-1] [INFO] [1791646917.069328616] [pick_at_position]: Vertical grasp approach Cartesian timing: duration=1.036 s velocity_scale=0.150
+[pick_at_position-1] [INFO] [1791646917.071862774] [pick_at_position.moveit.ros.move_group_interface]: Execute request accepted
+[pick_at_position-1] [INFO] [1791646918.134116430] [pick_at_position.moveit.ros.move_group_interface]: Execute request success!
+[pick_at_position-1] [INFO] [1791646918.135901936] [pick_at_position]: Vertical grasp approach Cartesian motion completed.
+[pick_at_position-1] [INFO] [1791646918.636036172] [pick_at_position]: Waiting for gripper action server...
+[pick_at_position-1] [INFO] [1791646918.636126795] [pick_at_position]: Sending gripper command: position=0.7664
+[pick_at_position-1] [INFO] [1791646918.689824154] [pick_at_position]: Gripper reached position 0.7664
+[pick_at_position-1] [INFO] [1791646919.692982393] [pick_at_position]: Vertical lift Cartesian target: X=0.487 Y=0.109 Z=0.292
+[pick_at_position-1] [INFO] [1791646919.708886917] [pick_at_position]: Vertical lift Cartesian path completed: 100.0%
+[pick_at_position-1] [INFO] [1791646919.710054728] [pick_at_position]: Vertical lift Cartesian timing: duration=3.463 s velocity_scale=0.030
+[pick_at_position-1] [INFO] [1791646919.714104649] [pick_at_position.moveit.ros.move_group_interface]: Execute request accepted
+[pick_at_position-1] [INFO] [1791646923.234262558] [pick_at_position.moveit.ros.move_group_interface]: Execute request success!
+[pick_at_position-1] [INFO] [1791646923.234754882] [pick_at_position]: Vertical lift Cartesian motion completed.
+[pick_at_position-1] [INFO] [1791646924.736219117] [pick_at_position]: Waiting for gripper action server...
+[pick_at_position-1] [INFO] [1791646924.736344115] [pick_at_position]: Sending gripper command: position=0.0000
+[pick_at_position-1] [INFO] [1791646924.789876879] [pick_at_position]: Gripper reached position 0.0000
+[pick_at_position-1] [INFO] [1791646924.789918170] [pick_at_position]: ========== ABSOLUTE POSITION PICK SUCCEEDED ==========
+[INFO] [pick_at_position-1]: process has finished cleanly [pid 4428]

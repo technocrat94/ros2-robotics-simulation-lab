@@ -1,5 +1,9 @@
 # FEM cable × MoveIt：正確細線候選
 
+> 2026-10-10 家用 ARM64 CPU 的完整成功驗證、兩輪修正、重現指令與原始
+> MoveIt log：
+> [HOME_ARM64_FEM_CABLE_PICK_SUCCESS_2026-10-10.md](experiments/newton-cable-grasp/HOME_ARM64_FEM_CABLE_PICK_SUCCESS_2026-10-10.md)
+
 這個候選沿用已驗證成功的 FEM strip 夾取管線，不再把細線近似成剛性 capsule
 chain。`rod_cable` 保留為對照實驗，不再作為最終柔性夾取模型。
 
@@ -9,7 +13,8 @@ chain。`rod_cable` 保留為對照實驗，不再作為最終柔性夾取模型
 
 - MoveIt IK、路徑規劃與 start-state guard；
 - ROS–Newton bridge、命令 queue 與時間插值；
-- VBD、四面體 FEM 與 full-surface rigid–soft contact；
+- 四面體 FEM 與 full-surface rigid–soft contact；目前程式實際建立的是
+  `SolverXPBD`，VBD 保留為相關求解方法與後續比較方向；
 - 四個 Robotiq analytic box contact proxies；
 - 已驗證材料參數、摩擦與 2 mm nominal compression。
 
