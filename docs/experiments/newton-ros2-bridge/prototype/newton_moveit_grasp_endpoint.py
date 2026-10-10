@@ -118,9 +118,10 @@ newton.use_coord_layout_targets = True
 FEM_MODE = OBJECT_MODEL == "fem_strip"
 ROD_MODE = OBJECT_MODEL == "rod_cable"
 if ROD_MODE and not str(model.device).startswith("cuda"):
-    raise RuntimeError(
-        f"rod_cable MoveIt endpoint requires CUDA; requested {DEVICE!r}, "
-        f"model uses {model.device}"
+    print(
+        "ROD_CABLE_CPU_MODE "
+        f"requested={DEVICE!r} model_device={model.device}; "
+        "physics is supported but will run slower than the school CUDA system"
     )
 state_0, state_1 = model.state(), model.state()
 control = model.control()
