@@ -162,3 +162,9 @@ proxy。因此這次先不改摩擦、壓縮、路徑或 cable 材料，只修�
 啟動時 `MOVEIT_GRASP_ENDPOINT_READY` 應由 `robot_shapes=54` 變為
 `robot_shapes=58`。這只證明四個代理已載入；是否解決滑落仍須由
 `grasp_region_lift_rise_m`、左右 loaded contact 與 release drop 驗證，不能只看動畫。
+
+第一次 proxy 測試把每個 box 向內縮 `1 mm`，但 cable 直徑與目標 pad gap
+同為 `6 mm`；兩側共增加 `2 mm` 開口後，整段量到的左右 loaded contact 都是零。
+因此 rod proxy 改為不內縮，並明確套用 cable 的 `1 mm` contact gap、接觸剛性與
+阻尼。FEM strip 仍保留已驗證的 `1 mm` proxy inset。這次只修正「代理沒碰到」；
+接觸恢復後若仍在抬升時滑落，才進一步比較壓縮量與摩擦係數。

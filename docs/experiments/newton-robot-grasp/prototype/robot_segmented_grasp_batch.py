@@ -80,7 +80,10 @@ SOFT_CONTACT_KD = float(os.environ.get("GRASP_SOFT_CONTACT_KD", "10.0"))
 FEM_PROXY_INSET = float(os.environ.get("GRASP_FEM_PROXY_INSET", "0.001"))
 SHOW_FEM_PROXIES = os.environ.get("GRASP_SHOW_FEM_PROXIES", "0") == "1"
 CONTACT_PROXY_INSET = float(
-    os.environ.get("GRASP_CONTACT_PROXY_INSET", str(FEM_PROXY_INSET))
+    os.environ.get(
+        "GRASP_CONTACT_PROXY_INSET",
+        "0.0" if OBJECT_MODEL == "rod_cable" else str(FEM_PROXY_INSET),
+    )
 )
 SHOW_CONTACT_PROXIES = (
     os.environ.get(
@@ -258,7 +261,7 @@ def build_scene():
                     source_xform, wp.vec3(*center.tolist())
                 )
                 proxy_rotation = wp.transform_get_rotation(source_xform)
-                proxy_cfg = builder.ShapeConfig(
+                proxy_cfg_kwargs = dict(
                     density=0.0,
                     mu=CONTACT_FRICTION,
                     restitution=0.0,
@@ -270,6 +273,14 @@ def build_scene():
                         else SHOW_CONTACT_PROXIES
                     ),
                 )
+                if OBJECT_MODEL == "rod_cable":
+                    proxy_cfg_kwargs.update(
+                        ke=CABLE_CONTACT_KE,
+                        kd=CABLE_CONTACT_KD,
+                        margin=0.0,
+                        gap=CABLE_CONTACT_GAP,
+                    )
+                proxy_cfg = builder.ShapeConfig(**proxy_cfg_kwargs)
                 proxy = builder.add_shape_box(
                     body_index,
                     xform=wp.transform(proxy_center, proxy_rotation),
