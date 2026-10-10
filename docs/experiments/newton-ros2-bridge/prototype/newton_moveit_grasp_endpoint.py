@@ -14,6 +14,7 @@ import time
 import newton
 import numpy as np
 import viser
+import warp as wp
 from newton.viewer import ViewerViser
 
 LESSON_DIR = Path.home() / "newton_ws/lessons/segmented_strip"
@@ -372,9 +373,15 @@ finally:
 viewer.set_model(model)
 server = viewer._server
 server.scene.set_up_direction("+z")
-server.initial_camera.position = (1.15, -1.35, 0.90)
-server.initial_camera.look_at = (0.35, 0.12, 0.22)
-server.initial_camera.up = (0.0, 0.0, 1.0)
+# Use ViewerViser's public camera API so the requested view is cached and
+# applied to clients after their browser camera becomes ready.  Assigning only
+# server.initial_camera is racy: a client can retain an old close-up view and
+# hide the gripper motion even while the simulation is advancing.
+viewer.set_camera(
+    wp.vec3(1.15, -1.35, 0.90),
+    pitch=-22.2,
+    yaw=118.6,
+)
 server.gui.add_markdown(
     "## MoveIt absolute-position grasp\n"
     "The robot receives MoveIt controller references through ROS 2. "
