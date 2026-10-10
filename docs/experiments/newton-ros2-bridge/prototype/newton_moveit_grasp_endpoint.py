@@ -115,7 +115,7 @@ newton.use_coord_layout_targets = True
     strip_shapes,
     active_robot_colliders,
 ) = build_scene()
-FEM_MODE = OBJECT_MODEL == "fem_strip"
+FEM_MODE = OBJECT_MODEL in {"fem_strip", "fem_cable"}
 ROD_MODE = OBJECT_MODEL == "rod_cable"
 if ROD_MODE and not str(model.device).startswith("cuda"):
     print(

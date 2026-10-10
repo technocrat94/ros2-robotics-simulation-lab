@@ -1,5 +1,9 @@
 # Rod cable × MoveIt 初次夾取
 
+> 此 rigid capsule-chain 路徑目前只保留作對照實驗。正式細線夾取改用
+> [FEM cable × MoveIt](FEM_CABLE_MOVEIT_PICK.zh-TW.md)，以保留 VBD 柔體變形與
+> full-surface contact。
+
 這條路徑是獨立實驗，不取代已通過的 Jazzy FEM ground-pick baseline。
 舊的 `run_*fem*` 腳本與 FEM physics/grasp 參數都保留不變。
 

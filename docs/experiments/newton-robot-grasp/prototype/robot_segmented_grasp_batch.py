@@ -27,9 +27,26 @@ URDF = os.environ.get(
     str(Path.home() / "newton_ws/ros_bridge_assets/ur5_robotiq.newton.urdf"),
 )
 DEVICE = os.environ.get("GRASP_DEVICE", "cpu")
-LENGTH = 0.40
-WIDTH = 0.05
-THICKNESS = 0.02
+OBJECT_MODEL = os.environ.get("GRASP_OBJECT_MODEL", "segmented_strip")
+if OBJECT_MODEL not in {
+    "segmented_strip", "rigid_block", "fem_strip", "fem_cable", "rod_cable"
+}:
+    raise ValueError(
+        "GRASP_OBJECT_MODEL must be 'segmented_strip', 'rigid_block', "
+        "'fem_strip', 'fem_cable', or 'rod_cable'"
+    )
+FEM_MODE = OBJECT_MODEL in {"fem_strip", "fem_cable"}
+LENGTH = float(os.environ.get("GRASP_OBJECT_LENGTH", "0.40"))
+WIDTH = float(
+    os.environ.get("GRASP_OBJECT_WIDTH", "0.006" if OBJECT_MODEL == "fem_cable" else "0.05")
+)
+THICKNESS = float(
+    os.environ.get(
+        "GRASP_OBJECT_THICKNESS", "0.006" if OBJECT_MODEL == "fem_cable" else "0.02"
+    )
+)
+if LENGTH <= 0.0 or WIDTH <= 0.0 or THICKNESS <= 0.0:
+    raise ValueError("FEM object dimensions must be greater than zero")
 DENSITY = float(os.environ.get("GRASP_DENSITY", "1100.0"))
 if DENSITY <= 0.0:
     raise ValueError("GRASP_DENSITY must be greater than zero")
@@ -60,14 +77,6 @@ SHOW_COLLIDERS = os.environ.get("GRASP_SHOW_COLLIDERS", "0") == "1"
 COLLISION_SCOPE = os.environ.get("GRASP_COLLISION_SCOPE", "all")
 STRIP_CENTER_Z = float(os.environ.get("GRASP_STRIP_CENTER_Z", "0.34"))
 GRASP_POSITION = os.environ.get("GRASP_POSITION", "near_end")
-OBJECT_MODEL = os.environ.get("GRASP_OBJECT_MODEL", "segmented_strip")
-if OBJECT_MODEL not in {
-    "segmented_strip", "rigid_block", "fem_strip", "rod_cable"
-}:
-    raise ValueError(
-        "GRASP_OBJECT_MODEL must be 'segmented_strip', 'rigid_block', "
-        "'fem_strip', or 'rod_cable'"
-    )
 OBJECT_HALF_THICKNESS = CABLE_RADIUS if OBJECT_MODEL == "rod_cable" else THICKNESS / 2.0
 POISSON_RATIO = float(os.environ.get("GRASP_POISSON_RATIO", "0.45"))
 if not 0.0 <= POISSON_RATIO < 0.5:
@@ -228,10 +237,10 @@ def build_scene():
             builder.shape_material_mu[shape_index] = CONTACT_FRICTION
             use_contact_proxy = (
                 body_index in finger_bodies
-                and OBJECT_MODEL in {"fem_strip", "rod_cable"}
+                and (FEM_MODE or OBJECT_MODEL == "rod_cable")
             )
             if use_contact_proxy:
-                if OBJECT_MODEL == "fem_strip":
+                if FEM_MODE:
                     # Keep the imported shape for rigid contacts, but route
                     # VBD particle contact through the analytic proxy.
                     active_robot_colliders.append(shape_index)
@@ -266,10 +275,10 @@ def build_scene():
                     mu=CONTACT_FRICTION,
                     restitution=0.0,
                     has_shape_collision=OBJECT_MODEL == "rod_cable",
-                    has_particle_collision=OBJECT_MODEL == "fem_strip",
+                    has_particle_collision=FEM_MODE,
                     is_visible=(
                         SHOW_FEM_PROXIES
-                        if OBJECT_MODEL == "fem_strip"
+                        if FEM_MODE
                         else SHOW_CONTACT_PROXIES
                     ),
                 )
@@ -290,18 +299,18 @@ def build_scene():
                     cfg=proxy_cfg,
                     label=(
                         f"fem_contact_proxy_{shape_index}"
-                        if OBJECT_MODEL == "fem_strip"
+                        if FEM_MODE
                         else f"rod_cable_contact_proxy_{shape_index}"
                     ),
                 )
-                if OBJECT_MODEL == "fem_strip":
+                if FEM_MODE:
                     fem_contact_proxies.append(proxy)
                 else:
                     rod_contact_proxies.append(proxy)
                     active_robot_colliders.append(proxy)
             else:
                 active_robot_colliders.append(shape_index)
-                if OBJECT_MODEL == "fem_strip":
+                if FEM_MODE:
                     builder.shape_flags[shape_index] &= ~(
                         newton.ShapeFlags.COLLIDE_PARTICLES
                     )
@@ -343,8 +352,13 @@ def build_scene():
     )
     links = []
     shapes = []
-    if OBJECT_MODEL == "fem_strip":
-        cells_x, cells_y, cells_z = 20, 3, 2
+    if FEM_MODE:
+        default_cells = (40, 2, 2) if OBJECT_MODEL == "fem_cable" else (20, 3, 2)
+        cells_x = int(os.environ.get("GRASP_FEM_CELLS_X", str(default_cells[0])))
+        cells_y = int(os.environ.get("GRASP_FEM_CELLS_Y", str(default_cells[1])))
+        cells_z = int(os.environ.get("GRASP_FEM_CELLS_Z", str(default_cells[2])))
+        if cells_x <= 0 or cells_y <= 0 or cells_z <= 0:
+            raise ValueError("FEM cell counts must be positive")
         particle_count = (cells_x + 1) * (cells_y + 1) * (cells_z + 1)
         cell_count = cells_x * cells_y * cells_z
         # add_soft_grid assigns one cell-volume mass to every grid node.  Scale
@@ -360,7 +374,7 @@ def build_scene():
             pos=wp.vec3(
                 grasp_point[0] - LENGTH / 2.0,
                 grasp_point[1] - WIDTH / 2.0,
-                0.001,
+                STRIP_CENTER_Z - THICKNESS / 2.0,
             ),
             rot=wp.quat_identity(),
             vel=wp.vec3(0.0, 0.0, 0.0),
@@ -376,7 +390,11 @@ def build_scene():
             k_damp=SOFT_DAMPING,
             fix_left=False,
             particle_radius=0.001,
-            label="grasp_fem_rubber_strip",
+            label=(
+                "grasp_fem_rubber_cable"
+                if OBJECT_MODEL == "fem_cable"
+                else "grasp_fem_rubber_strip"
+            ),
         )
         links = []
         shapes = []
@@ -493,10 +511,10 @@ def build_scene():
     for robot_shape in active_robot_colliders:
         builder.add_shape_collision_filter_pair(robot_shape, ground_shape)
 
-    if OBJECT_MODEL == "fem_strip":
+    if FEM_MODE:
         builder.color()
     model = builder.finalize()
-    if OBJECT_MODEL == "fem_strip":
+    if FEM_MODE:
         model.soft_contact_ke = SOFT_CONTACT_KE
         model.soft_contact_kd = SOFT_CONTACT_KD
         model.soft_contact_mu = STRIP_FRICTION
