@@ -1,0 +1,73 @@
+{
+  "bilateral_closed_rigid_contact_samples": 0,
+  "bilateral_closed_soft_contact_samples": 33,
+  "bilateral_lift_rigid_contact_samples": 0,
+  "bilateral_lift_soft_contact_samples": 224,
+  "candidate_contact_grasp_pass": true,
+  "closed_seen": true,
+  "command_queue_capacity": 4096,
+  "command_queue_overflow_count": 0,
+  "device": "cpu",
+  "finite_state": true,
+  "grasp_region_lift_m": 0.12007357273250818,
+  "initial_grasp_region_z_m": 0.003999999724328518,
+  "lift_bilateral_force_sample_count": 0,
+  "lift_started": true,
+  "maximum_allowed_penetration_m": 0.005,
+  "maximum_closed_grasp_region_z_m": 0.12431810796260834,
+  "maximum_closed_left_loaded_rigid_contacts": 0,
+  "maximum_closed_left_loaded_soft_contacts": 73,
+  "maximum_closed_right_loaded_rigid_contacts": 0,
+  "maximum_closed_right_loaded_soft_contacts": 73,
+  "maximum_command_backlog": 419,
+  "maximum_contact_count": 0,
+  "maximum_floor_penetration_m": 0.0006011558580212295,
+  "maximum_left_finger_soft_contacts": 179,
+  "maximum_left_force_abs_xyz_n": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "maximum_lift_combined_force_z_n": null,
+  "maximum_lift_left_loaded_rigid_contacts": 0,
+  "maximum_lift_left_loaded_soft_contacts": 73,
+  "maximum_lift_right_loaded_rigid_contacts": 0,
+  "maximum_lift_right_loaded_soft_contacts": 73,
+  "maximum_mimic_error_rad": 0.0,
+  "maximum_particle_surface_penetration_m": 0.0011642727303002886,
+  "maximum_right_finger_soft_contacts": 179,
+  "maximum_right_force_abs_xyz_n": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "maximum_soft_contact_activation_depth_m": 0.0011642727303002886,
+  "maximum_soft_contact_count": 1802,
+  "mean_lift_combined_force_on_strip_xyz_n": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "mean_lift_left_force_on_strip_xyz_n": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "mean_lift_right_force_on_strip_xyz_n": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "minimum_lift_combined_force_z_n": null,
+  "minimum_post_release_grasp_region_z_m": 0.0037390664219856262,
+  "minimum_strip_bottom_z_m": -0.0006011558580212295,
+  "object": "fem_cable",
+  "pending_robot_commands_at_shutdown": 0,
+  "prelift_grasp_region_z_m": 0.004244535230100155,
+  "release_drop_m": 0.1175018772482872,
+  "release_seen": true,
+  "release_start_grasp_region_z_m": 0.12124094367027283,
+  "simulated_time_s": 10.883333333334221,
+  "tested_commit": "68d7bd9b98e643fb462506caf2fb9c8a92fea3b7",
+  "wall_elapsed_s": 225.3523845189775
+}

@@ -58,9 +58,9 @@ not counted as a physical grasp-model correction.
 - Robot/object friction setting: `10`
 - Viewer: Viser on `http://127.0.0.1:30000/`
 
-The object is a volumetric tetrahedral FEM model. The current executable creates
-Newton's `SolverXPBD`; therefore this result must not be described as proof that
-the same scene ran with `SolverVBD`.
+The object is a volumetric tetrahedral FEM model. The current executable uses
+Newton's `SolverVBD` for both `fem_strip` and `fem_cable`; the rigid
+`rod_cable` comparison uses `SolverXPBD`.
 
 ## Reproduction
 

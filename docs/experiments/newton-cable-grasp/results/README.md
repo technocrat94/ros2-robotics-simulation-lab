@@ -1,4 +1,4 @@
-# Newton rod-cable MoveIt results
+# Newton cable MoveIt results
 
 This directory stores compact, versioned evidence for the experimental
 `rod_cable` MoveIt path. The accepted FEM result remains under
@@ -47,3 +47,17 @@ omitted. Their intended repository-relative destinations would have been:
 - `docs/experiments/newton-cable-grasp/results/jazzy_cable_preview_20261008_190026.log`
 - `docs/experiments/newton-cable-grasp/results/jazzy_cable_pick_20261008_190245.log`
 - `docs/experiments/newton-cable-grasp/results/jazzy_cable_endpoint_20261008_185916.log`
+
+## 2026-10-13 accepted FEM cable rerun
+
+The final ARM64 CPU candidate was rerun with automatic endpoint completion.
+The result records `candidate_contact_grasp_pass: true`, a `0.1201 m` grasp
+region lift, a `0.1175 m` release drop, bilateral loaded soft contact during
+closure and lift, no command queue overflow, and zero pending commands at
+shutdown. Both the tested commit and runtime device are embedded in the JSON.
+
+Artifacts:
+
+- `docs/experiments/newton-cable-grasp/results/jazzy_fem_cable_pick_20261013_035049.log`
+- `docs/experiments/newton-cable-grasp/results/jazzy_fem_cable_endpoint_20261013_035033.log`
+- `docs/experiments/newton-cable-grasp/results/jazzy_fem_cable_endpoint_20261013_035033.result.json`

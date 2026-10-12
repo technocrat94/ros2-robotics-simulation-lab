@@ -13,8 +13,8 @@ chain。`rod_cable` 保留為對照實驗，不再作為最終柔性夾取模型
 
 - MoveIt IK、路徑規劃與 start-state guard；
 - ROS–Newton bridge、命令 queue 與時間插值；
-- 四面體 FEM 與 full-surface rigid–soft contact；目前程式實際建立的是
-  `SolverXPBD`，VBD 保留為相關求解方法與後續比較方向；
+- 四面體 FEM、`SolverVBD` 與 full-surface rigid–soft contact；剛性的
+  `rod_cable` 對照模型才使用 `SolverXPBD`；
 - 四個 Robotiq analytic box contact proxies；
 - 已驗證材料參數、摩擦與 2 mm nominal compression。
 
