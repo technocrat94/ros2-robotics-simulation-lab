@@ -2,6 +2,8 @@
 
 [![CI](https://github.com/technocrat94/ros2-robotics-simulation-lab/actions/workflows/ci.yml/badge.svg)](https://github.com/technocrat94/ros2-robotics-simulation-lab/actions/workflows/ci.yml)
 
+> **Read first / 先讀這份：** [剛體障礙物入門：MoveIt 與 Newton 的碰撞原理和參數](docs/RIGID_OBSTACLES_TUTORIAL.zh-TW.md) — required background before the rigid-obstacle milestone.
+
 ROS 2 robotics project that combines a UR5 arm and a Robotiq 2F-85 gripper into one robot description, one `ros2_control` bringup, and MoveIt tasks, then evaluates the planned motion in the NVIDIA Newton physics engine through a ROS–Newton bridge.
 
 The ROS 2 robot itself runs on fake hardware and RViz. Gravity, contact, friction, and the deformable FEM strip are simulated in Newton, not in `ros2_control`.
