@@ -57,6 +57,15 @@ MAX_IDENTICAL_SAMPLES = max(1, int(round(MAX_HOLD_SECONDS / COMMAND_DT)))
 MAX_COMMAND_QUEUE = int(os.environ.get("NEWTON_MAX_COMMAND_QUEUE", "4096"))
 if MAX_COMMAND_QUEUE <= 0:
     raise ValueError("NEWTON_MAX_COMMAND_QUEUE must be greater than zero")
+TESTED_COMMIT = os.environ.get("NEWTON_TESTED_COMMIT", "unknown")
+AUTO_RESULT_AFTER_SEQUENCE = (
+    os.environ.get("NEWTON_AUTO_RESULT_AFTER_SEQUENCE", "0") == "1"
+)
+RESULT_SETTLE_SIM_SECONDS = float(
+    os.environ.get("NEWTON_RESULT_SETTLE_SIM_SECONDS", "1.0")
+)
+if RESULT_SETTLE_SIM_SECONDS < 0.0:
+    raise ValueError("NEWTON_RESULT_SETTLE_SIM_SECONDS must be nonnegative")
 MAX_ALLOWED_PENETRATION = float(
     os.environ.get("GRASP_MAX_ALLOWED_PENETRATION", "0.005")
 )
@@ -431,6 +440,7 @@ previous_grasp_z = initial_grasp_z
 closed_seen = False
 lift_started = False
 release_seen = False
+result_ready_sim_time = None
 prelift_grasp_z = None
 maximum_closed_grasp_z = initial_grasp_z
 release_start_grasp_z = None
@@ -805,6 +815,27 @@ try:
                         minimum_post_release_grasp_z, grasp_z
                     )
 
+            command_queue_empty = (
+                not pending_robot_q and not command_segment_active
+            )
+            if release_seen and command_queue_empty:
+                if result_ready_sim_time is None:
+                    result_ready_sim_time = sim_time
+                elif (
+                    AUTO_RESULT_AFTER_SEQUENCE
+                    and sim_time - result_ready_sim_time
+                    >= RESULT_SETTLE_SIM_SECONDS
+                ):
+                    print(
+                        "MOVEIT_GRASP_SEQUENCE_COMPLETE "
+                        f"sim_time_s={sim_time:.6f} "
+                        f"settle_sim_seconds={RESULT_SETTLE_SIM_SECONDS:.3f}",
+                        flush=True,
+                    )
+                    alive = False
+            else:
+                result_ready_sim_time = None
+
             measured_lift = (
                 maximum_closed_grasp_z - prelift_grasp_z
                 if prelift_grasp_z is not None else 0.0
@@ -952,6 +983,7 @@ finally:
     result = {
         "object": OBJECT_MODEL,
         "device": str(model.device),
+        "tested_commit": TESTED_COMMIT,
         "closed_seen": closed_seen,
         "lift_started": lift_started,
         "release_seen": release_seen,

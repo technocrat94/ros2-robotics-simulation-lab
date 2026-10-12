@@ -52,8 +52,5 @@ ENDPOINT_LOG="${HOME}/ur5_ws/run_logs/jazzy_cable_endpoint_$(date +%Y%m%d_%H%M%S
 echo "NEWTON_CABLE_VIEWER_URL http://127.0.0.1:${NEWTON_VIEWER_PORT}/"
 echo "CABLE_ENDPOINT_LOG ${ENDPOINT_LOG}"
 
-set +e
-"${VENV_DIR}/bin/python" "${ENDPOINT}" 2>&1 | tee "${ENDPOINT_LOG}"
-status=${PIPESTATUS[0]}
-set -e
-exit "${status}"
+exec "${REPO_DIR}/scripts/run_newton_endpoint_capture.sh" \
+  "${VENV_DIR}/bin/python" "${ENDPOINT}" "${ENDPOINT_LOG}" "${GRASP_DEVICE}"

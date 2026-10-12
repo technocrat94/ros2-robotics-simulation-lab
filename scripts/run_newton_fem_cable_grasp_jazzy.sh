@@ -5,8 +5,10 @@ REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 VENV_DIR="${HOME}/newton_ws/.venv-cpu"
 ASSET="${HOME}/newton_ws/ros_bridge_assets/ur5_robotiq.newton.urdf"
 ENDPOINT="${HOME}/ur5_ws/src/newton_ros_bridge/newton_moveit_grasp_endpoint.py"
+RUNTIME_TOPOLOGY="${HOME}/newton_ws/lessons/segmented_strip/rod_cable_topology.py"
 
-for required in "${VENV_DIR}/bin/python" "${ASSET}" "${ENDPOINT}"; do
+for required in \
+  "${VENV_DIR}/bin/python" "${ASSET}" "${ENDPOINT}" "${RUNTIME_TOPOLOGY}"; do
   if [[ ! -e "${required}" ]]; then
     echo "ERROR: missing ${required}; run scripts/bootstrap_school_jazzy.sh first." >&2
     exit 1
@@ -53,8 +55,5 @@ echo "FEM_CABLE_MESH ${GRASP_FEM_CELLS_X}x${GRASP_FEM_CELLS_Y}x${GRASP_FEM_CELLS
 echo "NEWTON_FEM_CABLE_VIEWER_URL http://127.0.0.1:${NEWTON_VIEWER_PORT}/"
 echo "FEM_CABLE_ENDPOINT_LOG ${ENDPOINT_LOG}"
 
-set +e
-"${VENV_DIR}/bin/python" "${ENDPOINT}" 2>&1 | tee "${ENDPOINT_LOG}"
-status=${PIPESTATUS[0]}
-set -e
-exit "${status}"
+exec "${REPO_DIR}/scripts/run_newton_endpoint_capture.sh" \
+  "${VENV_DIR}/bin/python" "${ENDPOINT}" "${ENDPOINT_LOG}" "${GRASP_DEVICE}"

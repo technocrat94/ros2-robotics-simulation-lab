@@ -40,9 +40,10 @@ Machine-readable summary:
 
 - [`first_moveit_attempt_2026-10-08.json`](first_moveit_attempt_2026-10-08.json)
 
-The original runtime logs remained outside the repository under
-`~/ur5_ws/run_logs/`:
+The original runtime logs were searched for again on 2026-10-13 but could not
+be recovered. They are therefore recorded as **lost** rather than silently
+omitted. Their intended repository-relative destinations would have been:
 
-- `jazzy_cable_preview_20261008_190026.log`
-- `jazzy_cable_pick_20261008_190245.log`
-- `jazzy_cable_endpoint_20261008_185916.log`
+- `docs/experiments/newton-cable-grasp/results/jazzy_cable_preview_20261008_190026.log`
+- `docs/experiments/newton-cable-grasp/results/jazzy_cable_pick_20261008_190245.log`
+- `docs/experiments/newton-cable-grasp/results/jazzy_cable_endpoint_20261008_185916.log`

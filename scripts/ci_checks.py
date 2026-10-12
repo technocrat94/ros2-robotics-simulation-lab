@@ -6,8 +6,10 @@ malformed configuration, license drift, and regressions in the gripper-width
 calibration that the verified FEM ground pick depends on.
 """
 
+import csv
 import json
 import py_compile
+import re
 import subprocess
 import sys
 import xml.etree.ElementTree as ET
@@ -124,6 +126,49 @@ def check_gripper_solver():
     )
 
 
+def check_cpp_calibration_table():
+    cpp_path = REPO / "src/pick_at_position.cpp"
+    csv_path = REPO / "config/gripper_kinematics_calibration.csv"
+    cpp_text = cpp_path.read_text(encoding="utf-8")
+    table_match = re.search(
+        r"static constexpr std::array<Sample,\s*\d+> samples = \{\{(.*?)\}\};",
+        cpp_text,
+        re.DOTALL,
+    )
+    if table_match is None:
+        failures.append("calibration-table: C++ sample table was not found")
+        return
+    cpp_rows = [
+        tuple(float(value) for value in match)
+        for match in re.findall(
+            r"\{\s*([-+0-9.eE]+)\s*,\s*([-+0-9.eE]+)\s*,\s*([-+0-9.eE]+)\s*\}",
+            table_match.group(1),
+        )
+    ]
+    with csv_path.open(encoding="utf-8", newline="") as stream:
+        csv_rows = list(csv.DictReader(stream))
+    if len(cpp_rows) != len(csv_rows):
+        failures.append(
+            "calibration-table: row count differs: "
+            f"C++={len(cpp_rows)} CSV={len(csv_rows)}"
+        )
+        return
+    fields = ("command_rad", "estimated_pad_gap_m", "closure_drop_m")
+    tolerance = 1.0e-9
+    for index, (cpp_row, csv_row) in enumerate(zip(cpp_rows, csv_rows), start=1):
+        for field, cpp_value in zip(fields, cpp_row):
+            csv_value = float(csv_row[field])
+            if abs(cpp_value - csv_value) > tolerance:
+                failures.append(
+                    f"calibration-table: row {index} {field} differs: "
+                    f"C++={cpp_value:.10g} CSV={csv_value:.10g}"
+                )
+    print(
+        f"[calibration-table] matched {len(cpp_rows)} C++/CSV rows "
+        f"within {tolerance:.0e}"
+    )
+
+
 def main():
     check("python", compile_python, tracked("*.py"))
     check("shell", check_shell, tracked("*.sh"))
@@ -132,6 +177,7 @@ def main():
     check("xml", parse_xml, tracked("*.xml", "*.xacro", "*.srdf", "*.urdf"))
     check_licenses()
     check_gripper_solver()
+    check_cpp_calibration_table()
     if failures:
         print("\nFAILED:")
         for failure in failures:
