@@ -1,0 +1,26 @@
+{
+  "checks": {
+    "finite_state": true,
+    "penetration_under_1mm": true,
+    "settled_on_obstacle": true,
+    "tail_motion_under_limit": true
+  },
+  "config_enabled": false,
+  "dt_s": 0.0016666666666666666,
+  "effective_obstacle_enabled": true,
+  "final_bottom_z_m": 0.25000001192092897,
+  "final_center_z_m": 0.30000001192092896,
+  "final_penetration_m": 0.0,
+  "initial_center_z_m": 0.6,
+  "last_window_center_z_range_m": 0.0,
+  "maximum_penetration_m": 0.0,
+  "obstacle_id": "grasp_route_box",
+  "obstacle_shape_index": 0,
+  "obstacle_top_z_m": 0.25,
+  "real_time_factor": 0.6620001409825591,
+  "simulated_time_s": 4.016666666666658,
+  "sphere_radius_m": 0.05,
+  "step": "A_pure_newton_physics",
+  "tested_commit": "c15ace47daf7433b757d49fd5e25a2d4ab2424e4",
+  "wall_elapsed_s": 6.067471013986506
+}
