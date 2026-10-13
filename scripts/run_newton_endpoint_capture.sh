@@ -14,6 +14,20 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 RESULT_JSON="${ENDPOINT_LOG%.log}.result.json"
 RESULT_TIMEOUT_SECONDS="${NEWTON_RESULT_TIMEOUT_SECONDS:-1800}"
+
+if [[ -n "$(git -C "${REPO_DIR}" status --porcelain --untracked-files=normal)" ]]; then
+  echo "ERROR: refusing to capture a result from a dirty git tree." >&2
+  exit 3
+fi
+
+if ! python3 "${SCRIPT_DIR}/check_newton_runtime_sync.py" \
+  --repo "${REPO_DIR}" \
+  --bridge-runtime "${HOME}/ur5_ws/src/newton_ros_bridge/newton_moveit_grasp_endpoint.py" \
+  --lesson-runtime "${HOME}/newton_ws/lessons/segmented_strip"; then
+  echo "ERROR: refusing to capture a result from runtime files that differ from the repository." >&2
+  exit 3
+fi
+
 TESTED_COMMIT="$(git -C "${REPO_DIR}" rev-parse HEAD)"
 
 export NEWTON_TESTED_COMMIT="${TESTED_COMMIT}"

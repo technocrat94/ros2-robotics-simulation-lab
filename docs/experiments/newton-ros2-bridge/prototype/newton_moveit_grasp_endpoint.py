@@ -971,6 +971,7 @@ try:
             next_state = now + 0.05
         time.sleep(0.001)
 finally:
+    wall_elapsed = time.monotonic() - wall_start
     measured_lift = (
         maximum_closed_grasp_z - prelift_grasp_z
         if prelift_grasp_z is not None else 0.0
@@ -1057,7 +1058,8 @@ finally:
         "maximum_mimic_error_rad": maximum_mimic_error,
         "finite_state": finite_state,
         "simulated_time_s": sim_time,
-        "wall_elapsed_s": time.monotonic() - wall_start,
+        "wall_elapsed_s": wall_elapsed,
+        "real_time_factor": sim_time / wall_elapsed if wall_elapsed > 0.0 else None,
         "candidate_contact_grasp_pass": bool(
             closed_seen
             and lift_started
