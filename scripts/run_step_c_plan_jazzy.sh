@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -eo pipefail
 
-if [[ "$#" -ne 1 || ( "$1" != "preflight" && "$1" != "c2" ) ]]; then
-  echo "Usage: $0 preflight|c2" >&2
+if [[ "$#" -ne 1 || ( "$1" != "no-wall" && "$1" != "with-wall" && "$1" != "c2" ) ]]; then
+  echo "Usage: $0 no-wall|with-wall|c2" >&2
   exit 2
 fi
 
@@ -10,6 +10,7 @@ CASE="$1"
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ROS_WS="${HOME}/ur5_ws"
 PADDING="${MOVEIT_ROBOT_PADDING_M:-0.02}"
+PLANNING_TIME="${MOVEIT_PLANNING_TIME_SECONDS:-10.0}"
 TESTED_COMMIT="$(git -C "${REPO_DIR}" rev-parse HEAD)"
 LOG_DIR="${ROS_WS}/run_logs"
 mkdir -p "${LOG_DIR}"
@@ -19,7 +20,9 @@ if [[ -n "$(git -C "${REPO_DIR}" status --porcelain --untracked-files=normal)" ]
   exit 3
 fi
 
-if [[ "${CASE}" == "preflight" ]]; then
+if [[ "${CASE}" == "no-wall" ]]; then
+  PROFILE="step_c_cable_no_wall"
+elif [[ "${CASE}" == "with-wall" ]]; then
   PROFILE="step_c_cable_wall"
 else
   PROFILE="step_c_cable_tall_wall"
@@ -37,17 +40,19 @@ set -u
 echo "STEP_C_PLAN_CASE ${CASE}" | tee "${LOG}"
 echo "GRASP_SCENE_PROFILE ${PROFILE}" | tee -a "${LOG}"
 echo "MOVEIT_ROBOT_PADDING_M ${PADDING}" | tee -a "${LOG}"
+echo "MOVEIT_PLANNING_TIME_SECONDS ${PLANNING_TIME}" | tee -a "${LOG}"
 set +e
 ros2 launch ur5_moveit_demo pick_at_position.launch.py \
   use_newton_object_pose:=false \
   plan_only:=true \
   use_safe_pregrasp_path:=false \
   use_named_start:=false \
+  planning_time_s:="${PLANNING_TIME}" \
   2>&1 | tee -a "${LOG}"
 status=${PIPESTATUS[0]}
 set -e
 
-if [[ "${CASE}" == "preflight" ]]; then
+if [[ "${CASE}" != "c2" ]]; then
   if [[ "${status}" -ne 0 ]] || ! grep -q "PLAN_ONLY_SUCCEEDED" "${LOG}"; then
     echo "ERROR: proposed Step C cable pose is not reachable." >&2
     exit 1
@@ -59,4 +64,4 @@ fi
 python3 "${REPO_DIR}/scripts/extract_step_c_result.py" \
   --case c2 --pick-log "${LOG}" --output "${RESULT_JSON}" \
   --tested-commit "${TESTED_COMMIT}" --profile "${PROFILE}" \
-  --padding "${PADDING}"
+  --padding "${PADDING}" --planning-time "${PLANNING_TIME}"

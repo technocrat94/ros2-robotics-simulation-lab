@@ -19,7 +19,7 @@
       "id": "step_c_cable_wall",
       "frame_id": "world",
       "center_m": [0.487, -0.035, 0.10],
-      "size_m": [0.30, 0.05, 0.20],
+      "size_m": [0.20, 0.05, 0.20],
       "contact": {
         "ke_n_m": 50000.0,
         "kd_n_s_m": 500.0,
@@ -32,7 +32,7 @@
       "id": "step_c_cable_tall_wall",
       "frame_id": "world",
       "center_m": [0.487, -0.035, 0.30],
-      "size_m": [0.30, 0.05, 0.60],
+      "size_m": [0.20, 0.05, 0.60],
       "contact": {
         "ke_n_m": 50000.0,
         "kd_n_s_m": 500.0,

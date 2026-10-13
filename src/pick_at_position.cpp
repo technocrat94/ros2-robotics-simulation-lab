@@ -981,6 +981,7 @@ int main(int argc, char * argv[])
   const double floor_z = parameter("floor_z", 0.0);
   const double floor_size = parameter("floor_size", 3.0);
   const double floor_thickness = parameter("floor_thickness", 0.02);
+  const double planning_time_s = parameter("planning_time_s", 10.0);
   const std::string scene_profile = string_parameter("scene_profile", "default");
   const double robot_padding_m = parameter("robot_padding_m", 0.02);
   const bool obstacles_enabled = bool_parameter("obstacles_enabled", false);
@@ -1068,7 +1069,7 @@ int main(int argc, char * argv[])
       solution->bracket_low_rad, solution->bracket_high_rad);
   }
 
-  const std::array<double, 24> values = {
+  const std::array<double, 25> values = {
     object_x, object_y, object_z, pregrasp_clearance, approach_distance,
     lift_distance, grasp_center_offset, closed_grip, velocity_scale,
     lift_velocity_scale,
@@ -1076,7 +1077,7 @@ int main(int argc, char * argv[])
     floor_z, floor_size, floor_thickness, object_width_mm,
     total_compression_mm, uncompensated_approach_distance,
     safe_transit_margin, maximum_pregrasp_joint_travel,
-    maximum_wrist_3_travel, robot_padding_m};
+    maximum_wrist_3_travel, robot_padding_m, planning_time_s};
   for (const double value : values)
   {
     if (!std::isfinite(value))
@@ -1104,9 +1105,11 @@ int main(int argc, char * argv[])
     rclcpp::shutdown();
     return 1;
   }
-  if (scene_profile.empty() || robot_padding_m < 0.0)
+  if (scene_profile.empty() || robot_padding_m < 0.0 || planning_time_s <= 0.0)
   {
-    RCLCPP_ERROR(logger, "Scene profile must be set and robot padding nonnegative.");
+    RCLCPP_ERROR(
+      logger,
+      "Scene profile must be set, robot padding nonnegative, and planning time positive.");
     rclcpp::shutdown();
     return 1;
   }
@@ -1187,7 +1190,7 @@ int main(int argc, char * argv[])
   MoveGroup move_group(node, "ur_manipulator");
   move_group.setMaxVelocityScalingFactor(velocity_scale);
   move_group.setMaxAccelerationScalingFactor(velocity_scale);
-  move_group.setPlanningTime(10.0);
+  move_group.setPlanningTime(planning_time_s);
 
   auto gripper_client = rclcpp_action::create_client<GripperCommand>(
     node, "/robotiq_gripper_controller/gripper_cmd");
@@ -1197,8 +1200,9 @@ int main(int argc, char * argv[])
   RCLCPP_INFO(logger, "Planning frame: %s", move_group.getPlanningFrame().c_str());
   RCLCPP_INFO(
     logger,
-    "SCENE_CONFIG profile=%s obstacles_enabled=%s robot_padding_m=%.6f",
-    scene_profile.c_str(), obstacles_enabled ? "true" : "false", robot_padding_m);
+    "SCENE_CONFIG profile=%s obstacles_enabled=%s robot_padding_m=%.6f planning_time_s=%.3f",
+    scene_profile.c_str(), obstacles_enabled ? "true" : "false", robot_padding_m,
+    planning_time_s);
   RCLCPP_INFO(
     logger,
     "OBJECT_TARGET source=%s frame=world center=(%.4f, %.4f, %.4f) m",

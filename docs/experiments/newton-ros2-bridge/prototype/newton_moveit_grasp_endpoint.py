@@ -136,6 +136,11 @@ if MAX_ALLOWED_PENETRATION < 0.0:
 MOVEIT_ROBOT_PADDING_M = float(os.environ.get("MOVEIT_ROBOT_PADDING_M", "0.02"))
 if MOVEIT_ROBOT_PADDING_M < 0.0:
     raise ValueError("MOVEIT_ROBOT_PADDING_M must be nonnegative")
+MOVEIT_PLANNING_TIME_SECONDS = float(
+    os.environ.get("MOVEIT_PLANNING_TIME_SECONDS", "10.0")
+)
+if MOVEIT_PLANNING_TIME_SECONDS <= 0.0:
+    raise ValueError("MOVEIT_PLANNING_TIME_SECONDS must be positive")
 GRIPPER_CLOSED_MIN = 0.05
 GRIPPER_CLOSED_MAX = 0.81
 JOINT_NAMES = [
@@ -1090,6 +1095,7 @@ finally:
         "tested_commit": TESTED_COMMIT,
         "scene_profile": SCENE_PROFILE_NAME,
         "moveit_robot_padding_m": MOVEIT_ROBOT_PADDING_M,
+        "moveit_planning_time_s": MOVEIT_PLANNING_TIME_SECONDS,
         "configured_object_center_m": [
             OBJECT_CENTER_X, OBJECT_CENTER_Y, OBJECT_CENTER_Z
         ],

@@ -11,6 +11,7 @@ REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ROS_WS="${HOME}/ur5_ws"
 LOG_DIR="${ROS_WS}/run_logs"
 PADDING="${MOVEIT_ROBOT_PADDING_M:-0.02}"
+PLANNING_TIME="${MOVEIT_PLANNING_TIME_SECONDS:-10.0}"
 TESTED_COMMIT="$(git -C "${REPO_DIR}" rev-parse HEAD)"
 mkdir -p "${LOG_DIR}"
 
@@ -28,11 +29,13 @@ MARKER="$(mktemp "${LOG_DIR}/step_c_${CASE}_marker.XXXXXX")"
 trap 'rm -f "${MARKER}"' EXIT
 export GRASP_SCENE_PROFILE="${PROFILE}"
 export MOVEIT_ROBOT_PADDING_M="${PADDING}"
+export MOVEIT_PLANNING_TIME_SECONDS="${PLANNING_TIME}"
 export FEM_CABLE_SAFE_PREGRASP="false"
 
 echo "STEP_C_PICK_CASE ${CASE}"
 echo "GRASP_SCENE_PROFILE ${PROFILE}"
 echo "MOVEIT_ROBOT_PADDING_M ${PADDING}"
+echo "MOVEIT_PLANNING_TIME_SECONDS ${PLANNING_TIME}"
 "${REPO_DIR}/scripts/run_jazzy_fem_cable_pick.sh"
 
 PICK_LOG="$(find "${LOG_DIR}" -maxdepth 1 -type f \
@@ -61,7 +64,7 @@ python3 "${REPO_DIR}/scripts/extract_step_c_result.py" \
   --case "${CASE}" --pick-log "${PICK_LOG}" \
   --endpoint-json "${ENDPOINT_JSON}" --output "${RESULT_JSON}" \
   --tested-commit "${TESTED_COMMIT}" --profile "${PROFILE}" \
-  --padding "${PADDING}"
+  --padding "${PADDING}" --planning-time "${PLANNING_TIME}"
 echo "STEP_C_PICK_LOG ${PICK_LOG}"
 echo "STEP_C_ENDPOINT_RESULT_JSON ${ENDPOINT_JSON}"
 echo "STEP_C_COMBINED_RESULT_JSON ${RESULT_JSON}"

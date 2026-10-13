@@ -37,13 +37,15 @@ def main():
     parser.add_argument("--tested-commit", required=True)
     parser.add_argument("--profile", required=True)
     parser.add_argument("--padding", type=float, required=True)
+    parser.add_argument("--planning-time", type=float, required=True)
     args = parser.parse_args()
 
     text = args.pick_log.read_text(encoding="utf-8")
     expected_scene = (
         f"SCENE_CONFIG profile={args.profile} "
         f"obstacles_enabled={'true' if args.case != 'c0' else 'false'} "
-        f"robot_padding_m={args.padding:.6f}"
+        f"robot_padding_m={args.padding:.6f} "
+        f"planning_time_s={args.planning_time:.3f}"
     )
     common_checks = {
         "scene_profile_and_padding_logged": expected_scene in text,
@@ -70,6 +72,7 @@ def main():
             "tested_commit": args.tested_commit,
             "scene_profile": args.profile,
             "moveit_robot_padding_m": args.padding,
+            "moveit_planning_time_s": args.planning_time,
             "planning_failed": planning_failed,
             "robot_command_sent": not no_robot_command,
             "route": route_metrics(text),
@@ -111,6 +114,7 @@ def main():
             "tested_commit": args.tested_commit,
             "scene_profile": args.profile,
             "moveit_robot_padding_m": args.padding,
+            "moveit_planning_time_s": args.planning_time,
             "candidate_contact_grasp_pass": endpoint.get(
                 "candidate_contact_grasp_pass"
             ),

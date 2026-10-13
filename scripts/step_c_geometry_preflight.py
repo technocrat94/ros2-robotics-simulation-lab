@@ -73,11 +73,10 @@ def parse_initial_positions(path):
     return np.asarray([values[name] for name in JOINT_ORDER], dtype=np.float32)
 
 
-def aabb_distance(lower_a, upper_a, lower_b, upper_b):
-    separation = np.maximum(
+def aabb_separation(lower_a, upper_a, lower_b, upper_b):
+    return np.maximum(
         0.0, np.maximum(lower_b - upper_a, lower_a - upper_b)
     )
-    return float(np.linalg.norm(separation))
 
 
 def main():
@@ -153,8 +152,8 @@ def main():
             )
         return transform_points(transform, points)
 
-    def minimum_robot_wall_distance(transforms):
-        distances = []
+    def robot_wall_measurements(transforms):
+        measurements = []
         for shape_index in range(model.shape_count):
             body_index = int(shape_bodies[shape_index])
             if body_index < 0 or body_index >= 24:
@@ -162,16 +161,21 @@ def main():
             if not (int(shape_flags[shape_index]) & collide_shapes):
                 continue
             vertices = world_vertices(shape_index, transforms)
-            distances.append(aabb_distance(
+            separation = aabb_separation(
                 vertices.min(axis=0), vertices.max(axis=0),
                 wall_lower, wall_upper,
-            ))
-        return min(distances)
+            )
+            measurements.append({
+                "distance_m": float(np.linalg.norm(separation)),
+                "separation_xyz_m": separation.astype(float).tolist(),
+                "link": model.body_label[body_index],
+                "shape_index": shape_index,
+            })
+        return measurements
 
     robot_vertices = []
     finger_vertices = []
     fingertip_vertices = []
-    shape_distances = []
     for index in range(model.shape_count):
         body_index = int(shape_bodies[index])
         if body_index < 0 or body_index >= 24:
@@ -185,9 +189,6 @@ def main():
             finger_vertices.append(vertices)
         if "finger_tip_link" in body_label:
             fingertip_vertices.append(vertices)
-        shape_distances.append(aabb_distance(
-            vertices.min(axis=0), vertices.max(axis=0), wall_lower, wall_upper
-        ))
 
     robot_vertices = np.concatenate(robot_vertices)
     finger_vertices = np.concatenate(finger_vertices)
@@ -202,7 +203,11 @@ def main():
     finger_outer_half_width = float(np.max(np.abs(
         finger_vertices[:, 1] - tool_position[1]
     )))
-    minimum_start_distance = min(shape_distances)
+    start_measurements = robot_wall_measurements(body_transforms)
+    closest_start_shape = min(
+        start_measurements, key=lambda measurement: measurement["distance_m"]
+    )
+    minimum_start_distance = closest_start_shape["distance_m"]
     padded_start_clearance = minimum_start_distance - args.padding
 
     base_q = model.joint_q.numpy()
@@ -211,9 +216,21 @@ def main():
     model.joint_q.assign(base_q)
     base_state = model.state()
     newton.eval_fk(model, model.joint_q, model.joint_qd, base_state)
-    minimum_base_arm_distance = minimum_robot_wall_distance(
-        base_state.body_q.numpy()
+    base_measurements = robot_wall_measurements(base_state.body_q.numpy())
+    closest_base_shape = min(
+        base_measurements, key=lambda measurement: measurement["distance_m"]
     )
+    minimum_base_arm_distance = closest_base_shape["distance_m"]
+
+    axis_names = ("x", "y", "z")
+    closest_start_separation_axes = [
+        axis_names[index]
+        for index, value in enumerate(closest_start_shape["separation_xyz_m"])
+        if value > 1.0e-12
+    ]
+    closest_start_separation_direction = "/".join(
+        closest_start_separation_axes
+    ) or "overlap"
 
     cable_radius = 0.003
     wall_face_y = wall_lower[1]
@@ -257,8 +274,18 @@ def main():
         "finger_outer_half_width_m": finger_outer_half_width,
         "fingertip_lowest_z_m": float(fingertip_vertices[:, 2].min()),
         "minimum_start_robot_wall_distance_m": minimum_start_distance,
+        "closest_start_robot_shape_link": closest_start_shape["link"],
+        "closest_start_robot_shape_index": closest_start_shape["shape_index"],
+        "closest_start_robot_wall_separation_xyz_m": (
+            closest_start_shape["separation_xyz_m"]
+        ),
+        "closest_start_robot_wall_separation_axes": closest_start_separation_axes,
+        "closest_start_robot_wall_separation_direction": (
+            closest_start_separation_direction
+        ),
         "padded_start_clearance_m": padded_start_clearance,
         "minimum_newton_base_arm_wall_distance_m": minimum_base_arm_distance,
+        "closest_newton_base_arm_shape_link": closest_base_shape["link"],
         "robot_obstacle_contact_counting_policy": (
             "count_from_simulation_start_base_arm_verified_collision_free"
             if minimum_base_arm_distance > 0.0
