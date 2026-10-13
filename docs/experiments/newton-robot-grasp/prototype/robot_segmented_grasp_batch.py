@@ -201,7 +201,7 @@ def robot_coordinates(t):
     return q, phase
 
 
-def build_scene():
+def build_scene(obstacles=None):
     newton.use_coord_layout_targets = True
     wp.init()
     wp.set_device(DEVICE)
@@ -511,6 +511,31 @@ def build_scene():
     for robot_shape in active_robot_colliders:
         builder.add_shape_collision_filter_pair(robot_shape, ground_shape)
 
+    obstacle_shapes = []
+    for obstacle in obstacles or []:
+        center = [float(value) for value in obstacle["center_m"]]
+        size = [float(value) for value in obstacle["size_m"]]
+        material = obstacle["contact"]
+        obstacle_cfg = builder.ShapeConfig(
+            density=0.0,
+            ke=float(material["ke_n_m"]),
+            kd=float(material["kd_n_s_m"]),
+            mu=float(material["mu"]),
+            restitution=float(material["restitution"]),
+            gap=float(material["gap_m"]),
+            has_shape_collision=True,
+            has_particle_collision=True,
+        )
+        obstacle_shapes.append(builder.add_shape_box(
+            -1,
+            xform=wp.transform(wp.vec3(*center), wp.quat_identity()),
+            hx=size[0] / 2.0,
+            hy=size[1] / 2.0,
+            hz=size[2] / 2.0,
+            cfg=obstacle_cfg,
+            label=f"configured_obstacle_{obstacle['id']}",
+        ))
+
     if FEM_MODE:
         builder.color()
     model = builder.finalize()
@@ -525,6 +550,7 @@ def build_scene():
         robot_shapes,
         shapes,
         len(active_robot_colliders),
+        obstacle_shapes,
     )
 
 
@@ -536,6 +562,7 @@ def main():
         robot_shapes,
         strip_shapes,
         active_robot_colliders,
+        _obstacle_shapes,
     ) = build_scene()
     state_0 = model.state()
     state_1 = model.state()

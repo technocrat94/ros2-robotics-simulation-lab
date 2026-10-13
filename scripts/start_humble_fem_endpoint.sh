@@ -21,5 +21,6 @@ exec env \
   NEWTON_COMMAND_DT=0.02 \
   NEWTON_MAX_HOLD_SECONDS=0.5 \
   NEWTON_VIEWER_PORT=8086 \
+  NEWTON_OBSTACLE_CONFIG="${HOME}/ur5_ws/src/ur5_moveit_demo/config/obstacles.yaml" \
   "${HOME}/newton_ws/lessons/.venv-cpu/bin/python" \
   src/newton_ros_bridge/newton_moveit_grasp_endpoint.py

@@ -3,7 +3,7 @@ set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PYTHON_BIN="${HOME}/newton_ws/.venv-cpu/bin/python"
-OUTPUT="${1:-${HOME}/ur5_ws/run_logs/rigid_obstacle_step_a.json}"
+OUTPUT_DIR="${1:-${HOME}/ur5_ws/run_logs}"
 TESTED_COMMIT="$(git -C "${REPO_DIR}" rev-parse HEAD)"
 
 if [[ -n "$(git -C "${REPO_DIR}" status --porcelain --untracked-files=normal)" ]]; then
@@ -16,8 +16,15 @@ if [[ ! -x "${PYTHON_BIN}" ]]; then
   exit 1
 fi
 
-exec "${PYTHON_BIN}" "${REPO_DIR}/scripts/newton_rigid_obstacle_drop.py" \
+mkdir -p "${OUTPUT_DIR}"
+"${PYTHON_BIN}" "${REPO_DIR}/scripts/newton_rigid_obstacle_drop.py" \
   --config "${REPO_DIR}/config/obstacles.yaml" \
   --enable-obstacles \
   --tested-commit "${TESTED_COMMIT}" \
-  --output "${OUTPUT}"
+  --output "${OUTPUT_DIR}/rigid_obstacle_step_a0.json"
+
+exec "${PYTHON_BIN}" "${REPO_DIR}/scripts/newton_fem_obstacle_drop.py" \
+  --config "${REPO_DIR}/config/obstacles.yaml" \
+  --enable-obstacles \
+  --tested-commit "${TESTED_COMMIT}" \
+  --output "${OUTPUT_DIR}/rigid_obstacle_step_a1_fem.json"

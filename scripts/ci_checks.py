@@ -184,10 +184,12 @@ def check_obstacle_defaults():
         if len(box.get("center_m", [])) != 3:
             failures.append("obstacles: center_m must have three values")
         if len(box.get("size_m", [])) != 3 or any(
-            not isinstance(value, (int, float)) or value <= 0.0
+            not isinstance(value, (int, float)) or value < 0.01
             for value in box.get("size_m", [])
         ):
-            failures.append("obstacles: size_m must contain three positive values")
+            failures.append(
+                "obstacles: every box dimension must be at least 0.01 m"
+            )
     print("[obstacles] schema and disabled-by-default policy checked")
 
 

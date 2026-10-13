@@ -5,6 +5,7 @@
 #include <future>
 #include <memory>
 #include <cmath>
+#include <limits>
 #include <mutex>
 #include <optional>
 #include <vector>
@@ -17,6 +18,8 @@
 #include <geometry_msgs/msg/pose_stamped.hpp>
 #include <moveit/move_group_interface/move_group_interface.h>
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
+#include <moveit/planning_scene/planning_scene.hpp>
+#include <moveit/collision_detection/collision_common.hpp>
 #include <moveit/robot_state/conversions.h>
 #include <moveit/robot_trajectory/robot_trajectory.h>
 #include <moveit/trajectory_processing/time_optimal_trajectory_generation.hpp>
@@ -50,6 +53,89 @@ struct GripperCalibrationSolution
   double bracket_low_rad;
   double bracket_high_rad;
 };
+
+struct ObstacleBox
+{
+  std::string id;
+  std::string frame;
+  std::array<double, 3> center;
+  std::array<double, 3> size;
+};
+
+moveit_msgs::msg::CollisionObject make_box_obstacle(const ObstacleBox & box)
+{
+  moveit_msgs::msg::CollisionObject obstacle;
+  obstacle.header.frame_id = box.frame;
+  obstacle.id = box.id;
+  shape_msgs::msg::SolidPrimitive primitive;
+  primitive.type = shape_msgs::msg::SolidPrimitive::BOX;
+  primitive.dimensions = {box.size[0], box.size[1], box.size[2]};
+  geometry_msgs::msg::Pose pose;
+  pose.orientation.w = 1.0;
+  pose.position.x = box.center[0];
+  pose.position.y = box.center[1];
+  pose.position.z = box.center[2];
+  obstacle.primitives.push_back(primitive);
+  obstacle.primitive_poses.push_back(pose);
+  return obstacle;
+}
+
+bool report_route_metrics(
+  MoveGroup & move_group,
+  const rclcpp::Logger & logger,
+  const moveit_msgs::msg::RobotState & start_state_message,
+  const moveit_msgs::msg::RobotTrajectory & trajectory_message,
+  const ObstacleBox & obstacle,
+  const std::string & stage_name)
+{
+  moveit::core::RobotState start_state(move_group.getRobotModel());
+  moveit::core::robotStateMsgToRobotState(start_state_message, start_state);
+  robot_trajectory::RobotTrajectory trajectory(
+    move_group.getRobotModel(), move_group.getName());
+  trajectory.setRobotTrajectoryMsg(start_state, trajectory_message);
+  if (trajectory.getWayPointCount() == 0)
+  {
+    RCLCPP_ERROR(logger, "%s route metrics: trajectory is empty.", stage_name.c_str());
+    return false;
+  }
+
+  planning_scene::PlanningScene analysis_scene(move_group.getRobotModel());
+  auto collision_object = make_box_obstacle(obstacle);
+  collision_object.operation = moveit_msgs::msg::CollisionObject::ADD;
+  if (!analysis_scene.processCollisionObjectMsg(collision_object))
+  {
+    RCLCPP_ERROR(logger, "%s route metrics: obstacle could not be created.", stage_name.c_str());
+    return false;
+  }
+
+  double maximum_end_effector_height = -std::numeric_limits<double>::infinity();
+  double minimum_robot_box_distance = std::numeric_limits<double>::infinity();
+  for (std::size_t index = 0; index < trajectory.getWayPointCount(); ++index)
+  {
+    const auto & state = trajectory.getWayPoint(index);
+    maximum_end_effector_height = std::max(
+      maximum_end_effector_height,
+      state.getGlobalLinkTransform("tool0").translation().z());
+    collision_detection::DistanceRequest request;
+    collision_detection::DistanceResult result;
+    request.type = collision_detection::DistanceRequestTypes::GLOBAL;
+    request.enable_signed_distance = true;
+    request.group_name = move_group.getName();
+    request.enableGroup(move_group.getRobotModel());
+    request.acm = &analysis_scene.getAllowedCollisionMatrix();
+    analysis_scene.getCollisionEnv()->distanceRobot(request, result, state);
+    minimum_robot_box_distance = std::min(
+      minimum_robot_box_distance, result.minimum_distance.distance);
+  }
+  RCLCPP_INFO(
+    logger,
+    "PLANNED_ROUTE_METRICS stage=\"%s\" samples=%zu max_end_effector_height_m=%.6f "
+    "min_robot_box_distance_m=%.6f obstacle_id=%s",
+    stage_name.c_str(), trajectory.getWayPointCount(), maximum_end_effector_height,
+    minimum_robot_box_distance, obstacle.id.c_str());
+  return std::isfinite(maximum_end_effector_height) &&
+         std::isfinite(minimum_robot_box_distance);
+}
 
 
 std::optional<GripperCalibrationSolution> solve_gripper_calibration(
@@ -497,7 +583,8 @@ bool move_staged_cartesian_to_pose(
   double maximum_joint_travel,
   double maximum_wrist_3_travel,
   double velocity_scaling,
-  bool execute_motion)
+  bool execute_motion,
+  const std::optional<ObstacleBox> & analysis_obstacle = std::nullopt)
 {
   const auto current_state = move_group.getCurrentState(10.0);
   if (!current_state)
@@ -632,6 +719,13 @@ bool move_staged_cartesian_to_pose(
   moveit::core::robotStateToRobotStateMsg(*current_state, plan.start_state);
   plan.trajectory = trajectory;
 
+  if (analysis_obstacle && !report_route_metrics(
+      move_group, logger, plan.start_state, plan.trajectory,
+      *analysis_obstacle, "safe_staged_pregrasp"))
+  {
+    return false;
+  }
+
   if (!execute_motion)
   {
     DisplayTrajectory display;
@@ -701,33 +795,16 @@ bool add_floor_collision(
 bool add_box_obstacle(
   MoveGroup & move_group,
   const rclcpp::Logger & logger,
-  const std::string & obstacle_id,
-  const std::string & obstacle_frame,
-  const std::array<double, 3> & center,
-  const std::array<double, 3> & size)
+  const ObstacleBox & box)
 {
   moveit::planning_interface::PlanningSceneInterface planning_scene;
-  if (obstacle_frame != move_group.getPlanningFrame())
+  if (box.frame != move_group.getPlanningFrame())
   {
     RCLCPP_WARN(
       logger, "Obstacle frame '%s' differs from planning frame '%s'.",
-      obstacle_frame.c_str(), move_group.getPlanningFrame().c_str());
+      box.frame.c_str(), move_group.getPlanningFrame().c_str());
   }
-  moveit_msgs::msg::CollisionObject obstacle;
-  obstacle.header.frame_id = obstacle_frame;
-  obstacle.id = obstacle_id;
-
-  shape_msgs::msg::SolidPrimitive primitive;
-  primitive.type = shape_msgs::msg::SolidPrimitive::BOX;
-  primitive.dimensions = {size[0], size[1], size[2]};
-
-  geometry_msgs::msg::Pose pose;
-  pose.orientation.w = 1.0;
-  pose.position.x = center[0];
-  pose.position.y = center[1];
-  pose.position.z = center[2];
-  obstacle.primitives.push_back(primitive);
-  obstacle.primitive_poses.push_back(pose);
+  auto obstacle = make_box_obstacle(box);
   obstacle.operation = moveit_msgs::msg::CollisionObject::ADD;
 
   if (!planning_scene.applyCollisionObject(obstacle))
@@ -739,9 +816,32 @@ bool add_box_obstacle(
     logger,
     "PLANNING_SCENE_OBSTACLE_ADDED id=%s frame=%s center=(%.3f,%.3f,%.3f) "
     "size=(%.3f,%.3f,%.3f)",
-    obstacle_id.c_str(), obstacle_frame.c_str(), center[0], center[1], center[2],
-    size[0], size[1], size[2]);
+    box.id.c_str(), box.frame.c_str(), box.center[0], box.center[1], box.center[2],
+    box.size[0], box.size[1], box.size[2]);
   return true;
+}
+
+bool remove_box_obstacle(
+  const rclcpp::Logger & logger,
+  const std::string & obstacle_id,
+  const std::string & planning_frame)
+{
+  moveit::planning_interface::PlanningSceneInterface planning_scene;
+  moveit_msgs::msg::CollisionObject obstacle;
+  obstacle.header.frame_id = planning_frame;
+  obstacle.id = obstacle_id;
+  obstacle.operation = moveit_msgs::msg::CollisionObject::REMOVE;
+  if (!planning_scene.applyCollisionObject(obstacle))
+  {
+    RCLCPP_ERROR(logger, "Failed to remove persistent obstacle '%s'.", obstacle_id.c_str());
+    return false;
+  }
+  const auto known = planning_scene.getKnownObjectNames();
+  const bool absent = std::find(known.begin(), known.end(), obstacle_id) == known.end();
+  RCLCPP_INFO(
+    logger, "PLANNING_SCENE_OBSTACLE_REMOVED id=%s confirmed_absent=%s",
+    obstacle_id.c_str(), absent ? "true" : "false");
+  return absent;
 }
 
 
@@ -751,7 +851,8 @@ bool move_to_pose_target(
   const rclcpp::Logger & logger,
   const geometry_msgs::msg::Pose & target,
   const std::string & stage_name,
-  bool execute_motion = true)
+  bool execute_motion = true,
+  const std::optional<ObstacleBox> & analysis_obstacle = std::nullopt)
 {
   move_group.setStartStateToCurrentState();
   move_group.setPoseTarget(target, "tool0");
@@ -768,6 +869,13 @@ bool move_to_pose_target(
   if (!static_cast<bool>(planning_result))
   {
     RCLCPP_ERROR(logger, "%s planning failed.", stage_name.c_str());
+    return false;
+  }
+
+  if (analysis_obstacle && !report_route_metrics(
+      move_group, logger, plan.start_state, plan.trajectory,
+      *analysis_obstacle, stage_name))
+  {
     return false;
   }
 
@@ -829,6 +937,20 @@ int main(int argc, char * argv[])
       }
       return node->get_parameter(name).as_string();
     };
+  auto required_double_parameter = [&node](const std::string & name) {
+      if (!node->has_parameter(name))
+      {
+        throw std::runtime_error("missing required parameter: " + name);
+      }
+      return node->get_parameter(name).as_double();
+    };
+  auto required_string_parameter = [&node](const std::string & name) {
+      if (!node->has_parameter(name))
+      {
+        throw std::runtime_error("missing required parameter: " + name);
+      }
+      return node->get_parameter(name).as_string();
+    };
 
   double object_x = parameter("object_x", 0.4869);
   double object_y = parameter("object_y", 0.10915);
@@ -853,18 +975,30 @@ int main(int argc, char * argv[])
   const double floor_size = parameter("floor_size", 3.0);
   const double floor_thickness = parameter("floor_thickness", 0.02);
   const bool obstacles_enabled = bool_parameter("obstacles_enabled", false);
-  const std::string obstacle_id =
-    string_parameter("obstacle_id", "grasp_route_box");
-  const std::string obstacle_frame =
-    string_parameter("obstacle_frame", "world");
-  const std::array<double, 3> obstacle_center = {
-    parameter("obstacle_x", 0.30),
-    parameter("obstacle_y", 0.10915),
-    parameter("obstacle_z", 0.125)};
-  const std::array<double, 3> obstacle_size = {
-    parameter("obstacle_size_x", 0.10),
-    parameter("obstacle_size_y", 0.24),
-    parameter("obstacle_size_z", 0.25)};
+  ObstacleBox obstacle_box;
+  try
+  {
+    obstacle_box = {
+      required_string_parameter("obstacle_id"),
+      required_string_parameter("obstacle_frame"),
+      {
+        required_double_parameter("obstacle_x"),
+        required_double_parameter("obstacle_y"),
+        required_double_parameter("obstacle_z")
+      },
+      {
+        required_double_parameter("obstacle_size_x"),
+        required_double_parameter("obstacle_size_y"),
+        required_double_parameter("obstacle_size_z")
+      }
+    };
+  }
+  catch (const std::exception & error)
+  {
+    RCLCPP_ERROR(logger, "Rigid obstacle configuration error: %s", error.what());
+    rclcpp::shutdown();
+    return 1;
+  }
   const bool plan_only = bool_parameter("plan_only", false);
   const bool use_safe_pregrasp_path =
     bool_parameter("use_safe_pregrasp_path", true);
@@ -962,10 +1096,10 @@ int main(int argc, char * argv[])
     return 1;
   }
   if (obstacles_enabled &&
-    (obstacle_id.empty() || obstacle_frame.empty() ||
-    std::any_of(obstacle_center.begin(), obstacle_center.end(),
+    (obstacle_box.id.empty() || obstacle_box.frame.empty() ||
+    std::any_of(obstacle_box.center.begin(), obstacle_box.center.end(),
     [](double value) {return !std::isfinite(value);}) ||
-    std::any_of(obstacle_size.begin(), obstacle_size.end(),
+    std::any_of(obstacle_box.size.begin(), obstacle_box.size.end(),
     [](double value) {return !std::isfinite(value) || value <= 0.0;})))
   {
     RCLCPP_ERROR(logger, "Rigid obstacle configuration is invalid.");
@@ -1081,8 +1215,7 @@ int main(int argc, char * argv[])
   }
 
   if (obstacles_enabled && !add_box_obstacle(
-      move_group, logger, obstacle_id, obstacle_frame,
-      obstacle_center, obstacle_size))
+      move_group, logger, obstacle_box))
   {
     executor.cancel();
     spinner.join();
@@ -1091,7 +1224,15 @@ int main(int argc, char * argv[])
   }
   if (!obstacles_enabled)
   {
-    RCLCPP_INFO(logger, "PLANNING_SCENE_OBSTACLES_DISABLED");
+    if (!remove_box_obstacle(
+        logger, obstacle_box.id, move_group.getPlanningFrame()))
+    {
+      executor.cancel();
+      spinner.join();
+      rclcpp::shutdown();
+      return 1;
+    }
+    RCLCPP_INFO(logger, "PLANNING_SCENE_OBSTACLES_DISABLED scene_clean=true");
   }
 
   geometry_msgs::msg::Pose pregrasp_tool_pose;
@@ -1111,10 +1252,10 @@ int main(int argc, char * argv[])
         move_group, display_publisher, logger, pregrasp_tool_pose,
         safe_transit_margin, maximum_pregrasp_joint_travel,
         maximum_wrist_3_travel,
-        velocity_scale, false) :
+        velocity_scale, false, obstacle_box) :
       move_to_pose_target(
         move_group, display_publisher, logger, pregrasp_tool_pose,
-        "Absolute pre-grasp", false);
+        "Absolute pre-grasp", false, obstacle_box);
     executor.cancel();
     spinner.join();
     rclcpp::shutdown();

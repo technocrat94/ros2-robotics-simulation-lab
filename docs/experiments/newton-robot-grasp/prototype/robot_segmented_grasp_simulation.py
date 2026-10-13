@@ -35,7 +35,7 @@ def main():
     parser.add_argument("--port", type=int, default=8084)
     args = parser.parse_args()
 
-    model, strip_links, _, _, _, active_colliders = build_scene()
+    model, strip_links, _, _, _, active_colliders, _obstacles = build_scene()
     state_0, state_1 = model.state(), model.state()
     control = model.control()
     solver = newton.solvers.SolverXPBD(model, iterations=30)
