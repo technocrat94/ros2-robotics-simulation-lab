@@ -169,6 +169,43 @@ def check_cpp_calibration_table():
     )
 
 
+def check_obstacle_defaults():
+    path = REPO / "config/obstacles.yaml"
+    config = json.loads(path.read_text(encoding="utf-8"))
+    if config.get("schema_version") != 1:
+        failures.append("obstacles: schema_version must be 1")
+    if config.get("enabled") is not False:
+        failures.append("obstacles: enabled must default to false")
+    boxes = config.get("boxes", [])
+    if len(boxes) != 1:
+        failures.append("obstacles: Steps A/B require exactly one box")
+    else:
+        box = boxes[0]
+        if len(box.get("center_m", [])) != 3:
+            failures.append("obstacles: center_m must have three values")
+        if len(box.get("size_m", [])) != 3 or any(
+            not isinstance(value, (int, float)) or value < 0.01
+            for value in box.get("size_m", [])
+        ):
+            failures.append(
+                "obstacles: every box dimension must be at least 0.01 m"
+            )
+    print("[obstacles] schema and disabled-by-default policy checked")
+
+
+def check_grasp_pass_policy():
+    result = subprocess.run(
+        [sys.executable, str(REPO / "scripts/test_candidate_contact_grasp_pass.py")],
+        capture_output=True, text=True,
+    )
+    if result.returncode != 0:
+        failures.append(
+            "pass-policy: test_candidate_contact_grasp_pass.py failed: "
+            + (result.stderr or result.stdout).strip().splitlines()[-1]
+        )
+    print("[pass-policy] obstacle-contact guard unit test run")
+
+
 def main():
     check("python", compile_python, tracked("*.py"))
     check("shell", check_shell, tracked("*.sh"))
@@ -178,6 +215,8 @@ def main():
     check_licenses()
     check_gripper_solver()
     check_cpp_calibration_table()
+    check_obstacle_defaults()
+    check_grasp_pass_policy()
     if failures:
         print("\nFAILED:")
         for failure in failures:

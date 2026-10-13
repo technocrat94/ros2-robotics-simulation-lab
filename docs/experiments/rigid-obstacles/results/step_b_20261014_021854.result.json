@@ -1,0 +1,48 @@
+{
+  "checks": {
+    "disabled_control_planned": true,
+    "disabled_scene_clean": true,
+    "enabled_route_is_collision_free": true,
+    "enabled_safe_route_planned": true,
+    "persistent_obstacle_removed": true,
+    "route_changed_because_of_box": true,
+    "route_metrics_present": true,
+    "staged_route_accepted": true,
+    "tall_obstacle_planning_failed": true,
+    "three_spatial_stages_100_percent": true
+  },
+  "disabled_route": {
+    "max_end_effector_height_m": 0.308737,
+    "min_robot_box_distance_m": -0.060328,
+    "samples": 26
+  },
+  "enabled_ompl_plan_succeeded": true,
+  "enabled_ompl_route": {
+    "max_end_effector_height_m": 0.401116,
+    "min_robot_box_distance_m": 0.003664,
+    "samples": 69
+  },
+  "enabled_route": {
+    "max_end_effector_height_m": 0.451119,
+    "min_robot_box_distance_m": 0.012481,
+    "samples": 57
+  },
+  "evidence_log": "docs/experiments/rigid-obstacles/results/step_b_20261014_021854.log",
+  "pass": true,
+  "safe_staged_route": {
+    "max_end_effector_height_m": 0.451119,
+    "min_robot_box_distance_m": 0.012481,
+    "samples": 57
+  },
+  "same_target_x_m": 0.2,
+  "source_run_id": "20261014_021854",
+  "staged_fractions_percent": {
+    "descend": 100.0,
+    "orient": 100.0,
+    "raise": 100.0,
+    "translate": 100.0
+  },
+  "step": "B_pure_moveit_planning_controls",
+  "tall_obstacle_plan_exit_status": 0,
+  "tested_commit": "9695193eb107b31ebaff6d795a16b879071af87e"
+}

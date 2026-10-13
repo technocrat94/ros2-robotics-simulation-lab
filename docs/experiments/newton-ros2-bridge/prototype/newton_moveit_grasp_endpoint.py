@@ -17,6 +17,18 @@ import viser
 import warp as wp
 from newton.viewer import ViewerViser
 
+
+def candidate_contact_grasp_pass(
+    candidate_without_obstacle_guard: bool,
+    maximum_robot_obstacle_contacts: int,
+) -> bool:
+    """Reject an otherwise valid grasp if the robot touched a rigid obstacle."""
+    return bool(
+        candidate_without_obstacle_guard
+        and maximum_robot_obstacle_contacts == 0
+    )
+
+
 LESSON_DIR = Path.home() / "newton_ws/lessons/segmented_strip"
 sys.path.insert(0, str(LESSON_DIR))
 from robot_segmented_grasp_batch import (  # noqa: E402
@@ -71,6 +83,28 @@ MAX_ALLOWED_PENETRATION = float(
 )
 if MAX_ALLOWED_PENETRATION < 0.0:
     raise ValueError("GRASP_MAX_ALLOWED_PENETRATION must be nonnegative")
+OBSTACLE_CONFIG_PATH = Path(os.environ.get(
+    "NEWTON_OBSTACLE_CONFIG",
+    str(Path.home() / "ur5_ws/src/ur5_moveit_demo/config/obstacles.yaml"),
+))
+
+
+def load_enabled_obstacles(path):
+    config = json.loads(path.read_text(encoding="utf-8"))
+    if config.get("schema_version") != 1:
+        raise ValueError("obstacles.yaml schema_version must be 1")
+    if not config.get("enabled", False):
+        return []
+    boxes = config.get("boxes", [])
+    for box in boxes:
+        if len(box.get("center_m", [])) != 3 or len(box.get("size_m", [])) != 3:
+            raise ValueError("every obstacle box needs three center and size values")
+        if any(float(value) < 0.01 for value in box["size_m"]):
+            raise ValueError("every obstacle box dimension must be at least 0.01 m")
+    return boxes
+
+
+ENABLED_OBSTACLES = load_enabled_obstacles(OBSTACLE_CONFIG_PATH)
 GRIPPER_CLOSED_MIN = 0.05
 GRIPPER_CLOSED_MAX = 0.81
 JOINT_NAMES = [
@@ -124,7 +158,8 @@ newton.use_coord_layout_targets = True
     robot_shapes,
     strip_shapes,
     active_robot_colliders,
-) = build_scene()
+    obstacle_shapes,
+) = build_scene(obstacles=ENABLED_OBSTACLES)
 FEM_MODE = OBJECT_MODEL in {"fem_strip", "fem_cable"}
 ROD_MODE = OBJECT_MODEL == "rod_cable"
 if ROD_MODE and not str(model.device).startswith("cuda"):
@@ -164,6 +199,7 @@ robot_particle_colliders = sum(
     for index in range(robot_shapes)
 )
 strip_shape_set = {int(index) for index in strip_shapes}
+obstacle_shape_set = {int(index) for index in obstacle_shapes}
 left_finger_shape_set = set()
 right_finger_shape_set = set()
 for shape_index in range(robot_shapes):
@@ -214,6 +250,8 @@ def fem_soft_contact_metrics(contact_buffer, count, particles, body_poses):
         "left_loaded": 0, "right_loaded": 0,
         "maximum_activation_depth_m": 0.0,
         "maximum_particle_surface_penetration_m": 0.0,
+        "obstacle_candidates": 0,
+        "maximum_object_obstacle_penetration_m": 0.0,
     }
     for shape, corners, weights, body_point, normal in zip(
         shapes, indices, barycentric, body_points, normals
@@ -221,7 +259,8 @@ def fem_soft_contact_metrics(contact_buffer, count, particles, body_poses):
         shape = int(shape)
         is_left = shape in left_finger_shape_set
         is_right = shape in right_finger_shape_set
-        if not is_left and not is_right:
+        is_obstacle = shape in obstacle_shape_set
+        if not is_left and not is_right and not is_obstacle:
             continue
         slots = [slot for slot, particle in enumerate(corners) if int(particle) >= 0]
         if not slots:
@@ -247,6 +286,11 @@ def fem_soft_contact_metrics(contact_buffer, count, particles, body_poses):
         result["maximum_particle_surface_penetration_m"] = max(
             result["maximum_particle_surface_penetration_m"], surface_penetration
         )
+        if is_obstacle:
+            result["obstacle_candidates"] += 1
+            result["maximum_object_obstacle_penetration_m"] = max(
+                result["maximum_object_obstacle_penetration_m"], surface_penetration
+            )
         if is_left:
             result["left_candidates"] += 1
             result["left_loaded"] += int(activation_depth > 0.0)
@@ -254,6 +298,21 @@ def fem_soft_contact_metrics(contact_buffer, count, particles, body_poses):
             result["right_candidates"] += 1
             result["right_loaded"] += int(activation_depth > 0.0)
     return result
+
+
+def robot_obstacle_contact_count(contact_buffer, count):
+    if not obstacle_shape_set:
+        return 0
+    shape0 = contact_buffer.rigid_contact_shape0.numpy()[:count]
+    shape1 = contact_buffer.rigid_contact_shape1.numpy()[:count]
+    total = 0
+    for first, second in zip(shape0, shape1):
+        first, second = int(first), int(second)
+        total += int(
+            (first < robot_shapes and second in obstacle_shape_set)
+            or (second < robot_shapes and first in obstacle_shape_set)
+        )
+    return total
 
 
 def finger_strip_contacts(contact_buffer, count, body_poses):
@@ -407,6 +466,8 @@ sim_time = 0.0
 maximum_center_z = initial_center_z
 maximum_contacts = 0
 maximum_soft_contacts = 0
+maximum_robot_obstacle_contacts = 0
+object_obstacle_max_penetration = 0.0
 maximum_left_finger_soft_contacts = 0
 maximum_right_finger_soft_contacts = 0
 maximum_closed_left_loaded_soft_contacts = 0
@@ -474,6 +535,8 @@ print(
     f"particle_radius={float(model.particle_radius.numpy()[0]) if model.particle_count else 0.0:.4f} "
     f"robot_particle_colliders={robot_particle_colliders} "
     f"active_robot_colliders={active_robot_colliders} "
+    f"obstacles_enabled={bool(ENABLED_OBSTACLES)} "
+    f"obstacle_shapes={len(obstacle_shapes)} "
     f"robot_friction={CONTACT_FRICTION} strip_friction={STRIP_FRICTION} "
     f"ground_friction={GROUND_FRICTION} "
     f"density={DENSITY:.1f} youngs_modulus={YOUNGS_MODULUS:.1f} "
@@ -608,6 +671,10 @@ try:
                 collision.collide(state_0, contacts)
                 count = int(contacts.rigid_contact_count.numpy()[0])
                 maximum_contacts = max(maximum_contacts, count)
+                maximum_robot_obstacle_contacts = max(
+                    maximum_robot_obstacle_contacts,
+                    robot_obstacle_contact_count(contacts, count),
+                )
                 soft_count = int(contacts.soft_contact_count.numpy()[0])
                 maximum_soft_contacts = max(maximum_soft_contacts, soft_count)
                 solver.step(state_0, state_1, control, contacts, DT)
@@ -682,6 +749,10 @@ try:
                 current_particle_surface_penetration = soft_metrics[
                     "maximum_particle_surface_penetration_m"
                 ]
+                object_obstacle_max_penetration = max(
+                    object_obstacle_max_penetration,
+                    soft_metrics["maximum_object_obstacle_penetration_m"],
+                )
                 maximum_left_finger_soft_contacts = max(
                     maximum_left_finger_soft_contacts, left_soft_contacts
                 )
@@ -971,6 +1042,7 @@ try:
             next_state = now + 0.05
         time.sleep(0.001)
 finally:
+    wall_elapsed = time.monotonic() - wall_start
     measured_lift = (
         maximum_closed_grasp_z - prelift_grasp_z
         if prelift_grasp_z is not None else 0.0
@@ -996,6 +1068,10 @@ finally:
         "release_drop_m": release_drop,
         "minimum_strip_bottom_z_m": minimum_strip_bottom_z,
         "maximum_contact_count": maximum_contacts,
+        "obstacles_enabled": bool(ENABLED_OBSTACLES),
+        "obstacle_ids": [obstacle["id"] for obstacle in ENABLED_OBSTACLES],
+        "maximum_robot_obstacle_contacts": maximum_robot_obstacle_contacts,
+        "object_obstacle_max_penetration_m": object_obstacle_max_penetration,
         "maximum_soft_contact_count": maximum_soft_contacts,
         "maximum_left_finger_soft_contacts": maximum_left_finger_soft_contacts,
         "maximum_right_finger_soft_contacts": maximum_right_finger_soft_contacts,
@@ -1057,40 +1133,44 @@ finally:
         "maximum_mimic_error_rad": maximum_mimic_error,
         "finite_state": finite_state,
         "simulated_time_s": sim_time,
-        "wall_elapsed_s": time.monotonic() - wall_start,
-        "candidate_contact_grasp_pass": bool(
-            closed_seen
-            and lift_started
-            and release_seen
-            and measured_lift >= 0.08
-            and release_drop >= 0.05
-            and minimum_strip_bottom_z >= -MAX_ALLOWED_PENETRATION
-            and maximum_particle_surface_penetration <= MAX_ALLOWED_PENETRATION
-            and (
-                (
-                    FEM_MODE
-                    and maximum_closed_left_loaded_soft_contacts > 0
-                    and maximum_closed_right_loaded_soft_contacts > 0
-                    and maximum_lift_left_loaded_soft_contacts > 0
-                    and maximum_lift_right_loaded_soft_contacts > 0
-                    and bilateral_lift_soft_contact_samples > 0
+        "wall_elapsed_s": wall_elapsed,
+        "real_time_factor": sim_time / wall_elapsed if wall_elapsed > 0.0 else None,
+        "candidate_contact_grasp_pass": candidate_contact_grasp_pass(
+            bool(
+                closed_seen
+                and lift_started
+                and release_seen
+                and measured_lift >= 0.08
+                and release_drop >= 0.05
+                and minimum_strip_bottom_z >= -MAX_ALLOWED_PENETRATION
+                and maximum_particle_surface_penetration <= MAX_ALLOWED_PENETRATION
+                and (
+                    (
+                        FEM_MODE
+                        and maximum_closed_left_loaded_soft_contacts > 0
+                        and maximum_closed_right_loaded_soft_contacts > 0
+                        and maximum_lift_left_loaded_soft_contacts > 0
+                        and maximum_lift_right_loaded_soft_contacts > 0
+                        and bilateral_lift_soft_contact_samples > 0
+                    )
+                    or (
+                        ROD_MODE
+                        and maximum_closed_left_loaded_rigid_contacts > 0
+                        and maximum_closed_right_loaded_rigid_contacts > 0
+                        and maximum_lift_left_loaded_rigid_contacts > 0
+                        and maximum_lift_right_loaded_rigid_contacts > 0
+                        and bilateral_lift_rigid_contact_samples > 0
+                    )
+                    or (
+                        not FEM_MODE
+                        and not ROD_MODE
+                    )
                 )
-                or (
-                    ROD_MODE
-                    and maximum_closed_left_loaded_rigid_contacts > 0
-                    and maximum_closed_right_loaded_rigid_contacts > 0
-                    and maximum_lift_left_loaded_rigid_contacts > 0
-                    and maximum_lift_right_loaded_rigid_contacts > 0
-                    and bilateral_lift_rigid_contact_samples > 0
-                )
-                or (
-                    not FEM_MODE
-                    and not ROD_MODE
-                )
-            )
-            and command_queue_overflow_count == 0
-            and maximum_mimic_error <= 1.0e-5
-            and finite_state
+                and command_queue_overflow_count == 0
+                and maximum_mimic_error <= 1.0e-5
+                and finite_state
+            ),
+            maximum_robot_obstacle_contacts,
         ),
     }
     print("MOVEIT_GRASP_RESULT", json.dumps(result), flush=True)

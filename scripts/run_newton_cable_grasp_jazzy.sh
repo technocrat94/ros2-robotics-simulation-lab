@@ -31,6 +31,7 @@ if [[ -z "${GRASP_DEVICE:-}" ]]; then
 fi
 echo "NEWTON_DEVICE ${GRASP_DEVICE}"
 export NEWTON_ROBOT_URDF="${ASSET}"
+export NEWTON_OBSTACLE_CONFIG="${REPO_DIR}/config/obstacles.yaml"
 export GRASP_OBJECT_MODEL="rod_cable"
 # Radius 3 mm plus the validated 1 mm contact gap places the cable on the floor.
 export GRASP_STRIP_CENTER_Z="0.004"

@@ -1,0 +1,36 @@
+{
+  "checks": {
+    "disabled_control_planned": true,
+    "disabled_scene_clean": true,
+    "enabled_route_is_collision_free": false,
+    "enabled_same_target_planned": false,
+    "persistent_obstacle_removed": true,
+    "route_changed_because_of_box": false,
+    "route_metrics_present": false,
+    "staged_route_accepted": true,
+    "tall_obstacle_planning_failed": true,
+    "three_spatial_stages_100_percent": true
+  },
+  "disabled_route": {
+    "max_end_effector_height_m": 0.308775,
+    "min_robot_box_distance_m": -0.060276,
+    "samples": 26
+  },
+  "enabled_route": null,
+  "pass": false,
+  "safe_staged_route": {
+    "max_end_effector_height_m": 0.451119,
+    "min_robot_box_distance_m": 0.012481,
+    "samples": 57
+  },
+  "same_target_x_m": 0.2,
+  "staged_fractions_percent": {
+    "descend": 100.0,
+    "orient": 100.0,
+    "raise": 100.0,
+    "translate": 100.0
+  },
+  "step": "B_pure_moveit_planning_controls",
+  "tall_obstacle_plan_exit_status": 0,
+  "tested_commit": "3c42a6fcaf64233763cdda0b6759a68847a1c79a"
+}

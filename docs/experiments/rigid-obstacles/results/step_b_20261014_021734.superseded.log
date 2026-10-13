@@ -1,0 +1,160 @@
+STEP_B_NEGATIVE_CONTROL_DISABLED
+[INFO] [launch]: All log files can be found below /home/yuhao/.ros/log/2026-10-14-02-17-34-478619-robo-jazzy-51392
+[INFO] [launch]: Default logging verbosity is set to INFO
+WARNING:root:[33;21mCannot infer URDF from `/home/yuhao/ur5_ws/install_jazzy_port/ur5_moveit_demo/share/ur5_moveit_demo`. -- using config/ur.urdf[0m
+WARNING:root:[33;21mCannot infer SRDF from `/home/yuhao/ur5_ws/install_jazzy_port/ur5_moveit_demo/share/ur5_moveit_demo`. -- using config/ur.srdf[0m
+[INFO] [pick_at_position-1]: process started with pid [51395]
+[pick_at_position-1] [WARN] [1791915454.659211641] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[pick_at_position-1] [WARN] [1791915454.659559931] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+[pick_at_position-1] [WARN] [1791915454.683040775] [rcl.logging_rosout]: Publisher already registered for node name: 'pick_at_position'. If this is due to multiple nodes with the same name then all logs for the logger named 'pick_at_position' will go out over the existing publisher. As soon as any node with that name is destructed it will unregister the publisher, preventing any further logs for that name from being published on the rosout topic.
+[pick_at_position-1] [INFO] [1791915454.696243586] [pick_at_position.moveit.ros.rdf_loader]: Loaded robot model in 0.00447452 seconds
+[pick_at_position-1] [INFO] [1791915454.697180123] [pick_at_position.moveit.core.robot_model]: Loading robot model 'ur'...
+[pick_at_position-1] [INFO] [1791915454.697213956] [pick_at_position.moveit.core.robot_model]: No root/virtual joint specified in SRDF. Assuming fixed joint
+[pick_at_position-1] [INFO] [1791915454.718335437] [pick_at_position.moveit.kinematics.kdl_kinematics_plugin]: Joint weights for group 'ur_manipulator': 1 1 1 1 1 1
+[pick_at_position-1] [INFO] [1791915456.543268965] [pick_at_position.moveit.ros.move_group_interface]: Ready to take commands for planning group ur_manipulator.
+[pick_at_position-1] [INFO] [1791915456.546577491] [pick_at_position]: Planning frame: world
+[pick_at_position-1] [INFO] [1791915456.546589782] [pick_at_position]: OBJECT_TARGET source=parameters frame=world center=(0.2000, 0.1091, 0.0100) m
+[pick_at_position-1] [INFO] [1791915456.546594574] [pick_at_position]: GRASP_CONFIG offset=0.1090 m clearance=0.1500 m approach=0.1000 m lift=0.1200 m closed=0.3760 rad lift_velocity_scale=0.030
+[pick_at_position-1] [INFO] [1791915456.546598324] [pick_at_position]: GRASP_ORIENTATION roll=180.0 pitch=0.0 yaw=90.0 deg
+[pick_at_position-1] [INFO] [1791915456.636670677] [pick_at_position]: PLANNING_SCENE_FLOOR_ADDED size=3.00 m top_z=-0.0010 m
+[pick_at_position-1] [INFO] [1791915456.730840135] [pick_at_position]: PLANNING_SCENE_OBSTACLE_REMOVED id=grasp_route_box remove_response=true confirmed_absent=true
+[pick_at_position-1] [INFO] [1791915456.734505409] [pick_at_position]: PLANNING_SCENE_OBSTACLES_DISABLED scene_clean=true
+[pick_at_position-1] [INFO] [1791915456.734539200] [pick_at_position]: Absolute pre-grasp tool0 target: X=0.2000 Y=0.1091 Z=0.2690
+[pick_at_position-1] [INFO] [1791915456.734604617] [pick_at_position.moveit.ros.move_group_interface]: MoveGroup action client/server ready
+[pick_at_position-1] [INFO] [1791915456.735847569] [pick_at_position.moveit.ros.move_group_interface]: Planning request accepted
+[pick_at_position-1] [INFO] [1791915456.823320935] [pick_at_position.moveit.ros.move_group_interface]: Planning request complete!
+[pick_at_position-1] [INFO] [1791915456.824431721] [pick_at_position.moveit.ros.move_group_interface]: time taken to generate plan: 0.0783808 seconds
+[pick_at_position-1] [INFO] [1791915456.862949784] [pick_at_position]: PLANNED_ROUTE_METRICS stage="Absolute pre-grasp" samples=26 max_end_effector_height_m=0.308775 min_robot_box_distance_m=-0.060276 obstacle_id=grasp_route_box
+[pick_at_position-1] [INFO] [1791915456.863092533] [pick_at_position]: Absolute pre-grasp PLAN_ONLY_SUCCEEDED; preview published and no robot command was sent.
+[INFO] [pick_at_position-1]: process has finished cleanly [pid 51395]
+STEP_B_ENABLED_SAME_TARGET
+[INFO] [launch]: All log files can be found below /home/yuhao/.ros/log/2026-10-14-02-17-37-701122-robo-jazzy-51424
+[INFO] [launch]: Default logging verbosity is set to INFO
+WARNING:root:[33;21mCannot infer URDF from `/home/yuhao/ur5_ws/install_jazzy_port/ur5_moveit_demo/share/ur5_moveit_demo`. -- using config/ur.urdf[0m
+WARNING:root:[33;21mCannot infer SRDF from `/home/yuhao/ur5_ws/install_jazzy_port/ur5_moveit_demo/share/ur5_moveit_demo`. -- using config/ur.srdf[0m
+[INFO] [pick_at_position-1]: process started with pid [51427]
+[pick_at_position-1] [WARN] [1791915457.863628371] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[pick_at_position-1] [WARN] [1791915457.863965745] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+[pick_at_position-1] [WARN] [1791915457.876484684] [rcl.logging_rosout]: Publisher already registered for node name: 'pick_at_position'. If this is due to multiple nodes with the same name then all logs for the logger named 'pick_at_position' will go out over the existing publisher. As soon as any node with that name is destructed it will unregister the publisher, preventing any further logs for that name from being published on the rosout topic.
+[pick_at_position-1] [INFO] [1791915457.880236041] [pick_at_position.moveit.ros.rdf_loader]: Loaded robot model in 0.00167762 seconds
+[pick_at_position-1] [INFO] [1791915457.880400706] [pick_at_position.moveit.core.robot_model]: Loading robot model 'ur'...
+[pick_at_position-1] [INFO] [1791915457.880467539] [pick_at_position.moveit.core.robot_model]: No root/virtual joint specified in SRDF. Assuming fixed joint
+[pick_at_position-1] [INFO] [1791915457.886394886] [pick_at_position.moveit.kinematics.kdl_kinematics_plugin]: Joint weights for group 'ur_manipulator': 1 1 1 1 1 1
+[pick_at_position-1] [INFO] [1791915458.835073270] [pick_at_position.moveit.ros.move_group_interface]: Ready to take commands for planning group ur_manipulator.
+[pick_at_position-1] [INFO] [1791915458.838963709] [pick_at_position]: Planning frame: world
+[pick_at_position-1] [INFO] [1791915458.839128792] [pick_at_position]: OBJECT_TARGET source=parameters frame=world center=(0.2000, 0.1091, 0.0100) m
+[pick_at_position-1] [INFO] [1791915458.839134958] [pick_at_position]: GRASP_CONFIG offset=0.1090 m clearance=0.1500 m approach=0.1000 m lift=0.1200 m closed=0.3760 rad lift_velocity_scale=0.030
+[pick_at_position-1] [INFO] [1791915458.839139667] [pick_at_position]: GRASP_ORIENTATION roll=180.0 pitch=0.0 yaw=90.0 deg
+[pick_at_position-1] [INFO] [1791915458.846735005] [pick_at_position]: PLANNING_SCENE_FLOOR_ADDED size=3.00 m top_z=-0.0010 m
+[pick_at_position-1] [INFO] [1791915458.852579435] [pick_at_position]: PLANNING_SCENE_OBSTACLE_ADDED id=grasp_route_box frame=world center=(0.300,0.109,0.125) size=(0.100,0.240,0.250)
+[pick_at_position-1] [INFO] [1791915458.855042464] [pick_at_position]: Absolute pre-grasp tool0 target: X=0.2000 Y=0.1091 Z=0.2690
+[pick_at_position-1] [INFO] [1791915458.855102756] [pick_at_position.moveit.ros.move_group_interface]: MoveGroup action client/server ready
+[pick_at_position-1] [INFO] [1791915458.899968663] [pick_at_position.moveit.ros.move_group_interface]: Planning request accepted
+[pick_at_position-1] [INFO] [1791915458.955104478] [pick_at_position.moveit.ros.move_group_interface]: Planning request aborted
+[pick_at_position-1] [ERROR] [1791915458.955893307] [pick_at_position.moveit.ros.move_group_interface]: MoveGroupInterface::plan() failed or timeout reached
+[pick_at_position-1] [ERROR] [1791915458.955998515] [pick_at_position]: Absolute pre-grasp planning failed.
+[ERROR] [pick_at_position-1]: process has died [pid 51427, exit code 1, cmd '/home/yuhao/ur5_ws/install_jazzy_port/ur5_moveit_demo/lib/ur5_moveit_demo/pick_at_position --ros-args -r __node:=pick_at_position --params-file /tmp/launch_params_bdzae6yr --params-file /tmp/launch_params_etbwryf4 --params-file /tmp/launch_params_7wohszmk --params-file /tmp/launch_params_2rvak0_7 --params-file /tmp/launch_params_obl0o_lr --params-file /tmp/launch_params_1fdhscat --params-file /tmp/launch_params_mcujnydt --params-file /tmp/launch_params_uinh1n1k --params-file /tmp/launch_params_rgkrd63g --params-file /tmp/launch_params_pzp55gzj --params-file /tmp/launch_params_s6npurbb --params-file /tmp/launch_params_wpehlk2u --params-file /tmp/launch_params_y38x8002 --params-file /tmp/launch_params_elsyq_tm --params-file /tmp/launch_params_ceiy6rqd --params-file /tmp/launch_params_xftq7_5e --params-file /tmp/launch_params__matz2ln --params-file /tmp/launch_params_8314zbm8 --params-file /tmp/launch_params_8hiqobr8 --params-file /tmp/launch_params_ndet66n0'].
+STEP_B_THREE_SPATIAL_STAGE_PREVIEW
+[INFO] [launch]: All log files can be found below /home/yuhao/.ros/log/2026-10-14-02-17-39-269190-robo-jazzy-51446
+[INFO] [launch]: Default logging verbosity is set to INFO
+WARNING:root:[33;21mCannot infer URDF from `/home/yuhao/ur5_ws/install_jazzy_port/ur5_moveit_demo/share/ur5_moveit_demo`. -- using config/ur.urdf[0m
+WARNING:root:[33;21mCannot infer SRDF from `/home/yuhao/ur5_ws/install_jazzy_port/ur5_moveit_demo/share/ur5_moveit_demo`. -- using config/ur.srdf[0m
+[INFO] [pick_at_position-1]: process started with pid [51449]
+[pick_at_position-1] [WARN] [1791915459.417058106] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[pick_at_position-1] [WARN] [1791915459.417407188] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+[pick_at_position-1] [WARN] [1791915459.427717596] [rcl.logging_rosout]: Publisher already registered for node name: 'pick_at_position'. If this is due to multiple nodes with the same name then all logs for the logger named 'pick_at_position' will go out over the existing publisher. As soon as any node with that name is destructed it will unregister the publisher, preventing any further logs for that name from being published on the rosout topic.
+[pick_at_position-1] [INFO] [1791915459.431277787] [pick_at_position.moveit.ros.rdf_loader]: Loaded robot model in 0.00136012 seconds
+[pick_at_position-1] [INFO] [1791915459.431324453] [pick_at_position.moveit.core.robot_model]: Loading robot model 'ur'...
+[pick_at_position-1] [INFO] [1791915459.431331578] [pick_at_position.moveit.core.robot_model]: No root/virtual joint specified in SRDF. Assuming fixed joint
+[pick_at_position-1] [INFO] [1791915459.437704172] [pick_at_position.moveit.kinematics.kdl_kinematics_plugin]: Joint weights for group 'ur_manipulator': 1 1 1 1 1 1
+[pick_at_position-1] [INFO] [1791915461.838950333] [pick_at_position.moveit.ros.move_group_interface]: Ready to take commands for planning group ur_manipulator.
+[pick_at_position-1] [INFO] [1791915461.843090479] [pick_at_position]: Planning frame: world
+[pick_at_position-1] [INFO] [1791915461.843117646] [pick_at_position]: OBJECT_TARGET source=parameters frame=world center=(0.2000, 0.1091, 0.0100) m
+[pick_at_position-1] [INFO] [1791915461.843122979] [pick_at_position]: GRASP_CONFIG offset=0.1090 m clearance=0.1500 m approach=0.1000 m lift=0.1200 m closed=0.3760 rad lift_velocity_scale=0.030
+[pick_at_position-1] [INFO] [1791915461.843126521] [pick_at_position]: GRASP_ORIENTATION roll=180.0 pitch=0.0 yaw=90.0 deg
+[pick_at_position-1] [INFO] [1791915461.854081634] [pick_at_position]: PLANNING_SCENE_FLOOR_ADDED size=3.00 m top_z=-0.0010 m
+[pick_at_position-1] [INFO] [1791915461.885526773] [pick_at_position]: PLANNING_SCENE_OBSTACLE_ADDED id=grasp_route_box frame=world center=(0.300,0.109,0.125) size=(0.100,0.240,0.250)
+[pick_at_position-1] [INFO] [1791915461.890990455] [pick_at_position.moveit.ros.current_state_monitor]: Listening to joint states on topic 'joint_states'
+[pick_at_position-1] [INFO] [1791915461.894887811] [pick_at_position]: SAFE_PREGRASP_ROUTE current=(0.488, 0.116, 0.301) safe_z=0.451 target=(0.200, 0.109, 0.269)
+[pick_at_position-1] [INFO] [1791915461.908554453] [pick_at_position]: SAFE_PREGRASP_STAGE_FRACTION stage=raise prefix=100.0%
+[pick_at_position-1] [INFO] [1791915461.917006287] [pick_at_position]: SAFE_PREGRASP_STAGE_FRACTION stage=orient prefix=100.0%
+[pick_at_position-1] [INFO] [1791915461.942876119] [pick_at_position]: SAFE_PREGRASP_STAGE_FRACTION stage=translate prefix=100.0%
+[pick_at_position-1] [INFO] [1791915461.985816535] [pick_at_position]: SAFE_PREGRASP_STAGE_FRACTION stage=descend prefix=100.0%
+[pick_at_position-1] [INFO] [1791915462.029551073] [pick_at_position]: Safe pre-grasp Cartesian path completed: 100.0%
+[pick_at_position-1] [INFO] [1791915462.029578406] [pick_at_position]: SAFE_PREGRASP_JOINT_TRAVEL joint=shoulder_pan_joint cumulative=0.546 rad limit=1.600 rad max_step=0.047 rad
+[pick_at_position-1] [INFO] [1791915462.029582406] [pick_at_position]: SAFE_PREGRASP_JOINT_TRAVEL joint=shoulder_lift_joint cumulative=0.831 rad limit=1.600 rad max_step=0.047 rad
+[pick_at_position-1] [INFO] [1791915462.029585281] [pick_at_position]: SAFE_PREGRASP_JOINT_TRAVEL joint=elbow_joint cumulative=1.587 rad limit=1.600 rad max_step=0.047 rad
+[pick_at_position-1] [INFO] [1791915462.029587698] [pick_at_position]: SAFE_PREGRASP_JOINT_TRAVEL joint=wrist_1_joint cumulative=1.019 rad limit=1.600 rad max_step=0.047 rad
+[pick_at_position-1] [INFO] [1791915462.029590156] [pick_at_position]: SAFE_PREGRASP_JOINT_TRAVEL joint=wrist_2_joint cumulative=0.000 rad limit=1.600 rad max_step=0.000 rad
+[pick_at_position-1] [INFO] [1791915462.029592489] [pick_at_position]: SAFE_PREGRASP_JOINT_TRAVEL joint=wrist_3_joint cumulative=0.546 rad limit=3.250 rad max_step=0.047 rad
+[pick_at_position-1] [INFO] [1791915462.069035881] [pick_at_position]: PLANNED_ROUTE_METRICS stage="safe_staged_pregrasp" samples=57 max_end_effector_height_m=0.451119 min_robot_box_distance_m=0.012481 obstacle_id=grasp_route_box
+[pick_at_position-1] [INFO] [1791915462.069231005] [pick_at_position]: SAFE_PREGRASP_PLAN_ONLY_SUCCEEDED; four-stage preview published; no robot command was sent.
+[INFO] [pick_at_position-1]: process has finished cleanly [pid 51449]
+STEP_B_TALL_OBSTACLE_NEGATIVE_CONTROL
+[INFO] [launch]: All log files can be found below /home/yuhao/.ros/log/2026-10-14-02-17-42-891032-robo-jazzy-51467
+[INFO] [launch]: Default logging verbosity is set to INFO
+WARNING:root:[33;21mCannot infer URDF from `/home/yuhao/ur5_ws/install_jazzy_port/ur5_moveit_demo/share/ur5_moveit_demo`. -- using config/ur.urdf[0m
+WARNING:root:[33;21mCannot infer SRDF from `/home/yuhao/ur5_ws/install_jazzy_port/ur5_moveit_demo/share/ur5_moveit_demo`. -- using config/ur.srdf[0m
+[INFO] [pick_at_position-1]: process started with pid [51470]
+[pick_at_position-1] [WARN] [1791915463.038174965] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[pick_at_position-1] [WARN] [1791915463.038220090] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+[pick_at_position-1] [WARN] [1791915463.048464373] [rcl.logging_rosout]: Publisher already registered for node name: 'pick_at_position'. If this is due to multiple nodes with the same name then all logs for the logger named 'pick_at_position' will go out over the existing publisher. As soon as any node with that name is destructed it will unregister the publisher, preventing any further logs for that name from being published on the rosout topic.
+[pick_at_position-1] [INFO] [1791915463.053862056] [pick_at_position.moveit.ros.rdf_loader]: Loaded robot model in 0.00168299 seconds
+[pick_at_position-1] [INFO] [1791915463.054053513] [pick_at_position.moveit.core.robot_model]: Loading robot model 'ur'...
+[pick_at_position-1] [INFO] [1791915463.054061305] [pick_at_position.moveit.core.robot_model]: No root/virtual joint specified in SRDF. Assuming fixed joint
+[pick_at_position-1] [INFO] [1791915463.062213932] [pick_at_position.moveit.kinematics.kdl_kinematics_plugin]: Joint weights for group 'ur_manipulator': 1 1 1 1 1 1
+[pick_at_position-1] [INFO] [1791915464.270452565] [pick_at_position.moveit.ros.move_group_interface]: Ready to take commands for planning group ur_manipulator.
+[pick_at_position-1] [INFO] [1791915464.273556550] [pick_at_position]: Planning frame: world
+[pick_at_position-1] [INFO] [1791915464.273566300] [pick_at_position]: OBJECT_TARGET source=parameters frame=world center=(0.2000, 0.1091, 0.0100) m
+[pick_at_position-1] [INFO] [1791915464.273571842] [pick_at_position]: GRASP_CONFIG offset=0.1090 m clearance=0.1500 m approach=0.1000 m lift=0.1200 m closed=0.3760 rad lift_velocity_scale=0.030
+[pick_at_position-1] [INFO] [1791915464.273575258] [pick_at_position]: GRASP_ORIENTATION roll=180.0 pitch=0.0 yaw=90.0 deg
+[pick_at_position-1] [INFO] [1791915464.286902277] [pick_at_position]: PLANNING_SCENE_FLOOR_ADDED size=3.00 m top_z=-0.0010 m
+[pick_at_position-1] [INFO] [1791915464.378889622] [pick_at_position]: PLANNING_SCENE_OBSTACLE_ADDED id=grasp_route_box frame=world center=(0.300,0.109,1.000) size=(0.100,4.000,2.000)
+[pick_at_position-1] [INFO] [1791915464.381319402] [pick_at_position]: Absolute pre-grasp tool0 target: X=0.2000 Y=0.1091 Z=0.2690
+[pick_at_position-1] [INFO] [1791915464.381361777] [pick_at_position.moveit.ros.move_group_interface]: MoveGroup action client/server ready
+[pick_at_position-1] [INFO] [1791915464.382975769] [pick_at_position.moveit.ros.move_group_interface]: Planning request accepted
+[pick_at_position-1] [INFO] [1791915464.386503835] [pick_at_position.moveit.ros.move_group_interface]: Planning request aborted
+[pick_at_position-1] [ERROR] [1791915464.386965249] [pick_at_position.moveit.ros.move_group_interface]: MoveGroupInterface::plan() failed or timeout reached
+[pick_at_position-1] [ERROR] [1791915464.387004041] [pick_at_position]: Absolute pre-grasp planning failed.
+[ERROR] [pick_at_position-1]: process has died [pid 51470, exit code 1, cmd '/home/yuhao/ur5_ws/install_jazzy_port/ur5_moveit_demo/lib/ur5_moveit_demo/pick_at_position --ros-args -r __node:=pick_at_position --params-file /tmp/launch_params_2hi7lv3w --params-file /tmp/launch_params_qe2hkypq --params-file /tmp/launch_params_bup1wvlw --params-file /tmp/launch_params_3j4c310e --params-file /tmp/launch_params_ly6owy5a --params-file /tmp/launch_params_2hkd62kl --params-file /tmp/launch_params_dicctpbh --params-file /tmp/launch_params_o1_0xjeg --params-file /tmp/launch_params__goofz1q --params-file /tmp/launch_params_zc41k4mr --params-file /tmp/launch_params_aejsqssi --params-file /tmp/launch_params_zi43rpjv --params-file /tmp/launch_params_v7d8iwln --params-file /tmp/launch_params_5076jo8i --params-file /tmp/launch_params_z7omc_p3 --params-file /tmp/launch_params_20rnuxhn --params-file /tmp/launch_params_ujelyu_0 --params-file /tmp/launch_params_641hipk8 --params-file /tmp/launch_params_l78mxa9w --params-file /tmp/launch_params_8rc3ca26'].
+TALL_OBSTACLE_LAUNCH_EXIT_STATUS 0
+TALL_OBSTACLE_PLANNING_FAILED true
+STEP_B_DISABLED_CLEANUP_DEFAULT_PICK
+[INFO] [launch]: All log files can be found below /home/yuhao/.ros/log/2026-10-14-02-17-44-705554-robo-jazzy-51490
+[INFO] [launch]: Default logging verbosity is set to INFO
+WARNING:root:[33;21mCannot infer URDF from `/home/yuhao/ur5_ws/install_jazzy_port/ur5_moveit_demo/share/ur5_moveit_demo`. -- using config/ur.urdf[0m
+WARNING:root:[33;21mCannot infer SRDF from `/home/yuhao/ur5_ws/install_jazzy_port/ur5_moveit_demo/share/ur5_moveit_demo`. -- using config/ur.srdf[0m
+[INFO] [pick_at_position-1]: process started with pid [51493]
+[pick_at_position-1] [WARN] [1791915464.876744539] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[pick_at_position-1] [WARN] [1791915464.877082662] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+[pick_at_position-1] [WARN] [1791915464.886896698] [rcl.logging_rosout]: Publisher already registered for node name: 'pick_at_position'. If this is due to multiple nodes with the same name then all logs for the logger named 'pick_at_position' will go out over the existing publisher. As soon as any node with that name is destructed it will unregister the publisher, preventing any further logs for that name from being published on the rosout topic.
+[pick_at_position-1] [INFO] [1791915464.891086011] [pick_at_position.moveit.ros.rdf_loader]: Loaded robot model in 0.00166766 seconds
+[pick_at_position-1] [INFO] [1791915464.891311135] [pick_at_position.moveit.core.robot_model]: Loading robot model 'ur'...
+[pick_at_position-1] [INFO] [1791915464.891372384] [pick_at_position.moveit.core.robot_model]: No root/virtual joint specified in SRDF. Assuming fixed joint
+[pick_at_position-1] [INFO] [1791915464.897357855] [pick_at_position.moveit.kinematics.kdl_kinematics_plugin]: Joint weights for group 'ur_manipulator': 1 1 1 1 1 1
+[pick_at_position-1] [INFO] [1791915467.836181558] [pick_at_position.moveit.ros.move_group_interface]: Ready to take commands for planning group ur_manipulator.
+[pick_at_position-1] [INFO] [1791915467.840083831] [pick_at_position]: Planning frame: world
+[pick_at_position-1] [INFO] [1791915467.840205664] [pick_at_position]: OBJECT_TARGET source=parameters frame=world center=(0.4869, 0.1091, 0.0100) m
+[pick_at_position-1] [INFO] [1791915467.840262622] [pick_at_position]: GRASP_CONFIG offset=0.1090 m clearance=0.1500 m approach=0.1000 m lift=0.1200 m closed=0.3760 rad lift_velocity_scale=0.030
+[pick_at_position-1] [INFO] [1791915467.840266955] [pick_at_position]: GRASP_ORIENTATION roll=180.0 pitch=0.0 yaw=90.0 deg
+[pick_at_position-1] [INFO] [1791915467.849908533] [pick_at_position]: PLANNING_SCENE_FLOOR_ADDED size=3.00 m top_z=-0.0010 m
+[pick_at_position-1] [INFO] [1791915467.860945938] [pick_at_position]: PLANNING_SCENE_OBSTACLE_REMOVED id=grasp_route_box remove_response=true confirmed_absent=true
+[pick_at_position-1] [INFO] [1791915467.864034007] [pick_at_position]: PLANNING_SCENE_OBSTACLES_DISABLED scene_clean=true
+[pick_at_position-1] [INFO] [1791915467.865171168] [pick_at_position.moveit.ros.current_state_monitor]: Listening to joint states on topic 'joint_states'
+[pick_at_position-1] [INFO] [1791915467.870829057] [pick_at_position]: SAFE_PREGRASP_ROUTE current=(0.488, 0.116, 0.301) safe_z=0.351 target=(0.487, 0.109, 0.269)
+[pick_at_position-1] [INFO] [1791915467.876921694] [pick_at_position]: SAFE_PREGRASP_STAGE_FRACTION stage=raise prefix=100.0%
+[pick_at_position-1] [INFO] [1791915467.882461876] [pick_at_position]: SAFE_PREGRASP_STAGE_FRACTION stage=orient prefix=100.0%
+[pick_at_position-1] [INFO] [1791915467.887337852] [pick_at_position]: SAFE_PREGRASP_STAGE_FRACTION stage=translate prefix=100.0%
+[pick_at_position-1] [INFO] [1791915467.895184522] [pick_at_position]: SAFE_PREGRASP_STAGE_FRACTION stage=descend prefix=100.0%
+[pick_at_position-1] [INFO] [1791915467.902854777] [pick_at_position]: Safe pre-grasp Cartesian path completed: 100.0%
+[pick_at_position-1] [INFO] [1791915467.902876860] [pick_at_position]: SAFE_PREGRASP_JOINT_TRAVEL joint=shoulder_pan_joint cumulative=0.012 rad limit=1.600 rad max_step=0.005 rad
+[pick_at_position-1] [INFO] [1791915467.902880777] [pick_at_position]: SAFE_PREGRASP_JOINT_TRAVEL joint=shoulder_lift_joint cumulative=0.062 rad limit=1.600 rad max_step=0.007 rad
+[pick_at_position-1] [INFO] [1791915467.902883652] [pick_at_position]: SAFE_PREGRASP_JOINT_TRAVEL joint=elbow_joint cumulative=0.264 rad limit=1.600 rad max_step=0.029 rad
+[pick_at_position-1] [INFO] [1791915467.902886110] [pick_at_position]: SAFE_PREGRASP_JOINT_TRAVEL joint=wrist_1_joint cumulative=0.315 rad limit=1.600 rad max_step=0.036 rad
+[pick_at_position-1] [INFO] [1791915467.902888401] [pick_at_position]: SAFE_PREGRASP_JOINT_TRAVEL joint=wrist_2_joint cumulative=0.000 rad limit=1.600 rad max_step=0.000 rad
+[pick_at_position-1] [INFO] [1791915467.902890693] [pick_at_position]: SAFE_PREGRASP_JOINT_TRAVEL joint=wrist_3_joint cumulative=0.012 rad limit=3.250 rad max_step=0.005 rad
+[pick_at_position-1] [INFO] [1791915467.920935856] [pick_at_position]: PLANNED_ROUTE_METRICS stage="safe_staged_pregrasp" samples=20 max_end_effector_height_m=0.350758 min_robot_box_distance_m=0.067796 obstacle_id=grasp_route_box
+[pick_at_position-1] [INFO] [1791915467.921050188] [pick_at_position]: SAFE_PREGRASP_PLAN_ONLY_SUCCEEDED; four-stage preview published; no robot command was sent.
+[INFO] [pick_at_position-1]: process has finished cleanly [pid 51493]
+RIGID_OBSTACLE_PLAN_RESULT_JSON /home/yuhao/ur5_ws/run_logs/rigid_obstacle_step_b_20261014_021734.result.json
+RIGID_OBSTACLE_PLAN_RESULT {"checks": {"disabled_control_planned": true, "disabled_scene_clean": true, "enabled_route_is_collision_free": false, "enabled_same_target_planned": false, "persistent_obstacle_removed": true, "route_changed_because_of_box": false, "route_metrics_present": false, "staged_route_accepted": true, "tall_obstacle_planning_failed": true, "three_spatial_stages_100_percent": true}, "disabled_route": {"max_end_effector_height_m": 0.308775, "min_robot_box_distance_m": -0.060276, "samples": 26}, "enabled_route": null, "pass": false, "safe_staged_route": {"max_end_effector_height_m": 0.451119, "min_robot_box_distance_m": 0.012481, "samples": 57}, "same_target_x_m": 0.2, "staged_fractions_percent": {"descend": 100.0, "orient": 100.0, "raise": 100.0, "translate": 100.0}, "step": "B_pure_moveit_planning_controls", "tall_obstacle_plan_exit_status": 0, "tested_commit": "3c42a6fcaf64233763cdda0b6759a68847a1c79a"}

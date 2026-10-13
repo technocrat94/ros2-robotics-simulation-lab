@@ -1,0 +1,27 @@
+{
+  "checks": {
+    "finite_state": true,
+    "maximum_particle_penetration_under_1mm": true,
+    "settled": true,
+    "soft_contact_candidates_observed": true,
+    "used_fem_strip": true
+  },
+  "device": "cpu",
+  "last_window_center_z_range_m": 0.0009797364473342896,
+  "maximum_particle_penetration_m": 0.0002131054876372135,
+  "maximum_soft_contact_candidates": 220,
+  "model_soft_contact_kd_n_s_m": 10.0,
+  "model_soft_contact_ke_n_m": 1000.0,
+  "model_soft_contact_mu": 10.0,
+  "object_model": "fem_strip",
+  "obstacle_id": "grasp_route_box",
+  "obstacle_shape_index": 0,
+  "particles": 252,
+  "pass": true,
+  "real_time_factor": 0.1754543682761826,
+  "simulated_time_s": 8.716666666667216,
+  "step": "A1_fem_strip_obstacle_drop",
+  "tested_commit": "a6d2af3fa97bfbc2955e97427e6371132ddd2df0",
+  "tetrahedra": 600,
+  "wall_elapsed_s": 49.68053376104217
+}

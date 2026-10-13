@@ -30,6 +30,7 @@ if [[ -z "${GRASP_DEVICE:-}" ]]; then
 fi
 echo "NEWTON_DEVICE ${GRASP_DEVICE}"
 export NEWTON_ROBOT_URDF="${ASSET}"
+export NEWTON_OBSTACLE_CONFIG="${REPO_DIR}/config/obstacles.yaml"
 export GRASP_STRIP_CENTER_Z="0.01"
 export GRASP_POSITION="center"
 export GRASP_FRICTION="10"
