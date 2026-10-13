@@ -1,57 +1,106 @@
-# Rigid-obstacle milestone: Steps A and B
+# Rigid-obstacle milestone: corrected Steps A and B plus Newton integration
 
-This directory records the isolated checks requested before integrating an
-obstacle into the complete Newton/ROS grasp loop.  Both checks used commit
-`c15ace47daf7433b757d49fd5e25a2d4ab2424e4` on the home ARM64 Jazzy machine.
+This milestone stops before Step C.  It validates the obstacle physics,
+planning controls, planning-scene cleanup, and Newton endpoint integration
+without claiming a complete grasp around an obstacle.
 
-The shared definition is [`config/obstacles.yaml`](../../../config/obstacles.yaml).
-It deliberately has `enabled: false`, so the verified FEM grasp remains the
-default.  Each experiment enables the box explicitly.
+The single source of truth is
+[`config/obstacles.yaml`](../../../config/obstacles.yaml).  Obstacles remain
+disabled by default, so the existing grasp scene is unchanged unless a test
+explicitly enables them.
 
-## Step A — pure Newton physics
+## Step A0 — rigid-sphere smoke test
 
-Command:
-
-```bash
-./scripts/run_newton_rigid_obstacle_drop.sh
-```
-
-This test does not start ROS.  It drops a sphere onto the configured static box
-using a 1/600 s Newton step and checks that the sphere settles, remains finite,
-and penetrates by less than 1 mm.
-
-Result: [`step_a_newton_cpu_arm64.json`](results/step_a_newton_cpu_arm64.json)
+The retained A0 test drops a rigid sphere onto the configured static box.  On
+home ARM64 CPU, commit `a6d2af3fa97bfbc2955e97427e6371132ddd2df0` passed:
 
 - maximum penetration: `0.0 m`
-- last-window vertical range: `0.0 m`
-- simulated/wall time: `4.017 / 6.067 s`
-- real-time factor: `0.662`
-- all checks: pass
+- settled and finite: `true`
+- real-time factor: `0.686`
 
-## Step B — pure MoveIt planning
+Result: [`step_a0_sphere_cpu_arm64.json`](results/step_a0_sphere_cpu_arm64.json)
 
-Prerequisite: run the existing Jazzy robot/MoveIt bringup.  Then run:
+## Step A1 — FEM-strip contact test
 
-```bash
-./scripts/run_moveit_rigid_obstacle_preview_jazzy.sh
-```
+A0 cannot validate VBD soft contact.  A1 therefore drops the FEM strip
+(`252` particles, `600` tetrahedra) onto the same box using full-surface
+rigid-soft contact.  Its contact law comes from `model.soft_contact_ke`,
+`model.soft_contact_kd`, and `model.soft_contact_mu`; the box's rigid-body
+`ke/kd` values do not substitute for them.
 
-The preview target is intentionally moved to `x=0.20 m`, on the opposite side
-of the box from the initial tool pose.  The script first asks OMPL for a
-collision-free plan, then verifies the explicit raised route.  Its three
-spatial segments are raise, translate over the box, and descend; orientation is
-reported separately.  Both runs are plan-only and send no controller command.
+The run stopped automatically after the one-second center-height range fell
+below the settling threshold:
 
-Results:
+- soft-contact candidates observed: `220`
+- maximum particle penetration: `0.000213 m` (`0.213 mm`, below `1 mm`)
+- settling time / wall time: `8.717 / 49.681 s`
+- finite and settled: `true`
 
-- [`step_b_moveit_jazzy_arm64.json`](results/step_b_moveit_jazzy_arm64.json)
-- [`step_b_moveit_jazzy_arm64.log`](results/step_b_moveit_jazzy_arm64.log)
+Result: [`step_a1_fem_strip_cpu_arm64.json`](results/step_a1_fem_strip_cpu_arm64.json)
 
-OMPL succeeded, all three spatial stages and the orientation stage reported
-100%, the complete route was accepted, and the existing joint-travel limits
-were not relaxed.
+## Step B — MoveIt positive and negative controls
+
+All Step B cases used one unchanged MoveIt bringup and target `x=0.20 m`.
+Commit `9695193eb107b31ebaff6d795a16b879071af87e` produced:
+
+| Case | Maximum tool height | Minimum robot-to-box distance | Outcome |
+|---|---:|---:|---|
+| Box disabled | `0.308737 m` | `-0.060328 m` | route succeeds but intersects the hypothetical box |
+| Box enabled, OMPL | `0.401116 m` | `0.003664 m` | route changes and remains clear |
+| Box enabled, explicit safe route | `0.451119 m` | `0.012481 m` | all spatial stages reach 100% |
+
+This is the required causal control: the target is identical, while the
+enabled scene produces a higher route and positive clearance.
+
+A second negative control replaced the box with a wall from `z=0` to `2 m`
+and `4 m` across Y.  The requested pose is separated by a barrier taller than
+the reachable safe-transit height, and planning failed.  The test rejects any
+run that prints `PLAN_ONLY_SUCCEEDED` for this wall.
+
+Finally, after enabled and tall-wall runs, a default disabled run sent a
+`CollisionObject::REMOVE` for `grasp_route_box`.  The planning-scene query
+reported `confirmed_absent=true`; this prevents an object from persisting in
+`move_group` across node runs.
+
+- machine-readable result:
+  [`step_b_moveit_controls_jazzy_arm64.json`](results/step_b_moveit_controls_jazzy_arm64.json)
+- complete log:
+  [`step_b_moveit_controls_jazzy_arm64.log`](results/step_b_moveit_controls_jazzy_arm64.log)
+
+## Newton endpoint integration before Step C
+
+When `enabled=false`, `build_scene()` receives no obstacle, adds no shape, and
+the endpoint reports:
+
+- `obstacles_enabled=false`
+- `obstacle_shapes=0`
+- `maximum_robot_obstacle_contacts=0`
+- `object_obstacle_max_penetration_m=0.0`
+
+When enabled, the endpoint reads the same config, creates one static box with
+rigid and particle collision enabled, and deliberately adds no robot-obstacle
+filter.  The smoke run reports `obstacle_shapes=1`,
+`maximum_robot_obstacle_contacts=0`, and
+`object_obstacle_max_penetration_m=0.012690`.
+
+That last value is diagnostic rather than a pass claim: the Step B route box
+overlaps part of the strip's initial ground pose.  The new metric exposes this
+condition before Step C instead of silently hiding it.
+
+- enabled: [`JSON`](results/newton_endpoint_obstacles_enabled_cpu_arm64.json),
+  [`log`](results/newton_endpoint_obstacles_enabled_cpu_arm64.log)
+- disabled: [`JSON`](results/newton_endpoint_obstacles_disabled_cpu_arm64.json),
+  [`log`](results/newton_endpoint_obstacles_disabled_cpu_arm64.log)
+
+## Configuration and CI guards
+
+- `pick_at_position.cpp` has no numeric obstacle fallbacks.  All obstacle
+  parameters must be supplied by the launch/config path.
+- CI rejects every configured box dimension below `0.01 m`, reducing the risk
+  of one-step tunneling.
+- The earlier provenance guard in commit `8342375` remains unchanged.
 
 ## Scope boundary
 
-Step C has not started.  The Newton grasp endpoint does not yet create this
-obstacle, and no complete grasp-with-obstacle claim is made here.
+Step C has not been run.  No complete grasp-with-obstacle success claim is
+made by this milestone.

@@ -17,10 +17,10 @@
   "obstacle_id": "grasp_route_box",
   "obstacle_shape_index": 0,
   "obstacle_top_z_m": 0.25,
-  "real_time_factor": 0.6620001409825591,
+  "real_time_factor": 0.6862006400629627,
   "simulated_time_s": 4.016666666666658,
   "sphere_radius_m": 0.05,
   "step": "A_pure_newton_physics",
-  "tested_commit": "c15ace47daf7433b757d49fd5e25a2d4ab2424e4",
-  "wall_elapsed_s": 6.067471013986506
+  "tested_commit": "a6d2af3fa97bfbc2955e97427e6371132ddd2df0",
+  "wall_elapsed_s": 5.853487204993144
 }
