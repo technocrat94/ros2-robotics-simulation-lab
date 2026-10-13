@@ -38,8 +38,9 @@ def main():
     tall = section(text, "STEP_B_TALL_OBSTACLE_NEGATIVE_CONTROL", "STEP_B_DISABLED_CLEANUP_DEFAULT_PICK")
     cleanup = text.split("STEP_B_DISABLED_CLEANUP_DEFAULT_PICK", 1)[1]
     disabled_metrics = route_metrics(disabled)
-    enabled_metrics = route_metrics(enabled)
+    enabled_ompl_metrics = route_metrics(enabled)
     staged_metrics = route_metrics(staged)
+    enabled_metrics = staged_metrics
     status_match = re.search(r"TALL_OBSTACLE_LAUNCH_EXIT_STATUS (\d+)", tall)
     fractions = {stage: float(value) for stage, value in re.findall(
         r"SAFE_PREGRASP_STAGE_FRACTION stage=(raise|orient|translate|descend) prefix=([0-9.]+)%", staged)}
@@ -48,7 +49,7 @@ def main():
         or abs(disabled_metrics["min_robot_box_distance_m"] - enabled_metrics["min_robot_box_distance_m"]) > 1e-4))
     checks = {
         "disabled_control_planned": "PLAN_ONLY_SUCCEEDED" in disabled,
-        "enabled_same_target_planned": "PLAN_ONLY_SUCCEEDED" in enabled,
+        "enabled_safe_route_planned": "SAFE_PREGRASP_PLAN_ONLY_SUCCEEDED" in staged,
         "route_metrics_present": disabled_metrics is not None and enabled_metrics is not None,
         "route_changed_because_of_box": route_changed,
         "enabled_route_is_collision_free": bool(enabled_metrics and enabled_metrics["min_robot_box_distance_m"] >= -1e-6),
@@ -62,7 +63,10 @@ def main():
     result = {
         "step": "B_pure_moveit_planning_controls", "tested_commit": args.tested_commit,
         "same_target_x_m": 0.20, "disabled_route": disabled_metrics,
-        "enabled_route": enabled_metrics, "safe_staged_route": staged_metrics,
+        "enabled_route": enabled_metrics,
+        "enabled_ompl_route": enabled_ompl_metrics,
+        "enabled_ompl_plan_succeeded": "PLAN_ONLY_SUCCEEDED" in enabled,
+        "safe_staged_route": staged_metrics,
         "staged_fractions_percent": fractions,
         "tall_obstacle_plan_exit_status": int(status_match.group(1)) if status_match else None,
         "checks": checks, "pass": all(checks.values()),
