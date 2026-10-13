@@ -86,6 +86,7 @@ bool report_route_metrics(
   const moveit_msgs::msg::RobotState & start_state_message,
   const moveit_msgs::msg::RobotTrajectory & trajectory_message,
   const ObstacleBox & obstacle,
+  double robot_padding_m,
   const std::string & stage_name)
 {
   moveit::core::RobotState start_state(move_group.getRobotModel());
@@ -100,6 +101,7 @@ bool report_route_metrics(
   }
 
   planning_scene::PlanningScene analysis_scene(move_group.getRobotModel());
+  analysis_scene.getCollisionEnvNonConst()->setPadding(robot_padding_m);
   auto collision_object = make_box_obstacle(obstacle);
   collision_object.operation = moveit_msgs::msg::CollisionObject::ADD;
   if (!analysis_scene.processCollisionObjectMsg(collision_object))
@@ -583,6 +585,7 @@ bool move_staged_cartesian_to_pose(
   double maximum_joint_travel,
   double maximum_wrist_3_travel,
   double velocity_scaling,
+  double robot_padding_m,
   bool execute_motion,
   const std::optional<ObstacleBox> & analysis_obstacle = std::nullopt)
 {
@@ -721,7 +724,7 @@ bool move_staged_cartesian_to_pose(
 
   if (analysis_obstacle && !report_route_metrics(
       move_group, logger, plan.start_state, plan.trajectory,
-      *analysis_obstacle, "safe_staged_pregrasp"))
+      *analysis_obstacle, robot_padding_m, "safe_staged_pregrasp"))
   {
     return false;
   }
@@ -854,6 +857,7 @@ bool move_to_pose_target(
   const rclcpp::Logger & logger,
   const geometry_msgs::msg::Pose & target,
   const std::string & stage_name,
+  double robot_padding_m,
   bool execute_motion = true,
   const std::optional<ObstacleBox> & analysis_obstacle = std::nullopt)
 {
@@ -877,7 +881,7 @@ bool move_to_pose_target(
 
   if (analysis_obstacle && !report_route_metrics(
       move_group, logger, plan.start_state, plan.trajectory,
-      *analysis_obstacle, stage_name))
+      *analysis_obstacle, robot_padding_m, stage_name))
   {
     return false;
   }
@@ -977,6 +981,8 @@ int main(int argc, char * argv[])
   const double floor_z = parameter("floor_z", 0.0);
   const double floor_size = parameter("floor_size", 3.0);
   const double floor_thickness = parameter("floor_thickness", 0.02);
+  const std::string scene_profile = string_parameter("scene_profile", "default");
+  const double robot_padding_m = parameter("robot_padding_m", 0.02);
   const bool obstacles_enabled = bool_parameter("obstacles_enabled", false);
   ObstacleBox obstacle_box;
   try
@@ -1062,7 +1068,7 @@ int main(int argc, char * argv[])
       solution->bracket_low_rad, solution->bracket_high_rad);
   }
 
-  const std::array<double, 23> values = {
+  const std::array<double, 24> values = {
     object_x, object_y, object_z, pregrasp_clearance, approach_distance,
     lift_distance, grasp_center_offset, closed_grip, velocity_scale,
     lift_velocity_scale,
@@ -1070,7 +1076,7 @@ int main(int argc, char * argv[])
     floor_z, floor_size, floor_thickness, object_width_mm,
     total_compression_mm, uncompensated_approach_distance,
     safe_transit_margin, maximum_pregrasp_joint_travel,
-    maximum_wrist_3_travel};
+    maximum_wrist_3_travel, robot_padding_m};
   for (const double value : values)
   {
     if (!std::isfinite(value))
@@ -1095,6 +1101,12 @@ int main(int argc, char * argv[])
   if (floor_size <= 0.0 || floor_thickness <= 0.0)
   {
     RCLCPP_ERROR(logger, "Floor size and thickness must be positive.");
+    rclcpp::shutdown();
+    return 1;
+  }
+  if (scene_profile.empty() || robot_padding_m < 0.0)
+  {
+    RCLCPP_ERROR(logger, "Scene profile must be set and robot padding nonnegative.");
     rclcpp::shutdown();
     return 1;
   }
@@ -1185,6 +1197,10 @@ int main(int argc, char * argv[])
   RCLCPP_INFO(logger, "Planning frame: %s", move_group.getPlanningFrame().c_str());
   RCLCPP_INFO(
     logger,
+    "SCENE_CONFIG profile=%s obstacles_enabled=%s robot_padding_m=%.6f",
+    scene_profile.c_str(), obstacles_enabled ? "true" : "false", robot_padding_m);
+  RCLCPP_INFO(
+    logger,
     "OBJECT_TARGET source=%s frame=world center=(%.4f, %.4f, %.4f) m",
     use_newton_object_pose ? "newton_feedback" : "parameters",
     object_x, object_y, object_z);
@@ -1255,10 +1271,10 @@ int main(int argc, char * argv[])
         move_group, display_publisher, logger, pregrasp_tool_pose,
         safe_transit_margin, maximum_pregrasp_joint_travel,
         maximum_wrist_3_travel,
-        velocity_scale, false, obstacle_box) :
+        velocity_scale, robot_padding_m, false, obstacle_box) :
       move_to_pose_target(
         move_group, display_publisher, logger, pregrasp_tool_pose,
-        "Absolute pre-grasp", false, obstacle_box);
+        "Absolute pre-grasp", robot_padding_m, false, obstacle_box);
     executor.cancel();
     spinner.join();
     rclcpp::shutdown();
@@ -1379,10 +1395,10 @@ int main(int argc, char * argv[])
           move_group, display_publisher, logger, pregrasp_tool_pose,
           safe_transit_margin, maximum_pregrasp_joint_travel,
           maximum_wrist_3_travel,
-          velocity_scale, true) :
+          velocity_scale, robot_padding_m, true, obstacle_box) :
         move_to_pose_target(
           move_group, display_publisher, logger, pregrasp_tool_pose,
-          "Absolute pre-grasp");
+          "Absolute pre-grasp", robot_padding_m, true, obstacle_box);
     }
   }
 

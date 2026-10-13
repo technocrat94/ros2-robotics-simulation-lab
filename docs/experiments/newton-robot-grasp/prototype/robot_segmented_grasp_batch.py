@@ -76,6 +76,15 @@ GROUND_FRICTION = float(
 SHOW_COLLIDERS = os.environ.get("GRASP_SHOW_COLLIDERS", "0") == "1"
 COLLISION_SCOPE = os.environ.get("GRASP_COLLISION_SCOPE", "all")
 STRIP_CENTER_Z = float(os.environ.get("GRASP_STRIP_CENTER_Z", "0.34"))
+OBJECT_CENTER_X = float(os.environ.get("GRASP_OBJECT_CENTER_X", "0.4869"))
+OBJECT_CENTER_Y = float(os.environ.get("GRASP_OBJECT_CENTER_Y", "0.10915"))
+OBJECT_CENTER_Z = float(
+    os.environ.get("GRASP_OBJECT_CENTER_Z", str(STRIP_CENTER_Z))
+)
+if not all(math.isfinite(value) for value in (
+    OBJECT_CENTER_X, OBJECT_CENTER_Y, OBJECT_CENTER_Z
+)):
+    raise ValueError("GRASP_OBJECT_CENTER_X/Y/Z must be finite")
 GRASP_POSITION = os.environ.get("GRASP_POSITION", "near_end")
 OBJECT_HALF_THICKNESS = CABLE_RADIUS if OBJECT_MODEL == "rod_cable" else THICKNESS / 2.0
 POISSON_RATIO = float(os.environ.get("GRASP_POISSON_RATIO", "0.45"))
@@ -334,7 +343,9 @@ def build_scene(obstacles=None):
     # diagnostics.  Modes without proxies retain the imported shape count.
     robot_shapes = builder.shape_count
 
-    grasp_point = np.array([0.4869, 0.10915, STRIP_CENTER_Z])
+    grasp_point = np.array(
+        [OBJECT_CENTER_X, OBJECT_CENTER_Y, OBJECT_CENTER_Z], dtype=np.float64
+    )
     if GRASP_POSITION == "center":
         start_x = grasp_point[0] - LENGTH / 2.0
     elif GRASP_POSITION == "near_end":
@@ -374,7 +385,7 @@ def build_scene(obstacles=None):
             pos=wp.vec3(
                 grasp_point[0] - LENGTH / 2.0,
                 grasp_point[1] - WIDTH / 2.0,
-                STRIP_CENTER_Z - THICKNESS / 2.0,
+                grasp_point[2] - THICKNESS / 2.0,
             ),
             rot=wp.quat_identity(),
             vel=wp.vec3(0.0, 0.0, 0.0),
@@ -656,7 +667,10 @@ def main():
             DANCE_WRIST_AMPLITUDE if DANCE_MODE == "dance" else 0.0
         ),
         "collision_scope": COLLISION_SCOPE,
-        "strip_initial_center_z_setting_m": STRIP_CENTER_Z,
+        "strip_initial_center_z_setting_m": OBJECT_CENTER_Z,
+        "configured_object_center_m": [
+            OBJECT_CENTER_X, OBJECT_CENTER_Y, OBJECT_CENTER_Z
+        ],
         "grasp_location": GRASP_POSITION,
         "strip_bodies": len(strip_links),
         "strip_shapes": len(strip_shapes),

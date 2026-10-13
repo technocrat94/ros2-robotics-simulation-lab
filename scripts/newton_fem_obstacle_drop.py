@@ -34,11 +34,16 @@ def main() -> int:
     args = parser.parse_args()
 
     config = json.loads(args.config.read_text(encoding="utf-8"))
-    if config.get("schema_version") != 1 or len(config.get("boxes", [])) != 1:
-        raise ValueError("Step A1 requires obstacles schema 1 with exactly one box")
+    if config.get("schema_version") != 1:
+        raise ValueError("Step A1 requires obstacles schema 1")
     if not (config["enabled"] or args.enable_obstacles):
         raise ValueError("obstacle is disabled; pass --enable-obstacles for Step A1")
-    obstacle = config["boxes"][0]
+    obstacle = next(
+        (box for box in config.get("boxes", []) if box.get("id") == "grasp_route_box"),
+        None,
+    )
+    if obstacle is None:
+        raise ValueError("Step A1 requires the grasp_route_box definition")
     settings = config["step_a1_fem_strip"]
     center = np.asarray(obstacle["center_m"], dtype=np.float64)
     size = np.asarray(obstacle["size_m"], dtype=np.float64)

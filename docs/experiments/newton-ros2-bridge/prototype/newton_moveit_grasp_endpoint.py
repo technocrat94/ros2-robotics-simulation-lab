@@ -29,6 +29,53 @@ def candidate_contact_grasp_pass(
     )
 
 
+OBSTACLE_CONFIG_PATH = Path(os.environ.get(
+    "NEWTON_OBSTACLE_CONFIG",
+    str(Path.home() / "ur5_ws/src/ur5_moveit_demo/config/obstacles.yaml"),
+))
+
+
+def load_scene_profile(path):
+    config = json.loads(path.read_text(encoding="utf-8"))
+    if config.get("schema_version") != 1:
+        raise ValueError("obstacles.yaml schema_version must be 1")
+    profile_name = os.environ.get(
+        "GRASP_SCENE_PROFILE", config.get("default_scene_profile", "default")
+    )
+    profiles = config.get("scene_profiles", {})
+    if profile_name not in profiles:
+        raise ValueError(f"unknown GRASP_SCENE_PROFILE: {profile_name}")
+    profile = profiles[profile_name]
+    center = profile.get("object_center_m")
+    if not isinstance(center, list) or len(center) != 3:
+        raise ValueError(f"scene profile {profile_name} needs object_center_m")
+    boxes_by_id = {box["id"]: box for box in config.get("boxes", [])}
+    box_id = profile.get("box_id")
+    if box_id not in boxes_by_id:
+        raise ValueError(f"scene profile {profile_name} references unknown box {box_id}")
+    box = boxes_by_id[box_id]
+    if len(box.get("center_m", [])) != 3 or len(box.get("size_m", [])) != 3:
+        raise ValueError(f"obstacle box {box_id} needs three center and size values")
+    if any(float(value) < 0.01 for value in box["size_m"]):
+        raise ValueError("every obstacle box dimension must be at least 0.01 m")
+    for variable, value in zip(
+        ("GRASP_OBJECT_CENTER_X", "GRASP_OBJECT_CENTER_Y", "GRASP_OBJECT_CENTER_Z"),
+        center,
+    ):
+        if value is not None:
+            os.environ[variable] = str(float(value))
+    enabled = bool(profile.get("obstacles_enabled", False))
+    return profile_name, profile, box, [box] if enabled else []
+
+
+(
+    SCENE_PROFILE_NAME,
+    SCENE_PROFILE,
+    CONFIGURED_OBSTACLE,
+    ENABLED_OBSTACLES,
+) = load_scene_profile(OBSTACLE_CONFIG_PATH)
+
+
 LESSON_DIR = Path.home() / "newton_ws/lessons/segmented_strip"
 sys.path.insert(0, str(LESSON_DIR))
 from robot_segmented_grasp_batch import (  # noqa: E402
@@ -37,6 +84,9 @@ from robot_segmented_grasp_batch import (  # noqa: E402
     DENSITY,
     DEVICE,
     GROUND_FRICTION,
+    OBJECT_CENTER_X,
+    OBJECT_CENTER_Y,
+    OBJECT_CENTER_Z,
     OBJECT_HALF_THICKNESS,
     OBJECT_MODEL,
     DT,
@@ -83,28 +133,9 @@ MAX_ALLOWED_PENETRATION = float(
 )
 if MAX_ALLOWED_PENETRATION < 0.0:
     raise ValueError("GRASP_MAX_ALLOWED_PENETRATION must be nonnegative")
-OBSTACLE_CONFIG_PATH = Path(os.environ.get(
-    "NEWTON_OBSTACLE_CONFIG",
-    str(Path.home() / "ur5_ws/src/ur5_moveit_demo/config/obstacles.yaml"),
-))
-
-
-def load_enabled_obstacles(path):
-    config = json.loads(path.read_text(encoding="utf-8"))
-    if config.get("schema_version") != 1:
-        raise ValueError("obstacles.yaml schema_version must be 1")
-    if not config.get("enabled", False):
-        return []
-    boxes = config.get("boxes", [])
-    for box in boxes:
-        if len(box.get("center_m", [])) != 3 or len(box.get("size_m", [])) != 3:
-            raise ValueError("every obstacle box needs three center and size values")
-        if any(float(value) < 0.01 for value in box["size_m"]):
-            raise ValueError("every obstacle box dimension must be at least 0.01 m")
-    return boxes
-
-
-ENABLED_OBSTACLES = load_enabled_obstacles(OBSTACLE_CONFIG_PATH)
+MOVEIT_ROBOT_PADDING_M = float(os.environ.get("MOVEIT_ROBOT_PADDING_M", "0.02"))
+if MOVEIT_ROBOT_PADDING_M < 0.0:
+    raise ValueError("MOVEIT_ROBOT_PADDING_M must be nonnegative")
 GRIPPER_CLOSED_MIN = 0.05
 GRIPPER_CLOSED_MAX = 0.81
 JOINT_NAMES = [
@@ -399,7 +430,7 @@ initial_poses = state_0.body_q.numpy()
 if FEM_MODE:
     initial_particles = state_0.particle_q.numpy()
     grasp_particle_indices = np.flatnonzero(
-        np.isclose(initial_particles[:, 0], 0.4869, atol=1.0e-5)
+        np.isclose(initial_particles[:, 0], OBJECT_CENTER_X, atol=1.0e-5)
     )
     if len(grasp_particle_indices) == 0:
         raise RuntimeError("FEM grasp-region particles were not found")
@@ -535,6 +566,7 @@ print(
     f"particle_radius={float(model.particle_radius.numpy()[0]) if model.particle_count else 0.0:.4f} "
     f"robot_particle_colliders={robot_particle_colliders} "
     f"active_robot_colliders={active_robot_colliders} "
+    f"scene_profile={SCENE_PROFILE_NAME} "
     f"obstacles_enabled={bool(ENABLED_OBSTACLES)} "
     f"obstacle_shapes={len(obstacle_shapes)} "
     f"robot_friction={CONTACT_FRICTION} strip_friction={STRIP_FRICTION} "
@@ -545,7 +577,7 @@ print(
     f"soft_contact_margin={SOFT_CONTACT_MARGIN:.4f} substeps={SUBSTEPS} "
     f"command_dt={COMMAND_DT:.3f} max_hold={MAX_HOLD_SECONDS:.3f} "
     f"command_queue_capacity={MAX_COMMAND_QUEUE} "
-    f"object_center=(0.4869,0.10915,{initial_center_z:.5f}) "
+    f"object_center=({OBJECT_CENTER_X:.5f},{OBJECT_CENTER_Y:.5f},{OBJECT_CENTER_Z:.5f}) "
     f"command={COMMAND_PORT} state={STATE_PORT} viewer={VIEWER_PORT}",
     flush=True,
 )
@@ -1056,6 +1088,11 @@ finally:
         "object": OBJECT_MODEL,
         "device": str(model.device),
         "tested_commit": TESTED_COMMIT,
+        "scene_profile": SCENE_PROFILE_NAME,
+        "moveit_robot_padding_m": MOVEIT_ROBOT_PADDING_M,
+        "configured_object_center_m": [
+            OBJECT_CENTER_X, OBJECT_CENTER_Y, OBJECT_CENTER_Z
+        ],
         "closed_seen": closed_seen,
         "lift_started": lift_started,
         "release_seen": release_seen,
@@ -1070,6 +1107,7 @@ finally:
         "maximum_contact_count": maximum_contacts,
         "obstacles_enabled": bool(ENABLED_OBSTACLES),
         "obstacle_ids": [obstacle["id"] for obstacle in ENABLED_OBSTACLES],
+        "configured_obstacle_id": CONFIGURED_OBSTACLE["id"],
         "maximum_robot_obstacle_contacts": maximum_robot_obstacle_contacts,
         "object_obstacle_max_penetration_m": object_obstacle_max_penetration,
         "maximum_soft_contact_count": maximum_soft_contacts,

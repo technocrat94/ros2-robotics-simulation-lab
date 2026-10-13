@@ -21,8 +21,8 @@ SIM_DT = FRAME_DT / SUBSTEPS
 
 def load_config(path: Path) -> dict:
     data = json.loads(path.read_text(encoding="utf-8"))
-    if data.get("schema_version") != 1 or len(data.get("boxes", [])) != 1:
-        raise ValueError("Step A requires obstacles schema 1 with exactly one box")
+    if data.get("schema_version") != 1:
+        raise ValueError("Step A requires obstacles schema 1")
     return data
 
 
@@ -40,7 +40,12 @@ def main() -> int:
         print("ERROR: obstacle is disabled; pass --enable-obstacles for Step A")
         return 2
 
-    obstacle = config["boxes"][0]
+    obstacle = next(
+        (box for box in config.get("boxes", []) if box.get("id") == "grasp_route_box"),
+        None,
+    )
+    if obstacle is None:
+        raise ValueError("Step A requires the grasp_route_box definition")
     validation = config["step_a"]
     center = np.asarray(obstacle["center_m"], dtype=np.float64)
     size = np.asarray(obstacle["size_m"], dtype=np.float64)

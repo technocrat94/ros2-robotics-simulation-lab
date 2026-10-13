@@ -177,10 +177,23 @@ def check_obstacle_defaults():
     if config.get("enabled") is not False:
         failures.append("obstacles: enabled must default to false")
     boxes = config.get("boxes", [])
-    if len(boxes) != 1:
-        failures.append("obstacles: Steps A/B require exactly one box")
+    boxes_by_id = {box.get("id"): box for box in boxes}
+    expected_grasp_route_box = {
+        "id": "grasp_route_box",
+        "frame_id": "world",
+        "center_m": [0.30, 0.10915, 0.125],
+        "size_m": [0.10, 0.24, 0.25],
+    }
+    box = boxes_by_id.get("grasp_route_box")
+    if box is None:
+        failures.append("obstacles: Steps A/B require grasp_route_box")
     else:
-        box = boxes[0]
+        for key, expected in expected_grasp_route_box.items():
+            if box.get(key) != expected:
+                failures.append(
+                    f"obstacles: grasp_route_box {key} changed from {expected!r}"
+                )
+    for box in boxes:
         if len(box.get("center_m", [])) != 3:
             failures.append("obstacles: center_m must have three values")
         if len(box.get("size_m", [])) != 3 or any(
@@ -190,6 +203,23 @@ def check_obstacle_defaults():
             failures.append(
                 "obstacles: every box dimension must be at least 0.01 m"
             )
+    profiles = config.get("scene_profiles", {})
+    if config.get("default_scene_profile") != "default":
+        failures.append("obstacles: default_scene_profile must be default")
+    expected_profiles = {
+        "default", "step_c_cable_no_wall", "step_c_cable_wall",
+        "step_c_cable_tall_wall",
+    }
+    if set(profiles) != expected_profiles:
+        failures.append(
+            f"obstacles: scene profiles differ from {sorted(expected_profiles)}"
+        )
+    for name, profile in profiles.items():
+        center = profile.get("object_center_m", [])
+        if len(center) != 3:
+            failures.append(f"obstacles: profile {name} needs a 3D object center")
+        if profile.get("box_id") not in boxes_by_id:
+            failures.append(f"obstacles: profile {name} references an unknown box")
     print("[obstacles] schema and disabled-by-default policy checked")
 
 

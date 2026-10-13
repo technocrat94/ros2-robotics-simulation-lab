@@ -4,6 +4,8 @@ set -eo pipefail
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ROS_WS="${HOME}/ur5_ws"
 SAFE_PREGRASP="${FEM_CABLE_SAFE_PREGRASP:-true}"
+export GRASP_SCENE_PROFILE="${GRASP_SCENE_PROFILE:-default}"
+export MOVEIT_ROBOT_PADDING_M="${MOVEIT_ROBOT_PADDING_M:-0.02}"
 
 source "${REPO_DIR}/scripts/lab_session_env.sh"
 source /opt/ros/jazzy/setup.bash
@@ -12,6 +14,9 @@ set -u
 
 mkdir -p "${ROS_WS}/run_logs"
 PICK_LOG="${ROS_WS}/run_logs/jazzy_fem_cable_pick_$(date +%Y%m%d_%H%M%S).log"
+
+echo "GRASP_SCENE_PROFILE ${GRASP_SCENE_PROFILE}"
+echo "MOVEIT_ROBOT_PADDING_M ${MOVEIT_ROBOT_PADDING_M}"
 
 ros2 topic echo /newton/bridge_status --once
 ros2 service call /newton/sync_robot_state std_srvs/srv/Trigger "{}"
