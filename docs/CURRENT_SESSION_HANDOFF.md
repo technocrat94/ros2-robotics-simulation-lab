@@ -80,6 +80,36 @@ confirmed with the lab:
 3. Headless, ROS-free, GPU-parallel copies of the scene for robot learning;
    ROS and MoveIt remain the deployment and demonstration path.
 
+## Active cable experiment (not yet accepted)
+
+Branch `experiment/fem-cable` contains the rod-cable experiment.
+The 40-segment, 6 mm rod candidate passed its 30 s CUDA cantilever check with
+the original damping (`candidate_rod_cable_pass=true`). A separate
+`GRASP_OBJECT_MODEL=rod_cable` path, small-gap gripper calibration, CUDA-only
+endpoint guard, plan-only script, execution script, and bilateral rigid-contact
+acceptance have been implemented without changing the accepted FEM mode.
+
+Static scene construction reproduces 40 cable bodies, 40 shapes, total mass
+`0.0124407075 kg`, center height `0.004 m`, and initial surface height
+`0.001 m`. The 6 mm pad-gap solution is `0.748815 rad` with `13.679 mm`
+approach compensation. CI, shell/Python syntax checks, runtime synchronization,
+and the Jazzy build pass.
+
+The first integrated CUDA attempt on 2026-10-08 is **not accepted**. Preview,
+safe pre-grasp, approach, and lift paths reached 100%, and MoveIt printed
+`ABSOLUTE POSITION PICK SUCCEEDED`, but the operator saw that the cable was not
+retained. Endpoint samples show 71 bilateral loaded-contact samples and only
+about `9.56 mm` maximum grasp-region rise before contact disappeared during the
+commanded 120 mm lift. The endpoint did not emit a final result JSON. Evidence
+is in `docs/experiments/newton-cable-grasp/results/`.
+
+Next session should reproduce a close-only/early-lift diagnostic and compare
+finger-pad contact geometry with vertical grasp height before changing any
+friction, damping, compression, or cable stiffness. Do not call the cable grasp
+accepted until `MOVEIT_GRASP_RESULT` provides measured lift, release,
+bilateral loaded contact, finite state, and
+`candidate_contact_grasp_pass=true`.
+
 ## Continuous integration
 
 `.github/workflows/ci.yml` runs `scripts/ci_checks.py` without GPU, ROS, or

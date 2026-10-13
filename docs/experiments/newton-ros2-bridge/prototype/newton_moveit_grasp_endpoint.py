@@ -14,6 +14,7 @@ import time
 import newton
 import numpy as np
 import viser
+import warp as wp
 from newton.viewer import ViewerViser
 
 LESSON_DIR = Path.home() / "newton_ws/lessons/segmented_strip"
@@ -22,7 +23,9 @@ from robot_segmented_grasp_batch import (  # noqa: E402
     BASE_ARM,
     CONTACT_FRICTION,
     DENSITY,
+    DEVICE,
     GROUND_FRICTION,
+    OBJECT_HALF_THICKNESS,
     OBJECT_MODEL,
     DT,
     FRAME_DT,
@@ -31,7 +34,6 @@ from robot_segmented_grasp_batch import (  # noqa: E402
     SOFT_CONTACT_KE,
     SOFT_CONTACT_KD,
     YOUNGS_MODULUS,
-    THICKNESS,
     build_scene,
     grasp_region_links,
 )
@@ -55,13 +57,22 @@ MAX_IDENTICAL_SAMPLES = max(1, int(round(MAX_HOLD_SECONDS / COMMAND_DT)))
 MAX_COMMAND_QUEUE = int(os.environ.get("NEWTON_MAX_COMMAND_QUEUE", "4096"))
 if MAX_COMMAND_QUEUE <= 0:
     raise ValueError("NEWTON_MAX_COMMAND_QUEUE must be greater than zero")
+TESTED_COMMIT = os.environ.get("NEWTON_TESTED_COMMIT", "unknown")
+AUTO_RESULT_AFTER_SEQUENCE = (
+    os.environ.get("NEWTON_AUTO_RESULT_AFTER_SEQUENCE", "0") == "1"
+)
+RESULT_SETTLE_SIM_SECONDS = float(
+    os.environ.get("NEWTON_RESULT_SETTLE_SIM_SECONDS", "1.0")
+)
+if RESULT_SETTLE_SIM_SECONDS < 0.0:
+    raise ValueError("NEWTON_RESULT_SETTLE_SIM_SECONDS must be nonnegative")
 MAX_ALLOWED_PENETRATION = float(
     os.environ.get("GRASP_MAX_ALLOWED_PENETRATION", "0.005")
 )
 if MAX_ALLOWED_PENETRATION < 0.0:
     raise ValueError("GRASP_MAX_ALLOWED_PENETRATION must be nonnegative")
 GRIPPER_CLOSED_MIN = 0.05
-GRIPPER_CLOSED_MAX = 0.60
+GRIPPER_CLOSED_MAX = 0.81
 JOINT_NAMES = [
     "shoulder_pan_joint", "shoulder_lift_joint", "elbow_joint",
     "wrist_1_joint", "wrist_2_joint", "wrist_3_joint",
@@ -114,7 +125,14 @@ newton.use_coord_layout_targets = True
     strip_shapes,
     active_robot_colliders,
 ) = build_scene()
-FEM_MODE = OBJECT_MODEL == "fem_strip"
+FEM_MODE = OBJECT_MODEL in {"fem_strip", "fem_cable"}
+ROD_MODE = OBJECT_MODEL == "rod_cable"
+if ROD_MODE and not str(model.device).startswith("cuda"):
+    print(
+        "ROD_CABLE_CPU_MODE "
+        f"requested={DEVICE!r} model_device={model.device}; "
+        "physics is supported but will run slower than the school CUDA system"
+    )
 state_0, state_1 = model.state(), model.state()
 control = model.control()
 model.request_contact_attributes("force")
@@ -126,7 +144,7 @@ solver = (
         particle_enable_tile_solve=False,
     )
     if FEM_MODE
-    else newton.solvers.SolverXPBD(model, iterations=30)
+    else newton.solvers.SolverXPBD(model, iterations=10 if ROD_MODE else 30)
 )
 collision = newton.CollisionPipeline(
     model,
@@ -364,9 +382,15 @@ finally:
 viewer.set_model(model)
 server = viewer._server
 server.scene.set_up_direction("+z")
-server.initial_camera.position = (1.15, -1.35, 0.90)
-server.initial_camera.look_at = (0.35, 0.12, 0.22)
-server.initial_camera.up = (0.0, 0.0, 1.0)
+# Use ViewerViser's public camera API so the requested view is cached and
+# applied to clients after their browser camera becomes ready.  Assigning only
+# server.initial_camera is racy: a client can retain an old close-up view and
+# hide the gripper motion even while the simulation is advancing.
+viewer.set_camera(
+    wp.vec3(1.15, -1.35, 0.90),
+    pitch=-22.2,
+    yaw=118.6,
+)
 server.gui.add_markdown(
     "## MoveIt absolute-position grasp\n"
     "The robot receives MoveIt controller references through ROS 2. "
@@ -391,6 +415,12 @@ maximum_lift_left_loaded_soft_contacts = 0
 maximum_lift_right_loaded_soft_contacts = 0
 bilateral_closed_soft_contact_samples = 0
 bilateral_lift_soft_contact_samples = 0
+maximum_closed_left_loaded_rigid_contacts = 0
+maximum_closed_right_loaded_rigid_contacts = 0
+maximum_lift_left_loaded_rigid_contacts = 0
+maximum_lift_right_loaded_rigid_contacts = 0
+bilateral_closed_rigid_contact_samples = 0
+bilateral_lift_rigid_contact_samples = 0
 maximum_soft_contact_activation_depth = 0.0
 maximum_particle_surface_penetration = 0.0
 latest_robot_q = robot_q.copy()
@@ -410,6 +440,7 @@ previous_grasp_z = initial_grasp_z
 closed_seen = False
 lift_started = False
 release_seen = False
+result_ready_sim_time = None
 prelift_grasp_z = None
 maximum_closed_grasp_z = initial_grasp_z
 release_start_grasp_z = None
@@ -417,7 +448,7 @@ minimum_post_release_grasp_z = None
 minimum_strip_bottom_z = (
     float(initial_particles[:, 2].min() - np.max(particle_radii))
     if FEM_MODE
-    else float(initial_poses[strip_links, 2].min()) - THICKNESS / 2.0
+    else float(initial_poses[strip_links, 2].min()) - OBJECT_HALF_THICKNESS
 )
 maximum_mimic_error = 0.0
 maximum_left_force_abs_xyz = np.zeros(3, dtype=np.float64)
@@ -436,6 +467,7 @@ next_state = next_frame
 
 print(
     "MOVEIT_GRASP_ENDPOINT_READY "
+    f"device={model.device} "
     f"robot_bodies={robot_bodies} robot_shapes={robot_shapes} "
     f"strip_bodies={len(strip_links)} strip_shapes={len(strip_shapes)} "
     f"particles={model.particle_count} tetrahedra={model.tet_count} "
@@ -624,7 +656,7 @@ try:
                 )
                 minimum_strip_bottom_z = min(
                     minimum_strip_bottom_z,
-                    float(poses[strip_links, 2].min()) - THICKNESS / 2.0,
+                    float(poses[strip_links, 2].min()) - OBJECT_HALF_THICKNESS,
                 )
             finger_midpoint = 0.5 * (
                 poses[left_tip_body, :3] + poses[right_tip_body, :3]
@@ -704,6 +736,18 @@ try:
                         left_loaded_soft_contacts > 0
                         and right_loaded_soft_contacts > 0
                     )
+                if not FEM_MODE and not lift_started:
+                    maximum_closed_left_loaded_rigid_contacts = max(
+                        maximum_closed_left_loaded_rigid_contacts,
+                        left_loaded_contacts,
+                    )
+                    maximum_closed_right_loaded_rigid_contacts = max(
+                        maximum_closed_right_loaded_rigid_contacts,
+                        right_loaded_contacts,
+                    )
+                    bilateral_closed_rigid_contact_samples += int(
+                        left_loaded_contacts > 0 and right_loaded_contacts > 0
+                    )
                 maximum_left_force_abs_xyz = np.maximum(
                     maximum_left_force_abs_xyz, left_force_abs_xyz
                 )
@@ -734,6 +778,18 @@ try:
                         left_loaded_soft_contacts > 0
                         and right_loaded_soft_contacts > 0
                     )
+                if not FEM_MODE and lift_started:
+                    maximum_lift_left_loaded_rigid_contacts = max(
+                        maximum_lift_left_loaded_rigid_contacts,
+                        left_loaded_contacts,
+                    )
+                    maximum_lift_right_loaded_rigid_contacts = max(
+                        maximum_lift_right_loaded_rigid_contacts,
+                        right_loaded_contacts,
+                    )
+                    bilateral_lift_rigid_contact_samples += int(
+                        left_loaded_contacts > 0 and right_loaded_contacts > 0
+                    )
                 if (lift_started or arm_step > 1.0e-4) and (
                     left_loaded_contacts > 0 and right_loaded_contacts > 0
                 ):
@@ -758,6 +814,27 @@ try:
                     minimum_post_release_grasp_z = min(
                         minimum_post_release_grasp_z, grasp_z
                     )
+
+            command_queue_empty = (
+                not pending_robot_q and not command_segment_active
+            )
+            if release_seen and command_queue_empty:
+                if result_ready_sim_time is None:
+                    result_ready_sim_time = sim_time
+                elif (
+                    AUTO_RESULT_AFTER_SEQUENCE
+                    and sim_time - result_ready_sim_time
+                    >= RESULT_SETTLE_SIM_SECONDS
+                ):
+                    print(
+                        "MOVEIT_GRASP_SEQUENCE_COMPLETE "
+                        f"sim_time_s={sim_time:.6f} "
+                        f"settle_sim_seconds={RESULT_SETTLE_SIM_SECONDS:.3f}",
+                        flush=True,
+                    )
+                    alive = False
+            else:
+                result_ready_sim_time = None
 
             measured_lift = (
                 maximum_closed_grasp_z - prelift_grasp_z
@@ -905,6 +982,8 @@ finally:
     )
     result = {
         "object": OBJECT_MODEL,
+        "device": str(model.device),
+        "tested_commit": TESTED_COMMIT,
         "closed_seen": closed_seen,
         "lift_started": lift_started,
         "release_seen": release_seen,
@@ -926,6 +1005,12 @@ finally:
         "maximum_lift_right_loaded_soft_contacts": maximum_lift_right_loaded_soft_contacts,
         "bilateral_closed_soft_contact_samples": bilateral_closed_soft_contact_samples,
         "bilateral_lift_soft_contact_samples": bilateral_lift_soft_contact_samples,
+        "maximum_closed_left_loaded_rigid_contacts": maximum_closed_left_loaded_rigid_contacts,
+        "maximum_closed_right_loaded_rigid_contacts": maximum_closed_right_loaded_rigid_contacts,
+        "maximum_lift_left_loaded_rigid_contacts": maximum_lift_left_loaded_rigid_contacts,
+        "maximum_lift_right_loaded_rigid_contacts": maximum_lift_right_loaded_rigid_contacts,
+        "bilateral_closed_rigid_contact_samples": bilateral_closed_rigid_contact_samples,
+        "bilateral_lift_rigid_contact_samples": bilateral_lift_rigid_contact_samples,
         "maximum_soft_contact_activation_depth_m": maximum_soft_contact_activation_depth,
         "maximum_particle_surface_penetration_m": maximum_particle_surface_penetration,
         "maximum_floor_penetration_m": max(0.0, -minimum_strip_bottom_z),
@@ -982,13 +1067,25 @@ finally:
             and minimum_strip_bottom_z >= -MAX_ALLOWED_PENETRATION
             and maximum_particle_surface_penetration <= MAX_ALLOWED_PENETRATION
             and (
-                not FEM_MODE
-                or (
-                    maximum_closed_left_loaded_soft_contacts > 0
+                (
+                    FEM_MODE
+                    and maximum_closed_left_loaded_soft_contacts > 0
                     and maximum_closed_right_loaded_soft_contacts > 0
                     and maximum_lift_left_loaded_soft_contacts > 0
                     and maximum_lift_right_loaded_soft_contacts > 0
                     and bilateral_lift_soft_contact_samples > 0
+                )
+                or (
+                    ROD_MODE
+                    and maximum_closed_left_loaded_rigid_contacts > 0
+                    and maximum_closed_right_loaded_rigid_contacts > 0
+                    and maximum_lift_left_loaded_rigid_contacts > 0
+                    and maximum_lift_right_loaded_rigid_contacts > 0
+                    and bilateral_lift_rigid_contact_samples > 0
+                )
+                or (
+                    not FEM_MODE
+                    and not ROD_MODE
                 )
             )
             and command_queue_overflow_count == 0

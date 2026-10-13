@@ -15,5 +15,8 @@ Key artifacts for the verified 2026-10-02 native Jazzy run. The Humble CPU refer
 | `jazzy_fem_preview_20261008_165515.log` | ARM64 UTM plan-only preview; all four safe pre-grasp stages completed 100%. |
 | `jazzy_fem_pick_20261008_165538.log` | ARM64 UTM MoveIt run; approach, grasp, lift, reopen, and the complete pick succeeded. |
 | `jazzy_fem_endpoint_20261008_165353.log` | ARM64 UTM Newton FEM contact samples and command-queue drain evidence. |
+| `jazzy_fem_pick_20261013_034739.log` | ARM64 UTM rerun after the shared endpoint, batch model, MoveIt node, and calibration changes; all paths and controller actions completed. |
+| `jazzy_fem_endpoint_20261013_034718.log` | Complete ARM64 CPU endpoint log through automatic sequence completion and `MOVEIT_GRASP_RESULT`. |
+| `jazzy_fem_endpoint_20261013_034718.result.json` | Machine-readable final FEM strip result with tested commit, device, bilateral soft-contact metrics, lift/release measurements, and pass flag. |
 
 Runtime viewer during the run: `http://127.0.0.1:30000/`.

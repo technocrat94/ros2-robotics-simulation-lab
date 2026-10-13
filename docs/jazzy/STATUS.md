@@ -86,3 +86,12 @@ The viewer was checked by the user: the strip rose between the fingers and relea
 - `scripts/bootstrap_school_jazzy.sh` rebuilds the Jazzy workspace from tracked source and verifies 34 mesh paths.
 - `docs/jazzy/JAZZY_REPRODUCIBILITY.md` is the English runbook; `JAZZY_REPRODUCIBILITY.zh-TW.md` is the Chinese translation.
 - Use exactly one bringup, one move_group/controller_manager, one adapter, and one endpoint per isolated ROS domain.
+
+## Experimental rod cable (not accepted)
+
+Branch `experiment/fem-cable` adds a CUDA rod-cable MoveIt path without
+changing the accepted FEM baseline. Its first integrated run on 2026-10-08
+completed every planned motion, but retained contact for only the beginning of
+the lift and raised the grasp region by about `9.56 mm`. It is explicitly a
+failed physical-grasp trial; evidence and the next diagnostic boundary are in
+`docs/experiments/newton-cable-grasp/results/`.

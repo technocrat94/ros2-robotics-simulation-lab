@@ -1,0 +1,73 @@
+{
+  "bilateral_closed_rigid_contact_samples": 0,
+  "bilateral_closed_soft_contact_samples": 33,
+  "bilateral_lift_rigid_contact_samples": 0,
+  "bilateral_lift_soft_contact_samples": 226,
+  "candidate_contact_grasp_pass": true,
+  "closed_seen": true,
+  "command_queue_capacity": 4096,
+  "command_queue_overflow_count": 0,
+  "device": "cpu",
+  "finite_state": true,
+  "grasp_region_lift_m": 0.1172694256529212,
+  "initial_grasp_region_z_m": 0.009999998845160007,
+  "lift_bilateral_force_sample_count": 0,
+  "lift_started": true,
+  "maximum_allowed_penetration_m": 0.005,
+  "maximum_closed_grasp_region_z_m": 0.12830115854740143,
+  "maximum_closed_left_loaded_rigid_contacts": 0,
+  "maximum_closed_left_loaded_soft_contacts": 23,
+  "maximum_closed_right_loaded_rigid_contacts": 0,
+  "maximum_closed_right_loaded_soft_contacts": 27,
+  "maximum_command_backlog": 402,
+  "maximum_contact_count": 0,
+  "maximum_floor_penetration_m": 0.0010000000474974513,
+  "maximum_left_finger_soft_contacts": 33,
+  "maximum_left_force_abs_xyz_n": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "maximum_lift_combined_force_z_n": null,
+  "maximum_lift_left_loaded_rigid_contacts": 0,
+  "maximum_lift_left_loaded_soft_contacts": 23,
+  "maximum_lift_right_loaded_rigid_contacts": 0,
+  "maximum_lift_right_loaded_soft_contacts": 27,
+  "maximum_mimic_error_rad": 0.0,
+  "maximum_particle_surface_penetration_m": 0.001346394802726848,
+  "maximum_right_finger_soft_contacts": 37,
+  "maximum_right_force_abs_xyz_n": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "maximum_soft_contact_activation_depth_m": 0.001346394802726848,
+  "maximum_soft_contact_count": 661,
+  "mean_lift_combined_force_on_strip_xyz_n": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "mean_lift_left_force_on_strip_xyz_n": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "mean_lift_right_force_on_strip_xyz_n": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "minimum_lift_combined_force_z_n": null,
+  "minimum_post_release_grasp_region_z_m": 0.010732084512710571,
+  "minimum_strip_bottom_z_m": -0.0010000000474974513,
+  "object": "fem_strip",
+  "pending_robot_commands_at_shutdown": 0,
+  "prelift_grasp_region_z_m": 0.011031732894480228,
+  "release_drop_m": 0.11279488354921341,
+  "release_seen": true,
+  "release_start_grasp_region_z_m": 0.12352696806192398,
+  "simulated_time_s": 11.850000000001039,
+  "tested_commit": "68d7bd9b98e643fb462506caf2fb9c8a92fea3b7",
+  "wall_elapsed_s": 178.6363277710043
+}
