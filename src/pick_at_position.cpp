@@ -698,6 +698,53 @@ bool add_floor_collision(
 }
 
 
+bool add_box_obstacle(
+  MoveGroup & move_group,
+  const rclcpp::Logger & logger,
+  const std::string & obstacle_id,
+  const std::string & obstacle_frame,
+  const std::array<double, 3> & center,
+  const std::array<double, 3> & size)
+{
+  moveit::planning_interface::PlanningSceneInterface planning_scene;
+  if (obstacle_frame != move_group.getPlanningFrame())
+  {
+    RCLCPP_WARN(
+      logger, "Obstacle frame '%s' differs from planning frame '%s'.",
+      obstacle_frame.c_str(), move_group.getPlanningFrame().c_str());
+  }
+  moveit_msgs::msg::CollisionObject obstacle;
+  obstacle.header.frame_id = obstacle_frame;
+  obstacle.id = obstacle_id;
+
+  shape_msgs::msg::SolidPrimitive primitive;
+  primitive.type = shape_msgs::msg::SolidPrimitive::BOX;
+  primitive.dimensions = {size[0], size[1], size[2]};
+
+  geometry_msgs::msg::Pose pose;
+  pose.orientation.w = 1.0;
+  pose.position.x = center[0];
+  pose.position.y = center[1];
+  pose.position.z = center[2];
+  obstacle.primitives.push_back(primitive);
+  obstacle.primitive_poses.push_back(pose);
+  obstacle.operation = moveit_msgs::msg::CollisionObject::ADD;
+
+  if (!planning_scene.applyCollisionObject(obstacle))
+  {
+    RCLCPP_ERROR(logger, "Failed to add rigid obstacle to the planning scene.");
+    return false;
+  }
+  RCLCPP_INFO(
+    logger,
+    "PLANNING_SCENE_OBSTACLE_ADDED id=%s frame=%s center=(%.3f,%.3f,%.3f) "
+    "size=(%.3f,%.3f,%.3f)",
+    obstacle_id.c_str(), obstacle_frame.c_str(), center[0], center[1], center[2],
+    size[0], size[1], size[2]);
+  return true;
+}
+
+
 bool move_to_pose_target(
   MoveGroup & move_group,
   const rclcpp::Publisher<DisplayTrajectory>::SharedPtr & display_publisher,
@@ -805,6 +852,19 @@ int main(int argc, char * argv[])
   const double floor_z = parameter("floor_z", 0.0);
   const double floor_size = parameter("floor_size", 3.0);
   const double floor_thickness = parameter("floor_thickness", 0.02);
+  const bool obstacles_enabled = bool_parameter("obstacles_enabled", false);
+  const std::string obstacle_id =
+    string_parameter("obstacle_id", "grasp_route_box");
+  const std::string obstacle_frame =
+    string_parameter("obstacle_frame", "world");
+  const std::array<double, 3> obstacle_center = {
+    parameter("obstacle_x", 0.30),
+    parameter("obstacle_y", 0.10915),
+    parameter("obstacle_z", 0.125)};
+  const std::array<double, 3> obstacle_size = {
+    parameter("obstacle_size_x", 0.10),
+    parameter("obstacle_size_y", 0.24),
+    parameter("obstacle_size_z", 0.25)};
   const bool plan_only = bool_parameter("plan_only", false);
   const bool use_safe_pregrasp_path =
     bool_parameter("use_safe_pregrasp_path", true);
@@ -898,6 +958,17 @@ int main(int argc, char * argv[])
   if (floor_size <= 0.0 || floor_thickness <= 0.0)
   {
     RCLCPP_ERROR(logger, "Floor size and thickness must be positive.");
+    rclcpp::shutdown();
+    return 1;
+  }
+  if (obstacles_enabled &&
+    (obstacle_id.empty() || obstacle_frame.empty() ||
+    std::any_of(obstacle_center.begin(), obstacle_center.end(),
+    [](double value) {return !std::isfinite(value);}) ||
+    std::any_of(obstacle_size.begin(), obstacle_size.end(),
+    [](double value) {return !std::isfinite(value) || value <= 0.0;})))
+  {
+    RCLCPP_ERROR(logger, "Rigid obstacle configuration is invalid.");
     rclcpp::shutdown();
     return 1;
   }
@@ -1007,6 +1078,20 @@ int main(int argc, char * argv[])
     spinner.join();
     rclcpp::shutdown();
     return 1;
+  }
+
+  if (obstacles_enabled && !add_box_obstacle(
+      move_group, logger, obstacle_id, obstacle_frame,
+      obstacle_center, obstacle_size))
+  {
+    executor.cancel();
+    spinner.join();
+    rclcpp::shutdown();
+    return 1;
+  }
+  if (!obstacles_enabled)
+  {
+    RCLCPP_INFO(logger, "PLANNING_SCENE_OBSTACLES_DISABLED");
   }
 
   geometry_msgs::msg::Pose pregrasp_tool_pose;

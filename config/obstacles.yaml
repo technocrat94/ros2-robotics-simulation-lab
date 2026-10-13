@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "enabled": false,
+  "boxes": [
+    {
+      "id": "grasp_route_box",
+      "frame_id": "world",
+      "center_m": [0.30, 0.10915, 0.125],
+      "size_m": [0.10, 0.24, 0.25],
+      "contact": {
+        "ke_n_m": 50000.0,
+        "kd_n_s_m": 500.0,
+        "mu": 0.8,
+        "restitution": 0.0,
+        "gap_m": 0.001
+      }
+    }
+  ],
+  "step_a": {
+    "sphere_radius_m": 0.05,
+    "sphere_density_kg_m3": 1000.0,
+    "initial_clearance_m": 0.30,
+    "duration_s": 4.0,
+    "settling_window_s": 1.0,
+    "settling_range_limit_m": 0.0005,
+    "maximum_penetration_m": 0.001
+  }
+}

@@ -1,3 +1,7 @@
+import json
+from pathlib import Path
+
+from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
@@ -15,6 +19,16 @@ def bool_parameter(name):
 
 
 def generate_launch_description():
+    obstacle_config_path = (
+        Path(get_package_share_directory("ur5_moveit_demo"))
+        / "config" / "obstacles.yaml"
+    )
+    obstacle_config = json.loads(obstacle_config_path.read_text(encoding="utf-8"))
+    if obstacle_config.get("schema_version") != 1 or len(obstacle_config.get("boxes", [])) != 1:
+        raise RuntimeError("obstacles.yaml must use schema 1 with exactly one box")
+    obstacle = obstacle_config["boxes"][0]
+    center = obstacle["center_m"]
+    size = obstacle["size_m"]
     arguments = [
         DeclareLaunchArgument("object_x", default_value="0.4869"),
         DeclareLaunchArgument("object_y", default_value="0.10915"),
@@ -51,6 +65,18 @@ def generate_launch_description():
         DeclareLaunchArgument("floor_thickness", default_value="0.02"),
         DeclareLaunchArgument("object_pose_topic", default_value="/newton/object_pose"),
         DeclareLaunchArgument("object_pose_timeout", default_value="5.0"),
+        DeclareLaunchArgument(
+            "obstacles_enabled",
+            default_value=str(bool(obstacle_config["enabled"])).lower(),
+        ),
+        DeclareLaunchArgument("obstacle_id", default_value=obstacle["id"]),
+        DeclareLaunchArgument("obstacle_frame", default_value=obstacle["frame_id"]),
+        DeclareLaunchArgument("obstacle_x", default_value=str(center[0])),
+        DeclareLaunchArgument("obstacle_y", default_value=str(center[1])),
+        DeclareLaunchArgument("obstacle_z", default_value=str(center[2])),
+        DeclareLaunchArgument("obstacle_size_x", default_value=str(size[0])),
+        DeclareLaunchArgument("obstacle_size_y", default_value=str(size[1])),
+        DeclareLaunchArgument("obstacle_size_z", default_value=str(size[2])),
     ]
 
     moveit_config = (
@@ -95,6 +121,8 @@ def generate_launch_description():
                 "floor_z", "floor_size", "floor_thickness",
                 "safe_transit_margin", "maximum_pregrasp_joint_travel",
                 "maximum_wrist_3_travel",
+                "obstacle_x", "obstacle_y", "obstacle_z",
+                "obstacle_size_x", "obstacle_size_y", "obstacle_size_z",
             )
         },
         {"use_newton_object_pose": bool_parameter("use_newton_object_pose")},
@@ -108,7 +136,10 @@ def generate_launch_description():
         {"approach_only": bool_parameter("approach_only")},
         {"lift_only": bool_parameter("lift_only")},
         {"use_width_calibration": bool_parameter("use_width_calibration")},
+        {"obstacles_enabled": bool_parameter("obstacles_enabled")},
         {"object_pose_topic": LaunchConfiguration("object_pose_topic")},
+        {"obstacle_id": LaunchConfiguration("obstacle_id")},
+        {"obstacle_frame": LaunchConfiguration("obstacle_frame")},
     ]
 
     return LaunchDescription(arguments + [

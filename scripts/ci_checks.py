@@ -169,6 +169,28 @@ def check_cpp_calibration_table():
     )
 
 
+def check_obstacle_defaults():
+    path = REPO / "config/obstacles.yaml"
+    config = json.loads(path.read_text(encoding="utf-8"))
+    if config.get("schema_version") != 1:
+        failures.append("obstacles: schema_version must be 1")
+    if config.get("enabled") is not False:
+        failures.append("obstacles: enabled must default to false")
+    boxes = config.get("boxes", [])
+    if len(boxes) != 1:
+        failures.append("obstacles: Steps A/B require exactly one box")
+    else:
+        box = boxes[0]
+        if len(box.get("center_m", [])) != 3:
+            failures.append("obstacles: center_m must have three values")
+        if len(box.get("size_m", [])) != 3 or any(
+            not isinstance(value, (int, float)) or value <= 0.0
+            for value in box.get("size_m", [])
+        ):
+            failures.append("obstacles: size_m must contain three positive values")
+    print("[obstacles] schema and disabled-by-default policy checked")
+
+
 def main():
     check("python", compile_python, tracked("*.py"))
     check("shell", check_shell, tracked("*.sh"))
@@ -178,6 +200,7 @@ def main():
     check_licenses()
     check_gripper_solver()
     check_cpp_calibration_table()
+    check_obstacle_defaults()
     if failures:
         print("\nFAILED:")
         for failure in failures:
