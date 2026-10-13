@@ -38,14 +38,22 @@ ros2 launch ur5_moveit_demo pick_at_position.launch.py \
 
 echo "STEP_B_TALL_OBSTACLE_NEGATIVE_CONTROL"
 set +e
-ros2 launch ur5_moveit_demo pick_at_position.launch.py \
+tall_output="$(ros2 launch ur5_moveit_demo pick_at_position.launch.py \
   use_newton_object_pose:=false plan_only:=true use_safe_pregrasp_path:=false \
   obstacles_enabled:=true object_x:=0.20 \
-  obstacle_z:=1.0 obstacle_size_x:=0.10 obstacle_size_y:=4.0 obstacle_size_z:=2.0
-tall_status=$?
+  obstacle_z:=1.0 obstacle_size_x:=0.10 obstacle_size_y:=4.0 obstacle_size_z:=2.0 2>&1)"
+launch_status=$?
 set -e
-echo "TALL_OBSTACLE_PLAN_EXIT_STATUS ${tall_status}"
-if [[ "${tall_status}" -eq 0 ]]; then
+printf '%s\n' "${tall_output}"
+if grep -q "Absolute pre-grasp planning failed" <<<"${tall_output}" && \
+   ! grep -q "PLAN_ONLY_SUCCEEDED" <<<"${tall_output}"; then
+  tall_failed=true
+else
+  tall_failed=false
+fi
+echo "TALL_OBSTACLE_LAUNCH_EXIT_STATUS ${launch_status}"
+echo "TALL_OBSTACLE_PLANNING_FAILED ${tall_failed}"
+if [[ "${tall_failed}" != "true" ]]; then
   echo "ERROR: unreachable tall obstacle silently allowed a plan." >&2
   exit 1
 fi

@@ -40,7 +40,7 @@ def main():
     disabled_metrics = route_metrics(disabled)
     enabled_metrics = route_metrics(enabled)
     staged_metrics = route_metrics(staged)
-    status_match = re.search(r"TALL_OBSTACLE_PLAN_EXIT_STATUS (\d+)", tall)
+    status_match = re.search(r"TALL_OBSTACLE_LAUNCH_EXIT_STATUS (\d+)", tall)
     fractions = {stage: float(value) for stage, value in re.findall(
         r"SAFE_PREGRASP_STAGE_FRACTION stage=(raise|orient|translate|descend) prefix=([0-9.]+)%", staged)}
     route_changed = bool(disabled_metrics and enabled_metrics and (
@@ -54,8 +54,9 @@ def main():
         "enabled_route_is_collision_free": bool(enabled_metrics and enabled_metrics["min_robot_box_distance_m"] >= -1e-6),
         "staged_route_accepted": "SAFE_PREGRASP_PLAN_ONLY_SUCCEEDED" in staged,
         "three_spatial_stages_100_percent": all(fractions.get(name) == 100.0 for name in ("raise", "translate", "descend")),
-        "tall_obstacle_planning_failed": bool(status_match and int(status_match.group(1)) != 0),
-        "persistent_obstacle_removed": "PLANNING_SCENE_OBSTACLE_REMOVED id=grasp_route_box confirmed_absent=true" in cleanup,
+        "tall_obstacle_planning_failed": "TALL_OBSTACLE_PLANNING_FAILED true" in tall,
+        "persistent_obstacle_removed": bool(re.search(
+            r"PLANNING_SCENE_OBSTACLE_REMOVED id=grasp_route_box .*confirmed_absent=true", cleanup)),
         "disabled_scene_clean": "PLANNING_SCENE_OBSTACLES_DISABLED scene_clean=true" in cleanup,
     }
     result = {

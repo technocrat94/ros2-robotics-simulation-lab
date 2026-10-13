@@ -831,16 +831,19 @@ bool remove_box_obstacle(
   obstacle.header.frame_id = planning_frame;
   obstacle.id = obstacle_id;
   obstacle.operation = moveit_msgs::msg::CollisionObject::REMOVE;
-  if (!planning_scene.applyCollisionObject(obstacle))
-  {
-    RCLCPP_ERROR(logger, "Failed to remove persistent obstacle '%s'.", obstacle_id.c_str());
-    return false;
-  }
+  const bool removal_applied = planning_scene.applyCollisionObject(obstacle);
   const auto known = planning_scene.getKnownObjectNames();
   const bool absent = std::find(known.begin(), known.end(), obstacle_id) == known.end();
+  if (!removal_applied && absent)
+  {
+    RCLCPP_WARN(
+      logger, "Obstacle '%s' was already absent; explicit REMOVE was still sent.",
+      obstacle_id.c_str());
+  }
   RCLCPP_INFO(
-    logger, "PLANNING_SCENE_OBSTACLE_REMOVED id=%s confirmed_absent=%s",
-    obstacle_id.c_str(), absent ? "true" : "false");
+    logger, "PLANNING_SCENE_OBSTACLE_REMOVED id=%s remove_response=%s confirmed_absent=%s",
+    obstacle_id.c_str(), removal_applied ? "true" : "false",
+    absent ? "true" : "false");
   return absent;
 }
 
