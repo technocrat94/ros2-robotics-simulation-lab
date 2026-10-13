@@ -193,6 +193,19 @@ def check_obstacle_defaults():
     print("[obstacles] schema and disabled-by-default policy checked")
 
 
+def check_grasp_pass_policy():
+    result = subprocess.run(
+        [sys.executable, str(REPO / "scripts/test_candidate_contact_grasp_pass.py")],
+        capture_output=True, text=True,
+    )
+    if result.returncode != 0:
+        failures.append(
+            "pass-policy: test_candidate_contact_grasp_pass.py failed: "
+            + (result.stderr or result.stdout).strip().splitlines()[-1]
+        )
+    print("[pass-policy] obstacle-contact guard unit test run")
+
+
 def main():
     check("python", compile_python, tracked("*.py"))
     check("shell", check_shell, tracked("*.sh"))
@@ -203,6 +216,7 @@ def main():
     check_gripper_solver()
     check_cpp_calibration_table()
     check_obstacle_defaults()
+    check_grasp_pass_policy()
     if failures:
         print("\nFAILED:")
         for failure in failures:
