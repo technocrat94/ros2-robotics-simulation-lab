@@ -1,8 +1,9 @@
-# Rigid-obstacle milestone: corrected Steps A and B plus Newton integration
+# Rigid-obstacle milestone: Steps A/B and the first controlled Step C attempt
 
-This milestone stops before Step C.  It validates the obstacle physics,
-planning controls, planning-scene cleanup, and Newton endpoint integration
-without claiming a complete grasp around an obstacle.
+Steps A and B validate the obstacle physics, planning controls,
+planning-scene cleanup, and Newton endpoint integration.  Step C has now
+reached its first controlled C0 run, which stopped safely before contact; no
+complete grasp around an obstacle is claimed.
 
 The single source of truth is
 [`config/obstacles.yaml`](../../../config/obstacles.yaml).  Obstacles remain
@@ -123,7 +124,81 @@ condition before Step C instead of silently hiding it.
   zero, one, and multiple obstacle contacts.
 - The earlier provenance guard in commit `8342375` remains unchanged.
 
+## Step C attempt — cable moved behind a wall
+
+Commit `caa568994c0250c86c1dab3cb0d91fc5b603b0a5` keeps the verified FEM
+cable, grasp settings, Jazzy start joints, and Newton `BASE_ARM` unchanged.
+The shared profile moves the cable center to `(0.487, -0.180, 0.004) m`.
+The approved wall is centered at `(0.487, -0.035, 0.10) m` with size
+`(0.20, 0.05, 0.20) m`.  Both Newton and MoveIt read the same profile.
+
+### Geometry preflight
+
+The first `0.30 m` wall was too close to `upper_arm_link` along X.  Shortening
+it to `0.20 m` changed the limiting geometry instead of merely moving the
+wall in Y:
+
+| Measurement | Result |
+|---|---:|
+| Closest start-pose link | `ur/robotiq_85_right_finger_link` |
+| Closest-shape separation direction | `y` |
+| Robot-to-wall distance | `0.049792 m` |
+| Clearance after `0.020 m` padding | `0.029792 m` |
+| Cable surface-to-wall-face gap | `0.117000 m` |
+| Open-finger-to-wall clearance | `0.043792 m` |
+| Newton `BASE_ARM` minimum wall distance | `0.084727 m` |
+| Straight horizontal sweep intersects padded wall | `true` |
+
+All geometry checks passed.  Because `BASE_ARM` is collision-free, Newton
+counts robot-obstacle contacts from simulation start; no post-sync exclusion
+is used.  Machine-readable evidence is in
+[`step_c_geometry_20261014_035919.result.json`](results/step_c/attempt_20261014_caa5689/step_c_geometry_20261014_035919.result.json).
+
+### Ten-second plan-only checks
+
+Both profiles planned at the original `10 s` limit, so the authorized `30 s`
+fallback was not used:
+
+| Profile | Planning time used | Solver time | Maximum EE height | Minimum robot-to-wall distance | Outcome |
+|---|---:|---:|---:|---:|---|
+| C0, no wall | `10 s` | `0.112 s` | `0.990860 m` | `0.036955 m` | pass, no command sent |
+| C1, wall | `10 s` | `0.197 s` | `0.842469 m` | `0.029870 m` | pass, no command sent |
+
+These two random OMPL samples do not prove that the wall route is higher; the
+sampled C1 route was lower.  The required C0/C1 comparison therefore remains
+an acceptance item for a future complete run.
+
+The earlier no-wall attempt at `04:00:08` timed out while a stale
+`pick_at_position` process was still registered.  It is retained as
+superseded evidence and was not used for the table.  The clean reruns are
+[`no wall`](results/step_c/attempt_20261014_caa5689/step_c_no-wall_20261014_040036.log)
+and [`with wall`](results/step_c/attempt_20261014_caa5689/step_c_with-wall_20261014_040042.log).
+
+### C0 stopped before grasp
+
+The full no-wall control reached and executed the absolute pre-grasp pose.
+Its vertical Cartesian approach then reached only `89.5%`.  The safety guard
+rejected the incomplete path before closure, lift, or contact.  Therefore:
+
+| Case | Result | Lift | Wall contacts | Failure stage |
+|---|---|---:|---:|---|
+| C0 | fail / retained diagnostic | `0.0 m` | `0` | vertical approach incomplete (`89.5%`) |
+| C1 | not run | n/a | n/a | C0 must pass first |
+| C2 | not run | n/a | n/a | C0 must pass first |
+
+This failure belongs to the MoveIt approach geometry, not FEM grasp physics:
+the gripper never reached the cable.  In accordance with the experiment rule,
+C1 and C2 were not run and no contact, material, cable, wall, or grasp
+parameter was changed.
+
+- failed C0 result:
+  [`step_c_c0_20261014_040130.failed.result.json`](results/step_c/attempt_20261014_caa5689/step_c_c0_20261014_040130.failed.result.json)
+- MoveIt log:
+  [`jazzy_fem_cable_pick_20261014_040130.log`](results/step_c/attempt_20261014_caa5689/jazzy_fem_cable_pick_20261014_040130.log)
+- Newton diagnostic log:
+  [`jazzy_fem_cable_endpoint_20261014_040113.log`](results/step_c/attempt_20261014_caa5689/jazzy_fem_cable_endpoint_20261014_040113.log)
+
 ## Scope boundary
 
-Step C has not been run.  No complete grasp-with-obstacle success claim is
-made by this milestone.
+Step C0 was attempted and stopped before contact.  C1 and C2 remain unrun.
+No complete grasp-with-obstacle success claim is made by this milestone.

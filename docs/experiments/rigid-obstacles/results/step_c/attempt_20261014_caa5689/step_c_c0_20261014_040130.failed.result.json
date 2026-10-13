@@ -1,0 +1,30 @@
+{
+  "candidate_contact_grasp_pass": false,
+  "checks": {
+    "candidate_contact_grasp_pass": false,
+    "endpoint_padding_matches": true,
+    "endpoint_profile_matches": true,
+    "moveit_pick_succeeded": false,
+    "route_metrics_present": true,
+    "scene_profile_and_padding_logged": true,
+    "tested_commit_matches": true
+  },
+  "endpoint_result": "jazzy_fem_cable_endpoint_20261014_040113.result.json",
+  "grasp_region_lift_m": 0.0,
+  "maximum_robot_obstacle_contacts": 0,
+  "moveit_planning_time_s": 10.0,
+  "moveit_robot_padding_m": 0.02,
+  "object_obstacle_max_penetration_m": 0.0,
+  "pass": false,
+  "release_drop_m": 1.0863877832889557e-06,
+  "route": {
+    "max_end_effector_height_m": 0.937114,
+    "min_robot_wall_distance_m": 0.023883,
+    "obstacle_id": "step_c_cable_wall",
+    "samples": 335,
+    "stage": "Absolute pre-grasp"
+  },
+  "scene_profile": "step_c_cable_no_wall",
+  "step": "C0_moved_cable_without_wall",
+  "tested_commit": "caa568994c0250c86c1dab3cb0d91fc5b603b0a5"
+}
