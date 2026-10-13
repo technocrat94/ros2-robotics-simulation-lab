@@ -27,6 +27,7 @@
     "min_robot_box_distance_m": 0.012481,
     "samples": 57
   },
+  "evidence_log": "docs/experiments/rigid-obstacles/results/step_b_20261014_021854.log",
   "pass": true,
   "safe_staged_route": {
     "max_end_effector_height_m": 0.451119,
@@ -34,6 +35,7 @@
     "samples": 57
   },
   "same_target_x_m": 0.2,
+  "source_run_id": "20261014_021854",
   "staged_fractions_percent": {
     "descend": 100.0,
     "orient": 100.0,

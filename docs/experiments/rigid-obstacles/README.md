@@ -48,6 +48,7 @@ Commit `9695193eb107b31ebaff6d795a16b879071af87e` produced:
 | Box disabled | `0.308737 m` | `-0.060328 m` | route succeeds but intersects the hypothetical box |
 | Box enabled, OMPL | `0.401116 m` | `0.003664 m` | route changes and remains clear |
 | Box enabled, explicit safe route | `0.451119 m` | `0.012481 m` | all spatial stages reach 100% |
+| Tall wall enabled | n/a | n/a | planning fails as required |
 
 This is the required causal control: the target is identical, while the
 enabled scene produces a higher route and positive clearance.
@@ -63,9 +64,28 @@ reported `confirmed_absent=true`; this prevents an object from persisting in
 `move_group` across node runs.
 
 - machine-readable result:
-  [`step_b_moveit_controls_jazzy_arm64.json`](results/step_b_moveit_controls_jazzy_arm64.json)
+  [`step_b_20261014_021854.result.json`](results/step_b_20261014_021854.result.json)
 - complete log:
-  [`step_b_moveit_controls_jazzy_arm64.log`](results/step_b_moveit_controls_jazzy_arm64.log)
+  [`step_b_20261014_021854.log`](results/step_b_20261014_021854.log)
+
+### Evidence provenance
+
+All paths below are repository-relative.  The commit is the exact source
+recorded by the test, not the later documentation commit.
+
+| Evidence | Status | Tested commit | Repository-relative path |
+|---|---|---|---|
+| Step A0 sphere | accepted | `a6d2af3fa97bfbc2955e97427e6371132ddd2df0` | `docs/experiments/rigid-obstacles/results/step_a0_sphere_cpu_arm64.json` |
+| Step A1 FEM strip | accepted | `a6d2af3fa97bfbc2955e97427e6371132ddd2df0` | `docs/experiments/rigid-obstacles/results/step_a1_fem_strip_cpu_arm64.json` |
+| Step B controls, run `20261014_021854` | accepted | `9695193eb107b31ebaff6d795a16b879071af87e` | `docs/experiments/rigid-obstacles/results/step_b_20261014_021854.result.json` and `.log` |
+
+The following runs remain in the repository as diagnostic history and must
+not be used as acceptance evidence:
+
+| Run | Status | Reason | Retained evidence |
+|---|---|---|---|
+| `20261014_021734` | superseded / incomplete | The enabled same-target OMPL route was absent, so route metrics and causal comparison were incomplete. | `docs/experiments/rigid-obstacles/results/step_b_20261014_021734.superseded.log` and `.result.json` |
+| `20261014_022739` | superseded / incomplete | The run stopped after adding the floor and produced no result JSON. | `docs/experiments/rigid-obstacles/results/step_b_20261014_022739.superseded.log` |
 
 ## Newton endpoint integration before Step C
 
@@ -98,6 +118,9 @@ condition before Step C instead of silently hiding it.
   parameters must be supplied by the launch/config path.
 - CI rejects every configured box dimension below `0.01 m`, reducing the risk
   of one-step tunneling.
+- `candidate_contact_grasp_pass` now also requires
+  `maximum_robot_obstacle_contacts == 0`.  A dependency-free unit check covers
+  zero, one, and multiple obstacle contacts.
 - The earlier provenance guard in commit `8342375` remains unchanged.
 
 ## Scope boundary

@@ -17,6 +17,18 @@ import viser
 import warp as wp
 from newton.viewer import ViewerViser
 
+
+def candidate_contact_grasp_pass(
+    candidate_without_obstacle_guard: bool,
+    maximum_robot_obstacle_contacts: int,
+) -> bool:
+    """Reject an otherwise valid grasp if the robot touched a rigid obstacle."""
+    return bool(
+        candidate_without_obstacle_guard
+        and maximum_robot_obstacle_contacts == 0
+    )
+
+
 LESSON_DIR = Path.home() / "newton_ws/lessons/segmented_strip"
 sys.path.insert(0, str(LESSON_DIR))
 from robot_segmented_grasp_batch import (  # noqa: E402
@@ -1123,39 +1135,42 @@ finally:
         "simulated_time_s": sim_time,
         "wall_elapsed_s": wall_elapsed,
         "real_time_factor": sim_time / wall_elapsed if wall_elapsed > 0.0 else None,
-        "candidate_contact_grasp_pass": bool(
-            closed_seen
-            and lift_started
-            and release_seen
-            and measured_lift >= 0.08
-            and release_drop >= 0.05
-            and minimum_strip_bottom_z >= -MAX_ALLOWED_PENETRATION
-            and maximum_particle_surface_penetration <= MAX_ALLOWED_PENETRATION
-            and (
-                (
-                    FEM_MODE
-                    and maximum_closed_left_loaded_soft_contacts > 0
-                    and maximum_closed_right_loaded_soft_contacts > 0
-                    and maximum_lift_left_loaded_soft_contacts > 0
-                    and maximum_lift_right_loaded_soft_contacts > 0
-                    and bilateral_lift_soft_contact_samples > 0
+        "candidate_contact_grasp_pass": candidate_contact_grasp_pass(
+            bool(
+                closed_seen
+                and lift_started
+                and release_seen
+                and measured_lift >= 0.08
+                and release_drop >= 0.05
+                and minimum_strip_bottom_z >= -MAX_ALLOWED_PENETRATION
+                and maximum_particle_surface_penetration <= MAX_ALLOWED_PENETRATION
+                and (
+                    (
+                        FEM_MODE
+                        and maximum_closed_left_loaded_soft_contacts > 0
+                        and maximum_closed_right_loaded_soft_contacts > 0
+                        and maximum_lift_left_loaded_soft_contacts > 0
+                        and maximum_lift_right_loaded_soft_contacts > 0
+                        and bilateral_lift_soft_contact_samples > 0
+                    )
+                    or (
+                        ROD_MODE
+                        and maximum_closed_left_loaded_rigid_contacts > 0
+                        and maximum_closed_right_loaded_rigid_contacts > 0
+                        and maximum_lift_left_loaded_rigid_contacts > 0
+                        and maximum_lift_right_loaded_rigid_contacts > 0
+                        and bilateral_lift_rigid_contact_samples > 0
+                    )
+                    or (
+                        not FEM_MODE
+                        and not ROD_MODE
+                    )
                 )
-                or (
-                    ROD_MODE
-                    and maximum_closed_left_loaded_rigid_contacts > 0
-                    and maximum_closed_right_loaded_rigid_contacts > 0
-                    and maximum_lift_left_loaded_rigid_contacts > 0
-                    and maximum_lift_right_loaded_rigid_contacts > 0
-                    and bilateral_lift_rigid_contact_samples > 0
-                )
-                or (
-                    not FEM_MODE
-                    and not ROD_MODE
-                )
-            )
-            and command_queue_overflow_count == 0
-            and maximum_mimic_error <= 1.0e-5
-            and finite_state
+                and command_queue_overflow_count == 0
+                and maximum_mimic_error <= 1.0e-5
+                and finite_state
+            ),
+            maximum_robot_obstacle_contacts,
         ),
     }
     print("MOVEIT_GRASP_RESULT", json.dumps(result), flush=True)
