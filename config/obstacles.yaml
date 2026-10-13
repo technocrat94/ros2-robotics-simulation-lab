@@ -18,7 +18,7 @@
     {
       "id": "step_c_cable_wall",
       "frame_id": "world",
-      "center_m": [0.487, -0.020, 0.10],
+      "center_m": [0.487, -0.035, 0.10],
       "size_m": [0.30, 0.05, 0.20],
       "contact": {
         "ke_n_m": 50000.0,
@@ -31,7 +31,7 @@
     {
       "id": "step_c_cable_tall_wall",
       "frame_id": "world",
-      "center_m": [0.487, -0.020, 0.30],
+      "center_m": [0.487, -0.035, 0.30],
       "size_m": [0.30, 0.05, 0.60],
       "contact": {
         "ke_n_m": 50000.0,
@@ -50,17 +50,17 @@
       "box_id": "grasp_route_box"
     },
     "step_c_cable_no_wall": {
-      "object_center_m": [0.487, -0.150, 0.004],
+      "object_center_m": [0.487, -0.180, 0.004],
       "obstacles_enabled": false,
       "box_id": "step_c_cable_wall"
     },
     "step_c_cable_wall": {
-      "object_center_m": [0.487, -0.150, 0.004],
+      "object_center_m": [0.487, -0.180, 0.004],
       "obstacles_enabled": true,
       "box_id": "step_c_cable_wall"
     },
     "step_c_cable_tall_wall": {
-      "object_center_m": [0.487, -0.150, 0.004],
+      "object_center_m": [0.487, -0.180, 0.004],
       "obstacles_enabled": true,
       "box_id": "step_c_cable_tall_wall"
     }

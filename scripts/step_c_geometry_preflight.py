@@ -137,7 +137,7 @@ def main():
     shape_flags = model.shape_flags.numpy()
     collide_shapes = int(newton.ShapeFlags.COLLIDE_SHAPES)
 
-    def world_vertices(shape_index):
+    def world_vertices(shape_index, transforms):
         source = model.shape_source[shape_index]
         scale = shape_scales[shape_index]
         if source is not None and hasattr(source, "vertices"):
@@ -148,9 +148,24 @@ def main():
         transform = shape_transforms[shape_index]
         if body_index >= 0:
             transform = compose_transform(
-                body_transforms[body_index], transform
+                transforms[body_index], transform
             )
         return transform_points(transform, points)
+
+    def minimum_robot_wall_distance(transforms):
+        distances = []
+        for shape_index in range(model.shape_count):
+            body_index = int(shape_bodies[shape_index])
+            if body_index < 0 or body_index >= 24:
+                continue
+            if not (int(shape_flags[shape_index]) & collide_shapes):
+                continue
+            vertices = world_vertices(shape_index, transforms)
+            distances.append(aabb_distance(
+                vertices.min(axis=0), vertices.max(axis=0),
+                wall_lower, wall_upper,
+            ))
+        return min(distances)
 
     robot_vertices = []
     finger_vertices = []
@@ -162,7 +177,7 @@ def main():
             continue
         if not (int(shape_flags[index]) & collide_shapes):
             continue
-        vertices = world_vertices(index)
+        vertices = world_vertices(index, body_transforms)
         robot_vertices.append(vertices)
         body_label = model.body_label[body_index]
         if "finger_link" in body_label or "finger_tip_link" in body_label:
@@ -188,6 +203,16 @@ def main():
     )))
     minimum_start_distance = min(shape_distances)
     padded_start_clearance = minimum_start_distance - args.padding
+
+    base_q = model.joint_q.numpy()
+    base_q[:6] = scene.BASE_ARM
+    base_q[6:] = 0.0
+    model.joint_q.assign(base_q)
+    base_state = model.state()
+    newton.eval_fk(model, model.joint_q, model.joint_qd, base_state)
+    minimum_base_arm_distance = minimum_robot_wall_distance(
+        base_state.body_q.numpy()
+    )
 
     cable_radius = 0.003
     wall_face_y = wall_lower[1]
@@ -215,6 +240,7 @@ def main():
         "start_pose_clearance_exceeds_padding": minimum_start_distance > args.padding,
         "straight_transfer_would_hit_wall": straight_sweep_intersects_wall,
         "open_finger_clearance_at_least_3cm": open_finger_clearance >= 0.03,
+        "newton_initial_base_arm_collision_free": minimum_base_arm_distance > 0.0,
         "finite_geometry": bool(np.isfinite(robot_vertices).all()),
     }
     result = {
@@ -231,6 +257,12 @@ def main():
         "fingertip_lowest_z_m": float(fingertip_vertices[:, 2].min()),
         "minimum_start_robot_wall_distance_m": minimum_start_distance,
         "padded_start_clearance_m": padded_start_clearance,
+        "minimum_newton_base_arm_wall_distance_m": minimum_base_arm_distance,
+        "robot_obstacle_contact_counting_policy": (
+            "count_from_simulation_start_base_arm_verified_collision_free"
+            if minimum_base_arm_distance > 0.0
+            else "invalid_base_arm_requires_post_sync_gating"
+        ),
         "cable_center_m": cable_center.tolist(),
         "cable_axis": "x",
         "wall_center_m": wall_center.tolist(),
