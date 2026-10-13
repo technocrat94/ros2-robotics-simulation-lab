@@ -126,6 +126,7 @@ def main():
         args.repo / "config/jazzy_fem_initial_positions.yaml"
     )
     q[6:] = 0.0
+    jazzy_initial_q = q[:6].copy()
     model.joint_q.assign(q)
     state = model.state()
     newton.eval_fk(model, model.joint_q, model.joint_qd, state)
@@ -248,7 +249,7 @@ def main():
         "tested_commit": args.tested_commit,
         "scene_profile": args.profile,
         "robot_padding_m": args.padding,
-        "jazzy_initial_positions_rad": q[:6].astype(float).tolist(),
+        "jazzy_initial_positions_rad": jazzy_initial_q.astype(float).tolist(),
         "newton_base_arm_rad": scene.BASE_ARM.astype(float).tolist(),
         "tool_start_xyz_m": tool_position.tolist(),
         "finger_collision_aabb_min_m": finger_lower.tolist(),
