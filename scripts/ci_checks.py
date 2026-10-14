@@ -222,17 +222,17 @@ def check_obstacle_defaults():
             failures.append(f"obstacles: profile {name} references an unknown box")
     expected_step_c = {
         "step_c_cable_no_wall": {
-            "object_center_m": [0.487, -0.180, 0.004],
+            "object_center_m": [0.487, 0.410, 0.004],
             "obstacles_enabled": False,
             "box_id": "step_c_cable_wall",
         },
         "step_c_cable_wall": {
-            "object_center_m": [0.487, -0.180, 0.004],
+            "object_center_m": [0.487, 0.410, 0.004],
             "obstacles_enabled": True,
             "box_id": "step_c_cable_wall",
         },
         "step_c_cable_tall_wall": {
-            "object_center_m": [0.487, -0.180, 0.004],
+            "object_center_m": [0.487, 0.410, 0.004],
             "obstacles_enabled": True,
             "box_id": "step_c_cable_tall_wall",
         },
@@ -241,8 +241,8 @@ def check_obstacle_defaults():
         if profiles.get(name) != expected:
             failures.append(f"obstacles: profile {name} differs from Step C approval")
     expected_walls = {
-        "step_c_cable_wall": ([0.487, -0.035, 0.10], [0.20, 0.05, 0.20]),
-        "step_c_cable_tall_wall": ([0.487, -0.035, 0.30], [0.20, 0.05, 0.60]),
+        "step_c_cable_wall": ([0.487, 0.263, 0.10], [0.20, 0.05, 0.20]),
+        "step_c_cable_tall_wall": ([0.487, 0.263, 0.30], [0.20, 0.05, 0.60]),
     }
     for name, (center, size) in expected_walls.items():
         box = boxes_by_id.get(name, {})
