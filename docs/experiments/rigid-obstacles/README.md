@@ -1,9 +1,10 @@
-# Rigid-obstacle milestone: Steps A/B and the first controlled Step C attempt
+# Rigid-obstacle milestone: Steps A/B and controlled Step C attempts
 
 Steps A and B validate the obstacle physics, planning controls,
-planning-scene cleanup, and Newton endpoint integration.  Step C has now
-reached its first controlled C0 run, which stopped safely before contact; no
-complete grasp around an obstacle is claimed.
+planning-scene cleanup, and Newton endpoint integration.  The latest Step C
+attempt restores the verified default cable grasp and completes C0 with the
+moved cable.  C1 stops before execution because MoveIt rejects an internally
+self-colliding planned path; no complete grasp around an obstacle is claimed.
 
 The single source of truth is
 [`config/obstacles.yaml`](../../../config/obstacles.yaml).  Obstacles remain
@@ -198,7 +199,54 @@ parameter was changed.
 - Newton diagnostic log:
   [`jazzy_fem_cable_endpoint_20261014_040113.log`](results/step_c/attempt_20261014_caa5689/jazzy_fem_cable_endpoint_20261014_040113.log)
 
+## Corrective Step C attempt at `719b925`
+
+The earlier C0 failure was a padding regression rather than a cable-position
+failure.  Applying `0.020 m` padding during the vertical contact approach made
+the padded fingertips meet the floor before the verified `tool0 z=0.172 m`
+target, so the Cartesian fraction stopped at `89.5%`.  Commit
+`719b92588c52253ae753ae8ba06534e20a533ee5` restores the default padding to
+zero and separates padding by motion phase:
+
+- transit: profile padding (`0.020 m` for Step C);
+- contact approach, close, lift, and open: `0.000 m`, matching the verified
+  grasp conditions.
+
+The default-profile regression proof used the original cable position and
+zero padding for both phases.  It passed with `0.120048 m` lift and
+`0.117507 m` release drop.  Its endpoint result is
+[`jazzy_fem_cable_endpoint_20261015_015615.result.json`](results/step_c/attempt_20261015_719b925/jazzy_fem_cable_endpoint_20261015_015615.result.json).
+
+The Step C sequence then produced:
+
+| Case | Transit / contact padding | Result | Lift | Release drop | Robot-wall contacts | Maximum EE height | Minimum wall distance |
+|---|---:|---|---:|---:|---:|---:|---:|
+| Default cable regression | `0.000 / 0.000 m` | pass | `0.120048 m` | `0.117507 m` | `0` | n/a | n/a |
+| C0, moved cable without wall | `0.020 / 0.000 m` | pass | `0.120082 m` | `0.117480 m` | `0` | `0.495210 m` | `0.023920 m` (reference wall) |
+| C1, moved cable with wall | `0.020 / 0.000 m` | fail before execution | `0` | `0` | n/a | n/a | n/a |
+| C2, tall wall | n/a | not run | n/a | n/a | n/a | n/a | n/a |
+
+C1 did not time out.  OMPL returned a 319-state path quickly, but MoveIt's
+`ValidateSolution` adapter rejected state 269 as an
+`INVALID_MOTION_PLAN`: the padded `forearm_link` collided with
+`robotiq_85_left_finger_link`.  No robot command was sent.  Therefore the
+authorized 30-second timeout fallback does not apply, and C2 was not run.
+
+- accepted C0 result:
+  [`step_c_c0_20261015_020824.result.json`](results/step_c/attempt_20261015_719b925/step_c_c0_20261015_020824.result.json)
+- C0 MoveIt and Newton logs:
+  [`pick`](results/step_c/attempt_20261015_719b925/jazzy_fem_cable_pick_20261015_020056.log),
+  [`endpoint`](results/step_c/attempt_20261015_719b925/jazzy_fem_cable_endpoint_20261015_020035.log)
+- retained C1 failure result:
+  [`step_c_c1_20261015_021018.failed.result.json`](results/step_c/attempt_20261015_719b925/step_c_c1_20261015_021018.failed.result.json)
+- C1 failure evidence:
+  [`pick`](results/step_c/attempt_20261015_719b925/jazzy_fem_cable_pick_20261015_021018.log),
+  [`MoveGroup`](results/step_c/attempt_20261015_719b925/step_c_c1_bringup_20261015.log),
+  [`interrupted endpoint`](results/step_c/attempt_20261015_719b925/jazzy_fem_cable_endpoint_20261015_020956.log)
+
 ## Scope boundary
 
-Step C0 was attempted and stopped before contact.  C1 and C2 remain unrun.
-No complete grasp-with-obstacle success claim is made by this milestone.
+Step C0 is now accepted.  C1 remains blocked at planning validation and C2
+remains unrun.  The next change needs an explicit decision about how transit
+padding should interact with adjacent-link self-collision checks; no geometry,
+physics, grasp parameter, or acceptance threshold was changed in this attempt.
