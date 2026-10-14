@@ -48,7 +48,6 @@ set +e
 ros2 launch ur5_moveit_demo pick_at_position.launch.py \
   use_newton_object_pose:=false \
   plan_only:=true \
-  use_safe_pregrasp_path:=false \
   use_named_start:=false \
   planning_time_s:="${PLANNING_TIME}" \
   2>&1 | tee -a "${LOG}"

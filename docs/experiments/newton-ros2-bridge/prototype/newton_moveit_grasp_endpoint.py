@@ -149,6 +149,9 @@ MOVEIT_PLANNING_TIME_SECONDS = float(
 )
 if MOVEIT_PLANNING_TIME_SECONDS <= 0.0:
     raise ValueError("MOVEIT_PLANNING_TIME_SECONDS must be positive")
+USE_SAFE_PREGRASP_PATH = (
+    os.environ.get("FEM_CABLE_SAFE_PREGRASP", "true").strip().lower() == "true"
+)
 GRIPPER_CLOSED_MIN = 0.05
 GRIPPER_CLOSED_MAX = 0.81
 JOINT_NAMES = [
@@ -1106,6 +1109,7 @@ finally:
         "moveit_transit_padding_m": MOVEIT_ROBOT_PADDING_M,
         "moveit_contact_padding_m": MOVEIT_CONTACT_PADDING_M,
         "moveit_planning_time_s": MOVEIT_PLANNING_TIME_SECONDS,
+        "use_safe_pregrasp_path": USE_SAFE_PREGRASP_PATH,
         "configured_object_center_m": [
             OBJECT_CENTER_X, OBJECT_CENTER_Y, OBJECT_CENTER_Z
         ],

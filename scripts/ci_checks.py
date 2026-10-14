@@ -264,6 +264,22 @@ def check_grasp_pass_policy():
     print("[pass-policy] obstacle-contact guard unit test run")
 
 
+def check_step_c_safe_pregrasp_policy():
+    paths = (
+        REPO / "scripts/run_step_c_pick_jazzy.sh",
+        REPO / "scripts/run_step_c_plan_jazzy.sh",
+    )
+    forbidden = ("FEM_CABLE_SAFE_PREGRASP", "use_safe_pregrasp_path:=false")
+    for path in paths:
+        text = path.read_text(encoding="utf-8")
+        for marker in forbidden:
+            if marker in text:
+                failures.append(
+                    f"step-c-safe-route: {path.relative_to(REPO)} overrides {marker}"
+                )
+    print("[step-c-safe-route] Step C scripts preserve the verified safe route")
+
+
 def main():
     check("python", compile_python, tracked("*.py"))
     check("shell", check_shell, tracked("*.sh"))
@@ -275,6 +291,7 @@ def main():
     check_cpp_calibration_table()
     check_obstacle_defaults()
     check_grasp_pass_policy()
+    check_step_c_safe_pregrasp_policy()
     if failures:
         print("\nFAILED:")
         for failure in failures:

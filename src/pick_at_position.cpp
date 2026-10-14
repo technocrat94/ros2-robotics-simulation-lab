@@ -1243,6 +1243,9 @@ int main(int argc, char * argv[])
     scene_profile.c_str(), obstacles_enabled ? "true" : "false", robot_padding_m,
     contact_padding_m, planning_time_s);
   RCLCPP_INFO(
+    logger, "USE_SAFE_PREGRASP_PATH %s",
+    use_safe_pregrasp_path ? "true" : "false");
+  RCLCPP_INFO(
     logger,
     "OBJECT_TARGET source=%s frame=world center=(%.4f, %.4f, %.4f) m",
     use_newton_object_pose ? "newton_feedback" : "parameters",

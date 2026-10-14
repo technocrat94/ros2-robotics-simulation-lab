@@ -51,6 +51,7 @@ def main():
     )
     common_checks = {
         "scene_profile_and_padding_logged": expected_scene in text,
+        "safe_pregrasp_path_logged": "USE_SAFE_PREGRASP_PATH true" in text,
         "transit_padding_stage_logged": (
             f"ACTIVE_PADDING stage=transit padding_m={args.padding:.6f}" in text
         ),
@@ -80,6 +81,7 @@ def main():
             "moveit_transit_padding_m": args.padding,
             "moveit_contact_padding_m": args.contact_padding,
             "moveit_planning_time_s": args.planning_time,
+            "use_safe_pregrasp_path": True,
             "planning_failed": planning_failed,
             "robot_command_sent": not no_robot_command,
             "route": route_metrics(text),
@@ -114,6 +116,9 @@ def main():
                 float(endpoint.get("moveit_contact_padding_m", -1.0)) -
                 args.contact_padding
             ) <= 1.0e-12,
+            "endpoint_safe_pregrasp_path_matches": (
+                endpoint.get("use_safe_pregrasp_path") is True
+            ),
             "contact_padding_stage_logged": (
                 "ACTIVE_PADDING stage=contact "
                 f"padding_m={args.contact_padding:.6f}" in text
@@ -135,6 +140,7 @@ def main():
             "moveit_transit_padding_m": args.padding,
             "moveit_contact_padding_m": args.contact_padding,
             "moveit_planning_time_s": args.planning_time,
+            "use_safe_pregrasp_path": endpoint.get("use_safe_pregrasp_path"),
             "candidate_contact_grasp_pass": endpoint.get(
                 "candidate_contact_grasp_pass"
             ),
