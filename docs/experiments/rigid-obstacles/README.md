@@ -2,9 +2,9 @@
 
 Steps A and B validate the obstacle physics, planning controls,
 planning-scene cleanup, and Newton endpoint integration.  The latest Step C
-attempt restores the verified default cable grasp and completes C0 with the
-moved cable.  C1 stops before execution because MoveIt rejects an internally
-self-colliding planned path; no complete grasp around an obstacle is claimed.
+attempt restores the verified four-stage safe pre-grasp route.  C0 stops at
+its incomplete Cartesian-path guard, before any arm command or grasp; no
+complete grasp around an obstacle is claimed.
 
 The single source of truth is
 [`config/obstacles.yaml`](../../../config/obstacles.yaml).  Obstacles remain
@@ -199,7 +199,7 @@ parameter was changed.
 - Newton diagnostic log:
   [`jazzy_fem_cable_endpoint_20261014_040113.log`](results/step_c/attempt_20261014_caa5689/jazzy_fem_cable_endpoint_20261014_040113.log)
 
-## Corrective Step C attempt at `719b925`
+## Superseded free-OMPL Step C attempt at `719b925`
 
 The earlier C0 failure was a padding regression rather than a cable-position
 failure.  Applying `0.020 m` padding during the vertical contact approach made
@@ -222,7 +222,7 @@ The Step C sequence then produced:
 | Case | Transit / contact padding | Result | Lift | Release drop | Robot-wall contacts | Maximum EE height | Minimum wall distance |
 |---|---:|---|---:|---:|---:|---:|---:|
 | Default cable regression | `0.000 / 0.000 m` | pass | `0.120048 m` | `0.117507 m` | `0` | n/a | n/a |
-| C0, moved cable without wall | `0.020 / 0.000 m` | pass | `0.120082 m` | `0.117480 m` | `0` | `0.495210 m` | `0.023920 m` (reference wall) |
+| C0, moved cable without wall | `0.020 / 0.000 m` | superseded pass | `0.120082 m` | `0.117480 m` | `0` | `0.495210 m` | `0.023920 m` (reference wall) |
 | C1, moved cable with wall | `0.020 / 0.000 m` | fail before execution | `0` | `0` | n/a | n/a | n/a |
 | C2, tall wall | n/a | not run | n/a | n/a | n/a | n/a | n/a |
 
@@ -232,7 +232,7 @@ C1 did not time out.  OMPL returned a 319-state path quickly, but MoveIt's
 `robotiq_85_left_finger_link`.  No robot command was sent.  Therefore the
 authorized 30-second timeout fallback does not apply, and C2 was not run.
 
-- accepted C0 result:
+- superseded C0 result:
   [`step_c_c0_20261015_020824.result.json`](results/step_c/attempt_20261015_719b925/step_c_c0_20261015_020824.result.json)
 - C0 MoveIt and Newton logs:
   [`pick`](results/step_c/attempt_20261015_719b925/jazzy_fem_cable_pick_20261015_020056.log),
@@ -244,9 +244,45 @@ authorized 30-second timeout fallback does not apply, and C2 was not run.
   [`MoveGroup`](results/step_c/attempt_20261015_719b925/step_c_c1_bringup_20261015.log),
   [`interrupted endpoint`](results/step_c/attempt_20261015_719b925/jazzy_fem_cable_endpoint_20261015_020956.log)
 
+This C0 result is no longer acceptance evidence.  The Step C wrapper set
+`FEM_CABLE_SAFE_PREGRASP=false`, replacing the verified staged path with one
+free OMPL motion.  That changed a second variable and caused the subsequent
+319-state contorted C1 path.  Commit `3b01f9f39f314057e71ed7aa97369c18455db71c`
+removes both Step C safe-route overrides, records
+`use_safe_pregrasp_path` in results, and adds a CI guard against reintroducing
+either override.
+
+## Safe-route Step C attempt at `3b01f9f`
+
+The corrected C0 log confirms `USE_SAFE_PREGRASP_PATH true`, transit padding
+`0.020 m`, contact padding `0.000 m`, and unchanged 10-second planning time.
+The four-stage diagnostic reached:
+
+| Safe-route stage | Prefix fraction |
+|---|---:|
+| Raise | `100.0%` |
+| Orient | `100.0%` |
+| Translate | `83.3%` |
+| Descend | `62.5%` |
+
+The combined safe path was only `62.5%`, so its incomplete-path guard refused
+execution.  Only the initial gripper-open command was sent; no arm path,
+closure, lift, or release ran.  This output does not identify a self-collision
+pair, so the conditional permission to separate robot-vs-world padding from
+self-collision padding was not used.  C1 and C2 were not run because C0 is the
+first required gate.
+
+- machine-readable failure:
+  [`step_c_c0_20261015_022313.failed.result.json`](results/step_c/attempt_20261015_3b01f9f/step_c_c0_20261015_022313.failed.result.json)
+- MoveIt log:
+  [`jazzy_fem_cable_pick_20261015_022313.log`](results/step_c/attempt_20261015_3b01f9f/jazzy_fem_cable_pick_20261015_022313.log)
+- Newton startup/diagnostic log:
+  [`jazzy_fem_cable_endpoint_20261015_022248.log`](results/step_c/attempt_20261015_3b01f9f/jazzy_fem_cable_endpoint_20261015_022248.log)
+- bringup log:
+  [`step_c_safe_c0_bringup_20261015.log`](results/step_c/attempt_20261015_3b01f9f/step_c_safe_c0_bringup_20261015.log)
+
 ## Scope boundary
 
-Step C0 is now accepted.  C1 remains blocked at planning validation and C2
-remains unrun.  The next change needs an explicit decision about how transit
-padding should interact with adjacent-link self-collision checks; no geometry,
-physics, grasp parameter, or acceptance threshold was changed in this attempt.
+The free-OMPL C0 pass is superseded.  The corrected safe-route C0 failed before
+arm execution, so C1 and C2 remain unrun.  No geometry, physics, grasp
+parameter, padding value, planning time, or acceptance threshold was changed.

@@ -1,0 +1,41 @@
+[INFO] [launch]: All log files can be found below /home/yuhao/.ros/log/2026-10-15-02-23-26-963667-robo-jazzy-85485
+[INFO] [launch]: Default logging verbosity is set to INFO
+WARNING:root:[33;21mCannot infer URDF from `/home/yuhao/ur5_ws/install_jazzy_port/ur5_moveit_demo/share/ur5_moveit_demo`. -- using config/ur.urdf[0m
+WARNING:root:[33;21mCannot infer SRDF from `/home/yuhao/ur5_ws/install_jazzy_port/ur5_moveit_demo/share/ur5_moveit_demo`. -- using config/ur.srdf[0m
+[INFO] [pick_at_position-1]: process started with pid [85489]
+[pick_at_position-1] [WARN] [1792002207.134039102] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[pick_at_position-1] [WARN] [1792002207.134051560] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+[pick_at_position-1] [INFO] [1792002207.155937434] [pick_at_position]: WIDTH_CALIBRATION width=6.00 mm compression=2.00 mm gap=4.00 mm command=0.766352 rad closure_drop=13.615 mm approach=0.091385 m bracket=[0.75, 0.80] rad
+[pick_at_position-1] [INFO] [1792002207.158065183] [pick_at_position]: Waiting up to 5.0 s for measured object pose on /newton/object_pose...
+[pick_at_position-1] [INFO] [1792002208.562963676] [pick_at_position]: MEASURED_OBJECT_POSE topic=/newton/object_pose frame=world center=(0.4870, -0.1800, 0.0040) m
+[pick_at_position-1] [WARN] [1792002208.564436121] [rcl.logging_rosout]: Publisher already registered for node name: 'pick_at_position'. If this is due to multiple nodes with the same name then all logs for the logger named 'pick_at_position' will go out over the existing publisher. As soon as any node with that name is destructed it will unregister the publisher, preventing any further logs for that name from being published on the rosout topic.
+[pick_at_position-1] [INFO] [1792002208.571558131] [pick_at_position.moveit.ros.rdf_loader]: Loaded robot model in 0.00201037 seconds
+[pick_at_position-1] [INFO] [1792002208.571905846] [pick_at_position.moveit.core.robot_model]: Loading robot model 'ur'...
+[pick_at_position-1] [INFO] [1792002208.571913763] [pick_at_position.moveit.core.robot_model]: No root/virtual joint specified in SRDF. Assuming fixed joint
+[pick_at_position-1] [INFO] [1792002208.580816265] [pick_at_position.moveit.kinematics.kdl_kinematics_plugin]: Joint weights for group 'ur_manipulator': 1 1 1 1 1 1
+[pick_at_position-1] [INFO] [1792002208.595166370] [pick_at_position.moveit.ros.move_group_interface]: Ready to take commands for planning group ur_manipulator.
+[pick_at_position-1] [INFO] [1792002208.600372386] [pick_at_position]: Planning frame: world
+[pick_at_position-1] [INFO] [1792002208.600659224] [pick_at_position]: SCENE_CONFIG profile=step_c_cable_no_wall obstacles_enabled=false transit_padding_m=0.020000 contact_padding_m=0.000000 planning_time_s=10.000
+[pick_at_position-1] [INFO] [1792002208.601086983] [pick_at_position]: USE_SAFE_PREGRASP_PATH true
+[pick_at_position-1] [INFO] [1792002208.601363613] [pick_at_position]: OBJECT_TARGET source=newton_feedback frame=world center=(0.4870, -0.1800, 0.0040) m
+[pick_at_position-1] [INFO] [1792002208.601368155] [pick_at_position]: GRASP_CONFIG offset=0.1090 m clearance=0.1500 m approach=0.0914 m lift=0.1200 m closed=0.7664 rad lift_velocity_scale=0.030
+[pick_at_position-1] [INFO] [1792002208.601371738] [pick_at_position]: GRASP_ORIENTATION roll=180.0 pitch=0.0 yaw=90.0 deg
+[pick_at_position-1] [INFO] [1792002208.616052766] [pick_at_position]: PLANNING_SCENE_FLOOR_ADDED size=3.00 m top_z=-0.0010 m
+[pick_at_position-1] [WARN] [1792002208.715385941] [pick_at_position]: Obstacle 'step_c_cable_wall' was already absent; explicit REMOVE was still sent.
+[pick_at_position-1] [INFO] [1792002208.715570653] [pick_at_position]: PLANNING_SCENE_OBSTACLE_REMOVED id=step_c_cable_wall remove_response=false confirmed_absent=true
+[pick_at_position-1] [INFO] [1792002208.720563873] [pick_at_position]: PLANNING_SCENE_OBSTACLES_DISABLED scene_clean=true
+[pick_at_position-1] [INFO] [1792002208.731127448] [pick_at_position]: ACTIVE_PADDING stage=transit padding_m=0.020000 links=17
+[pick_at_position-1] [INFO] [1792002208.735741327] [pick_at_position]: Waiting for gripper action server...
+[pick_at_position-1] [INFO] [1792002208.736393215] [pick_at_position]: Sending gripper command: position=0.0000
+[pick_at_position-1] [INFO] [1792002208.788042986] [pick_at_position]: Gripper reached position 0.0000
+[pick_at_position-1] [INFO] [1792002208.789842020] [pick_at_position.moveit.ros.current_state_monitor]: Listening to joint states on topic 'joint_states'
+[pick_at_position-1] [INFO] [1792002208.791037043] [pick_at_position]: PREGRASP_CENTER world=(0.4870, -0.1800, 0.1540) m
+[pick_at_position-1] [INFO] [1792002208.794655736] [pick_at_position]: SAFE_PREGRASP_ROUTE current=(0.488, 0.116, 0.301) safe_z=0.351 target=(0.487, -0.180, 0.263)
+[pick_at_position-1] [INFO] [1792002208.798293139] [pick_at_position]: SAFE_PREGRASP_STAGE_FRACTION stage=raise prefix=100.0%
+[pick_at_position-1] [INFO] [1792002208.802553969] [pick_at_position]: SAFE_PREGRASP_STAGE_FRACTION stage=orient prefix=100.0%
+[pick_at_position-1] [INFO] [1792002208.819102491] [pick_at_position]: SAFE_PREGRASP_STAGE_FRACTION stage=translate prefix=83.3%
+[pick_at_position-1] [INFO] [1792002208.833552724] [pick_at_position]: SAFE_PREGRASP_STAGE_FRACTION stage=descend prefix=62.5%
+[pick_at_position-1] [INFO] [1792002208.845110026] [pick_at_position]: Safe pre-grasp Cartesian path completed: 62.5%
+[pick_at_position-1] [ERROR] [1792002208.845130193] [pick_at_position]: Safe pre-grasp path is incomplete; refusing preview or execution.
+[pick_at_position-1] [ERROR] [1792002208.845174902] [pick_at_position]: ========== ABSOLUTE POSITION PICK STOPPED ==========
+[ERROR] [pick_at_position-1]: process has died [pid 85489, exit code 1, cmd '/home/yuhao/ur5_ws/install_jazzy_port/ur5_moveit_demo/lib/ur5_moveit_demo/pick_at_position --ros-args -r __node:=pick_at_position --params-file /tmp/launch_params_t98b3tjp --params-file /tmp/launch_params__ibchwyo --params-file /tmp/launch_params_hpkxhlgq --params-file /tmp/launch_params_22imh8iq --params-file /tmp/launch_params__jlslbp0 --params-file /tmp/launch_params_dvrppgnk --params-file /tmp/launch_params_3qeecfxy --params-file /tmp/launch_params_2uzkgpra --params-file /tmp/launch_params_vvpv8i55 --params-file /tmp/launch_params_jb0zmztr --params-file /tmp/launch_params_kg8_mxkg --params-file /tmp/launch_params_soi_zqtc --params-file /tmp/launch_params_2wnb83t9 --params-file /tmp/launch_params_ad4wxzcd --params-file /tmp/launch_params_zexoprgv --params-file /tmp/launch_params_swt9fnpj --params-file /tmp/launch_params_jxp5ucpi --params-file /tmp/launch_params_qom4vfr1 --params-file /tmp/launch_params_ftest_cl --params-file /tmp/launch_params_y7gcgwcn --params-file /tmp/launch_params_dfw6oibf --params-file /tmp/launch_params_4liyfi5h --params-file /tmp/launch_params_itjrh8v0 --params-file /tmp/launch_params_2dny_5rk --params-file /tmp/launch_params_652p6mec'].
