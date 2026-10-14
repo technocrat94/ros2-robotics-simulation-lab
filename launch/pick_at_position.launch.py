@@ -46,9 +46,15 @@ def generate_launch_description():
     if not isinstance(object_center, list) or len(object_center) != 3:
         raise RuntimeError(f"scene profile {scene_profile} needs object_center_m")
     object_z = 0.0100 if object_center[2] is None else float(object_center[2])
-    robot_padding_m = float(os.environ.get("MOVEIT_ROBOT_PADDING_M", "0.02"))
+    profile_default_padding = 0.02 if scene_profile.startswith("step_c_") else 0.0
+    robot_padding_m = float(os.environ.get(
+        "MOVEIT_ROBOT_PADDING_M", str(profile_default_padding)
+    ))
+    contact_padding_m = float(os.environ.get("MOVEIT_CONTACT_PADDING_M", "0.0"))
     if robot_padding_m < 0.0:
         raise RuntimeError("MOVEIT_ROBOT_PADDING_M must be nonnegative")
+    if contact_padding_m < 0.0:
+        raise RuntimeError("MOVEIT_CONTACT_PADDING_M must be nonnegative")
     center = obstacle["center_m"]
     size = obstacle["size_m"]
     arguments = [
@@ -166,6 +172,7 @@ def generate_launch_description():
         {"obstacle_frame": LaunchConfiguration("obstacle_frame")},
         {"scene_profile": scene_profile},
         {"robot_padding_m": robot_padding_m},
+        {"contact_padding_m": contact_padding_m},
         {"robot_description_planning.default_robot_padding": robot_padding_m},
     ]
 

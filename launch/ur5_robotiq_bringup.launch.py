@@ -11,7 +11,11 @@ from moveit_configs_utils import MoveItConfigsBuilder
 
 def generate_launch_description():
 
-    robot_padding_m = float(os.environ.get("MOVEIT_ROBOT_PADDING_M", "0.02"))
+    scene_profile = os.environ.get("GRASP_SCENE_PROFILE", "default")
+    profile_default_padding = 0.02 if scene_profile.startswith("step_c_") else 0.0
+    robot_padding_m = float(os.environ.get(
+        "MOVEIT_ROBOT_PADDING_M", str(profile_default_padding)
+    ))
     if robot_padding_m < 0.0:
         raise RuntimeError("MOVEIT_ROBOT_PADDING_M must be nonnegative")
 

@@ -37,6 +37,7 @@ def main():
     parser.add_argument("--tested-commit", required=True)
     parser.add_argument("--profile", required=True)
     parser.add_argument("--padding", type=float, required=True)
+    parser.add_argument("--contact-padding", type=float, required=True)
     parser.add_argument("--planning-time", type=float, required=True)
     args = parser.parse_args()
 
@@ -44,11 +45,15 @@ def main():
     expected_scene = (
         f"SCENE_CONFIG profile={args.profile} "
         f"obstacles_enabled={'true' if args.case != 'c0' else 'false'} "
-        f"robot_padding_m={args.padding:.6f} "
+        f"transit_padding_m={args.padding:.6f} "
+        f"contact_padding_m={args.contact_padding:.6f} "
         f"planning_time_s={args.planning_time:.3f}"
     )
     common_checks = {
         "scene_profile_and_padding_logged": expected_scene in text,
+        "transit_padding_stage_logged": (
+            f"ACTIVE_PADDING stage=transit padding_m={args.padding:.6f}" in text
+        ),
     }
 
     if args.case == "c2":
@@ -72,6 +77,8 @@ def main():
             "tested_commit": args.tested_commit,
             "scene_profile": args.profile,
             "moveit_robot_padding_m": args.padding,
+            "moveit_transit_padding_m": args.padding,
+            "moveit_contact_padding_m": args.contact_padding,
             "moveit_planning_time_s": args.planning_time,
             "planning_failed": planning_failed,
             "robot_command_sent": not no_robot_command,
@@ -100,6 +107,17 @@ def main():
             "endpoint_padding_matches": abs(
                 float(endpoint.get("moveit_robot_padding_m", -1.0)) - args.padding
             ) <= 1.0e-12,
+            "endpoint_transit_padding_matches": abs(
+                float(endpoint.get("moveit_transit_padding_m", -1.0)) - args.padding
+            ) <= 1.0e-12,
+            "endpoint_contact_padding_matches": abs(
+                float(endpoint.get("moveit_contact_padding_m", -1.0)) -
+                args.contact_padding
+            ) <= 1.0e-12,
+            "contact_padding_stage_logged": (
+                "ACTIVE_PADDING stage=contact "
+                f"padding_m={args.contact_padding:.6f}" in text
+            ),
         }
         if args.case == "c1":
             checks["zero_robot_wall_contacts"] = (
@@ -114,6 +132,8 @@ def main():
             "tested_commit": args.tested_commit,
             "scene_profile": args.profile,
             "moveit_robot_padding_m": args.padding,
+            "moveit_transit_padding_m": args.padding,
+            "moveit_contact_padding_m": args.contact_padding,
             "moveit_planning_time_s": args.planning_time,
             "candidate_contact_grasp_pass": endpoint.get(
                 "candidate_contact_grasp_pass"

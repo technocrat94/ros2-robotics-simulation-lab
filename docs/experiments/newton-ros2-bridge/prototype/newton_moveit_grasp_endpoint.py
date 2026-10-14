@@ -133,9 +133,17 @@ MAX_ALLOWED_PENETRATION = float(
 )
 if MAX_ALLOWED_PENETRATION < 0.0:
     raise ValueError("GRASP_MAX_ALLOWED_PENETRATION must be nonnegative")
-MOVEIT_ROBOT_PADDING_M = float(os.environ.get("MOVEIT_ROBOT_PADDING_M", "0.02"))
+PROFILE_DEFAULT_TRANSIT_PADDING_M = (
+    0.02 if SCENE_PROFILE_NAME.startswith("step_c_") else 0.0
+)
+MOVEIT_ROBOT_PADDING_M = float(os.environ.get(
+    "MOVEIT_ROBOT_PADDING_M", str(PROFILE_DEFAULT_TRANSIT_PADDING_M)
+))
 if MOVEIT_ROBOT_PADDING_M < 0.0:
     raise ValueError("MOVEIT_ROBOT_PADDING_M must be nonnegative")
+MOVEIT_CONTACT_PADDING_M = float(os.environ.get("MOVEIT_CONTACT_PADDING_M", "0.0"))
+if MOVEIT_CONTACT_PADDING_M < 0.0:
+    raise ValueError("MOVEIT_CONTACT_PADDING_M must be nonnegative")
 MOVEIT_PLANNING_TIME_SECONDS = float(
     os.environ.get("MOVEIT_PLANNING_TIME_SECONDS", "10.0")
 )
@@ -1095,6 +1103,8 @@ finally:
         "tested_commit": TESTED_COMMIT,
         "scene_profile": SCENE_PROFILE_NAME,
         "moveit_robot_padding_m": MOVEIT_ROBOT_PADDING_M,
+        "moveit_transit_padding_m": MOVEIT_ROBOT_PADDING_M,
+        "moveit_contact_padding_m": MOVEIT_CONTACT_PADDING_M,
         "moveit_planning_time_s": MOVEIT_PLANNING_TIME_SECONDS,
         "configured_object_center_m": [
             OBJECT_CENTER_X, OBJECT_CENTER_Y, OBJECT_CENTER_Z

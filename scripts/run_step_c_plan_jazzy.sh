@@ -10,6 +10,7 @@ CASE="$1"
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ROS_WS="${HOME}/ur5_ws"
 PADDING="${MOVEIT_ROBOT_PADDING_M:-0.02}"
+CONTACT_PADDING="${MOVEIT_CONTACT_PADDING_M:-0.0}"
 PLANNING_TIME="${MOVEIT_PLANNING_TIME_SECONDS:-10.0}"
 TESTED_COMMIT="$(git -C "${REPO_DIR}" rev-parse HEAD)"
 LOG_DIR="${ROS_WS}/run_logs"
@@ -32,6 +33,7 @@ RESULT_JSON="${LOG%.log}.result.json"
 
 export GRASP_SCENE_PROFILE="${PROFILE}"
 export MOVEIT_ROBOT_PADDING_M="${PADDING}"
+export MOVEIT_CONTACT_PADDING_M="${CONTACT_PADDING}"
 source "${REPO_DIR}/scripts/lab_session_env.sh"
 source /opt/ros/jazzy/setup.bash
 source "${ROS_WS}/install_jazzy_port/setup.bash"
@@ -40,6 +42,7 @@ set -u
 echo "STEP_C_PLAN_CASE ${CASE}" | tee "${LOG}"
 echo "GRASP_SCENE_PROFILE ${PROFILE}" | tee -a "${LOG}"
 echo "MOVEIT_ROBOT_PADDING_M ${PADDING}" | tee -a "${LOG}"
+echo "MOVEIT_CONTACT_PADDING_M ${CONTACT_PADDING}" | tee -a "${LOG}"
 echo "MOVEIT_PLANNING_TIME_SECONDS ${PLANNING_TIME}" | tee -a "${LOG}"
 set +e
 ros2 launch ur5_moveit_demo pick_at_position.launch.py \
@@ -64,4 +67,5 @@ fi
 python3 "${REPO_DIR}/scripts/extract_step_c_result.py" \
   --case c2 --pick-log "${LOG}" --output "${RESULT_JSON}" \
   --tested-commit "${TESTED_COMMIT}" --profile "${PROFILE}" \
-  --padding "${PADDING}" --planning-time "${PLANNING_TIME}"
+  --padding "${PADDING}" --contact-padding "${CONTACT_PADDING}" \
+  --planning-time "${PLANNING_TIME}"
