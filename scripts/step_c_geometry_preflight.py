@@ -233,11 +233,13 @@ def main():
     ) or "overlap"
 
     cable_radius = 0.003
-    wall_face_y = wall_lower[1]
-    cable_surface_gap = float(wall_face_y - (cable_center[1] + cable_radius))
-    open_finger_clearance = float(
-        wall_face_y - (cable_center[1] + finger_outer_half_width)
-    )
+    # Measure toward the wall face that faces the cable, on either side.
+    if cable_center[1] < wall_lower[1]:
+        cable_to_face_y = float(wall_lower[1] - cable_center[1])
+    else:
+        cable_to_face_y = float(cable_center[1] - wall_upper[1])
+    cable_surface_gap = cable_to_face_y - cable_radius
+    open_finger_clearance = cable_to_face_y - finger_outer_half_width
 
     # Sweep the actual open-finger collision AABB from the unchanged start pose
     # to the proposed cable center.  An overlap proves a straight transfer is
