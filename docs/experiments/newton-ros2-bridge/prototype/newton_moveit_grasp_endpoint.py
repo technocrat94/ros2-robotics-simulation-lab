@@ -546,6 +546,9 @@ previous_sample_arm_q = robot_q[:6].copy()
 robot_state_initialized = False
 previous_grasp_z = initial_grasp_z
 closed_seen = False
+# A fresh bringup can report the gripper as closed before the task opens it.
+# Only a closure that follows an observed open gripper counts as the grasp.
+open_seen = False
 lift_started = False
 release_seen = False
 result_ready_sim_time = None
@@ -840,7 +843,13 @@ try:
             current_mimic_error = mimic_error(latest_robot_q)
             maximum_mimic_error = max(maximum_mimic_error, current_mimic_error)
 
-            if GRIPPER_CLOSED_MIN < grip <= GRIPPER_CLOSED_MAX and not release_seen:
+            if grip <= GRIPPER_CLOSED_MIN:
+                open_seen = True
+            if (
+                open_seen
+                and GRIPPER_CLOSED_MIN < grip <= GRIPPER_CLOSED_MAX
+                and not release_seen
+            ):
                 closed_seen = True
                 if FEM_MODE and not lift_started:
                     maximum_closed_left_loaded_soft_contacts = max(
