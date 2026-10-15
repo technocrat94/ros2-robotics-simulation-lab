@@ -286,3 +286,50 @@ first required gate.
 The free-OMPL C0 pass is superseded.  The corrected safe-route C0 failed before
 arm execution, so C1 and C2 remain unrun.  No geometry, physics, grasp
 parameter, padding value, planning time, or acceptance threshold was changed.
+
+## Positive-Y Step C rerun through `c7d3b34`
+
+The negative-Y cable pose was abandoned after plan-only evidence showed an IK
+branch jump toward the arm body.  Commit `2dd032c` mirrors the experiment to
+the positive-Y side: cable center `(0.487, 0.410, 0.004) m`, wall center
+`(0.487, 0.263, 0.10) m`, and wall size `(0.20, 0.05, 0.20) m`.  The revised
+two-sided clearance calculation passed at `9e32a18`: cable-to-wall face gap
+`0.1190 m`, padded open-finger clearance `0.02579 m`, start-pose wall distance
+`0.04579 m`, and the straight transfer still intersects the wall.
+
+### Current C0/C1 status
+
+| Case | Commit | Outcome | Lift / release drop | Safe-route fractions | Robot-wall contacts |
+|---|---|---|---|---|---:|
+| C0, moved cable, no wall | `5cb882e` | **pass** | `0.120085 / 0.117506 m` | all four stages `100%` | `0` |
+| C1, wall active | `c7d3b34` | fail before execution | n/a | raise/orient `100%`, translate `97.2%`, descend prefix `72.9%` | n/a |
+| C2, tall wall | n/a | not run | n/a | n/a | n/a |
+
+C0 used a fresh bringup and passed `candidate_contact_grasp_pass`.  The
+endpoint fix at `5cb882e` requires observing an open gripper before accepting
+a later closed state, preventing the fake-hardware startup value near
+`0.79 rad` from becoming a false closure event.
+
+C1 used obstacle-aware cruise height `0.415 m`.  A plan-only rejection probe
+found the last continuous pose at approximately
+`(0.487077, 0.387585, 0.415000) m`; the next rejected sample was
+`(0.487068, 0.390085, 0.415000) m`.  The alternative IK state is collision-free
+with both `0.020 m` and zero padding, but requires joint changes up to
+`11.62 rad`.  The failure is therefore an IK-branch discontinuity / joint
+jump, not contact with the wall top.  Lowering the wall has not been applied.
+
+Evidence (all paths are repository-relative):
+
+- [passing geometry preflight](results/step_c/attempt_20261015_c7d3b34/step_c_geometry_20261015_025130.result.json)
+- [superseded one-sided preflight](results/step_c/attempt_20261015_c7d3b34/step_c_geometry_20261015_025108.result.json)
+- [C0 result](results/step_c/attempt_20261015_c7d3b34/step_c_c0_20261015_032446.result.json), [pick log](results/step_c/attempt_20261015_c7d3b34/jazzy_fem_cable_pick_20261015_032018.log), [endpoint result](results/step_c/attempt_20261015_c7d3b34/jazzy_fem_cable_endpoint_20261015_031947.result.json), and [endpoint log](results/step_c/attempt_20261015_c7d3b34/jazzy_fem_cable_endpoint_20261015_031947.log)
+- [C1 failed result](results/step_c/attempt_20261015_c7d3b34/step_c_c1_20261015_144957.failed.result.json), [pick log](results/step_c/attempt_20261015_c7d3b34/jazzy_fem_cable_pick_20261015_144957.log), and [plan-only diagnosis](results/step_c/attempt_20261015_c7d3b34/c1_plan_diagnostic.log)
+
+Temporary runs made before the accepted C0 are superseded: runs launched
+before the endpoint was ready produced no valid endpoint result; repeated
+picks in the same bringup started from the previous final pose (including
+`030230` and `032515`) and are not start-pose controls; a stale `ros_adapter`
+also left the runner waiting for an unrelated result.  None is acceptance
+evidence.  Every case must use a fresh bringup, wait for endpoint readiness,
+open the fake gripper before state synchronization, and terminate all
+bringup/adapter/endpoint processes afterward.
