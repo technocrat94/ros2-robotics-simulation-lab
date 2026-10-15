@@ -40,6 +40,9 @@ below the settling threshold:
 
 Result: [`step_a1_fem_strip_cpu_arm64.json`](results/step_a1_fem_strip_cpu_arm64.json)
 
+![A1 FEM strip on box](media/A1_fem_strip_on_box.png)
+Newton viewer: FEM strip settled on the rigid box after free-fall (max penetration 0.21 mm).
+
 ## Step B — MoveIt positive and negative controls
 
 All Step B cases used one unchanged MoveIt bringup and target `x=0.20 m`.
@@ -69,6 +72,12 @@ reported `confirmed_absent=true`; this prevents an object from persisting in
   [`step_b_20261014_021854.result.json`](results/step_b_20261014_021854.result.json)
 - complete log:
   [`step_b_20261014_021854.log`](results/step_b_20261014_021854.log)
+
+![B disabled route](media/B_disabled_route.png)
+RViz: box disabled — route passes through the box location (apex 0.309 m, min distance −6.0 cm).
+
+![B enabled route](media/B_enabled_route.gif)
+RViz: box enabled — route detours around the box (min distance +0.28 cm).
 
 ### Evidence provenance
 
@@ -372,3 +381,12 @@ Evidence (repository-relative):
 - 25 mm: [combined result](results/step_c/attempt_20261015_b6b31d4/step_c_c1_20261015_161027.result.json), [pick log](results/step_c/attempt_20261015_b6b31d4/jazzy_fem_cable_pick_20261015_160537.log), [endpoint result](results/step_c/attempt_20261015_b6b31d4/jazzy_fem_cable_endpoint_20261015_160507.result.json), [endpoint log](results/step_c/attempt_20261015_b6b31d4/jazzy_fem_cable_endpoint_20261015_160507.log)
 - 27.5 mm: [combined result](results/step_c/attempt_20261015_b6b31d4/step_c_c1_20261015_161732.result.json), [pick log](results/step_c/attempt_20261015_b6b31d4/jazzy_fem_cable_pick_20261015_161235.log), [endpoint result](results/step_c/attempt_20261015_b6b31d4/jazzy_fem_cable_endpoint_20261015_161206.result.json), [endpoint log](results/step_c/attempt_20261015_b6b31d4/jazzy_fem_cable_endpoint_20261015_161206.log)
 - 30 mm route rejection: [pick log](results/step_c/attempt_20261015_b6b31d4/jazzy_fem_cable_pick_20261015_155756.log)
+
+![Default grasp 6×](media/02_cable_grasp_default_6x.gif)
+Default-position grasp baseline at 6× speed: approach, close, lift 0.120 m, release drop 0.120 m.
+
+![C0 moved cable 6×](media/03_c0_moved_cable_6x.gif)
+C0 control at 6× speed: cable at y = 0.410 m, no wall, complete pick cycle.
+
+![C1 wall crossing 6×](media/04_c1_wall_crossing_6x.gif)
+C1 wall crossing at 6× speed: raise over the 0.16 m wall (route height 0.375 m), descend, grasp, lift 0.120 m, release drop 0.120 m; loaded wall contacts 0.

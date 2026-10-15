@@ -23,8 +23,14 @@ not rerun or alter the simulation.
 | [`04_c1_wall_crossing.mp4`](04_c1_wall_crossing.mp4) | C1 main clip: raise over the visible `0.16 m` wall, descend, grasp, lift, and release | `cuda:0` | 1x | 197.7 s | lift `0.119893 m`; release drop `0.120327 m`; route height `0.375040 m`; loaded wall contacts `0` |
 | [`04_c1_wall_crossing_6x.mp4`](04_c1_wall_crossing_6x.mp4) | Sped-up C1 main clip | `cuda:0` | 6x | 33.1 s | raw wall candidates `82`; loaded and penetrating wall contacts `0` |
 | [`05_c2_tall_wall_refused.png`](05_c2_tall_wall_refused.png) | C2 terminal evidence: tall-wall safe path reached only `4.0%`, so planning was refused | plan-only; no Newton device used | n/a | still | `planning_failed=true`; `robot_command_sent=false`; pass `true` |
+| [`A1_fem_strip_on_box.png`](A1_fem_strip_on_box.png) | Newton viewer: FEM strip settled on the rigid box after free-fall (Step A1) | ARM64 home VM, Jazzy | n/a | still | max penetration `0.21 mm`; settled |
+| [`B_disabled_route.png`](B_disabled_route.png) | RViz: planned route with the box disabled — the path passes through the box location (Step B control) | ARM64 home VM, Jazzy | n/a | still | route apex `0.309 m`; min robot-to-box distance `−6.0 cm` (intersects) |
+| [`B_enabled_route.gif`](B_enabled_route.gif) | RViz: planned route with the box enabled — the path detours around the box (Step B) | ARM64 home VM, Jazzy | n/a | animated | min robot-to-box distance `+0.28 cm` (clears) |
+| [`02_cable_grasp_default_6x.gif`](02_cable_grasp_default_6x.gif) | GIF of the 6× default grasp clip | converted from `02_cable_grasp_default_6x.mp4`; no re-simulation | 6x | 25.1 s | same as MP4 source |
+| [`03_c0_moved_cable_6x.gif`](03_c0_moved_cable_6x.gif) | GIF of the 6× C0 moved-cable clip | converted from `03_c0_moved_cable_6x.mp4`; no re-simulation | 6x | 28.7 s | same as MP4 source |
+| [`04_c1_wall_crossing_6x.gif`](04_c1_wall_crossing_6x.gif) | GIF of the 6× C1 wall-crossing clip | converted from `04_c1_wall_crossing_6x.mp4`; no re-simulation | 6x | 33.1 s | lift `0.120 m`; release drop `0.120 m`; route height `0.375 m`; loaded wall contacts `0`; 6× speed |
 
-All nine files are below 10 MB.  C0, C1, and C2 passed their existing
+All fifteen files are below 10 MB.  C0, C1, and C2 passed their existing
 acceptance checks.  The accelerated copies are the recommended presentation
 versions; retain the 1x files when the slower wall-clock behavior itself needs
 to be explained.
