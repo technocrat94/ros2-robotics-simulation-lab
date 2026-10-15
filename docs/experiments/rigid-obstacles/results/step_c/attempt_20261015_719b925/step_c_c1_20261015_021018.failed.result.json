@@ -1,0 +1,27 @@
+{
+  "candidate_contact_grasp_pass": false,
+  "failure": {
+    "error_code": "INVALID_MOTION_PLAN",
+    "invalid_state_indices": [269],
+    "invalid_state_count": 1,
+    "path_state_count": 319,
+    "stage": "absolute_pregrasp_plan_validation",
+    "self_collision_links": [
+      "forearm_link",
+      "robotiq_85_left_finger_link"
+    ],
+    "timed_out": false
+  },
+  "grasp_region_lift_m": 0.0,
+  "maximum_robot_obstacle_contacts": null,
+  "moveit_contact_padding_m": 0.0,
+  "moveit_planning_time_s": 10.0,
+  "moveit_transit_padding_m": 0.02,
+  "pass": false,
+  "release_drop_m": 0.0,
+  "robot_command_sent": false,
+  "route": null,
+  "scene_profile": "step_c_cable_wall",
+  "step": "C1_moved_cable_with_wall",
+  "tested_commit": "719b92588c52253ae753ae8ba06534e20a533ee5"
+}

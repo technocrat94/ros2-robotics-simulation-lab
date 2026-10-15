@@ -1,0 +1,92 @@
+{
+  "cable_axis": "x",
+  "cable_center_m": [
+    0.487,
+    0.41,
+    0.004
+  ],
+  "cable_surface_to_wall_face_gap_m": 0.11899999999999994,
+  "checks": {
+    "finite_geometry": true,
+    "newton_initial_base_arm_collision_free": true,
+    "open_finger_clearance_at_least_3cm": true,
+    "start_pose_clearance_exceeds_padding": true,
+    "straight_transfer_would_hit_wall": true
+  },
+  "closest_newton_base_arm_shape_link": "ur/robotiq_85_right_finger_tip_link",
+  "closest_start_robot_shape_index": 39,
+  "closest_start_robot_shape_link": "ur/robotiq_85_left_finger_tip_link",
+  "closest_start_robot_wall_separation_axes": [
+    "y"
+  ],
+  "closest_start_robot_wall_separation_direction": "y",
+  "closest_start_robot_wall_separation_xyz_m": [
+    0.0,
+    0.04828632415883494,
+    0.0
+  ],
+  "finger_collision_aabb_max_m": [
+    0.5016001228214471,
+    0.19220758134622573,
+    0.24512170227526334
+  ],
+  "finger_collision_aabb_min_m": [
+    0.4736000120876953,
+    0.03979244424300916,
+    0.1406544301040164
+  ],
+  "finger_outer_half_width_m": 0.07620757477087253,
+  "fingertip_lowest_z_m": 0.1406544301040164,
+  "geometry_pass": true,
+  "jazzy_initial_positions_rad": [
+    -2.688859224319458,
+    -2.061718463897705,
+    -1.2870012521743774,
+    1.777923345565796,
+    4.71238899230957,
+    -5.830451965332031
+  ],
+  "minimum_newton_base_arm_wall_distance_m": 0.12439964381093803,
+  "minimum_start_robot_wall_distance_m": 0.04828632415883494,
+  "newton_base_arm_rad": [
+    0.0,
+    -1.5707963267948966,
+    1.5707963267948966,
+    -1.5707963267948966,
+    -1.5707963267948966,
+    0.0
+  ],
+  "open_finger_to_wall_face_clearance_m": 0.04579242522912741,
+  "padded_open_finger_to_wall_clearance_m": 0.02579242522912741,
+  "padded_start_clearance_m": 0.028286324158834936,
+  "robot_obstacle_contact_counting_policy": "count_from_simulation_start_base_arm_verified_collision_free",
+  "robot_padding_m": 0.02,
+  "scene_profile": "step_c_cable_wall",
+  "step": "C_geometry_preflight_collision_model",
+  "straight_sweep_aabb_max_m": [
+    0.5016001228214471,
+    0.486207562332344,
+    0.24512170227526334
+  ],
+  "straight_sweep_aabb_min_m": [
+    0.4725999469994232,
+    0.03979244424300916,
+    0.1406544301040164
+  ],
+  "tested_commit": "b6b31d47d799a04a82dbc4eea38f96cd392b9965",
+  "tool_start_xyz_m": [
+    0.4880000650882721,
+    0.11600001901388168,
+    0.3009999394416809
+  ],
+  "wall_center_m": [
+    0.487,
+    0.263,
+    0.08
+  ],
+  "wall_size_m": [
+    0.2,
+    0.05,
+    0.16
+  ]
+}

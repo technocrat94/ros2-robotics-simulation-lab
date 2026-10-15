@@ -1,0 +1,653 @@
+[INFO] [launch]: All log files can be found below /home/yuhao/.ros/log/2026-10-15-02-00-23-867998-robo-jazzy-78915
+[INFO] [launch]: Default logging verbosity is set to INFO
+WARNING:root:[33;21mCannot infer URDF from `/home/yuhao/ur5_ws/install_jazzy_port/ur5_moveit_demo/share/ur5_moveit_demo`. -- using config/ur.urdf[0m
+WARNING:root:[33;21mCannot infer SRDF from `/home/yuhao/ur5_ws/install_jazzy_port/ur5_moveit_demo/share/ur5_moveit_demo`. -- using config/ur.srdf[0m
+[INFO] [robot_state_publisher-1]: process started with pid [78919]
+[INFO] [ros2_control_node-2]: process started with pid [78920]
+[robot_state_publisher-1] [WARN] [1792000824.018147574] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[robot_state_publisher-1] [WARN] [1792000824.018406741] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+[ros2_control_node-2] [WARN] [1792000824.024380543] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[ros2_control_node-2] [WARN] [1792000824.024591127] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+[ros2_control_node-2] [INFO] [1792000824.038983442] [controller_manager]: Using Steady (Monotonic) clock for triggering controller manager cycles.
+[ros2_control_node-2] [INFO] [1792000824.042341823] [controller_manager]: Subscribing to '/robot_description' topic for robot description.
+[ros2_control_node-2] [INFO] [1792000824.042525656] [controller_manager]: update rate is 500 Hz
+[ros2_control_node-2] [INFO] [1792000824.042607157] [controller_manager]: Overruns handling is : enabled
+[ros2_control_node-2] [INFO] [1792000824.042662698] [controller_manager]: Spawning controller_manager RT thread with scheduler priority: 50
+[ros2_control_node-2] [WARN] [1792000824.043007157] [controller_manager]: Could not enable FIFO RT scheduling policy: with error number <1>(Operation not permitted). See [https://control.ros.org/master/doc/ros2_control/controller_manager/doc/userdoc.html] for details on how to enable realtime scheduling.
+[robot_state_publisher-1] [INFO] [1792000824.045980287] [robot_state_publisher]: Robot initialized
+[ros2_control_node-2] [INFO] [1792000824.158864392] [controller_manager]: Received robot description from topic.
+[ros2_control_node-2] [INFO] [1792000824.158908558] [controller_manager]: Enforcing command limits is disabled. Command limits from URDF will be ignored.
+[ros2_control_node-2] [INFO] [1792000824.160429603] [controller_manager]: Loading hardware 'ur' 
+[ros2_control_node-2] [INFO] [1792000824.160650353] [controller_manager]: Loaded hardware 'ur' from plugin 'mock_components/GenericSystem'
+[ros2_control_node-2] [INFO] [1792000824.160929062] [controller_manager]: Initialize hardware 'ur' 
+[ros2_control_node-2] [INFO] [1792000824.167201739] [controller_manager]: Successful initialization of hardware 'ur'
+[ros2_control_node-2] [INFO] [1792000824.167372281] [controller_manager]: Loading hardware 'RobotiqGripperHardwareInterface' 
+[ros2_control_node-2] [INFO] [1792000824.167387864] [controller_manager]: Loaded hardware 'RobotiqGripperHardwareInterface' from plugin 'mock_components/GenericSystem'
+[ros2_control_node-2] [INFO] [1792000824.167406322] [controller_manager]: Initialize hardware 'RobotiqGripperHardwareInterface' 
+[ros2_control_node-2] [INFO] [1792000824.175453711] [controller_manager]: Successful initialization of hardware 'RobotiqGripperHardwareInterface'
+[ros2_control_node-2] [INFO] [1792000824.175527836] [controller_manager]: Activating component 'RobotiqGripperHardwareInterface'.
+[ros2_control_node-2] [INFO] [1792000824.175535836] [resource_manager]: 'configure' hardware 'RobotiqGripperHardwareInterface' 
+[ros2_control_node-2] [INFO] [1792000824.175542253] [resource_manager]: Successful 'configure' of hardware 'RobotiqGripperHardwareInterface'
+[ros2_control_node-2] [INFO] [1792000824.175545086] [resource_manager]: 'activate' hardware 'RobotiqGripperHardwareInterface' 
+[ros2_control_node-2] [INFO] [1792000824.175552336] [resource_manager]: Successful 'activate' of hardware 'RobotiqGripperHardwareInterface'
+[ros2_control_node-2] [INFO] [1792000824.175590003] [controller_manager]: Activating component 'ur'.
+[ros2_control_node-2] [INFO] [1792000824.175593503] [resource_manager]: 'configure' hardware 'ur' 
+[ros2_control_node-2] [INFO] [1792000824.175597378] [resource_manager]: Successful 'configure' of hardware 'ur'
+[ros2_control_node-2] [INFO] [1792000824.175600836] [resource_manager]: 'activate' hardware 'ur' 
+[ros2_control_node-2] [INFO] [1792000824.175602169] [resource_manager]: Successful 'activate' of hardware 'ur'
+[ros2_control_node-2] [INFO] [1792000824.175608128] [controller_manager]: Registering statistics for : RobotiqGripperHardwareInterface
+[ros2_control_node-2] [INFO] [1792000824.175633169] [controller_manager]: Registering statistics for : ur
+[ros2_control_node-2] [INFO] [1792000824.175652461] [controller_manager]: Resource Manager has been successfully initialized. Starting Controller Manager services...
+[ros2_control_node-2] [WARN] [1792000824.179118842] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 3.871511 ms (missed cycles : 2).
+[ros2_control_node-2] [INFO] [1792000824.335826019] [controller_manager]: Received robot description from topic.
+[ros2_control_node-2] [WARN] [1792000824.335855019] [controller_manager]: ResourceManager has already loaded a urdf and is initialized. Ignoring attempt to reload a robot description.
+[ros2_control_node-2] [WARN] [1792000825.521896363] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.649032 ms (missed cycles : 2).
+[INFO] [spawner-3]: process started with pid [78956]
+[spawner-3] [WARN] [1792000826.189678635] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[spawner-3] [WARN] [1792000826.189693427] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+[spawner-3] [INFO] [1792000826.245923561] [spawner_joint_state_broadcaster]: waiting for service /controller_manager/list_controllers to become available...
+[ros2_control_node-2] [WARN] [1792000826.643829885] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.582429 ms (missed cycles : 2).
+[INFO] [spawner-4]: process started with pid [78970]
+[ros2_control_node-2] [INFO] [1792000827.082874276] [controller_manager]: Loading controller : 'joint_state_broadcaster' of type 'joint_state_broadcaster/JointStateBroadcaster'
+[ros2_control_node-2] [INFO] [1792000827.082925818] [controller_manager]: Loading controller 'joint_state_broadcaster'
+[ros2_control_node-2] [INFO] [1792000827.084375612] [controller_manager]: Controller 'joint_state_broadcaster' node arguments: --ros-args --params-file /tmp/launch_params_aof7reff --params-file /home/yuhao/ur5_ws/install_jazzy_port/ur5_moveit_demo/share/ur5_moveit_demo/config/combined_controllers.yaml 
+[spawner-3] [INFO] [1792000827.099232094] [spawner_joint_state_broadcaster]: Loaded joint_state_broadcaster
+[ros2_control_node-2] [INFO] [1792000827.102102599] [controller_manager]: Configuring controller: 'joint_state_broadcaster'
+[ros2_control_node-2] [INFO] [1792000827.102217391] [joint_state_broadcaster]: 'joints' or 'interfaces' parameter is empty. All available state interfaces will be published
+[ros2_control_node-2] [INFO] [1792000827.193417416] [controller_manager]: Activating controllers: [ joint_state_broadcaster ]
+[ros2_control_node-2] [INFO] [1792000827.193731125] [controller_manager]: Successfully switched controllers!
+[spawner-3] [INFO] [1792000827.197205256] [spawner_joint_state_broadcaster]: Configured and activated joint_state_broadcaster
+[spawner-4] [WARN] [1792000827.199994594] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[spawner-4] [WARN] [1792000827.200104094] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+[spawner-4] [INFO] [1792000827.291153952] [spawner_joint_trajectory_controller]: waiting for service /controller_manager/list_controllers to become available...
+[INFO] [spawner-3]: process has finished cleanly [pid 78956]
+[INFO] [spawner-5]: process started with pid [78986]
+[ros2_control_node-2] [INFO] [1792000827.548950334] [controller_manager]: Loading controller : 'joint_trajectory_controller' of type 'joint_trajectory_controller/JointTrajectoryController'
+[ros2_control_node-2] [INFO] [1792000827.548982584] [controller_manager]: Loading controller 'joint_trajectory_controller'
+[ros2_control_node-2] [INFO] [1792000827.550643670] [controller_manager]: Controller 'joint_trajectory_controller' node arguments: --ros-args --params-file /tmp/launch_params_aof7reff --params-file /home/yuhao/ur5_ws/install_jazzy_port/ur5_moveit_demo/share/ur5_moveit_demo/config/combined_controllers.yaml 
+[spawner-4] [INFO] [1792000827.569416993] [spawner_joint_trajectory_controller]: Loaded joint_trajectory_controller
+[ros2_control_node-2] [INFO] [1792000827.573518750] [controller_manager]: Configuring controller: 'joint_trajectory_controller'
+[ros2_control_node-2] [INFO] [1792000827.573634208] [joint_trajectory_controller]: No specific joint names are used for command interfaces. Using 'joints' parameter.
+[ros2_control_node-2] [INFO] [1792000827.573658791] [joint_trajectory_controller]: Command interfaces are [position] and state interfaces are [position velocity].
+[ros2_control_node-2] [INFO] [1792000827.573671333] [joint_trajectory_controller]: Using 'splines' interpolation method.
+[ros2_control_node-2] [INFO] [1792000827.578960133] [joint_trajectory_controller]: Action status changes will be monitored at 20.00 Hz.
+[ros2_control_node-2] [INFO] [1792000827.588252232] [joint_trajectory_controller]: Setting initial scaling factor to 1.000000
+[ros2_control_node-2] [INFO] [1792000827.588278065] [joint_trajectory_controller]: No scaling interface set. This controller will not read speed scaling from the hardware.
+[ros2_control_node-2] [INFO] [1792000827.590679986] [controller_manager]: Activating controllers: [ joint_trajectory_controller ]
+[ros2_control_node-2] [INFO] [1792000827.591873488] [controller_manager]: Successfully switched controllers!
+[spawner-4] [INFO] [1792000827.595124452] [spawner_joint_trajectory_controller]: Configured and activated joint_trajectory_controller
+[spawner-5] [WARN] [1792000827.718873572] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[spawner-5] [WARN] [1792000827.718887530] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+[INFO] [spawner-4]: process has finished cleanly [pid 78970]
+[spawner-5] [INFO] [1792000827.760682932] [spawner_robotiq_gripper_controller]: waiting for service /controller_manager/list_controllers to become available...
+[INFO] [spawner-6]: process started with pid [79001]
+[ros2_control_node-2] [INFO] [1792000828.013299098] [controller_manager]: Loading controller : 'robotiq_gripper_controller' of type 'position_controllers/GripperActionController'
+[ros2_control_node-2] [INFO] [1792000828.013319015] [controller_manager]: Loading controller 'robotiq_gripper_controller'
+[ros2_control_node-2] [INFO] [1792000828.014366350] [controller_manager]: Controller 'robotiq_gripper_controller' node arguments: --ros-args --params-file /tmp/launch_params_aof7reff --params-file /home/yuhao/ur5_ws/install_jazzy_port/ur5_moveit_demo/share/ur5_moveit_demo/config/combined_controllers.yaml 
+[ros2_control_node-2] [WARN] [1792000828.020931152] [robotiq_gripper_controller]: [Deprecated]: the `position_controllers/GripperActionController` and `effort_controllers::GripperActionController` controllers are replaced by 'parallel_gripper_controllers/GripperActionController' controller
+[spawner-5] [INFO] [1792000828.025094450] [spawner_robotiq_gripper_controller]: Loaded robotiq_gripper_controller
+[ros2_control_node-2] [INFO] [1792000828.028219914] [controller_manager]: Configuring controller: 'robotiq_gripper_controller'
+[ros2_control_node-2] [INFO] [1792000828.028258414] [robotiq_gripper_controller]: Action status changes will be monitored at 20.000000 Hz.
+[ros2_control_node-2] [INFO] [1792000828.030860293] [controller_manager]: Activating controllers: [ robotiq_gripper_controller ]
+[ros2_control_node-2] [WARN] [1792000828.035551259] [controller_manager]: Overrun might occur, Total time : 4225.758 us (Expected < 2000.000 us) --> Read time : 23.750 us, Update time : 4197.716 us (Switch time : 3924.715 us (Switch chained mode time : 0.416 us, perform mode change time : 2.750 us, Activation time : 3919.548 us, Deactivation time : 0.167 us)), Write time : 4.292 us
+[ros2_control_node-2] [WARN] [1792000828.035570801] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 4.323762 ms (missed cycles : 3).
+[ros2_control_node-2] [INFO] [1792000828.035901593] [controller_manager]: Successfully switched controllers!
+[spawner-5] [INFO] [1792000828.038853223] [spawner_robotiq_gripper_controller]: Configured and activated robotiq_gripper_controller
+[INFO] [spawner-5]: process has finished cleanly [pid 78986]
+[spawner-6] [WARN] [1792000828.201866740] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[spawner-6] [WARN] [1792000828.201874407] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+[spawner-6] [INFO] [1792000828.249239943] [spawner_robotiq_activation_controller]: waiting for service /controller_manager/list_controllers to become available...
+[ros2_control_node-2] [INFO] [1792000828.582296780] [controller_manager]: Loading controller : 'robotiq_activation_controller' of type 'robotiq_controllers/RobotiqActivationController'
+[ros2_control_node-2] [INFO] [1792000828.582326655] [controller_manager]: Loading controller 'robotiq_activation_controller'
+[ros2_control_node-2] [INFO] [1792000828.583579616] [controller_manager]: Controller 'robotiq_activation_controller' node arguments: --ros-args --params-file /tmp/launch_params_aof7reff --params-file /home/yuhao/ur5_ws/install_jazzy_port/ur5_moveit_demo/share/ur5_moveit_demo/config/combined_controllers.yaml 
+[spawner-6] [INFO] [1792000828.596290011] [spawner_robotiq_activation_controller]: Loaded robotiq_activation_controller
+[ros2_control_node-2] [INFO] [1792000828.597536347] [controller_manager]: Configuring controller: 'robotiq_activation_controller'
+[ros2_control_node-2] [INFO] [1792000828.600399560] [controller_manager]: Activating controllers: [ robotiq_activation_controller ]
+[ros2_control_node-2] [INFO] [1792000828.602361146] [controller_manager]: Successfully switched controllers!
+[spawner-6] [INFO] [1792000828.604474192] [spawner_robotiq_activation_controller]: Configured and activated robotiq_activation_controller
+[INFO] [spawner-6]: process has finished cleanly [pid 79001]
+[INFO] [move_group-7]: process started with pid [79070]
+[INFO] [rviz2-8]: process started with pid [79071]
+[rviz2-8] qt.qpa.xcb: could not connect to display 
+[rviz2-8] qt.qpa.plugin: Could not load the Qt platform plugin "xcb" in "" even though it was found.
+[rviz2-8] This application failed to start because no Qt platform plugin could be initialized. Reinstalling the application may fix this problem.
+[rviz2-8] 
+[rviz2-8] Available platform plugins are: eglfs, linuxfb, minimal, minimalegl, offscreen, vnc, wayland-egl, wayland, wayland-xcomposite-egl, wayland-xcomposite-glx, xcb.
+[rviz2-8] 
+[move_group-7] [WARN] [1792000829.109582019] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[move_group-7] [WARN] [1792000829.109592977] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+[move_group-7] [INFO] [1792000829.144885160] [move_group.moveit.moveit.ros.rdf_loader]: Loaded robot model in 0.00256784 seconds
+[move_group-7] [INFO] [1792000829.145172535] [move_group.moveit.moveit.core.robot_model]: Loading robot model 'ur'...
+[move_group-7] [INFO] [1792000829.145192577] [move_group.moveit.moveit.core.robot_model]: No root/virtual joint specified in SRDF. Assuming fixed joint
+[move_group-7] [INFO] [1792000829.154462425] [move_group.moveit.moveit.kinematics.kdl_kinematics_plugin]: Joint weights for group 'ur_manipulator': 1 1 1 1 1 1
+[move_group-7] [INFO] [1792000829.219063364] [move_group.moveit.moveit.ros.planning_scene_monitor]: Publishing maintained planning scene on 'monitored_planning_scene'
+[move_group-7] [INFO] [1792000829.219684073] [move_group.moveit.moveit.ros.moveit_cpp]: Listening to 'joint_states' for joint states
+[move_group-7] [INFO] [1792000829.220922450] [move_group.moveit.moveit.ros.current_state_monitor]: Listening to joint states on topic 'joint_states'
+[move_group-7] [INFO] [1792000829.221599535] [move_group.moveit.moveit.ros.planning_scene_monitor]: Listening to '/attached_collision_object' for attached collision objects
+[move_group-7] [INFO] [1792000829.221933869] [move_group.moveit.moveit.ros.planning_scene_monitor]: Stopping existing planning scene publisher.
+[move_group-7] [INFO] [1792000829.222219911] [move_group.moveit.moveit.ros.planning_scene_monitor]: Stopped publishing maintained planning scene.
+[move_group-7] [INFO] [1792000829.223130162] [move_group.moveit.moveit.ros.planning_scene_monitor]: Publishing maintained planning scene on 'monitored_planning_scene'
+[move_group-7] [INFO] [1792000829.223263829] [move_group.moveit.moveit.ros.planning_scene_monitor]: Starting planning scene monitor
+[move_group-7] [INFO] [1792000829.224123622] [move_group.moveit.moveit.ros.planning_scene_monitor]: Listening to '/planning_scene'
+[move_group-7] [INFO] [1792000829.224226414] [move_group.moveit.moveit.ros.planning_scene_monitor]: Starting world geometry update monitor for collision objects, attached objects, octomap updates.
+[move_group-7] [INFO] [1792000829.224610790] [move_group.moveit.moveit.ros.planning_scene_monitor]: Listening to 'collision_object'
+[move_group-7] [INFO] [1792000829.559570253] [move_group.moveit.moveit.ros.planning_scene_monitor]: Listening to 'planning_scene_world' for planning scene world geometry
+[move_group-7] [WARN] [1792000829.559665587] [move_group.moveit.moveit.ros.occupancy_map_monitor]: Resolution not specified for Octomap. Assuming resolution = 0.1 instead
+[move_group-7] [ERROR] [1792000829.559674629] [move_group.moveit.moveit.ros.occupancy_map_monitor]: No 3D sensor plugin(s) defined for octomap updates
+[move_group-7] [INFO] [1792000829.573038525] [move_group.moveit.moveit.ros.planning_pipeline]: Successfully loaded planner 'OMPL'
+[move_group-7] [INFO] [1792000829.573519068] [move_group]: Try loading adapter 'default_planning_request_adapters/ResolveConstraintFrames'
+[move_group-7] [INFO] [1792000829.574022694] [move_group]: Loaded adapter 'default_planning_request_adapters/ResolveConstraintFrames'
+[move_group-7] [INFO] [1792000829.574130610] [move_group]: Try loading adapter 'default_planning_request_adapters/ValidateWorkspaceBounds'
+[move_group-7] [INFO] [1792000829.574310736] [move_group]: Loaded adapter 'default_planning_request_adapters/ValidateWorkspaceBounds'
+[move_group-7] [INFO] [1792000829.574315194] [move_group]: Try loading adapter 'default_planning_request_adapters/CheckStartStateBounds'
+[move_group-7] [INFO] [1792000829.574325027] [move_group]: Loaded adapter 'default_planning_request_adapters/CheckStartStateBounds'
+[move_group-7] [INFO] [1792000829.574327027] [move_group]: Try loading adapter 'default_planning_request_adapters/CheckStartStateCollision'
+[move_group-7] [INFO] [1792000829.574331736] [move_group]: Loaded adapter 'default_planning_request_adapters/CheckStartStateCollision'
+[move_group-7] [INFO] [1792000829.574705236] [move_group]: Try loading adapter 'default_planning_response_adapters/AddTimeOptimalParameterization'
+[move_group-7] [INFO] [1792000829.576333364] [move_group]: Loaded adapter 'default_planning_response_adapters/AddTimeOptimalParameterization'
+[move_group-7] [INFO] [1792000829.576353031] [move_group]: Try loading adapter 'default_planning_response_adapters/ValidateSolution'
+[move_group-7] [INFO] [1792000829.577702658] [move_group]: Loaded adapter 'default_planning_response_adapters/ValidateSolution'
+[move_group-7] [INFO] [1792000829.577710283] [move_group]: Try loading adapter 'default_planning_response_adapters/DisplayMotionPath'
+[move_group-7] [INFO] [1792000829.578101909] [move_group]: Loaded adapter 'default_planning_response_adapters/DisplayMotionPath'
+[move_group-7] [INFO] [1792000829.592634182] [move_group.moveit.moveit.plugins.simple_controller_manager]: Added FollowJointTrajectory controller for scaled_joint_trajectory_controller
+[move_group-7] [INFO] [1792000829.593433142] [move_group.moveit.moveit.plugins.simple_controller_manager]: Added FollowJointTrajectory controller for joint_trajectory_controller
+[move_group-7] [INFO] [1792000829.593553350] [move_group.moveit.moveit.plugins.simple_controller_manager]: Returned 2 controllers in list
+[move_group-7] [INFO] [1792000829.593568851] [move_group.moveit.moveit.plugins.simple_controller_manager]: Returned 2 controllers in list
+[move_group-7] [INFO] [1792000829.593717976] [move_group.moveit.moveit.ros.trajectory_execution_manager]: Trajectory execution is not managing controllers
+[move_group-7] [INFO] [1792000829.593726726] [move_group]: MoveGroup debug mode is ON
+[move_group-7] [INFO] [1792000829.602713907] [move_group.moveit.moveit.ros.move_group.executable]: 
+[move_group-7] 
+[move_group-7] ********************************************************
+[move_group-7] * MoveGroup using: 
+[move_group-7] *     - apply_planning_scene_service
+[move_group-7] *     - clear_octomap_service
+[move_group-7] *     - get_group_urdf
+[move_group-7] *     - load_geometry_from_file
+[move_group-7] *     - CartesianPathService
+[move_group-7] *     - execute_trajectory_action
+[move_group-7] *     - get_planning_scene_service
+[move_group-7] *     - kinematics_service
+[move_group-7] *     - move_action
+[move_group-7] *     - motion_plan_service
+[move_group-7] *     - query_planners_service
+[move_group-7] *     - state_validation_service
+[move_group-7] *     - save_geometry_to_file
+[move_group-7] ********************************************************
+[move_group-7] 
+[move_group-7] [INFO] [1792000829.602754532] [move_group.moveit.moveit.ros.move_group.context]: MoveGroup context using pipeline ompl
+[move_group-7] [INFO] [1792000829.602965199] [move_group.moveit.moveit.ros.move_group.context]: MoveGroup context initialization complete
+[move_group-7] [96mLoading 'move_group/ApplyPlanningSceneService'...[0m
+[move_group-7] [96mLoading 'move_group/ClearOctomapService'...[0m
+[move_group-7] [96mLoading 'move_group/GetUrdfService'...[0m
+[move_group-7] [96mLoading 'move_group/LoadGeometryFromFileService'...[0m
+[move_group-7] [96mLoading 'move_group/MoveGroupCartesianPathService'...[0m
+[move_group-7] [96mLoading 'move_group/MoveGroupExecuteTrajectoryAction'...[0m
+[move_group-7] [96mLoading 'move_group/MoveGroupGetPlanningSceneService'...[0m
+[move_group-7] [96mLoading 'move_group/MoveGroupKinematicsService'...[0m
+[move_group-7] [96mLoading 'move_group/MoveGroupMoveAction'...[0m
+[move_group-7] [96mLoading 'move_group/MoveGroupPlanService'...[0m
+[move_group-7] [96mLoading 'move_group/MoveGroupQueryPlannersService'...[0m
+[move_group-7] [96mLoading 'move_group/MoveGroupStateValidationService'...[0m
+[move_group-7] [96mLoading 'move_group/SaveGeometryToFileService'...[0m
+[move_group-7] 
+[move_group-7] [92mYou can start planning now![0m
+[move_group-7] 
+[ERROR] [rviz2-8]: process has died [pid 79071, exit code -6, cmd '/opt/ros/jazzy/lib/rviz2/rviz2 -d /home/yuhao/ur5_ws/install_jazzy_port/ur5_moveit_demo/share/ur5_moveit_demo/rviz/view_robot.rviz --ros-args -r __node:=rviz2_moveit --params-file /tmp/launch_params_hn_9xzwu --params-file /tmp/launch_params_rorbaobk --params-file /tmp/launch_params_hutmk0tb'].
+[ros2_control_node-2] [INFO] [1792000830.651607616] [controller_manager]: Received robot description from topic.
+[ros2_control_node-2] [WARN] [1792000830.651660657] [controller_manager]: ResourceManager has already loaded a urdf and is initialized. Ignoring attempt to reload a robot description.
+[ros2_control_node-2] [WARN] [1792000830.714955469] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 3.707721 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000830.752955322] [controller_manager]: Overrun might occur, Total time : 2009.378 us (Expected < 2000.000 us) --> Read time : 30.208 us, Update time : 1972.503 us, Write time : 6.667 us
+[ros2_control_node-2] [INFO] [1792000831.041017707] [robotiq_gripper_controller]: Received & accepted new action goal
+[ros2_control_node-2] [WARN] [1792000833.845802695] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.555448 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000835.116649191] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 3.401151 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000836.428036074] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.788993 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000837.515874593] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.627387 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000838.829944004] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.696965 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000839.903930737] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.683531 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000840.489410447] [controller_manager]: Overrun might occur, Total time : 2016.795 us (Expected < 2000.000 us) --> Read time : 32.792 us, Update time : 1978.378 us, Write time : 5.625 us
+[ros2_control_node-2] [WARN] [1792000841.675535218] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.287304 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000842.545967824] [controller_manager]: Overrun might occur, Total time : 2514.421 us (Expected < 2000.000 us) --> Read time : 23.125 us, Update time : 2485.129 us, Write time : 6.167 us
+[ros2_control_node-2] [WARN] [1792000843.271948327] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.700871 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000844.689460728] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.213397 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000846.589584524] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.337401 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000847.690174873] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.926834 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000850.523249296] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.002007 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000852.329889055] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.641849 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000853.601295038] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.047957 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000855.639920067] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.672986 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000856.657798445] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.551322 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000857.821381948] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.134867 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000858.532048114] [controller_manager]: Overrun might occur, Total time : 2727.172 us (Expected < 2000.000 us) --> Read time : 10.292 us, Update time : 2710.463 us, Write time : 6.417 us
+[ros2_control_node-2] [WARN] [1792000859.237891520] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.644147 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000860.994002033] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.754535 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000862.118027116] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.779743 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000862.847876668] [controller_manager]: Overrun might occur, Total time : 2508.712 us (Expected < 2000.000 us) --> Read time : 18.750 us, Update time : 2487.295 us, Write time : 2.667 us
+[ros2_control_node-2] [WARN] [1792000864.323870368] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.623245 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000865.557961421] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.714215 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000866.883927929] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.680848 ms (missed cycles : 2).
+[move_group-7] [WARN] [1792000868.808010143] [move_group.moveit.moveit.core.planning_scene]: Tried to remove world object 'step_c_cable_wall', but it does not exist in this scene.
+[ros2_control_node-2] [INFO] [1792000869.632185008] [robotiq_gripper_controller]: Received & accepted new action goal
+[move_group-7] [INFO] [1792000869.686411709] [move_group.moveit.moveit.ros.move_group.move_action]: MoveGroupMoveAction: Received request
+[move_group-7] [INFO] [1792000869.687700585] [move_group.moveit.moveit.ros.move_group.move_action]: executing..
+[move_group-7] [INFO] [1792000869.690177214] [move_group.moveit.moveit.ros.move_group.move_action]: Planning request received for MoveGroup action. Forwarding to planning pipeline.
+[move_group-7] [INFO] [1792000869.690449881] [move_group]: Calling PlanningRequestAdapter 'ResolveConstraintFrames'
+[move_group-7] [INFO] [1792000869.690478881] [move_group]: Calling PlanningRequestAdapter 'ValidateWorkspaceBounds'
+[move_group-7] [WARN] [1792000869.690482214] [move_group.moveit.moveit.ros.validate_workspace_bounds]: It looks like the planning volume was not specified. Using default values.
+[move_group-7] [INFO] [1792000869.690489673] [move_group]: Calling PlanningRequestAdapter 'CheckStartStateBounds'
+[move_group-7] [INFO] [1792000869.690502881] [move_group]: Calling PlanningRequestAdapter 'CheckStartStateCollision'
+[move_group-7] [INFO] [1792000869.691222757] [move_group.moveit.moveit.planners.ompl.model_based_planning_context]: Planner configuration 'ur_manipulator' will use planner 'geometric::RRTConnect'. Additional configuration parameters will be set when the planner is constructed.
+[move_group-7] [INFO] [1792000869.692115508] [move_group]: Calling Planner 'OMPL'
+[move_group-7] [INFO] [1792000869.742538371] [move_group]: Calling PlanningResponseAdapter 'AddTimeOptimalParameterization'
+[move_group-7] [INFO] [1792000869.751003549] [move_group]: Calling PlanningResponseAdapter 'ValidateSolution'
+[move_group-7] [INFO] [1792000869.757166266] [move_group]: Calling PlanningResponseAdapter 'DisplayMotionPath'
+[move_group-7] [WARN] [1792000869.757394266] [move_group.moveit.moveit.ros.planning_pipeline]: The planner plugin did not fill out the 'planner_id' field of the MotionPlanResponse. Setting it to the planner ID name of the MotionPlanRequest assuming that the planner plugin does warn you if it does not use the requested planner.
+[move_group-7] [INFO] [1792000869.757474308] [move_group.moveit.moveit.ros.move_group.move_action]: Motion plan was computed successfully.
+[move_group-7] [INFO] [1792000869.869986299] [move_group.moveit.moveit.ros.move_group.clear_octomap_service]: Execution request received
+[move_group-7] [INFO] [1792000869.870207299] [move_group.moveit.moveit.plugins.simple_controller_manager]: Returned 2 controllers in list
+[move_group-7] [INFO] [1792000869.870220175] [move_group.moveit.moveit.plugins.simple_controller_manager]: Returned 2 controllers in list
+[move_group-7] [INFO] [1792000869.870301133] [move_group.moveit.moveit.ros.trajectory_execution_manager]: Validating trajectory with allowed_start_tolerance 0.01
+[move_group-7] [INFO] [1792000869.871981677] [move_group.moveit.moveit.ros.trajectory_execution_manager]: Starting trajectory execution ...
+[move_group-7] [INFO] [1792000869.872006427] [move_group.moveit.moveit.plugins.simple_controller_manager]: Returned 2 controllers in list
+[move_group-7] [INFO] [1792000869.872014427] [move_group.moveit.moveit.plugins.simple_controller_manager]: Returned 2 controllers in list
+[move_group-7] [INFO] [1792000869.872110552] [moveit.simple_controller_manager.follow_joint_trajectory_controller_handle]: sending trajectory to joint_trajectory_controller
+[ros2_control_node-2] [INFO] [1792000869.872633345] [joint_trajectory_controller]: Received new action goal
+[ros2_control_node-2] [INFO] [1792000869.873015262] [joint_trajectory_controller]: Accepted new action goal
+[move_group-7] [INFO] [1792000869.873451721] [moveit.simple_controller_manager.follow_joint_trajectory_controller_handle]: joint_trajectory_controller started execution
+[move_group-7] [INFO] [1792000869.873460721] [moveit.simple_controller_manager.follow_joint_trajectory_controller_handle]: Goal request accepted!
+[ros2_control_node-2] [WARN] [1792000870.705620841] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.373927 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000872.157849528] [controller_manager]: Overrun might occur, Total time : 2495.961 us (Expected < 2000.000 us) --> Read time : 7.458 us, Update time : 2486.586 us, Write time : 1.917 us
+[ros2_control_node-2] [WARN] [1792000872.157879278] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.632322 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000874.047869806] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.622684 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000875.454037652] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.790613 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000878.954025785] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.778620 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000880.092045234] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.797944 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000882.261267968] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.020928 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000883.687978112] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.730864 ms (missed cycles : 2).
+[ros2_control_node-2] [INFO] [1792000883.697328916] [joint_trajectory_controller]: Goal reached, success!
+[move_group-7] [INFO] [1792000883.724866702] [moveit.simple_controller_manager.follow_joint_trajectory_controller_handle]: Controller 'joint_trajectory_controller' successfully finished
+[move_group-7] [INFO] [1792000883.732064712] [move_group.moveit.moveit.ros.trajectory_execution_manager]: Completed trajectory execution with status SUCCEEDED ...
+[move_group-7] [INFO] [1792000883.732916630] [move_group.moveit.moveit.ros.move_group.clear_octomap_service]: Execution completed: SUCCEEDED
+[ros2_control_node-2] [WARN] [1792000884.353899159] [controller_manager]: Overrun might occur, Total time : 2573.421 us (Expected < 2000.000 us) --> Read time : 16.667 us, Update time : 2553.337 us, Write time : 3.417 us
+[move_group-7] [INFO] [1792000884.364179006] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Received request to compute Cartesian path
+[move_group-7] [INFO] [1792000884.369723555] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Attempting to follow 1 waypoints for link 'tool0' using a step of 0.005000 m and jump threshold 0.000000 (in global reference frame)
+[move_group-7] [INFO] [1792000884.371500682] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Computed Cartesian path with 20 points (followed 100.000000% of requested trajectory)
+[move_group-7] [INFO] [1792000884.372625725] [move_group.moveit.moveit.ros.move_group.clear_octomap_service]: Execution request received
+[move_group-7] [INFO] [1792000884.372961017] [move_group.moveit.moveit.plugins.simple_controller_manager]: Returned 2 controllers in list
+[move_group-7] [INFO] [1792000884.372984351] [move_group.moveit.moveit.plugins.simple_controller_manager]: Returned 2 controllers in list
+[move_group-7] [INFO] [1792000884.373087767] [move_group.moveit.moveit.ros.trajectory_execution_manager]: Validating trajectory with allowed_start_tolerance 0.01
+[move_group-7] [INFO] [1792000884.374947062] [move_group.moveit.moveit.ros.trajectory_execution_manager]: Starting trajectory execution ...
+[move_group-7] [INFO] [1792000884.374976395] [move_group.moveit.moveit.plugins.simple_controller_manager]: Returned 2 controllers in list
+[move_group-7] [INFO] [1792000884.374985728] [move_group.moveit.moveit.plugins.simple_controller_manager]: Returned 2 controllers in list
+[move_group-7] [INFO] [1792000884.375081437] [moveit.simple_controller_manager.follow_joint_trajectory_controller_handle]: sending trajectory to joint_trajectory_controller
+[ros2_control_node-2] [INFO] [1792000884.375335937] [joint_trajectory_controller]: Received new action goal
+[ros2_control_node-2] [INFO] [1792000884.375380979] [joint_trajectory_controller]: Accepted new action goal
+[move_group-7] [INFO] [1792000884.375620646] [moveit.simple_controller_manager.follow_joint_trajectory_controller_handle]: joint_trajectory_controller started execution
+[move_group-7] [INFO] [1792000884.375625604] [moveit.simple_controller_manager.follow_joint_trajectory_controller_handle]: Goal request accepted!
+[ros2_control_node-2] [INFO] [1792000885.405327877] [joint_trajectory_controller]: Goal reached, success!
+[move_group-7] [INFO] [1792000885.426240613] [moveit.simple_controller_manager.follow_joint_trajectory_controller_handle]: Controller 'joint_trajectory_controller' successfully finished
+[move_group-7] [INFO] [1792000885.432261163] [move_group.moveit.moveit.ros.trajectory_execution_manager]: Completed trajectory execution with status SUCCEEDED ...
+[move_group-7] [INFO] [1792000885.432449038] [move_group.moveit.moveit.ros.move_group.clear_octomap_service]: Execution completed: SUCCEEDED
+[ros2_control_node-2] [WARN] [1792000885.555847283] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.600119 ms (missed cycles : 2).
+[ros2_control_node-2] [INFO] [1792000885.934290364] [robotiq_gripper_controller]: Received & accepted new action goal
+[move_group-7] [INFO] [1792000886.990010496] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Received request to compute Cartesian path
+[move_group-7] [INFO] [1792000886.990065829] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Attempting to follow 1 waypoints for link 'tool0' using a step of 0.005000 m and jump threshold 0.000000 (in global reference frame)
+[move_group-7] [INFO] [1792000886.997919840] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Computed Cartesian path with 26 points (followed 100.000000% of requested trajectory)
+[move_group-7] [INFO] [1792000887.003923847] [move_group.moveit.moveit.ros.move_group.clear_octomap_service]: Execution request received
+[move_group-7] [INFO] [1792000887.003952556] [move_group.moveit.moveit.plugins.simple_controller_manager]: Returned 2 controllers in list
+[move_group-7] [INFO] [1792000887.003962056] [move_group.moveit.moveit.plugins.simple_controller_manager]: Returned 2 controllers in list
+[move_group-7] [INFO] [1792000887.003993889] [move_group.moveit.moveit.ros.trajectory_execution_manager]: Validating trajectory with allowed_start_tolerance 0.01
+[ros2_control_node-2] [WARN] [1792000887.008059478] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.812188 ms (missed cycles : 2).
+[move_group-7] [INFO] [1792000887.009531105] [move_group.moveit.moveit.ros.trajectory_execution_manager]: Starting trajectory execution ...
+[move_group-7] [INFO] [1792000887.009589646] [move_group.moveit.moveit.plugins.simple_controller_manager]: Returned 2 controllers in list
+[move_group-7] [INFO] [1792000887.009605563] [move_group.moveit.moveit.plugins.simple_controller_manager]: Returned 2 controllers in list
+[move_group-7] [INFO] [1792000887.009862605] [moveit.simple_controller_manager.follow_joint_trajectory_controller_handle]: sending trajectory to joint_trajectory_controller
+[ros2_control_node-2] [INFO] [1792000887.010896023] [joint_trajectory_controller]: Received new action goal
+[ros2_control_node-2] [INFO] [1792000887.011006023] [joint_trajectory_controller]: Accepted new action goal
+[move_group-7] [INFO] [1792000887.012877359] [moveit.simple_controller_manager.follow_joint_trajectory_controller_handle]: joint_trajectory_controller started execution
+[move_group-7] [INFO] [1792000887.012895526] [moveit.simple_controller_manager.follow_joint_trajectory_controller_handle]: Goal request accepted!
+[ros2_control_node-2] [WARN] [1792000889.275842633] [controller_manager]: Overrun might occur, Total time : 2456.836 us (Expected < 2000.000 us) --> Read time : 6.916 us, Update time : 2446.962 us, Write time : 2.958 us
+[ros2_control_node-2] [WARN] [1792000889.275874258] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.626969 ms (missed cycles : 2).
+[ros2_control_node-2] [INFO] [1792000890.435296338] [joint_trajectory_controller]: Goal reached, success!
+[move_group-7] [INFO] [1792000890.462910874] [moveit.simple_controller_manager.follow_joint_trajectory_controller_handle]: Controller 'joint_trajectory_controller' successfully finished
+[move_group-7] [INFO] [1792000890.469602841] [move_group.moveit.moveit.ros.trajectory_execution_manager]: Completed trajectory execution with status SUCCEEDED ...
+[move_group-7] [INFO] [1792000890.469669257] [move_group.moveit.moveit.ros.move_group.clear_octomap_service]: Execution completed: SUCCEEDED
+[ros2_control_node-2] [WARN] [1792000890.697944093] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.696512 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000891.855876662] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.629539 ms (missed cycles : 2).
+[ros2_control_node-2] [INFO] [1792000891.972112436] [robotiq_gripper_controller]: Received & accepted new action goal
+[ros2_control_node-2] [WARN] [1792000893.765830639] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.583433 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000896.559523124] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.276043 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000898.185942409] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.695203 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000901.215880953] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.633039 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000902.823911384] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.664094 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000903.951274342] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.027303 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000904.657890367] [controller_manager]: Overrun might occur, Total time : 2508.919 us (Expected < 2000.000 us) --> Read time : 7.541 us, Update time : 2497.794 us, Write time : 3.584 us
+[ros2_control_node-2] [WARN] [1792000905.167750276] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.502945 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000907.737828327] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.581205 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000910.019878296] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.631173 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000913.537866058] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.619060 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000914.943891486] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.644363 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000918.689853712] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.606672 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000921.017858438] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.611315 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000923.589882825] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.635619 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000924.945828585] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.581587 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000926.383907258] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.660136 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000927.027946760] [controller_manager]: Overrun might occur, Total time : 2431.002 us (Expected < 2000.000 us) --> Read time : 17.333 us, Update time : 2410.419 us, Write time : 3.250 us
+[ros2_control_node-2] [WARN] [1792000928.209861097] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.613974 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000928.229883369] [controller_manager]: Overrun might occur, Total time : 2509.670 us (Expected < 2000.000 us) --> Read time : 9.417 us, Update time : 2497.378 us, Write time : 2.875 us
+[ros2_control_node-2] [WARN] [1792000930.329859403] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.612239 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000933.068197434] [controller_manager]: Overrun might occur, Total time : 2752.836 us (Expected < 2000.000 us) --> Read time : 24.083 us, Update time : 2725.420 us, Write time : 3.333 us
+[ros2_control_node-2] [WARN] [1792000933.068248267] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 3.001145 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000935.727927511] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 12.680180 ms (missed cycles : 7).
+[ros2_control_node-2] [WARN] [1792000937.301887418] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.640378 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000938.487808533] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.561410 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000940.071879804] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.632348 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000943.391975965] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.728759 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000944.810993865] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 9.746492 ms (missed cycles : 5).
+[ros2_control_node-2] [WARN] [1792000944.832809387] [controller_manager]: Overrun might occur, Total time : 10914.970 us (Expected < 2000.000 us) --> Read time : 34.542 us, Update time : 10873.386 us, Write time : 7.042 us
+[ros2_control_node-2] [WARN] [1792000946.443873595] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.626472 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000947.627840531] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.593450 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000948.771876046] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.628923 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000950.389714272] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.467108 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000952.041448436] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.201355 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000955.073983588] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.736424 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000955.122080426] [controller_manager]: Overrun might occur, Total time : 2746.169 us (Expected < 2000.000 us) --> Read time : 22.166 us, Update time : 2714.253 us, Write time : 9.750 us
+[ros2_control_node-2] [WARN] [1792000956.282048916] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.801543 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000957.899914043] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.666879 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000959.279869142] [controller_manager]: Overrun might occur, Total time : 2474.752 us (Expected < 2000.000 us) --> Read time : 28.208 us, Update time : 2440.960 us, Write time : 5.584 us
+[ros2_control_node-2] [WARN] [1792000959.279918725] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.671728 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000961.853986932] [controller_manager]: Overrun might occur, Total time : 2652.587 us (Expected < 2000.000 us) --> Read time : 23.334 us, Update time : 2623.794 us, Write time : 5.459 us
+[ros2_control_node-2] [WARN] [1792000961.854028098] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.780809 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000963.029908525] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.661527 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000964.665940951] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.693828 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000965.182023841] [controller_manager]: Overrun might occur, Total time : 2690.252 us (Expected < 2000.000 us) --> Read time : 30.875 us, Update time : 2653.252 us, Write time : 6.125 us
+[ros2_control_node-2] [WARN] [1792000966.547914297] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.667258 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000968.161421052] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.174013 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000969.215869710] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.622463 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000970.523898714] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.651592 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000972.181924313] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.677107 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000973.361904687] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.657647 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000976.173928392] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.681311 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000977.347889072] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.641991 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000978.297916722] [controller_manager]: Overrun might occur, Total time : 2595.044 us (Expected < 2000.000 us) --> Read time : 11.208 us, Update time : 2579.294 us, Write time : 4.542 us
+[ros2_control_node-2] [WARN] [1792000978.965929919] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.682546 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000980.106177140] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.929975 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000981.223263335] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.015212 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000983.636097150] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.849277 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000985.959944866] [controller_manager]: Overrun might occur, Total time : 2511.503 us (Expected < 2000.000 us) --> Read time : 21.167 us, Update time : 2484.919 us, Write time : 5.417 us
+[ros2_control_node-2] [WARN] [1792000985.959985991] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.738702 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000988.312629706] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 11.381792 ms (missed cycles : 6).
+[ros2_control_node-2] [WARN] [1792000988.344303357] [controller_manager]: Overrun might occur, Total time : 5356.629 us (Expected < 2000.000 us) --> Read time : 35.042 us, Update time : 5311.671 us, Write time : 9.916 us
+[ros2_control_node-2] [WARN] [1792000990.429862583] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.615627 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000990.675864489] [controller_manager]: Overrun might occur, Total time : 2542.711 us (Expected < 2000.000 us) --> Read time : 19.042 us, Update time : 2520.752 us, Write time : 2.917 us
+[ros2_control_node-2] [WARN] [1792000991.873839072] [controller_manager]: Overrun might occur, Total time : 2507.502 us (Expected < 2000.000 us) --> Read time : 9.750 us, Update time : 2494.002 us, Write time : 3.750 us
+[ros2_control_node-2] [WARN] [1792000991.873872447] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.625366 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000994.387589519] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.342355 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000994.647887099] [controller_manager]: Overrun might occur, Total time : 2515.127 us (Expected < 2000.000 us) --> Read time : 28.042 us, Update time : 2484.044 us, Write time : 3.041 us
+[ros2_control_node-2] [WARN] [1792000995.823868852] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.621855 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792000999.613843234] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.596112 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001000.539866148] [controller_manager]: Overrun might occur, Total time : 2417.751 us (Expected < 2000.000 us) --> Read time : 7.625 us, Update time : 2408.168 us, Write time : 1.958 us
+[ros2_control_node-2] [WARN] [1792001000.779407788] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.160082 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001002.195855524] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.608443 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001002.235893346] [controller_manager]: Overrun might occur, Total time : 2562.752 us (Expected < 2000.000 us) --> Read time : 21.834 us, Update time : 2535.752 us, Write time : 5.166 us
+[ros2_control_node-2] [WARN] [1792001003.573997640] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.750226 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001007.649851688] [controller_manager]: Overrun might occur, Total time : 2512.544 us (Expected < 2000.000 us) --> Read time : 25.625 us, Update time : 2482.710 us, Write time : 4.209 us
+[ros2_control_node-2] [WARN] [1792001007.649898646] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.651524 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001009.705840011] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.592888 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001011.311448204] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.200748 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001011.585841232] [controller_manager]: Overrun might occur, Total time : 2529.377 us (Expected < 2000.000 us) --> Read time : 7.167 us, Update time : 2520.210 us, Write time : 2.000 us
+[ros2_control_node-2] [WARN] [1792001013.651844153] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.597114 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001015.287867549] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.620343 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001017.195915163] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.667832 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001018.189897137] [controller_manager]: Overrun might occur, Total time : 2571.168 us (Expected < 2000.000 us) --> Read time : 24.291 us, Update time : 2544.627 us, Write time : 2.250 us
+[ros2_control_node-2] [WARN] [1792001018.205879940] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.633025 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001019.755868287] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.621290 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001021.893877728] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.630730 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001025.600036514] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.789099 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001025.807888816] [controller_manager]: Overrun might occur, Total time : 2503.127 us (Expected < 2000.000 us) --> Read time : 23.417 us, Update time : 2476.002 us, Write time : 3.708 us
+[ros2_control_node-2] [WARN] [1792001026.977978161] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.731039 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001028.485874551] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.627470 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001028.625932433] [controller_manager]: Overrun might occur, Total time : 2550.584 us (Expected < 2000.000 us) --> Read time : 30.875 us, Update time : 2515.501 us, Write time : 4.208 us
+[ros2_control_node-2] [WARN] [1792001030.329922562] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.675231 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001032.657980987] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.733531 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001034.089839379] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.592256 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001036.701906983] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.659736 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001036.705949819] [controller_manager]: Overrun might occur, Total time : 2618.835 us (Expected < 2000.000 us) --> Read time : 9.042 us, Update time : 2601.918 us, Write time : 7.875 us
+[ros2_control_node-2] [WARN] [1792001037.811427657] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.180618 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001038.745476012] [controller_manager]: Overrun might occur, Total time : 2146.710 us (Expected < 2000.000 us) --> Read time : 27.084 us, Update time : 2116.793 us, Write time : 2.833 us
+[ros2_control_node-2] [WARN] [1792001039.953822110] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.575071 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001041.571866736] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.619655 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001042.741902798] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.655801 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001044.145987241] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.739952 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001045.997854391] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.607310 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001047.309965097] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.717807 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001049.466043810] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.796521 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001050.893818354] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.571273 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001053.201963870] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.716372 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001054.815941660] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.694412 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001055.849664047] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.416424 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001057.259920921] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.673548 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001059.341883929] [controller_manager]: Overrun might occur, Total time : 2449.376 us (Expected < 2000.000 us) --> Read time : 21.833 us, Update time : 2424.626 us, Write time : 2.917 us
+[ros2_control_node-2] [WARN] [1792001059.341913388] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.666015 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001061.273864719] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.617555 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001062.475832792] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.585586 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001062.943822321] [controller_manager]: Overrun might occur, Total time : 2330.459 us (Expected < 2000.000 us) --> Read time : 21.708 us, Update time : 2306.918 us, Write time : 1.833 us
+[ros2_control_node-2] [WARN] [1792001064.053976006] [controller_manager]: Overrun might occur, Total time : 2520.335 us (Expected < 2000.000 us) --> Read time : 20.792 us, Update time : 2496.668 us, Write time : 2.875 us
+[ros2_control_node-2] [WARN] [1792001064.054005423] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.758467 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001065.231844637] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.597598 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001066.917876971] [controller_manager]: Overrun might occur, Total time : 2537.376 us (Expected < 2000.000 us) --> Read time : 19.083 us, Update time : 2515.876 us, Write time : 2.417 us
+[ros2_control_node-2] [WARN] [1792001066.917906430] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.659515 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001068.077878497] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.631333 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001069.445932827] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.685496 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001072.777608745] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.361706 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001076.359852987] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.605864 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001079.837974218] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.726887 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001079.855843893] [controller_manager]: Overrun might occur, Total time : 2534.085 us (Expected < 2000.000 us) --> Read time : 6.334 us, Update time : 2526.126 us, Write time : 1.625 us
+[ros2_control_node-2] [WARN] [1792001084.299954577] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.707288 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001085.911882011] [controller_manager]: Overrun might occur, Total time : 2559.917 us (Expected < 2000.000 us) --> Read time : 21.291 us, Update time : 2536.834 us, Write time : 1.792 us
+[ros2_control_node-2] [WARN] [1792001085.911913886] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.666930 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001087.075927665] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.680334 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001089.139581018] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.333853 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001090.365883142] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.635894 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001091.525960776] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.713528 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001092.219423762] [controller_manager]: Overrun might occur, Total time : 2050.751 us (Expected < 2000.000 us) --> Read time : 6.625 us, Update time : 2038.792 us, Write time : 5.334 us
+[ros2_control_node-2] [WARN] [1792001093.383875556] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.628392 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001095.239801324] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.554243 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001097.569866092] [controller_manager]: Overrun might occur, Total time : 2432.792 us (Expected < 2000.000 us) --> Read time : 6.500 us, Update time : 2424.417 us, Write time : 1.875 us
+[ros2_control_node-2] [WARN] [1792001097.569899633] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.652636 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001099.201832373] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.585250 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001100.315841661] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.594539 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001101.521902938] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.655857 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001102.746239799] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.992676 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001106.609905334] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.658211 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001110.155859752] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.612629 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001112.723966143] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.718728 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001115.505929203] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.681747 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001116.183589375] [controller_manager]: Overrun might occur, Total time : 2243.293 us (Expected < 2000.000 us) --> Read time : 26.333 us, Update time : 2213.626 us, Write time : 3.334 us
+[ros2_control_node-2] [WARN] [1792001116.679841697] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.594700 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001118.949867231] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.620150 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001119.965303206] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.055667 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001121.561955724] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.708560 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001122.919883914] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.636792 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001124.545806008] [controller_manager]: Overrun might occur, Total time : 2494.752 us (Expected < 2000.000 us) --> Read time : 6.542 us, Update time : 2486.251 us, Write time : 1.959 us
+[ros2_control_node-2] [WARN] [1792001124.545835758] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.588802 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001126.189937974] [controller_manager]: Overrun might occur, Total time : 2600.500 us (Expected < 2000.000 us) --> Read time : 22.167 us, Update time : 2575.292 us, Write time : 3.041 us
+[ros2_control_node-2] [WARN] [1792001126.189979474] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.732351 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001128.939903482] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.656359 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001132.017875508] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.628386 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001134.159885851] [controller_manager]: Overrun might occur, Total time : 2486.541 us (Expected < 2000.000 us) --> Read time : 6.083 us, Update time : 2478.542 us, Write time : 1.916 us
+[ros2_control_node-2] [WARN] [1792001134.159914642] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.667728 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001136.665994851] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.747853 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001137.825944217] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.697136 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001139.681957742] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.710370 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001140.803931046] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.684049 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001142.017987242] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.739953 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001143.185977589] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.730300 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001144.345982972] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.735682 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001145.509904517] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.657478 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001147.591900003] [controller_manager]: Overrun might occur, Total time : 2504.375 us (Expected < 2000.000 us) --> Read time : 23.500 us, Update time : 2478.459 us, Write time : 2.416 us
+[ros2_control_node-2] [WARN] [1792001147.591928294] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.681297 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001149.252014388] [controller_manager]: Overrun might occur, Total time : 2615.166 us (Expected < 2000.000 us) --> Read time : 33.916 us, Update time : 2576.208 us, Write time : 5.042 us
+[ros2_control_node-2] [WARN] [1792001149.252059096] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.812015 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001150.885879343] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.632137 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001152.739916790] [controller_manager]: Overrun might occur, Total time : 2428.251 us (Expected < 2000.000 us) --> Read time : 31.125 us, Update time : 2392.126 us, Write time : 5.000 us
+[ros2_control_node-2] [WARN] [1792001152.739951623] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.704459 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001154.659831696] [controller_manager]: Overrun might occur, Total time : 2500.791 us (Expected < 2000.000 us) --> Read time : 6.291 us, Update time : 2492.459 us, Write time : 2.041 us
+[ros2_control_node-2] [WARN] [1792001154.659862030] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.615115 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001156.995864917] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.617877 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001158.883900750] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.653752 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001160.947862810] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.615729 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001162.912058966] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.811718 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001164.021900768] [controller_manager]: Overrun might occur, Total time : 2519.543 us (Expected < 2000.000 us) --> Read time : 25.709 us, Update time : 2490.084 us, Write time : 3.750 us
+[ros2_control_node-2] [WARN] [1792001164.021997810] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.750687 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001165.887862931] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 12.615767 ms (missed cycles : 7).
+[ros2_control_node-2] [WARN] [1792001167.699909451] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.662203 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001167.908856482] [controller_manager]: Overrun might occur, Total time : 3418.043 us (Expected < 2000.000 us) --> Read time : 20.917 us, Update time : 3394.334 us, Write time : 2.792 us
+[ros2_control_node-2] [WARN] [1792001169.041946270] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.699147 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001172.853550080] [controller_manager]: Overrun might occur, Total time : 2210.959 us (Expected < 2000.000 us) --> Read time : 12.500 us, Update time : 2191.417 us, Write time : 7.042 us
+[ros2_control_node-2] [WARN] [1792001172.853599371] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.351999 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001175.079949862] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.702531 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001179.443836205] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.589082 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001181.878033089] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.785800 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001184.201934403] [controller_manager]: Overrun might occur, Total time : 2566.667 us (Expected < 2000.000 us) --> Read time : 20.125 us, Update time : 2543.417 us, Write time : 3.125 us
+[ros2_control_node-2] [WARN] [1792001184.201964653] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.717655 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001185.743962880] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.715591 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001186.725597926] [controller_manager]: Overrun might occur, Total time : 2260.417 us (Expected < 2000.000 us) --> Read time : 27.792 us, Update time : 2230.000 us, Write time : 2.625 us
+[ros2_control_node-2] [WARN] [1792001188.105958462] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.711298 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001189.313878686] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.631564 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001190.459845318] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.598279 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001192.209933449] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.686368 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001197.745878968] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.631845 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001199.173503295] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.256172 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001200.929248714] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.001466 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001203.114480225] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 3.232394 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001204.939882001] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.634837 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001205.517879771] [controller_manager]: Overrun might occur, Total time : 2550.834 us (Expected < 2000.000 us) --> Read time : 6.625 us, Update time : 2536.167 us, Write time : 8.042 us
+[ros2_control_node-2] [WARN] [1792001206.051982955] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.735791 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001207.075548277] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.301196 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001208.391990812] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.743398 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001210.417902023] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.654900 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001211.407481374] [controller_manager]: Overrun might occur, Total time : 2144.250 us (Expected < 2000.000 us) --> Read time : 23.625 us, Update time : 2109.375 us, Write time : 11.250 us
+[ros2_control_node-2] [WARN] [1792001211.449970333] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.722960 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001212.476026140] [controller_manager]: Overrun might occur, Total time : 2676.459 us (Expected < 2000.000 us) --> Read time : 36.084 us, Update time : 2635.458 us, Write time : 4.917 us
+[ros2_control_node-2] [WARN] [1792001212.476070265] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.822975 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001213.807933321] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.686240 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001215.249894040] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.646876 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001216.467826336] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.579047 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001218.239914293] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.667254 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001218.365465460] [controller_manager]: Overrun might occur, Total time : 2042.459 us (Expected < 2000.000 us) --> Read time : 1921.500 us, Update time : 117.709 us, Write time : 3.250 us
+[ros2_control_node-2] [WARN] [1792001219.721601244] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.354121 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001220.825270859] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.023362 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001221.999893095] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.645931 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001223.009872955] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.625666 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001223.275839659] [controller_manager]: Overrun might occur, Total time : 2516.251 us (Expected < 2000.000 us) --> Read time : 7.750 us, Update time : 2506.542 us, Write time : 1.959 us
+[ros2_control_node-2] [WARN] [1792001224.133846893] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.599854 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001224.809830046] [controller_manager]: Overrun might occur, Total time : 2520.000 us (Expected < 2000.000 us) --> Read time : 6.791 us, Update time : 2511.542 us, Write time : 1.667 us
+[ros2_control_node-2] [WARN] [1792001225.279795202] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.547913 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001226.443277882] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.030634 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001227.833865635] [controller_manager]: Overrun might occur, Total time : 2536.625 us (Expected < 2000.000 us) --> Read time : 23.334 us, Update time : 2509.916 us, Write time : 3.375 us
+[ros2_control_node-2] [WARN] [1792001227.833899426] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.652429 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001228.833965562] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.718439 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001229.699902991] [controller_manager]: Overrun might occur, Total time : 2576.250 us (Expected < 2000.000 us) --> Read time : 20.542 us, Update time : 2549.000 us, Write time : 6.708 us
+[ros2_control_node-2] [WARN] [1792001231.087919148] [controller_manager]: Overrun might occur, Total time : 2498.043 us (Expected < 2000.000 us) --> Read time : 19.792 us, Update time : 2474.667 us, Write time : 3.584 us
+[ros2_control_node-2] [WARN] [1792001231.087950315] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.703276 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001232.538004172] [controller_manager]: Overrun might occur, Total time : 2648.667 us (Expected < 2000.000 us) --> Read time : 7.583 us, Update time : 2634.667 us, Write time : 6.417 us
+[ros2_control_node-2] [WARN] [1792001232.538050339] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.803091 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001233.783866284] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.619161 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001235.503390450] [controller_manager]: Overrun might occur, Total time : 2010.416 us (Expected < 2000.000 us) --> Read time : 90.666 us, Update time : 1911.375 us, Write time : 8.375 us
+[ros2_control_node-2] [WARN] [1792001235.503441533] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.194369 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001236.977937372] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.690208 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001239.051648920] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 6.401005 ms (missed cycles : 4).
+[ros2_control_node-2] [WARN] [1792001239.297882279] [controller_manager]: Overrun might occur, Total time : 2404.000 us (Expected < 2000.000 us) --> Read time : 7.625 us, Update time : 2394.000 us, Write time : 2.375 us
+[ros2_control_node-2] [WARN] [1792001240.073381398] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.134317 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001241.547891677] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.644471 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001242.725368346] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.121348 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001243.263946599] [controller_manager]: Overrun might occur, Total time : 2625.916 us (Expected < 2000.000 us) --> Read time : 14.125 us, Update time : 2608.791 us, Write time : 3.000 us
+[ros2_control_node-2] [WARN] [1792001243.755890689] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.643649 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001244.533860381] [controller_manager]: Overrun might occur, Total time : 2544.460 us (Expected < 2000.000 us) --> Read time : 7.292 us, Update time : 2533.959 us, Write time : 3.209 us
+[ros2_control_node-2] [WARN] [1792001244.921923393] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.676354 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001245.581887759] [controller_manager]: Overrun might occur, Total time : 2575.458 us (Expected < 2000.000 us) --> Read time : 7.958 us, Update time : 2565.333 us, Write time : 2.167 us
+[ros2_control_node-2] [WARN] [1792001245.951908480] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.661483 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001247.082016056] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.768558 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001248.133881052] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.634012 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001248.699894086] [controller_manager]: Overrun might occur, Total time : 2583.124 us (Expected < 2000.000 us) --> Read time : 7.208 us, Update time : 2574.166 us, Write time : 1.750 us
+[ros2_control_node-2] [WARN] [1792001249.309960075] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.712577 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001250.365893981] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.646816 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001251.205848404] [controller_manager]: Overrun might occur, Total time : 2499.541 us (Expected < 2000.000 us) --> Read time : 36.083 us, Update time : 2461.499 us, Write time : 1.959 us
+[ros2_control_node-2] [WARN] [1792001251.699867024] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.619860 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001253.493885309] [controller_manager]: Overrun might occur, Total time : 2556.917 us (Expected < 2000.000 us) --> Read time : 25.709 us, Update time : 2526.583 us, Write time : 4.625 us
+[ros2_control_node-2] [WARN] [1792001253.493930559] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.683437 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001254.715984978] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.737647 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001255.937826644] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.579396 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001256.507833541] [controller_manager]: Overrun might occur, Total time : 2496.750 us (Expected < 2000.000 us) --> Read time : 35.250 us, Update time : 2459.291 us, Write time : 2.209 us
+[ros2_control_node-2] [WARN] [1792001256.991915448] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.668242 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001258.047894166] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.646960 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001259.255337863] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.090699 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001260.471401223] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.154142 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001261.646212542] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.965211 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001261.662129582] [controller_manager]: Overrun might occur, Total time : 12673.998 us (Expected < 2000.000 us) --> Read time : 31.708 us, Update time : 12635.165 us, Write time : 7.125 us
+[ros2_control_node-2] [WARN] [1792001262.911582513] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.335474 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001266.946992911] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 3.745247 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001266.962277617] [controller_manager]: Overrun might occur, Total time : 2946.041 us (Expected < 2000.000 us) --> Read time : 24.833 us, Update time : 2911.958 us, Write time : 9.250 us
+[ros2_control_node-2] [WARN] [1792001268.223993238] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.745866 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001269.023798961] [controller_manager]: Overrun might occur, Total time : 4476.708 us (Expected < 2000.000 us) --> Read time : 21.000 us, Update time : 4453.375 us, Write time : 2.333 us
+[ros2_control_node-2] [WARN] [1792001269.397857117] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.610078 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001270.970888644] [controller_manager]: Overrun might occur, Total time : 5580.166 us (Expected < 2000.000 us) --> Read time : 7.125 us, Update time : 5570.833 us, Write time : 2.208 us
+[ros2_control_node-2] [WARN] [1792001270.970929561] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 5.682355 ms (missed cycles : 3).
+[ros2_control_node-2] [WARN] [1792001272.377291272] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.043900 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001275.101853611] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.606447 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001275.218004177] [controller_manager]: Overrun might occur, Total time : 2635.457 us (Expected < 2000.000 us) --> Read time : 26.583 us, Update time : 2603.333 us, Write time : 5.541 us
+[ros2_control_node-2] [WARN] [1792001280.405923632] [controller_manager]: Overrun might occur, Total time : 2613.166 us (Expected < 2000.000 us) --> Read time : 6.916 us, Update time : 2600.875 us, Write time : 5.375 us
+[ros2_control_node-2] [WARN] [1792001280.405985549] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.738426 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001281.931543874] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.296751 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001282.223944157] [controller_manager]: Overrun might occur, Total time : 2608.292 us (Expected < 2000.000 us) --> Read time : 30.667 us, Update time : 2573.708 us, Write time : 3.917 us
+[ros2_control_node-2] [WARN] [1792001283.091843173] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.595759 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001284.937941931] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.694642 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001285.811439982] [controller_manager]: Overrun might occur, Total time : 2116.374 us (Expected < 2000.000 us) --> Read time : 22.625 us, Update time : 2090.541 us, Write time : 3.208 us
+[ros2_control_node-2] [WARN] [1792001286.349859509] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.612261 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001287.003826931] [controller_manager]: Overrun might occur, Total time : 2503.207 us (Expected < 2000.000 us) --> Read time : 19.291 us, Update time : 2481.749 us, Write time : 2.167 us
+[ros2_control_node-2] [WARN] [1792001288.133542472] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.295307 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001288.947996777] [controller_manager]: Overrun might occur, Total time : 2597.499 us (Expected < 2000.000 us) --> Read time : 20.125 us, Update time : 2573.541 us, Write time : 3.833 us
+[ros2_control_node-2] [WARN] [1792001289.341987578] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.740538 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001290.489905942] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.658736 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001292.167928574] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.681451 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001293.588004417] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.756878 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001293.977919256] [controller_manager]: Overrun might occur, Total time : 2525.750 us (Expected < 2000.000 us) --> Read time : 19.500 us, Update time : 2503.041 us, Write time : 3.209 us
+[ros2_control_node-2] [WARN] [1792001294.719888189] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.640983 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001297.047891919] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.644755 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001300.603956454] [controller_manager]: Overrun might occur, Total time : 2628.958 us (Expected < 2000.000 us) --> Read time : 21.416 us, Update time : 2604.000 us, Write time : 3.542 us
+[ros2_control_node-2] [WARN] [1792001300.603996913] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.749832 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001302.017948479] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.701023 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001303.457721784] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.474495 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001304.781497694] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.250363 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001305.811259293] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.012170 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001307.535857936] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.610730 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001309.239304285] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.057079 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001310.579967381] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.719925 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001311.805962418] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.715212 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001313.289920596] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.673390 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001314.379866450] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.619327 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001315.483982507] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.735051 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001315.957843387] [controller_manager]: Overrun might occur, Total time : 2527.166 us (Expected < 2000.000 us) --> Read time : 7.542 us, Update time : 2515.666 us, Write time : 3.958 us
+[ros2_control_node-2] [WARN] [1792001316.717465194] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.218071 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001317.271821303] [controller_manager]: Overrun might occur, Total time : 2482.875 us (Expected < 2000.000 us) --> Read time : 30.416 us, Update time : 2450.000 us, Write time : 2.459 us
+[ros2_control_node-2] [WARN] [1792001317.921856802] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.609555 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001319.661574809] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.327728 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001321.867971851] [controller_manager]: Overrun might occur, Total time : 2604.665 us (Expected < 2000.000 us) --> Read time : 10.500 us, Update time : 2588.915 us, Write time : 5.250 us
+[ros2_control_node-2] [WARN] [1792001321.868016226] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.769062 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001322.987842093] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.594887 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001324.377950216] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.702677 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001325.753873339] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.626258 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001327.381864387] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.617306 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001328.424057637] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.810389 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001329.537989363] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.742116 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001330.542030493] [controller_manager]: Overrun might occur, Total time : 2641.249 us (Expected < 2000.000 us) --> Read time : 28.709 us, Update time : 2604.040 us, Write time : 8.500 us
+[ros2_control_node-2] [WARN] [1792001330.542082910] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.835787 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001331.791396176] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 6.148803 ms (missed cycles : 4).
+[ros2_control_node-2] [WARN] [1792001331.798030132] [controller_manager]: Overrun might occur, Total time : 2713.583 us (Expected < 2000.000 us) --> Read time : 14.708 us, Update time : 2692.375 us, Write time : 6.500 us
+[ros2_control_node-2] [WARN] [1792001332.862008573] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.761367 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001333.942126590] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.879301 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001335.567950025] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.702694 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001336.545978025] [controller_manager]: Overrun might occur, Total time : 2580.582 us (Expected < 2000.000 us) --> Read time : 6.917 us, Update time : 2568.499 us, Write time : 5.166 us
+[ros2_control_node-2] [WARN] [1792001336.927828744] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.581371 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001338.011916208] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.668877 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792001339.065900137] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.652931 ms (missed cycles : 2).

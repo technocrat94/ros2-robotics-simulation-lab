@@ -29,6 +29,98 @@ def candidate_contact_grasp_pass(
     )
 
 
+def robot_obstacle_real_contact_count(samples):
+    """Count loaded or penetrating robot-obstacle contacts once each."""
+    return sum(
+        int(
+            sample["contact_force_magnitude_n"] > 0.0
+            or sample["penetration_depth_m"] > 0.0
+        )
+        for sample in samples
+    )
+
+
+def gripper_open_observed(
+    grip, first_observed_grip, closed_threshold=0.05, opening_delta=0.15
+):
+    """Recognize an absolute-open gripper or a clear opening from its start."""
+    return bool(
+        grip <= closed_threshold
+        or grip <= first_observed_grip - opening_delta
+    )
+
+
+def gripper_phase_flags(
+    open_seen,
+    closed_seen,
+    release_seen,
+    grip,
+    previous_grip,
+    first_observed_grip,
+    motion_epsilon=1.0e-7,
+):
+    """Advance open/close/release flags from gripper position and direction."""
+    open_seen = open_seen or gripper_open_observed(
+        grip, first_observed_grip
+    )
+    if closed_seen and grip < previous_grip - motion_epsilon:
+        release_seen = True
+    if (
+        open_seen
+        and not release_seen
+        and grip > previous_grip + motion_epsilon
+    ):
+        closed_seen = True
+    return open_seen, closed_seen, release_seen
+
+
+OBSTACLE_CONFIG_PATH = Path(os.environ.get(
+    "NEWTON_OBSTACLE_CONFIG",
+    str(Path.home() / "ur5_ws/src/ur5_moveit_demo/config/obstacles.yaml"),
+))
+
+
+def load_scene_profile(path):
+    config = json.loads(path.read_text(encoding="utf-8"))
+    if config.get("schema_version") != 1:
+        raise ValueError("obstacles.yaml schema_version must be 1")
+    profile_name = os.environ.get(
+        "GRASP_SCENE_PROFILE", config.get("default_scene_profile", "default")
+    )
+    profiles = config.get("scene_profiles", {})
+    if profile_name not in profiles:
+        raise ValueError(f"unknown GRASP_SCENE_PROFILE: {profile_name}")
+    profile = profiles[profile_name]
+    center = profile.get("object_center_m")
+    if not isinstance(center, list) or len(center) != 3:
+        raise ValueError(f"scene profile {profile_name} needs object_center_m")
+    boxes_by_id = {box["id"]: box for box in config.get("boxes", [])}
+    box_id = profile.get("box_id")
+    if box_id not in boxes_by_id:
+        raise ValueError(f"scene profile {profile_name} references unknown box {box_id}")
+    box = boxes_by_id[box_id]
+    if len(box.get("center_m", [])) != 3 or len(box.get("size_m", [])) != 3:
+        raise ValueError(f"obstacle box {box_id} needs three center and size values")
+    if any(float(value) < 0.01 for value in box["size_m"]):
+        raise ValueError("every obstacle box dimension must be at least 0.01 m")
+    for variable, value in zip(
+        ("GRASP_OBJECT_CENTER_X", "GRASP_OBJECT_CENTER_Y", "GRASP_OBJECT_CENTER_Z"),
+        center,
+    ):
+        if value is not None:
+            os.environ[variable] = str(float(value))
+    enabled = bool(profile.get("obstacles_enabled", False))
+    return profile_name, profile, box, [box] if enabled else []
+
+
+(
+    SCENE_PROFILE_NAME,
+    SCENE_PROFILE,
+    CONFIGURED_OBSTACLE,
+    ENABLED_OBSTACLES,
+) = load_scene_profile(OBSTACLE_CONFIG_PATH)
+
+
 LESSON_DIR = Path.home() / "newton_ws/lessons/segmented_strip"
 sys.path.insert(0, str(LESSON_DIR))
 from robot_segmented_grasp_batch import (  # noqa: E402
@@ -37,6 +129,9 @@ from robot_segmented_grasp_batch import (  # noqa: E402
     DENSITY,
     DEVICE,
     GROUND_FRICTION,
+    OBJECT_CENTER_X,
+    OBJECT_CENTER_Y,
+    OBJECT_CENTER_Z,
     OBJECT_HALF_THICKNESS,
     OBJECT_MODEL,
     DT,
@@ -83,28 +178,25 @@ MAX_ALLOWED_PENETRATION = float(
 )
 if MAX_ALLOWED_PENETRATION < 0.0:
     raise ValueError("GRASP_MAX_ALLOWED_PENETRATION must be nonnegative")
-OBSTACLE_CONFIG_PATH = Path(os.environ.get(
-    "NEWTON_OBSTACLE_CONFIG",
-    str(Path.home() / "ur5_ws/src/ur5_moveit_demo/config/obstacles.yaml"),
+PROFILE_DEFAULT_TRANSIT_PADDING_M = (
+    0.02 if SCENE_PROFILE_NAME.startswith("step_c_") else 0.0
+)
+MOVEIT_ROBOT_PADDING_M = float(os.environ.get(
+    "MOVEIT_ROBOT_PADDING_M", str(PROFILE_DEFAULT_TRANSIT_PADDING_M)
 ))
-
-
-def load_enabled_obstacles(path):
-    config = json.loads(path.read_text(encoding="utf-8"))
-    if config.get("schema_version") != 1:
-        raise ValueError("obstacles.yaml schema_version must be 1")
-    if not config.get("enabled", False):
-        return []
-    boxes = config.get("boxes", [])
-    for box in boxes:
-        if len(box.get("center_m", [])) != 3 or len(box.get("size_m", [])) != 3:
-            raise ValueError("every obstacle box needs three center and size values")
-        if any(float(value) < 0.01 for value in box["size_m"]):
-            raise ValueError("every obstacle box dimension must be at least 0.01 m")
-    return boxes
-
-
-ENABLED_OBSTACLES = load_enabled_obstacles(OBSTACLE_CONFIG_PATH)
+if MOVEIT_ROBOT_PADDING_M < 0.0:
+    raise ValueError("MOVEIT_ROBOT_PADDING_M must be nonnegative")
+MOVEIT_CONTACT_PADDING_M = float(os.environ.get("MOVEIT_CONTACT_PADDING_M", "0.0"))
+if MOVEIT_CONTACT_PADDING_M < 0.0:
+    raise ValueError("MOVEIT_CONTACT_PADDING_M must be nonnegative")
+MOVEIT_PLANNING_TIME_SECONDS = float(
+    os.environ.get("MOVEIT_PLANNING_TIME_SECONDS", "10.0")
+)
+if MOVEIT_PLANNING_TIME_SECONDS <= 0.0:
+    raise ValueError("MOVEIT_PLANNING_TIME_SECONDS must be positive")
+USE_SAFE_PREGRASP_PATH = (
+    os.environ.get("FEM_CABLE_SAFE_PREGRASP", "true").strip().lower() == "true"
+)
 GRIPPER_CLOSED_MIN = 0.05
 GRIPPER_CLOSED_MAX = 0.81
 JOINT_NAMES = [
@@ -181,6 +273,9 @@ solver = (
     if FEM_MODE
     else newton.solvers.SolverXPBD(model, iterations=10 if ROD_MODE else 30)
 )
+vbd_contact_body_q_prev = (
+    wp.clone(solver.body_q_prev) if FEM_MODE else None
+)
 collision = newton.CollisionPipeline(
     model,
     rigid_contact_max=10000,
@@ -193,6 +288,7 @@ qd = model.joint_qd.numpy()
 shape_bodies = model.shape_body.numpy()
 shape_flags = model.shape_flags.numpy()
 shape_margins = model.shape_margin.numpy()
+shape_gaps = model.shape_gap.numpy()
 particle_radii = model.particle_radius.numpy()
 robot_particle_colliders = sum(
     bool(int(shape_flags[index]) & int(newton.ShapeFlags.COLLIDE_PARTICLES))
@@ -315,6 +411,75 @@ def robot_obstacle_contact_count(contact_buffer, count):
     return total
 
 
+def robot_obstacle_contact_samples(
+    contact_buffer, count, body_poses, force_on_shape1, sample_time, task_phase,
+    force_source,
+):
+    """Return physical robot-wall contact diagnostics for one collision pass.
+
+    Newton emits a rigid candidate while the surface separation is inside the
+    sum of both shapes' detection gaps.  A positive separation is therefore a
+    proximity candidate, not a touch.  A negative separation is penetration.
+    VBD's diagnostic force is the world-frame force on shape 1.
+    """
+    if not obstacle_shape_set:
+        return []
+    shape0 = contact_buffer.rigid_contact_shape0.numpy()[:count]
+    shape1 = contact_buffer.rigid_contact_shape1.numpy()[:count]
+    point0 = contact_buffer.rigid_contact_point0.numpy()[:count]
+    point1 = contact_buffer.rigid_contact_point1.numpy()[:count]
+    normals = contact_buffer.rigid_contact_normal.numpy()[:count]
+    margin0 = contact_buffer.rigid_contact_margin0.numpy()[:count]
+    margin1 = contact_buffer.rigid_contact_margin1.numpy()[:count]
+    samples = []
+    for contact_index, (
+        first, second, first_point, second_point, normal,
+        first_margin, second_margin, force,
+    ) in enumerate(zip(
+        shape0, shape1, point0, point1, normals, margin0, margin1,
+        force_on_shape1,
+    )):
+        first, second = int(first), int(second)
+        first_is_robot = first < robot_shapes and second in obstacle_shape_set
+        second_is_robot = second < robot_shapes and first in obstacle_shape_set
+        if not first_is_robot and not second_is_robot:
+            continue
+        first_world = local_point_to_world(
+            int(shape_bodies[first]), first_point, body_poses
+        )
+        second_world = local_point_to_world(
+            int(shape_bodies[second]), second_point, body_poses
+        )
+        signed_separation = float(np.dot(
+            np.asarray(normal, dtype=np.float64), second_world - first_world
+        ) - float(first_margin) - float(second_margin))
+        force = np.asarray(force, dtype=np.float64)
+        force_magnitude = float(np.linalg.norm(force))
+        robot_shape = first if first_is_robot else second
+        robot_body = int(shape_bodies[robot_shape])
+        samples.append({
+            "sim_time_s": float(sample_time),
+            "task_phase": task_phase,
+            "contact_index": contact_index,
+            "robot_link": str(model.body_label[robot_body]),
+            "robot_shape": robot_shape,
+            "obstacle_shape": second if first_is_robot else first,
+            "signed_surface_separation_m": signed_separation,
+            "separation_distance_m": max(0.0, signed_separation),
+            "penetration_depth_m": max(0.0, -signed_separation),
+            "contact_detection_gap_m": float(
+                shape_gaps[first] + shape_gaps[second]
+            ),
+            "contact_force_on_shape1_xyz_n": [float(value) for value in force],
+            "contact_force_magnitude_n": force_magnitude,
+            "contact_force_source": force_source,
+            "loaded": force_magnitude > 0.0,
+            "penetrating": signed_separation < 0.0,
+            "real_touch": force_magnitude > 0.0 or signed_separation < 0.0,
+        })
+    return samples
+
+
 def finger_strip_contacts(contact_buffer, count, body_poses):
     shape0 = contact_buffer.rigid_contact_shape0.numpy()[:count]
     shape1 = contact_buffer.rigid_contact_shape1.numpy()[:count]
@@ -399,7 +564,7 @@ initial_poses = state_0.body_q.numpy()
 if FEM_MODE:
     initial_particles = state_0.particle_q.numpy()
     grasp_particle_indices = np.flatnonzero(
-        np.isclose(initial_particles[:, 0], 0.4869, atol=1.0e-5)
+        np.isclose(initial_particles[:, 0], OBJECT_CENTER_X, atol=1.0e-5)
     )
     if len(grasp_particle_indices) == 0:
         raise RuntimeError("FEM grasp-region particles were not found")
@@ -466,7 +631,23 @@ sim_time = 0.0
 maximum_center_z = initial_center_z
 maximum_contacts = 0
 maximum_soft_contacts = 0
+# Acceptance metric: only contacts with load or penetration.
 maximum_robot_obstacle_contacts = 0
+# Diagnostic metric: every Newton contact candidate inside the detection gap.
+maximum_robot_obstacle_candidate_contacts = 0
+maximum_robot_obstacle_loaded_contacts = 0
+maximum_robot_obstacle_penetrating_contacts = 0
+robot_obstacle_candidate_samples = 0
+robot_obstacle_loaded_samples = 0
+robot_obstacle_penetrating_samples = 0
+robot_obstacle_real_touch_samples = 0
+minimum_robot_obstacle_separation = math.inf
+maximum_robot_obstacle_penetration = 0.0
+maximum_robot_obstacle_force = 0.0
+robot_obstacle_samples_by_phase = {
+    task_phase: {"candidate": 0, "loaded": 0, "penetrating": 0}
+    for task_phase in ("transit", "descend", "close", "lift", "release")
+}
 object_obstacle_max_penetration = 0.0
 maximum_left_finger_soft_contacts = 0
 maximum_right_finger_soft_contacts = 0
@@ -496,9 +677,22 @@ maximum_command_backlog = 0
 queue_drained_reported = True
 consecutive_identical_samples = 1
 previous_sample_arm_q = robot_q[:6].copy()
+diagnostic_previous_robot_q = robot_q.copy()
+diagnostic_open_seen = False
+diagnostic_closed_seen = False
+diagnostic_lift_seen = False
+diagnostic_release_seen = False
+robot_obstacle_sampled_phases = set()
+robot_obstacle_penetration_seen = False
+robot_obstacle_real_touch_seen = False
 robot_state_initialized = False
+first_observed_grip = None
+previous_state_grip = None
 previous_grasp_z = initial_grasp_z
 closed_seen = False
+# A fresh bringup can report the gripper as closed before the task opens it.
+# Only a closure that follows an observed open gripper counts as the grasp.
+open_seen = False
 lift_started = False
 release_seen = False
 result_ready_sim_time = None
@@ -525,6 +719,7 @@ maximum_closed_contact_z = -math.inf
 wall_start = time.monotonic()
 next_frame = time.monotonic()
 next_state = next_frame
+state_packet_sent = False
 
 print(
     "MOVEIT_GRASP_ENDPOINT_READY "
@@ -535,6 +730,7 @@ print(
     f"particle_radius={float(model.particle_radius.numpy()[0]) if model.particle_count else 0.0:.4f} "
     f"robot_particle_colliders={robot_particle_colliders} "
     f"active_robot_colliders={active_robot_colliders} "
+    f"scene_profile={SCENE_PROFILE_NAME} "
     f"obstacles_enabled={bool(ENABLED_OBSTACLES)} "
     f"obstacle_shapes={len(obstacle_shapes)} "
     f"robot_friction={CONTACT_FRICTION} strip_friction={STRIP_FRICTION} "
@@ -545,7 +741,7 @@ print(
     f"soft_contact_margin={SOFT_CONTACT_MARGIN:.4f} substeps={SUBSTEPS} "
     f"command_dt={COMMAND_DT:.3f} max_hold={MAX_HOLD_SECONDS:.3f} "
     f"command_queue_capacity={MAX_COMMAND_QUEUE} "
-    f"object_center=(0.4869,0.10915,{initial_center_z:.5f}) "
+    f"object_center=({OBJECT_CENTER_X:.5f},{OBJECT_CENTER_Y:.5f},{OBJECT_CENTER_Z:.5f}) "
     f"command={COMMAND_PORT} state={STATE_PORT} viewer={VIEWER_PORT}",
     flush=True,
 )
@@ -572,6 +768,8 @@ try:
                     command_robot_q, received_robot_q, rtol=0.0, atol=1.0e-7
                 )
                 received_robot_q = command_robot_q.copy()
+                if first_observed_grip is None:
+                    first_observed_grip = float(command_robot_q[6])
                 # Synchronization establishes the initial state; it is not motion.
                 # Matching the previous state prevents a false velocity impulse.
                 if not robot_state_initialized or kind == "sync_robot_state":
@@ -671,13 +869,199 @@ try:
                 collision.collide(state_0, contacts)
                 count = int(contacts.rigid_contact_count.numpy()[0])
                 maximum_contacts = max(maximum_contacts, count)
-                maximum_robot_obstacle_contacts = max(
-                    maximum_robot_obstacle_contacts,
-                    robot_obstacle_contact_count(contacts, count),
+                robot_obstacle_candidates = robot_obstacle_contact_count(
+                    contacts, count
+                )
+                robot_obstacle_new_peak = (
+                    robot_obstacle_candidates
+                    > maximum_robot_obstacle_candidate_contacts
+                )
+                maximum_robot_obstacle_candidate_contacts = max(
+                    maximum_robot_obstacle_candidate_contacts,
+                    robot_obstacle_candidates,
                 )
                 soft_count = int(contacts.soft_contact_count.numpy()[0])
                 maximum_soft_contacts = max(maximum_soft_contacts, soft_count)
+                if FEM_MODE and robot_obstacle_candidates:
+                    wp.copy(
+                        dest=vbd_contact_body_q_prev,
+                        src=solver.body_q_prev,
+                    )
                 solver.step(state_0, state_1, control, contacts, DT)
+                current_grip = float(q[6])
+                previous_grip = float(diagnostic_previous_robot_q[6])
+                diagnostic_arm_step = float(np.max(np.abs(
+                    q[:6] - diagnostic_previous_robot_q[:6]
+                )))
+                if first_observed_grip is not None:
+                    (
+                        diagnostic_open_seen,
+                        diagnostic_closed_seen,
+                        diagnostic_release_seen,
+                    ) = gripper_phase_flags(
+                        diagnostic_open_seen,
+                        diagnostic_closed_seen,
+                        diagnostic_release_seen,
+                        current_grip,
+                        previous_grip,
+                        first_observed_grip,
+                    )
+                if diagnostic_closed_seen and diagnostic_arm_step > 1.0e-7:
+                    diagnostic_lift_seen = True
+
+                if FEM_MODE and robot_obstacle_candidates:
+                    current_body_poses = state_1.body_q.numpy()
+                    previous_body_poses = vbd_contact_body_q_prev.numpy()
+                    current_tip_z = float(0.5 * (
+                        current_body_poses[left_tip_body, 2]
+                        + current_body_poses[right_tip_body, 2]
+                    ))
+                    previous_tip_z = float(0.5 * (
+                        previous_body_poses[left_tip_body, 2]
+                        + previous_body_poses[right_tip_body, 2]
+                    ))
+                    if diagnostic_release_seen:
+                        diagnostic_task_phase = "release"
+                    elif diagnostic_lift_seen:
+                        diagnostic_task_phase = "lift"
+                    elif diagnostic_closed_seen:
+                        diagnostic_task_phase = "close"
+                    elif current_tip_z < previous_tip_z - 1.0e-8:
+                        diagnostic_task_phase = "descend"
+                    else:
+                        diagnostic_task_phase = "transit"
+                    diagnostic_sample_needed = (
+                        robot_obstacle_new_peak
+                        or diagnostic_task_phase
+                        not in robot_obstacle_sampled_phases
+                    )
+                    available_rigid_contacts = min(
+                        count,
+                        contacts.rigid_contact_shape0.shape[0],
+                    )
+                    robot_obstacle_samples = robot_obstacle_contact_samples(
+                        contacts,
+                        count,
+                        current_body_poses,
+                        np.zeros(
+                            (available_rigid_contacts, 3), dtype=np.float64
+                        ),
+                        sim_time + DT,
+                        diagnostic_task_phase,
+                        "vbd_zero_for_nonpenetrating_constraint",
+                    )
+                    penetration_in_pass = any(
+                        sample["penetrating"]
+                        for sample in robot_obstacle_samples
+                    )
+                    # Before the first penetration VBD cannot have a positive
+                    # cached normal multiplier, so separated candidates have
+                    # zero force.  After penetration, keep harvesting forces
+                    # so a loaded but currently separated constraint is still
+                    # counted by the acceptance metric.
+                    if penetration_in_pass or robot_obstacle_penetration_seen:
+                        (
+                            _diagnostic_body0,
+                            _diagnostic_body1,
+                            _diagnostic_point0,
+                            _diagnostic_point1,
+                            diagnostic_force_on_shape1,
+                            _diagnostic_count,
+                        ) = solver.collect_rigid_contact_forces(
+                            state_1.body_q,
+                            vbd_contact_body_q_prev,
+                            contacts,
+                            DT,
+                        )
+                        robot_obstacle_samples = robot_obstacle_contact_samples(
+                            contacts,
+                            count,
+                            current_body_poses,
+                            diagnostic_force_on_shape1.numpy()[:count],
+                            sim_time + DT,
+                            diagnostic_task_phase,
+                            "vbd_force_harvest",
+                        )
+                    loaded_in_pass = sum(
+                        int(sample["loaded"])
+                        for sample in robot_obstacle_samples
+                    )
+                    penetrating_in_pass = sum(
+                        int(sample["penetrating"])
+                        for sample in robot_obstacle_samples
+                    )
+                    real_contacts_in_pass = robot_obstacle_real_contact_count(
+                        robot_obstacle_samples
+                    )
+                    maximum_robot_obstacle_contacts = max(
+                        maximum_robot_obstacle_contacts,
+                        real_contacts_in_pass,
+                    )
+                    maximum_robot_obstacle_loaded_contacts = max(
+                        maximum_robot_obstacle_loaded_contacts,
+                        loaded_in_pass,
+                    )
+                    maximum_robot_obstacle_penetrating_contacts = max(
+                        maximum_robot_obstacle_penetrating_contacts,
+                        penetrating_in_pass,
+                    )
+                    real_touch_in_pass = real_contacts_in_pass > 0
+                    diagnostic_sample_needed = (
+                        diagnostic_sample_needed
+                        or (
+                            real_touch_in_pass
+                            and not robot_obstacle_real_touch_seen
+                        )
+                    )
+                    if diagnostic_sample_needed:
+                        for sample in robot_obstacle_samples:
+                            phase_counts = robot_obstacle_samples_by_phase[
+                                sample["task_phase"]
+                            ]
+                            phase_counts["candidate"] += 1
+                            phase_counts["loaded"] += int(sample["loaded"])
+                            phase_counts["penetrating"] += int(
+                                sample["penetrating"]
+                            )
+                            robot_obstacle_candidate_samples += 1
+                            robot_obstacle_loaded_samples += int(
+                                sample["loaded"]
+                            )
+                            robot_obstacle_penetrating_samples += int(
+                                sample["penetrating"]
+                            )
+                            robot_obstacle_real_touch_samples += int(
+                                sample["real_touch"]
+                            )
+                            minimum_robot_obstacle_separation = min(
+                                minimum_robot_obstacle_separation,
+                                sample["signed_surface_separation_m"],
+                            )
+                            maximum_robot_obstacle_penetration = max(
+                                maximum_robot_obstacle_penetration,
+                                sample["penetration_depth_m"],
+                            )
+                            maximum_robot_obstacle_force = max(
+                                maximum_robot_obstacle_force,
+                                sample["contact_force_magnitude_n"],
+                            )
+                            print(
+                                "ROBOT_OBSTACLE_CONTACT_SAMPLE",
+                                json.dumps(sample, sort_keys=True),
+                                flush=True,
+                            )
+                        robot_obstacle_sampled_phases.add(
+                            diagnostic_task_phase
+                        )
+                    robot_obstacle_penetration_seen = (
+                        robot_obstacle_penetration_seen
+                        or penetration_in_pass
+                    )
+                    robot_obstacle_real_touch_seen = (
+                        robot_obstacle_real_touch_seen
+                        or real_touch_in_pass
+                    )
+                diagnostic_previous_robot_q = q.copy()
                 state_0, state_1 = state_1, state_0
                 sim_time += DT
             previous_robot_q = frame_target_q
@@ -792,8 +1176,19 @@ try:
             current_mimic_error = mimic_error(latest_robot_q)
             maximum_mimic_error = max(maximum_mimic_error, current_mimic_error)
 
-            if GRIPPER_CLOSED_MIN < grip <= GRIPPER_CLOSED_MAX and not release_seen:
-                closed_seen = True
+            release_was_seen = release_seen
+            if first_observed_grip is not None:
+                if previous_state_grip is None:
+                    previous_state_grip = grip
+                open_seen, closed_seen, release_seen = gripper_phase_flags(
+                    open_seen,
+                    closed_seen,
+                    release_seen,
+                    grip,
+                    previous_state_grip,
+                    first_observed_grip,
+                )
+            if closed_seen and not release_seen:
                 if FEM_MODE and not lift_started:
                     maximum_closed_left_loaded_soft_contacts = max(
                         maximum_closed_left_loaded_soft_contacts,
@@ -876,15 +1271,15 @@ try:
                     maximum_lift_combined_force_z = max(
                         maximum_lift_combined_force_z, combined_force_z
                     )
-            elif closed_seen and grip <= 0.05:
-                if not release_seen:
-                    release_seen = True
+            if release_seen:
+                if not release_was_seen:
                     release_start_grasp_z = previous_grasp_z
                     minimum_post_release_grasp_z = grasp_z
                 else:
                     minimum_post_release_grasp_z = min(
                         minimum_post_release_grasp_z, grasp_z
                     )
+            previous_state_grip = grip
 
             command_queue_empty = (
                 not pending_robot_q and not command_segment_active
@@ -956,6 +1351,14 @@ try:
                 ),
             }
             state_socket.sendto(json.dumps(message).encode("utf-8"), STATE_ADDRESS)
+            if not state_packet_sent:
+                print(
+                    "MOVEIT_STATE_PACKET_SENT "
+                    f"address={STATE_ADDRESS[0]}:{STATE_ADDRESS[1]} "
+                    f"sequence={sequence}",
+                    flush=True,
+                )
+                state_packet_sent = True
             if grip >= 0.20 and phase == "MOVEIT_CONTACT":
                 print(
                     "MOVEIT_CONTACT_SAMPLE",
@@ -1056,6 +1459,15 @@ finally:
         "object": OBJECT_MODEL,
         "device": str(model.device),
         "tested_commit": TESTED_COMMIT,
+        "scene_profile": SCENE_PROFILE_NAME,
+        "moveit_robot_padding_m": MOVEIT_ROBOT_PADDING_M,
+        "moveit_transit_padding_m": MOVEIT_ROBOT_PADDING_M,
+        "moveit_contact_padding_m": MOVEIT_CONTACT_PADDING_M,
+        "moveit_planning_time_s": MOVEIT_PLANNING_TIME_SECONDS,
+        "use_safe_pregrasp_path": USE_SAFE_PREGRASP_PATH,
+        "configured_object_center_m": [
+            OBJECT_CENTER_X, OBJECT_CENTER_Y, OBJECT_CENTER_Z
+        ],
         "closed_seen": closed_seen,
         "lift_started": lift_started,
         "release_seen": release_seen,
@@ -1070,7 +1482,32 @@ finally:
         "maximum_contact_count": maximum_contacts,
         "obstacles_enabled": bool(ENABLED_OBSTACLES),
         "obstacle_ids": [obstacle["id"] for obstacle in ENABLED_OBSTACLES],
+        "configured_obstacle_id": CONFIGURED_OBSTACLE["id"],
         "maximum_robot_obstacle_contacts": maximum_robot_obstacle_contacts,
+        "maximum_robot_obstacle_candidate_contacts": (
+            maximum_robot_obstacle_candidate_contacts
+        ),
+        "maximum_robot_obstacle_loaded_contacts": (
+            maximum_robot_obstacle_loaded_contacts
+        ),
+        "maximum_robot_obstacle_penetrating_contacts": (
+            maximum_robot_obstacle_penetrating_contacts
+        ),
+        "robot_obstacle_candidate_samples": robot_obstacle_candidate_samples,
+        "robot_obstacle_loaded_samples": robot_obstacle_loaded_samples,
+        "robot_obstacle_penetrating_samples": (
+            robot_obstacle_penetrating_samples
+        ),
+        "robot_obstacle_real_touch_samples": robot_obstacle_real_touch_samples,
+        "minimum_robot_obstacle_signed_surface_separation_m": (
+            minimum_robot_obstacle_separation
+            if math.isfinite(minimum_robot_obstacle_separation) else None
+        ),
+        "maximum_robot_obstacle_penetration_m": (
+            maximum_robot_obstacle_penetration
+        ),
+        "maximum_robot_obstacle_force_n": maximum_robot_obstacle_force,
+        "robot_obstacle_samples_by_phase": robot_obstacle_samples_by_phase,
         "object_obstacle_max_penetration_m": object_obstacle_max_penetration,
         "maximum_soft_contact_count": maximum_soft_contacts,
         "maximum_left_finger_soft_contacts": maximum_left_finger_soft_contacts,

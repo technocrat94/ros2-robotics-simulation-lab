@@ -1,0 +1,82 @@
+{
+  "classification": "joint_jump_or_IK_branch_discontinuity",
+  "collision_free_cartesian_fraction": 0.5,
+  "diagnostic_log": "docs/experiments/rigid-obstacles/results/step_c/attempt_20261015_c7d3b34/c1_plan_diagnostic.log",
+  "direct_ik_error_code": 1,
+  "failure_reason": "joint_jump_or_IK_branch_discontinuity",
+  "failure_stage": "safe_pregrasp_translate",
+  "first_rejected_ik_joints_rad": {
+    "elbow_joint": -1.2591480701101747,
+    "shoulder_lift_joint": 4.407674142664024,
+    "shoulder_pan_joint": 3.9926910085674043,
+    "wrist_1_joint": -1.577729676155289,
+    "wrist_2_joint": 1.570796258397809,
+    "wrist_3_joint": -2.290494306045198
+  },
+  "first_rejected_tool_pose": {
+    "position_m": [
+      0.48706771826851,
+      0.3900846875093457,
+      0.41499998199232313
+    ],
+    "quaternion_xyzw": [
+      0.7071067811865476,
+      0.7071067811865476,
+      0.0,
+      0.0
+    ]
+  },
+  "joint_delta_rad": {
+    "elbow_joint": -1.1897944378301661,
+    "shoulder_lift_joint": 6.99271904462263,
+    "shoulder_pan_joint": 6.285885415264611,
+    "wrist_1_joint": -2.6613319123571904,
+    "wrist_2_joint": -3.1415927011501137,
+    "wrist_3_joint": 3.1442927470838606
+  },
+  "last_valid_joints_rad": {
+    "elbow_joint": -0.06935363228000857,
+    "shoulder_lift_joint": -2.585044901958606,
+    "shoulder_pan_joint": -2.2931944066972063,
+    "wrist_1_joint": 1.083602236201901,
+    "wrist_2_joint": 4.712388959547923,
+    "wrist_3_joint": -5.4347870531290585
+  },
+  "last_valid_tool_pose": {
+    "position_m": [
+      0.48707609119654255,
+      0.3875845569499995,
+      0.4149998689458083
+    ],
+    "quaternion_xyzw": [
+      0.7071067837897769,
+      0.707106778583318,
+      1.3790532382746123e-08,
+      -1.1411804756765007e-08
+    ]
+  },
+  "mode": "plan_only",
+  "padding_0": {
+    "contacts": [],
+    "valid": true
+  },
+  "padding_0_02": {
+    "contacts": [],
+    "valid": true
+  },
+  "padding_m": 0.02,
+  "pass": false,
+  "pick_log": "docs/experiments/rigid-obstacles/results/step_c/attempt_20261015_c7d3b34/jazzy_fem_cable_pick_20261015_144957.log",
+  "prefix_fractions": {
+    "descend": 0.728813559322034,
+    "orient": 1.0,
+    "raise": 1.0,
+    "translate": 0.9717514124293785
+  },
+  "robot_command_sent": false,
+  "safe_z_m": 0.415,
+  "scene_profile": "step_c_cable_wall",
+  "step": "C1_wall_plan_only",
+  "superseded": false,
+  "tested_commit": "c7d3b3471d08b472984ecb7f810a8ee5b2412b69"
+}

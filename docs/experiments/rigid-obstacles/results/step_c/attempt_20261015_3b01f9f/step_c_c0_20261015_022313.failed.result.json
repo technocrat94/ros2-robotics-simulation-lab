@@ -1,0 +1,28 @@
+{
+  "arm_command_sent": false,
+  "candidate_contact_grasp_pass": false,
+  "failure": {
+    "overall_cartesian_fraction": 0.625,
+    "proven_padded_self_collision": false,
+    "safe_route_stage_fractions": {
+      "descend_prefix": 0.625,
+      "orient_prefix": 1.0,
+      "raise_prefix": 1.0,
+      "translate_prefix": 0.833
+    },
+    "stage": "safe_pregrasp_cartesian_path",
+    "stopped_by_incomplete_path_guard": true
+  },
+  "grasp_region_lift_m": 0.0,
+  "gripper_open_command_sent": true,
+  "maximum_robot_obstacle_contacts": null,
+  "moveit_contact_padding_m": 0.0,
+  "moveit_planning_time_s": 10.0,
+  "moveit_transit_padding_m": 0.02,
+  "pass": false,
+  "release_drop_m": 0.0,
+  "scene_profile": "step_c_cable_no_wall",
+  "step": "C0_moved_cable_without_wall",
+  "tested_commit": "3b01f9f39f314057e71ed7aa97369c18455db71c",
+  "use_safe_pregrasp_path": true
+}

@@ -25,6 +25,8 @@
 #include <moveit/trajectory_processing/time_optimal_trajectory_generation.hpp>
 #include <moveit_msgs/msg/collision_object.hpp>
 #include <moveit_msgs/msg/display_trajectory.hpp>
+#include <moveit_msgs/msg/link_padding.hpp>
+#include <moveit_msgs/msg/planning_scene.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_action/rclcpp_action.hpp>
 #include <shape_msgs/msg/solid_primitive.hpp>
@@ -62,6 +64,40 @@ struct ObstacleBox
   std::array<double, 3> size;
 };
 
+bool apply_robot_padding(
+  MoveGroup & move_group,
+  const rclcpp::Logger & logger,
+  double padding_m,
+  const std::string & stage)
+{
+  moveit_msgs::msg::PlanningScene scene;
+  scene.is_diff = true;
+  scene.robot_state.is_diff = true;
+  const auto & links =
+    move_group.getRobotModel()->getLinkModelNamesWithCollisionGeometry();
+  scene.link_padding.reserve(links.size());
+  for (const auto & link_name : links)
+  {
+    moveit_msgs::msg::LinkPadding link_padding;
+    link_padding.link_name = link_name;
+    link_padding.padding = padding_m;
+    scene.link_padding.push_back(link_padding);
+  }
+
+  moveit::planning_interface::PlanningSceneInterface planning_scene;
+  if (!planning_scene.applyPlanningScene(scene))
+  {
+    RCLCPP_ERROR(
+      logger, "Failed to apply %.6f m robot padding for %s phase.",
+      padding_m, stage.c_str());
+    return false;
+  }
+  RCLCPP_INFO(
+    logger, "ACTIVE_PADDING stage=%s padding_m=%.6f links=%zu",
+    stage.c_str(), padding_m, links.size());
+  return true;
+}
+
 moveit_msgs::msg::CollisionObject make_box_obstacle(const ObstacleBox & box)
 {
   moveit_msgs::msg::CollisionObject obstacle;
@@ -86,6 +122,7 @@ bool report_route_metrics(
   const moveit_msgs::msg::RobotState & start_state_message,
   const moveit_msgs::msg::RobotTrajectory & trajectory_message,
   const ObstacleBox & obstacle,
+  double robot_padding_m,
   const std::string & stage_name)
 {
   moveit::core::RobotState start_state(move_group.getRobotModel());
@@ -100,6 +137,7 @@ bool report_route_metrics(
   }
 
   planning_scene::PlanningScene analysis_scene(move_group.getRobotModel());
+  analysis_scene.getCollisionEnvNonConst()->setPadding(robot_padding_m);
   auto collision_object = make_box_obstacle(obstacle);
   collision_object.operation = moveit_msgs::msg::CollisionObject::ADD;
   if (!analysis_scene.processCollisionObjectMsg(collision_object))
@@ -583,8 +621,12 @@ bool move_staged_cartesian_to_pose(
   double maximum_joint_travel,
   double maximum_wrist_3_travel,
   double velocity_scaling,
+  double robot_padding_m,
   bool execute_motion,
-  const std::optional<ObstacleBox> & analysis_obstacle = std::nullopt)
+  const std::optional<ObstacleBox> & analysis_obstacle = std::nullopt,
+  bool obstacle_active = false,
+  double fingertip_drop_m = 0.0,
+  double obstacle_clearance_m = 0.0)
 {
   const auto current_state = move_group.getCurrentState(10.0);
   if (!current_state)
@@ -594,8 +636,24 @@ bool move_staged_cartesian_to_pose(
   }
 
   const auto current_pose = move_group.getCurrentPose("tool0").pose;
-  const double safe_z =
+  double safe_z =
     std::max(current_pose.position.z, target.position.z) + safe_transit_margin;
+  // tool0 cruises above the obstacle, but the open fingers hang about
+  // fingertip_drop_m below tool0; the padded fingertips must clear the top.
+  if (obstacle_active && analysis_obstacle)
+  {
+    const double obstacle_top =
+      analysis_obstacle->center[2] + 0.5 * analysis_obstacle->size[2];
+    const double obstacle_safe_z =
+      obstacle_top + fingertip_drop_m + robot_padding_m + obstacle_clearance_m;
+    RCLCPP_INFO(
+      logger,
+      "SAFE_PREGRASP_OBSTACLE_HEIGHT top=%.3f fingertip_drop=%.3f padding=%.3f "
+      "clearance=%.3f obstacle_safe_z=%.3f margin_safe_z=%.3f",
+      obstacle_top, fingertip_drop_m, robot_padding_m, obstacle_clearance_m,
+      obstacle_safe_z, safe_z);
+    safe_z = std::max(safe_z, obstacle_safe_z);
+  }
 
   auto raised_pose = current_pose;
   raised_pose.position.z = safe_z;
@@ -721,7 +779,7 @@ bool move_staged_cartesian_to_pose(
 
   if (analysis_obstacle && !report_route_metrics(
       move_group, logger, plan.start_state, plan.trajectory,
-      *analysis_obstacle, "safe_staged_pregrasp"))
+      *analysis_obstacle, robot_padding_m, "safe_staged_pregrasp"))
   {
     return false;
   }
@@ -854,6 +912,7 @@ bool move_to_pose_target(
   const rclcpp::Logger & logger,
   const geometry_msgs::msg::Pose & target,
   const std::string & stage_name,
+  double robot_padding_m,
   bool execute_motion = true,
   const std::optional<ObstacleBox> & analysis_obstacle = std::nullopt)
 {
@@ -877,7 +936,7 @@ bool move_to_pose_target(
 
   if (analysis_obstacle && !report_route_metrics(
       move_group, logger, plan.start_state, plan.trajectory,
-      *analysis_obstacle, stage_name))
+      *analysis_obstacle, robot_padding_m, stage_name))
   {
     return false;
   }
@@ -977,6 +1036,10 @@ int main(int argc, char * argv[])
   const double floor_z = parameter("floor_z", 0.0);
   const double floor_size = parameter("floor_size", 3.0);
   const double floor_thickness = parameter("floor_thickness", 0.02);
+  const double planning_time_s = parameter("planning_time_s", 10.0);
+  const std::string scene_profile = string_parameter("scene_profile", "default");
+  const double robot_padding_m = parameter("robot_padding_m", 0.0);
+  const double contact_padding_m = parameter("contact_padding_m", 0.0);
   const bool obstacles_enabled = bool_parameter("obstacles_enabled", false);
   ObstacleBox obstacle_box;
   try
@@ -1007,6 +1070,10 @@ int main(int argc, char * argv[])
     bool_parameter("use_safe_pregrasp_path", true);
   const double safe_transit_margin =
     parameter("safe_transit_margin", 0.0500);
+  // Measured by step_c_geometry_preflight: lowest open fingertip is 0.160 m
+  // below tool0 at the start pose; 5 mm added for mesh tolerance.
+  const double fingertip_drop_m = parameter("fingertip_drop_m", 0.165);
+  const double obstacle_clearance_m = parameter("obstacle_clearance_m", 0.03);
   const double maximum_pregrasp_joint_travel =
     parameter("maximum_pregrasp_joint_travel", 1.6000);
   const double maximum_wrist_3_travel =
@@ -1062,7 +1129,7 @@ int main(int argc, char * argv[])
       solution->bracket_low_rad, solution->bracket_high_rad);
   }
 
-  const std::array<double, 23> values = {
+  const std::array<double, 26> values = {
     object_x, object_y, object_z, pregrasp_clearance, approach_distance,
     lift_distance, grasp_center_offset, closed_grip, velocity_scale,
     lift_velocity_scale,
@@ -1070,7 +1137,7 @@ int main(int argc, char * argv[])
     floor_z, floor_size, floor_thickness, object_width_mm,
     total_compression_mm, uncompensated_approach_distance,
     safe_transit_margin, maximum_pregrasp_joint_travel,
-    maximum_wrist_3_travel};
+    maximum_wrist_3_travel, robot_padding_m, contact_padding_m, planning_time_s};
   for (const double value : values)
   {
     if (!std::isfinite(value))
@@ -1095,6 +1162,15 @@ int main(int argc, char * argv[])
   if (floor_size <= 0.0 || floor_thickness <= 0.0)
   {
     RCLCPP_ERROR(logger, "Floor size and thickness must be positive.");
+    rclcpp::shutdown();
+    return 1;
+  }
+  if (scene_profile.empty() || robot_padding_m < 0.0 ||
+    contact_padding_m < 0.0 || planning_time_s <= 0.0)
+  {
+    RCLCPP_ERROR(
+      logger,
+      "Scene profile must be set, both paddings nonnegative, and planning time positive.");
     rclcpp::shutdown();
     return 1;
   }
@@ -1175,7 +1251,7 @@ int main(int argc, char * argv[])
   MoveGroup move_group(node, "ur_manipulator");
   move_group.setMaxVelocityScalingFactor(velocity_scale);
   move_group.setMaxAccelerationScalingFactor(velocity_scale);
-  move_group.setPlanningTime(10.0);
+  move_group.setPlanningTime(planning_time_s);
 
   auto gripper_client = rclcpp_action::create_client<GripperCommand>(
     node, "/robotiq_gripper_controller/gripper_cmd");
@@ -1183,6 +1259,15 @@ int main(int argc, char * argv[])
     "/display_planned_path", rclcpp::QoS(1).transient_local());
 
   RCLCPP_INFO(logger, "Planning frame: %s", move_group.getPlanningFrame().c_str());
+  RCLCPP_INFO(
+    logger,
+    "SCENE_CONFIG profile=%s obstacles_enabled=%s transit_padding_m=%.6f "
+    "contact_padding_m=%.6f planning_time_s=%.3f",
+    scene_profile.c_str(), obstacles_enabled ? "true" : "false", robot_padding_m,
+    contact_padding_m, planning_time_s);
+  RCLCPP_INFO(
+    logger, "USE_SAFE_PREGRASP_PATH %s",
+    use_safe_pregrasp_path ? "true" : "false");
   RCLCPP_INFO(
     logger,
     "OBJECT_TARGET source=%s frame=world center=(%.4f, %.4f, %.4f) m",
@@ -1238,6 +1323,14 @@ int main(int argc, char * argv[])
     RCLCPP_INFO(logger, "PLANNING_SCENE_OBSTACLES_DISABLED scene_clean=true");
   }
 
+  if (!apply_robot_padding(move_group, logger, robot_padding_m, "transit"))
+  {
+    executor.cancel();
+    spinner.join();
+    rclcpp::shutdown();
+    return 1;
+  }
+
   geometry_msgs::msg::Pose pregrasp_tool_pose;
   pregrasp_tool_pose.orientation = quaternion_from_rpy_degrees(
     grasp_roll_deg, grasp_pitch_deg, grasp_yaw_deg);
@@ -1255,10 +1348,11 @@ int main(int argc, char * argv[])
         move_group, display_publisher, logger, pregrasp_tool_pose,
         safe_transit_margin, maximum_pregrasp_joint_travel,
         maximum_wrist_3_travel,
-        velocity_scale, false, obstacle_box) :
+        velocity_scale, robot_padding_m, false, obstacle_box,
+        obstacles_enabled, fingertip_drop_m, obstacle_clearance_m) :
       move_to_pose_target(
         move_group, display_publisher, logger, pregrasp_tool_pose,
-        "Absolute pre-grasp", false, obstacle_box);
+        "Absolute pre-grasp", robot_padding_m, false, obstacle_box);
     executor.cancel();
     spinner.join();
     rclcpp::shutdown();
@@ -1285,7 +1379,8 @@ int main(int argc, char * argv[])
       return 1;
     }
 
-    const bool planned = move_relative(
+    const bool planned = apply_robot_padding(
+      move_group, logger, contact_padding_m, "contact") && move_relative(
       move_group, display_publisher, logger,
       0.0, 0.0, -approach_distance,
       "Vertical grasp approach", velocity_scale, false);
@@ -1320,7 +1415,8 @@ int main(int argc, char * argv[])
       return 1;
     }
 
-    const bool lifted = move_relative(
+    const bool lifted = apply_robot_padding(
+      move_group, logger, contact_padding_m, "contact") && move_relative(
       move_group, display_publisher, logger,
       0.0, 0.0, lift_distance, "Low test lift", lift_velocity_scale);
     if (lifted)
@@ -1379,10 +1475,11 @@ int main(int argc, char * argv[])
           move_group, display_publisher, logger, pregrasp_tool_pose,
           safe_transit_margin, maximum_pregrasp_joint_travel,
           maximum_wrist_3_travel,
-          velocity_scale, true) :
+          velocity_scale, robot_padding_m, true, obstacle_box,
+        obstacles_enabled, fingertip_drop_m, obstacle_clearance_m) :
         move_to_pose_target(
           move_group, display_publisher, logger, pregrasp_tool_pose,
-          "Absolute pre-grasp");
+          "Absolute pre-grasp", robot_padding_m, true, obstacle_box);
     }
   }
 
@@ -1395,6 +1492,12 @@ int main(int argc, char * argv[])
     spinner.join();
     rclcpp::shutdown();
     return 0;
+  }
+
+  if (success)
+  {
+    success = apply_robot_padding(
+      move_group, logger, contact_padding_m, "contact");
   }
 
   if (success)

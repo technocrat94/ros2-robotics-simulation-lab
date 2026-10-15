@@ -177,10 +177,23 @@ def check_obstacle_defaults():
     if config.get("enabled") is not False:
         failures.append("obstacles: enabled must default to false")
     boxes = config.get("boxes", [])
-    if len(boxes) != 1:
-        failures.append("obstacles: Steps A/B require exactly one box")
+    boxes_by_id = {box.get("id"): box for box in boxes}
+    expected_grasp_route_box = {
+        "id": "grasp_route_box",
+        "frame_id": "world",
+        "center_m": [0.30, 0.10915, 0.125],
+        "size_m": [0.10, 0.24, 0.25],
+    }
+    box = boxes_by_id.get("grasp_route_box")
+    if box is None:
+        failures.append("obstacles: Steps A/B require grasp_route_box")
     else:
-        box = boxes[0]
+        for key, expected in expected_grasp_route_box.items():
+            if box.get(key) != expected:
+                failures.append(
+                    f"obstacles: grasp_route_box {key} changed from {expected!r}"
+                )
+    for box in boxes:
         if len(box.get("center_m", [])) != 3:
             failures.append("obstacles: center_m must have three values")
         if len(box.get("size_m", [])) != 3 or any(
@@ -190,6 +203,51 @@ def check_obstacle_defaults():
             failures.append(
                 "obstacles: every box dimension must be at least 0.01 m"
             )
+    profiles = config.get("scene_profiles", {})
+    if config.get("default_scene_profile") != "default":
+        failures.append("obstacles: default_scene_profile must be default")
+    expected_profiles = {
+        "default", "step_c_cable_no_wall", "step_c_cable_wall",
+        "step_c_cable_tall_wall",
+    }
+    if set(profiles) != expected_profiles:
+        failures.append(
+            f"obstacles: scene profiles differ from {sorted(expected_profiles)}"
+        )
+    for name, profile in profiles.items():
+        center = profile.get("object_center_m", [])
+        if len(center) != 3:
+            failures.append(f"obstacles: profile {name} needs a 3D object center")
+        if profile.get("box_id") not in boxes_by_id:
+            failures.append(f"obstacles: profile {name} references an unknown box")
+    expected_step_c = {
+        "step_c_cable_no_wall": {
+            "object_center_m": [0.487, 0.410, 0.004],
+            "obstacles_enabled": False,
+            "box_id": "step_c_cable_wall",
+        },
+        "step_c_cable_wall": {
+            "object_center_m": [0.487, 0.410, 0.004],
+            "obstacles_enabled": True,
+            "box_id": "step_c_cable_wall",
+        },
+        "step_c_cable_tall_wall": {
+            "object_center_m": [0.487, 0.410, 0.004],
+            "obstacles_enabled": True,
+            "box_id": "step_c_cable_tall_wall",
+        },
+    }
+    for name, expected in expected_step_c.items():
+        if profiles.get(name) != expected:
+            failures.append(f"obstacles: profile {name} differs from Step C approval")
+    expected_walls = {
+        "step_c_cable_wall": ([0.487, 0.263, 0.08], [0.20, 0.05, 0.16]),
+        "step_c_cable_tall_wall": ([0.487, 0.263, 0.30], [0.20, 0.05, 0.60]),
+    }
+    for name, (center, size) in expected_walls.items():
+        box = boxes_by_id.get(name, {})
+        if box.get("center_m") != center or box.get("size_m") != size:
+            failures.append(f"obstacles: box {name} differs from Step C approval")
     print("[obstacles] schema and disabled-by-default policy checked")
 
 
@@ -206,6 +264,35 @@ def check_grasp_pass_policy():
     print("[pass-policy] obstacle-contact guard unit test run")
 
 
+def check_step_c_result_extractor():
+    result = subprocess.run(
+        [sys.executable, str(REPO / "scripts/test_extract_step_c_result.py")],
+        capture_output=True, text=True,
+    )
+    if result.returncode != 0:
+        failures.append(
+            "step-c-result: test_extract_step_c_result.py failed: "
+            + (result.stderr or result.stdout).strip().splitlines()[-1]
+        )
+    print("[step-c-result] C2 planning-failure classifier unit test run")
+
+
+def check_step_c_safe_pregrasp_policy():
+    paths = (
+        REPO / "scripts/run_step_c_pick_jazzy.sh",
+        REPO / "scripts/run_step_c_plan_jazzy.sh",
+    )
+    forbidden = ("FEM_CABLE_SAFE_PREGRASP", "use_safe_pregrasp_path:=false")
+    for path in paths:
+        text = path.read_text(encoding="utf-8")
+        for marker in forbidden:
+            if marker in text:
+                failures.append(
+                    f"step-c-safe-route: {path.relative_to(REPO)} overrides {marker}"
+                )
+    print("[step-c-safe-route] Step C scripts preserve the verified safe route")
+
+
 def main():
     check("python", compile_python, tracked("*.py"))
     check("shell", check_shell, tracked("*.sh"))
@@ -217,6 +304,8 @@ def main():
     check_cpp_calibration_table()
     check_obstacle_defaults()
     check_grasp_pass_policy()
+    check_step_c_result_extractor()
+    check_step_c_safe_pregrasp_policy()
     if failures:
         print("\nFAILED:")
         for failure in failures:

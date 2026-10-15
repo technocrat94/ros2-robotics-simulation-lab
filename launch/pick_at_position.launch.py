@@ -1,4 +1,5 @@
 import json
+import os
 from pathlib import Path
 
 from ament_index_python.packages import get_package_share_directory
@@ -24,18 +25,46 @@ def generate_launch_description():
         / "config" / "obstacles.yaml"
     )
     obstacle_config = json.loads(obstacle_config_path.read_text(encoding="utf-8"))
-    if obstacle_config.get("schema_version") != 1 or len(obstacle_config.get("boxes", [])) != 1:
-        raise RuntimeError("obstacles.yaml must use schema 1 with exactly one box")
-    obstacle = obstacle_config["boxes"][0]
+    if obstacle_config.get("schema_version") != 1:
+        raise RuntimeError("obstacles.yaml must use schema 1")
+    scene_profile = os.environ.get(
+        "GRASP_SCENE_PROFILE",
+        obstacle_config.get("default_scene_profile", "default"),
+    )
+    profiles = obstacle_config.get("scene_profiles", {})
+    if scene_profile not in profiles:
+        raise RuntimeError(f"unknown GRASP_SCENE_PROFILE: {scene_profile}")
+    profile = profiles[scene_profile]
+    boxes = {box["id"]: box for box in obstacle_config.get("boxes", [])}
+    obstacle_id = profile.get("box_id")
+    if obstacle_id not in boxes:
+        raise RuntimeError(
+            f"scene profile {scene_profile} references unknown box {obstacle_id}"
+        )
+    obstacle = boxes[obstacle_id]
+    object_center = profile.get("object_center_m")
+    if not isinstance(object_center, list) or len(object_center) != 3:
+        raise RuntimeError(f"scene profile {scene_profile} needs object_center_m")
+    object_z = 0.0100 if object_center[2] is None else float(object_center[2])
+    profile_default_padding = 0.02 if scene_profile.startswith("step_c_") else 0.0
+    robot_padding_m = float(os.environ.get(
+        "MOVEIT_ROBOT_PADDING_M", str(profile_default_padding)
+    ))
+    contact_padding_m = float(os.environ.get("MOVEIT_CONTACT_PADDING_M", "0.0"))
+    if robot_padding_m < 0.0:
+        raise RuntimeError("MOVEIT_ROBOT_PADDING_M must be nonnegative")
+    if contact_padding_m < 0.0:
+        raise RuntimeError("MOVEIT_CONTACT_PADDING_M must be nonnegative")
     center = obstacle["center_m"]
     size = obstacle["size_m"]
     arguments = [
-        DeclareLaunchArgument("object_x", default_value="0.4869"),
-        DeclareLaunchArgument("object_y", default_value="0.10915"),
-        DeclareLaunchArgument("object_z", default_value="0.0100"),
+        DeclareLaunchArgument("object_x", default_value=str(object_center[0])),
+        DeclareLaunchArgument("object_y", default_value=str(object_center[1])),
+        DeclareLaunchArgument("object_z", default_value=str(object_z)),
         DeclareLaunchArgument("pregrasp_clearance", default_value="0.1500"),
         DeclareLaunchArgument("approach_distance", default_value="0.1000"),
         DeclareLaunchArgument("lift_distance", default_value="0.1200"),
+        DeclareLaunchArgument("planning_time_s", default_value="10.0"),
         DeclareLaunchArgument("grasp_center_offset", default_value="0.1090"),
         DeclareLaunchArgument("closed_grip", default_value="0.3760"),
         DeclareLaunchArgument("use_width_calibration", default_value="false"),
@@ -67,7 +96,7 @@ def generate_launch_description():
         DeclareLaunchArgument("object_pose_timeout", default_value="5.0"),
         DeclareLaunchArgument(
             "obstacles_enabled",
-            default_value=str(bool(obstacle_config["enabled"])).lower(),
+            default_value=str(bool(profile["obstacles_enabled"])).lower(),
         ),
         DeclareLaunchArgument("obstacle_id", default_value=obstacle["id"]),
         DeclareLaunchArgument("obstacle_frame", default_value=obstacle["frame_id"]),
@@ -138,8 +167,13 @@ def generate_launch_description():
         {"use_width_calibration": bool_parameter("use_width_calibration")},
         {"obstacles_enabled": bool_parameter("obstacles_enabled")},
         {"object_pose_topic": LaunchConfiguration("object_pose_topic")},
+        {"planning_time_s": LaunchConfiguration("planning_time_s")},
         {"obstacle_id": LaunchConfiguration("obstacle_id")},
         {"obstacle_frame": LaunchConfiguration("obstacle_frame")},
+        {"scene_profile": scene_profile},
+        {"robot_padding_m": robot_padding_m},
+        {"contact_padding_m": contact_padding_m},
+        {"robot_description_planning.default_robot_padding": robot_padding_m},
     ]
 
     return LaunchDescription(arguments + [

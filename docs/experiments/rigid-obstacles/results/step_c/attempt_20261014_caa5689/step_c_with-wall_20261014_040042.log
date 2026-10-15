@@ -1,0 +1,32 @@
+STEP_C_PLAN_CASE with-wall
+GRASP_SCENE_PROFILE step_c_cable_wall
+MOVEIT_ROBOT_PADDING_M 0.02
+MOVEIT_PLANNING_TIME_SECONDS 10.0
+[INFO] [launch]: All log files can be found below /home/yuhao/.ros/log/2026-10-14-04-00-42-868848-robo-jazzy-60013
+[INFO] [launch]: Default logging verbosity is set to INFO
+WARNING:root:[33;21mCannot infer URDF from `/home/yuhao/ur5_ws/install_jazzy_port/ur5_moveit_demo/share/ur5_moveit_demo`. -- using config/ur.urdf[0m
+WARNING:root:[33;21mCannot infer SRDF from `/home/yuhao/ur5_ws/install_jazzy_port/ur5_moveit_demo/share/ur5_moveit_demo`. -- using config/ur.srdf[0m
+[INFO] [pick_at_position-1]: process started with pid [60017]
+[pick_at_position-1] [WARN] [1791921643.025004148] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[pick_at_position-1] [WARN] [1791921643.025015398] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+[pick_at_position-1] [WARN] [1791921643.034064393] [rcl.logging_rosout]: Publisher already registered for node name: 'pick_at_position'. If this is due to multiple nodes with the same name then all logs for the logger named 'pick_at_position' will go out over the existing publisher. As soon as any node with that name is destructed it will unregister the publisher, preventing any further logs for that name from being published on the rosout topic.
+[pick_at_position-1] [INFO] [1791921643.038579599] [pick_at_position.moveit.ros.rdf_loader]: Loaded robot model in 0.00168125 seconds
+[pick_at_position-1] [INFO] [1791921643.038631516] [pick_at_position.moveit.core.robot_model]: Loading robot model 'ur'...
+[pick_at_position-1] [INFO] [1791921643.038638349] [pick_at_position.moveit.core.robot_model]: No root/virtual joint specified in SRDF. Assuming fixed joint
+[pick_at_position-1] [INFO] [1791921643.046496303] [pick_at_position.moveit.kinematics.kdl_kinematics_plugin]: Joint weights for group 'ur_manipulator': 1 1 1 1 1 1
+[pick_at_position-1] [INFO] [1791921643.258361983] [pick_at_position.moveit.ros.move_group_interface]: Ready to take commands for planning group ur_manipulator.
+[pick_at_position-1] [INFO] [1791921643.262446439] [pick_at_position]: Planning frame: world
+[pick_at_position-1] [INFO] [1791921643.262455773] [pick_at_position]: SCENE_CONFIG profile=step_c_cable_wall obstacles_enabled=true robot_padding_m=0.020000 planning_time_s=10.000
+[pick_at_position-1] [INFO] [1791921643.262460856] [pick_at_position]: OBJECT_TARGET source=parameters frame=world center=(0.4870, -0.1800, 0.0040) m
+[pick_at_position-1] [INFO] [1791921643.262463773] [pick_at_position]: GRASP_CONFIG offset=0.1090 m clearance=0.1500 m approach=0.1000 m lift=0.1200 m closed=0.3760 rad lift_velocity_scale=0.030
+[pick_at_position-1] [INFO] [1791921643.262466939] [pick_at_position]: GRASP_ORIENTATION roll=180.0 pitch=0.0 yaw=90.0 deg
+[pick_at_position-1] [INFO] [1791921643.277922389] [pick_at_position]: PLANNING_SCENE_FLOOR_ADDED size=3.00 m top_z=-0.0010 m
+[pick_at_position-1] [INFO] [1791921643.370329882] [pick_at_position]: PLANNING_SCENE_OBSTACLE_ADDED id=step_c_cable_wall frame=world center=(0.487,-0.035,0.100) size=(0.200,0.050,0.200)
+[pick_at_position-1] [INFO] [1791921643.372700131] [pick_at_position]: Absolute pre-grasp tool0 target: X=0.4870 Y=-0.1800 Z=0.2630
+[pick_at_position-1] [INFO] [1791921643.372798631] [pick_at_position.moveit.ros.move_group_interface]: MoveGroup action client/server ready
+[pick_at_position-1] [INFO] [1791921643.374745130] [pick_at_position.moveit.ros.move_group_interface]: Planning request accepted
+[pick_at_position-1] [INFO] [1791921643.654501107] [pick_at_position.moveit.ros.move_group_interface]: Planning request complete!
+[pick_at_position-1] [INFO] [1791921643.655468023] [pick_at_position.moveit.ros.move_group_interface]: time taken to generate plan: 0.19695 seconds
+[pick_at_position-1] [INFO] [1791921643.863182871] [pick_at_position]: PLANNED_ROUTE_METRICS stage="Absolute pre-grasp" samples=281 max_end_effector_height_m=0.842469 min_robot_box_distance_m=0.029870 obstacle_id=step_c_cable_wall
+[pick_at_position-1] [INFO] [1791921643.863520121] [pick_at_position]: Absolute pre-grasp PLAN_ONLY_SUCCEEDED; preview published and no robot command was sent.
+[INFO] [pick_at_position-1]: process has finished cleanly [pid 60017]

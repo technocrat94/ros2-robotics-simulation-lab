@@ -1,0 +1,37 @@
+STEP_C_PLAN_CASE c2
+GRASP_SCENE_PROFILE step_c_cable_tall_wall
+MOVEIT_ROBOT_PADDING_M 0.02
+MOVEIT_CONTACT_PADDING_M 0.0
+MOVEIT_PLANNING_TIME_SECONDS 10.0
+[INFO] [launch]: All log files can be found below /home/aisc216/.ros/log/2026-10-15-18-55-47-743848-aisc-3080-19776
+[INFO] [launch]: Default logging verbosity is set to INFO
+WARNING:root:[33;21mCannot infer URDF from `/home/aisc216/ur5_ws/install_jazzy_port/ur5_moveit_demo/share/ur5_moveit_demo`. -- using config/ur.urdf[0m
+WARNING:root:[33;21mCannot infer SRDF from `/home/aisc216/ur5_ws/install_jazzy_port/ur5_moveit_demo/share/ur5_moveit_demo`. -- using config/ur.srdf[0m
+[INFO] [pick_at_position-1]: process started with pid [19780]
+[pick_at_position-1] [WARN] [1792061747.980901135] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[pick_at_position-1] [WARN] [1792061747.980913248] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+[pick_at_position-1] [WARN] [1792061747.994475848] [rcl.logging_rosout]: Publisher already registered for node name: 'pick_at_position'. If this is due to multiple nodes with the same name then all logs for the logger named 'pick_at_position' will go out over the existing publisher. As soon as any node with that name is destructed it will unregister the publisher, preventing any further logs for that name from being published on the rosout topic.
+[pick_at_position-1] [INFO] [1792061747.998739555] [pick_at_position.moveit.ros.rdf_loader]: Loaded robot model in 0.00224823 seconds
+[pick_at_position-1] [INFO] [1792061747.998802374] [pick_at_position.moveit.core.robot_model]: Loading robot model 'ur'...
+[pick_at_position-1] [INFO] [1792061747.998812914] [pick_at_position.moveit.core.robot_model]: No root/virtual joint specified in SRDF. Assuming fixed joint
+[pick_at_position-1] [INFO] [1792061748.007283272] [pick_at_position.moveit.kinematics.kdl_kinematics_plugin]: Joint weights for group 'ur_manipulator': 1 1 1 1 1 1
+[pick_at_position-1] [INFO] [1792061750.940874361] [pick_at_position.moveit.ros.move_group_interface]: Ready to take commands for planning group ur_manipulator.
+[pick_at_position-1] [INFO] [1792061750.945805421] [pick_at_position]: Planning frame: world
+[pick_at_position-1] [INFO] [1792061750.945825173] [pick_at_position]: SCENE_CONFIG profile=step_c_cable_tall_wall obstacles_enabled=true transit_padding_m=0.020000 contact_padding_m=0.000000 planning_time_s=10.000
+[pick_at_position-1] [INFO] [1792061750.945833270] [pick_at_position]: USE_SAFE_PREGRASP_PATH true
+[pick_at_position-1] [INFO] [1792061750.945836012] [pick_at_position]: OBJECT_TARGET source=parameters frame=world center=(0.4870, 0.4100, 0.0040) m
+[pick_at_position-1] [INFO] [1792061750.945840053] [pick_at_position]: GRASP_CONFIG offset=0.1090 m clearance=0.1500 m approach=0.1000 m lift=0.1200 m closed=0.3760 rad lift_velocity_scale=0.030
+[pick_at_position-1] [INFO] [1792061750.945845124] [pick_at_position]: GRASP_ORIENTATION roll=180.0 pitch=0.0 yaw=90.0 deg
+[pick_at_position-1] [INFO] [1792061750.955507198] [pick_at_position]: PLANNING_SCENE_FLOOR_ADDED size=3.00 m top_z=-0.0010 m
+[pick_at_position-1] [INFO] [1792061750.963930369] [pick_at_position]: PLANNING_SCENE_OBSTACLE_ADDED id=step_c_cable_tall_wall frame=world center=(0.487,0.263,0.300) size=(0.200,0.050,0.600)
+[pick_at_position-1] [INFO] [1792061750.972458527] [pick_at_position]: ACTIVE_PADDING stage=transit padding_m=0.020000 links=17
+[pick_at_position-1] [INFO] [1792061750.976371127] [pick_at_position.moveit.ros.current_state_monitor]: Listening to joint states on topic 'joint_states'
+[pick_at_position-1] [INFO] [1792061750.979179921] [pick_at_position]: SAFE_PREGRASP_OBSTACLE_HEIGHT top=0.600 fingertip_drop=0.165 padding=0.020 clearance=0.030 obstacle_safe_z=0.815 margin_safe_z=0.342
+[pick_at_position-1] [INFO] [1792061750.979207117] [pick_at_position]: SAFE_PREGRASP_ROUTE current=(0.487, 0.410, 0.292) safe_z=0.815 target=(0.487, 0.410, 0.263)
+[pick_at_position-1] [INFO] [1792061750.989281650] [pick_at_position]: SAFE_PREGRASP_STAGE_FRACTION stage=raise prefix=16.2%
+[pick_at_position-1] [INFO] [1792061750.998047024] [pick_at_position]: SAFE_PREGRASP_STAGE_FRACTION stage=orient prefix=8.1%
+[pick_at_position-1] [INFO] [1792061751.006645741] [pick_at_position]: SAFE_PREGRASP_STAGE_FRACTION stage=translate prefix=5.4%
+[pick_at_position-1] [INFO] [1792061751.018899895] [pick_at_position]: SAFE_PREGRASP_STAGE_FRACTION stage=descend prefix=4.0%
+[pick_at_position-1] [INFO] [1792061751.029341976] [pick_at_position]: Safe pre-grasp Cartesian path completed: 4.0%
+[pick_at_position-1] [ERROR] [1792061751.029363933] [pick_at_position]: Safe pre-grasp path is incomplete; refusing preview or execution.
+[ERROR] [pick_at_position-1]: process has died [pid 19780, exit code 1, cmd '/home/aisc216/ur5_ws/install_jazzy_port/ur5_moveit_demo/lib/ur5_moveit_demo/pick_at_position --ros-args -r __node:=pick_at_position --params-file /tmp/launch_params_hxt911b8 --params-file /tmp/launch_params_riq_kf8y --params-file /tmp/launch_params_b427j3vu --params-file /tmp/launch_params_2c13nzk4 --params-file /tmp/launch_params_3s4uuhcy --params-file /tmp/launch_params_h0ja4jyn --params-file /tmp/launch_params_1dr5cra6 --params-file /tmp/launch_params_cubbf2ft --params-file /tmp/launch_params_o5yspbvj --params-file /tmp/launch_params_cr__yy_d --params-file /tmp/launch_params_hf7rwz51 --params-file /tmp/launch_params_k5qdhkb7 --params-file /tmp/launch_params_whykkrvo --params-file /tmp/launch_params_0ibntyx9 --params-file /tmp/launch_params_4obzphhj --params-file /tmp/launch_params_m8n8qn9n --params-file /tmp/launch_params_odmbzmxo --params-file /tmp/launch_params_w6l6kcd2 --params-file /tmp/launch_params_1_1f_flu --params-file /tmp/launch_params_nt7wxs3z --params-file /tmp/launch_params_fibp9kng --params-file /tmp/launch_params_a6735u5m --params-file /tmp/launch_params_e_elwc2u --params-file /tmp/launch_params_2pksfr_l --params-file /tmp/launch_params_u93o2vsr'].

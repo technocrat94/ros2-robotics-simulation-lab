@@ -1,0 +1,39 @@
+Warp CUDA warning: Could not find or load the NVIDIA CUDA driver. GPU execution will not be available.
+Warp 1.17.0 initialized:
+   CUDA Toolkit 12.9, CUDA driver not available (NVRTC compilation available)
+   Devices:
+     "cpu"      : "aarch64"
+   Kernel cache:
+     /home/yuhao/.cache/warp/1.17.0
+Module newton._src.geometry.inertia f6b4bd8 load on device 'cpu' took 1.05 ms  (cached)
+Module newton._src.utils.mesh 92b663b load on device 'cpu' took 0.23 ms  (cached)
+Module warp._src.coloring 811e0ea load on device 'cpu' took 0.16 ms  (cached)
+Module validate_and_correct_inertia_kernel_1ff2ac62 6ad45b8 load on device 'cpu' took 0.20 ms  (cached)
+Module newton._src.geometry.bvh 5fa2076 load on device 'cpu' took 0.13 ms  (cached)
+Module newton._src.solvers.vbd.rigid_vbd_kernels e50922b load on device 'cpu' took 0.43 ms  (cached)
+Module newton._src.solvers.solver 5e8bff5 load on device 'cpu' took 0.15 ms  (cached)
+Module newton._src.sim.articulation 1e9d119 load on device 'cpu' took 0.23 ms  (cached)
+╭──────────────── viser ─────────────────╮
+│             ╷                          │
+│   HTTP      │ http://127.0.0.1:30000   │
+│   Websocket │ ws://127.0.0.1:30000     │
+│             ╵                          │
+╰────────────────────────────────────────╯
+Viser server running at: http://localhost:30000
+Module newton._src.viewer.kernels 3942d1f load on device 'cpu' took 0.21 ms  (cached)
+MOVEIT_GRASP_ENDPOINT_READY device=cpu robot_bodies=24 robot_shapes=58 strip_bodies=0 strip_shapes=0 particles=369 tetrahedra=800 particle_radius=0.0010 robot_particle_colliders=4 active_robot_colliders=17 scene_profile=step_c_cable_no_wall obstacles_enabled=False obstacle_shapes=0 robot_friction=10.0 strip_friction=10.0 ground_friction=1.5 density=1100.0 youngs_modulus=1000000.0 soft_contact_ke=1000.0 soft_contact_kd=10.0 soft_contact_margin=0.0050 substeps=10 command_dt=0.020 max_hold=0.500 command_queue_capacity=4096 object_center=(0.48700,-0.18000,0.00400) command=20001 state=20000 viewer=30000
+Module newton._src.sim.collide a0e9da6 load on device 'cpu' took 0.15 ms  (cached)
+Module narrow_phase_primitive_write_contact 066b49c load on device 'cpu' took 0.19 ms  (cached)
+Module narrow_phase_gjk_mpr_True_write_contact_support_map_lean_post_process_minkowski_only 2915b37 load on device 'cpu' took 0.23 ms  (cached)
+Module newton._src.geometry.narrow_phase 72cccae load on device 'cpu' took 0.12 ms  (cached)
+Module newton._src.geometry.contact_reduction_global de5b807 load on device 'cpu' took 0.13 ms  (cached)
+Module newton._src.geometry.sdf_contact 7975f62 load on device 'cpu' took 0.12 ms  (cached)
+Module narrow_phase_mesh_plane_write_contact_to_reducer_True 4127b8c load on device 'cpu' took 0.09 ms  (cached)
+Module mesh_triangle_contacts_to_reducer_kernel_e41ecfb6 6416904 load on device 'cpu' took 0.17 ms  (cached)
+Module sdf_contact_write_contact_to_reducer_False_True 02c6cf4 load on device 'cpu' took 0.14 ms  (cached)
+Module export_reduced_contacts_write_contact 5207f54 load on device 'cpu' took 0.10 ms  (cached)
+Module newton._src.geometry.kernels f6d4e61 load on device 'cpu' took 0.36 ms  (cached)
+Module newton._src.geometry.soft_contacts_sdf ee1379c load on device 'cpu' took 0.15 ms  (cached)
+Module newton._src.solvers.xpbd.kernels baf207e load on device 'cpu' took 0.28 ms  (cached)
+Module newton._src.solvers.vbd.particle_vbd_kernels e5d6ddf load on device 'cpu' took 0.22 ms  (cached)
+MOVEIT_COMMAND_QUEUE_DRAINED {"sim_time_s": 2.2666666666666697, "gripper_rad": 0.0, "maximum_backlog": 23}

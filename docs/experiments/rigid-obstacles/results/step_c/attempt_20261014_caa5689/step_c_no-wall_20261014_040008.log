@@ -1,0 +1,33 @@
+STEP_C_PLAN_CASE no-wall
+GRASP_SCENE_PROFILE step_c_cable_no_wall
+MOVEIT_ROBOT_PADDING_M 0.02
+MOVEIT_PLANNING_TIME_SECONDS 10.0
+[INFO] [launch]: All log files can be found below /home/yuhao/.ros/log/2026-10-14-04-00-09-063035-robo-jazzy-59678
+[INFO] [launch]: Default logging verbosity is set to INFO
+WARNING:root:[33;21mCannot infer URDF from `/home/yuhao/ur5_ws/install_jazzy_port/ur5_moveit_demo/share/ur5_moveit_demo`. -- using config/ur.urdf[0m
+WARNING:root:[33;21mCannot infer SRDF from `/home/yuhao/ur5_ws/install_jazzy_port/ur5_moveit_demo/share/ur5_moveit_demo`. -- using config/ur.srdf[0m
+[INFO] [pick_at_position-1]: process started with pid [59682]
+[pick_at_position-1] [WARN] [1791921609.230281667] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[pick_at_position-1] [WARN] [1791921609.230321209] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+[pick_at_position-1] [WARN] [1791921609.239338329] [rcl.logging_rosout]: Publisher already registered for node name: 'pick_at_position'. If this is due to multiple nodes with the same name then all logs for the logger named 'pick_at_position' will go out over the existing publisher. As soon as any node with that name is destructed it will unregister the publisher, preventing any further logs for that name from being published on the rosout topic.
+[pick_at_position-1] [INFO] [1791921609.242192619] [pick_at_position.moveit.ros.rdf_loader]: Loaded robot model in 0.00150779 seconds
+[pick_at_position-1] [INFO] [1791921609.242274036] [pick_at_position.moveit.core.robot_model]: Loading robot model 'ur'...
+[pick_at_position-1] [INFO] [1791921609.242284161] [pick_at_position.moveit.core.robot_model]: No root/virtual joint specified in SRDF. Assuming fixed joint
+[pick_at_position-1] [INFO] [1791921609.248639282] [pick_at_position.moveit.kinematics.kdl_kinematics_plugin]: Joint weights for group 'ur_manipulator': 1 1 1 1 1 1
+[pick_at_position-1] [INFO] [1791921611.853977807] [pick_at_position.moveit.ros.move_group_interface]: Ready to take commands for planning group ur_manipulator.
+[pick_at_position-1] [INFO] [1791921611.857511555] [pick_at_position]: Planning frame: world
+[pick_at_position-1] [INFO] [1791921611.857529888] [pick_at_position]: SCENE_CONFIG profile=step_c_cable_no_wall obstacles_enabled=false robot_padding_m=0.020000 planning_time_s=10.000
+[pick_at_position-1] [INFO] [1791921611.857535555] [pick_at_position]: OBJECT_TARGET source=parameters frame=world center=(0.4870, -0.1800, 0.0040) m
+[pick_at_position-1] [INFO] [1791921611.857538971] [pick_at_position]: GRASP_CONFIG offset=0.1090 m clearance=0.1500 m approach=0.1000 m lift=0.1200 m closed=0.3760 rad lift_velocity_scale=0.030
+[pick_at_position-1] [INFO] [1791921611.857542638] [pick_at_position]: GRASP_ORIENTATION roll=180.0 pitch=0.0 yaw=90.0 deg
+[pick_at_position-1] [INFO] [1791921611.952143629] [pick_at_position]: PLANNING_SCENE_FLOOR_ADDED size=3.00 m top_z=-0.0010 m
+[pick_at_position-1] [WARN] [1791921611.959721250] [pick_at_position]: Obstacle 'step_c_cable_wall' was already absent; explicit REMOVE was still sent.
+[pick_at_position-1] [INFO] [1791921611.959741917] [pick_at_position]: PLANNING_SCENE_OBSTACLE_REMOVED id=step_c_cable_wall remove_response=false confirmed_absent=true
+[pick_at_position-1] [INFO] [1791921611.962680332] [pick_at_position]: PLANNING_SCENE_OBSTACLES_DISABLED scene_clean=true
+[pick_at_position-1] [INFO] [1791921611.962706832] [pick_at_position]: Absolute pre-grasp tool0 target: X=0.4870 Y=-0.1800 Z=0.2630
+[pick_at_position-1] [INFO] [1791921611.962916707] [pick_at_position.moveit.ros.move_group_interface]: MoveGroup action client/server ready
+[pick_at_position-1] [INFO] [1791921611.963732581] [pick_at_position.moveit.ros.move_group_interface]: Planning request accepted
+[pick_at_position-1] [INFO] [1791921621.970258535] [pick_at_position.moveit.ros.move_group_interface]: Planning request aborted
+[pick_at_position-1] [ERROR] [1791921621.971110493] [pick_at_position.moveit.ros.move_group_interface]: MoveGroupInterface::plan() failed or timeout reached
+[pick_at_position-1] [ERROR] [1791921621.971154243] [pick_at_position]: Absolute pre-grasp planning failed.
+[ERROR] [pick_at_position-1]: process has died [pid 59682, exit code 1, cmd '/home/yuhao/ur5_ws/install_jazzy_port/ur5_moveit_demo/lib/ur5_moveit_demo/pick_at_position --ros-args -r __node:=pick_at_position --params-file /tmp/launch_params_wuk1gypu --params-file /tmp/launch_params_j_uyuy3b --params-file /tmp/launch_params_ifbi0x0q --params-file /tmp/launch_params_zied1pra --params-file /tmp/launch_params_a86bkbgv --params-file /tmp/launch_params_r_ij72s1 --params-file /tmp/launch_params_xe5dwwq6 --params-file /tmp/launch_params_613znnis --params-file /tmp/launch_params_on_pd_k5 --params-file /tmp/launch_params_35bw4bto --params-file /tmp/launch_params_49ex3qni --params-file /tmp/launch_params_znix1ege --params-file /tmp/launch_params_u7dxvz01 --params-file /tmp/launch_params_a1vz_vcj --params-file /tmp/launch_params_fql7ii6_ --params-file /tmp/launch_params_xmv91vj7 --params-file /tmp/launch_params_3h7bq39v --params-file /tmp/launch_params_qpii0nob --params-file /tmp/launch_params_7xyn7pmd --params-file /tmp/launch_params_ljrtb6jv --params-file /tmp/launch_params_4vmnm4pu --params-file /tmp/launch_params_tyxwt3ud --params-file /tmp/launch_params_1iu5wxgy --params-file /tmp/launch_params_etyq2ru4'].

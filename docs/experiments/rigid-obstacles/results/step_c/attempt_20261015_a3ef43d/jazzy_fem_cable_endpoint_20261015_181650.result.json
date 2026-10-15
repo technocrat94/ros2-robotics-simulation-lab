@@ -1,0 +1,128 @@
+{
+  "bilateral_closed_rigid_contact_samples": 0,
+  "bilateral_closed_soft_contact_samples": 0,
+  "bilateral_lift_rigid_contact_samples": 0,
+  "bilateral_lift_soft_contact_samples": 0,
+  "candidate_contact_grasp_pass": false,
+  "closed_seen": true,
+  "command_queue_capacity": 4096,
+  "command_queue_overflow_count": 0,
+  "configured_object_center_m": [
+    0.487,
+    0.41,
+    0.004
+  ],
+  "configured_obstacle_id": "step_c_cable_wall",
+  "device": "cuda:0",
+  "finite_state": true,
+  "grasp_region_lift_m": 0.0,
+  "initial_grasp_region_z_m": 0.003999999724328518,
+  "lift_bilateral_force_sample_count": 0,
+  "lift_started": false,
+  "maximum_allowed_penetration_m": 0.005,
+  "maximum_closed_grasp_region_z_m": 0.003999999724328518,
+  "maximum_closed_left_loaded_rigid_contacts": 0,
+  "maximum_closed_left_loaded_soft_contacts": 0,
+  "maximum_closed_right_loaded_rigid_contacts": 0,
+  "maximum_closed_right_loaded_soft_contacts": 0,
+  "maximum_command_backlog": 536,
+  "maximum_contact_count": 82,
+  "maximum_floor_penetration_m": 0.0008274363353848457,
+  "maximum_left_finger_soft_contacts": 179,
+  "maximum_left_force_abs_xyz_n": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "maximum_lift_combined_force_z_n": null,
+  "maximum_lift_left_loaded_rigid_contacts": 0,
+  "maximum_lift_left_loaded_soft_contacts": 0,
+  "maximum_lift_right_loaded_rigid_contacts": 0,
+  "maximum_lift_right_loaded_soft_contacts": 0,
+  "maximum_mimic_error_rad": 0.0,
+  "maximum_particle_surface_penetration_m": 0.0010121858917793393,
+  "maximum_right_finger_soft_contacts": 179,
+  "maximum_right_force_abs_xyz_n": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "maximum_robot_obstacle_contacts": 82,
+  "maximum_robot_obstacle_force_n": 0.0,
+  "maximum_robot_obstacle_loaded_contacts": 0,
+  "maximum_robot_obstacle_penetrating_contacts": 0,
+  "maximum_robot_obstacle_penetration_m": 0.0,
+  "maximum_soft_contact_activation_depth_m": 0.0010121858917793393,
+  "maximum_soft_contact_count": 1802,
+  "mean_lift_combined_force_on_strip_xyz_n": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "mean_lift_left_force_on_strip_xyz_n": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "mean_lift_right_force_on_strip_xyz_n": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "minimum_lift_combined_force_z_n": null,
+  "minimum_post_release_grasp_region_z_m": 0.00369282066822052,
+  "minimum_robot_obstacle_signed_surface_separation_m": 0.0457940781784547,
+  "minimum_strip_bottom_z_m": -0.0008274363353848457,
+  "moveit_contact_padding_m": 0.0,
+  "moveit_planning_time_s": 10.0,
+  "moveit_robot_padding_m": 0.02,
+  "moveit_transit_padding_m": 0.02,
+  "object": "fem_cable",
+  "object_obstacle_max_penetration_m": 0.0,
+  "obstacle_ids": [
+    "step_c_cable_wall"
+  ],
+  "obstacles_enabled": true,
+  "pending_robot_commands_at_shutdown": 0,
+  "prelift_grasp_region_z_m": null,
+  "real_time_factor": 0.09287176841550412,
+  "release_drop_m": 0.00030220672488212585,
+  "release_seen": true,
+  "release_start_grasp_region_z_m": 0.003995027393102646,
+  "robot_obstacle_candidate_samples": 2231,
+  "robot_obstacle_loaded_samples": 0,
+  "robot_obstacle_penetrating_samples": 0,
+  "robot_obstacle_real_touch_samples": 0,
+  "robot_obstacle_samples_by_phase": {
+    "close": {
+      "candidate": 0,
+      "loaded": 0,
+      "penetrating": 0
+    },
+    "descend": {
+      "candidate": 0,
+      "loaded": 0,
+      "penetrating": 0
+    },
+    "lift": {
+      "candidate": 16,
+      "loaded": 0,
+      "penetrating": 0
+    },
+    "release": {
+      "candidate": 2215,
+      "loaded": 0,
+      "penetrating": 0
+    },
+    "transit": {
+      "candidate": 0,
+      "loaded": 0,
+      "penetrating": 0
+    }
+  },
+  "scene_profile": "step_c_cable_wall",
+  "simulated_time_s": 23.683333333328033,
+  "tested_commit": "a3ef43da8dfa7a2d1ed1e7ce338406153eec102b",
+  "use_safe_pregrasp_path": true,
+  "wall_elapsed_s": 255.01111626700015
+}
