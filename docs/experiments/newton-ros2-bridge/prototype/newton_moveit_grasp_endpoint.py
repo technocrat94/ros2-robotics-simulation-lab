@@ -632,6 +632,7 @@ diagnostic_open_seen = False
 diagnostic_closed_seen = False
 diagnostic_lift_seen = False
 diagnostic_release_seen = False
+robot_obstacle_sampled_phases = set()
 robot_state_initialized = False
 previous_grasp_z = initial_grasp_z
 closed_seen = False
@@ -852,19 +853,6 @@ try:
                     diagnostic_lift_seen = True
 
                 if FEM_MODE and robot_obstacle_candidates:
-                    (
-                        _diagnostic_body0,
-                        _diagnostic_body1,
-                        _diagnostic_point0,
-                        _diagnostic_point1,
-                        diagnostic_force_on_shape1,
-                        _diagnostic_count,
-                    ) = solver.collect_rigid_contact_forces(
-                        state_1.body_q,
-                        vbd_contact_body_q_prev,
-                        contacts,
-                        DT,
-                    )
                     current_body_poses = state_1.body_q.numpy()
                     previous_body_poses = vbd_contact_body_q_prev.numpy()
                     current_tip_z = float(0.5 * (
@@ -885,65 +873,88 @@ try:
                         diagnostic_task_phase = "descend"
                     else:
                         diagnostic_task_phase = "transit"
-                    robot_obstacle_samples = robot_obstacle_contact_samples(
-                        contacts,
-                        count,
-                        current_body_poses,
-                        diagnostic_force_on_shape1.numpy()[:count],
-                        sim_time + DT,
-                        diagnostic_task_phase,
+                    diagnostic_sample_needed = (
+                        robot_obstacle_new_peak
+                        or diagnostic_task_phase
+                        not in robot_obstacle_sampled_phases
                     )
-                    loaded_in_pass = sum(
-                        int(sample["loaded"])
-                        for sample in robot_obstacle_samples
-                    )
-                    penetrating_in_pass = sum(
-                        int(sample["penetrating"])
-                        for sample in robot_obstacle_samples
-                    )
-                    maximum_robot_obstacle_loaded_contacts = max(
-                        maximum_robot_obstacle_loaded_contacts, loaded_in_pass
-                    )
-                    maximum_robot_obstacle_penetrating_contacts = max(
-                        maximum_robot_obstacle_penetrating_contacts,
-                        penetrating_in_pass,
-                    )
-                    for sample in robot_obstacle_samples:
-                        phase_counts = robot_obstacle_samples_by_phase[
-                            sample["task_phase"]
-                        ]
-                        phase_counts["candidate"] += 1
-                        phase_counts["loaded"] += int(sample["loaded"])
-                        phase_counts["penetrating"] += int(
-                            sample["penetrating"]
+                    if diagnostic_sample_needed:
+                        (
+                            _diagnostic_body0,
+                            _diagnostic_body1,
+                            _diagnostic_point0,
+                            _diagnostic_point1,
+                            diagnostic_force_on_shape1,
+                            _diagnostic_count,
+                        ) = solver.collect_rigid_contact_forces(
+                            state_1.body_q,
+                            vbd_contact_body_q_prev,
+                            contacts,
+                            DT,
                         )
-                        robot_obstacle_candidate_samples += 1
-                        robot_obstacle_loaded_samples += int(sample["loaded"])
-                        robot_obstacle_penetrating_samples += int(
-                            sample["penetrating"]
+                        robot_obstacle_samples = robot_obstacle_contact_samples(
+                            contacts,
+                            count,
+                            current_body_poses,
+                            diagnostic_force_on_shape1.numpy()[:count],
+                            sim_time + DT,
+                            diagnostic_task_phase,
                         )
-                        robot_obstacle_real_touch_samples += int(
-                            sample["real_touch"]
+                        loaded_in_pass = sum(
+                            int(sample["loaded"])
+                            for sample in robot_obstacle_samples
                         )
-                        minimum_robot_obstacle_separation = min(
-                            minimum_robot_obstacle_separation,
-                            sample["signed_surface_separation_m"],
+                        penetrating_in_pass = sum(
+                            int(sample["penetrating"])
+                            for sample in robot_obstacle_samples
                         )
-                        maximum_robot_obstacle_penetration = max(
-                            maximum_robot_obstacle_penetration,
-                            sample["penetration_depth_m"],
+                        maximum_robot_obstacle_loaded_contacts = max(
+                            maximum_robot_obstacle_loaded_contacts,
+                            loaded_in_pass,
                         )
-                        maximum_robot_obstacle_force = max(
-                            maximum_robot_obstacle_force,
-                            sample["contact_force_magnitude_n"],
+                        maximum_robot_obstacle_penetrating_contacts = max(
+                            maximum_robot_obstacle_penetrating_contacts,
+                            penetrating_in_pass,
                         )
-                    if robot_obstacle_new_peak:
                         for sample in robot_obstacle_samples:
+                            phase_counts = robot_obstacle_samples_by_phase[
+                                sample["task_phase"]
+                            ]
+                            phase_counts["candidate"] += 1
+                            phase_counts["loaded"] += int(sample["loaded"])
+                            phase_counts["penetrating"] += int(
+                                sample["penetrating"]
+                            )
+                            robot_obstacle_candidate_samples += 1
+                            robot_obstacle_loaded_samples += int(
+                                sample["loaded"]
+                            )
+                            robot_obstacle_penetrating_samples += int(
+                                sample["penetrating"]
+                            )
+                            robot_obstacle_real_touch_samples += int(
+                                sample["real_touch"]
+                            )
+                            minimum_robot_obstacle_separation = min(
+                                minimum_robot_obstacle_separation,
+                                sample["signed_surface_separation_m"],
+                            )
+                            maximum_robot_obstacle_penetration = max(
+                                maximum_robot_obstacle_penetration,
+                                sample["penetration_depth_m"],
+                            )
+                            maximum_robot_obstacle_force = max(
+                                maximum_robot_obstacle_force,
+                                sample["contact_force_magnitude_n"],
+                            )
                             print(
                                 "ROBOT_OBSTACLE_CONTACT_SAMPLE",
                                 json.dumps(sample, sort_keys=True),
                                 flush=True,
                             )
+                        robot_obstacle_sampled_phases.add(
+                            diagnostic_task_phase
+                        )
                 diagnostic_previous_robot_q = q.copy()
                 state_0, state_1 = state_1, state_0
                 sim_time += DT
