@@ -209,7 +209,8 @@ CUDA_VISIBLE_DEVICES=0 ~/newton_ws/.venv-cpu/bin/python \
   --port 8084
 ```
 
-`.venv-cpu` 只是歷史名稱；程式會印出實際 device 並拒絕在非 CUDA 裝置執行。
+`.venv-cpu` 只是歷史名稱；程式會印出實際 device。學校電腦可使用
+`--device cuda:0`，家中 ROBO-JAZZY 可改用 `--device cpu`，但 CPU 模擬會明顯較慢。
 
 Rod cable 使用另一個 port，不會和 FEM viewer 混淆：
 

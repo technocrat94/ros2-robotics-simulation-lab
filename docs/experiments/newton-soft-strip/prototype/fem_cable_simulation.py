@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run and measure a gravity-loaded cantilever FEM cable on CUDA."""
+"""Run and measure a gravity-loaded cantilever FEM cable."""
 
 import argparse
 import functools
@@ -38,7 +38,7 @@ def cable_centerline_length(positions, layer_indices):
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="Run a gravity-loaded FEM cable on a CUDA device."
+        description="Run a gravity-loaded FEM cable on a selected Newton device."
     )
     parser.add_argument("--cells-x", type=int, default=DEFAULT_CELLS_X)
     parser.add_argument("--duration", type=float, default=4.0)
@@ -62,14 +62,10 @@ def parse_args():
     return args
 
 
-def select_cuda_device(device_name):
-    """Select CUDA explicitly so the expensive FEM solve cannot fall back to CPU."""
+def select_device(device_name):
+    """Select the requested Newton device explicitly."""
     wp.init()
     device = wp.get_device(device_name)
-    if not device.is_cuda:
-        raise RuntimeError(
-            f"Refusing to run the FEM cable solver on non-CUDA device: {device}"
-        )
     wp.set_device(device)
     print(f"CABLE_DEVICE device={device} is_cuda={device.is_cuda}", flush=True)
     return device
@@ -77,7 +73,7 @@ def select_cuda_device(device_name):
 
 def main():
     args = parse_args()
-    device = select_cuda_device(args.device)
+    device = select_device(args.device)
 
     builder = build_builder(args.cells_x, damping_pa_s=args.damping)
     initial = np.array(
@@ -100,8 +96,6 @@ def main():
     # Passing the device here is the definitive placement of model arrays and
     # solver work on the selected GPU; wp.set_device alone is only a default.
     model = builder.finalize(device=device)
-    if not model.device.is_cuda:
-        raise RuntimeError(f"Newton model was not allocated on CUDA: {model.device}")
     actual_mass = float(model.particle_mass.numpy().sum())
     expected_mass = expected_physical_mass()
     model.soft_contact_ke = 1.0e2
@@ -125,7 +119,7 @@ def main():
     try:
         viewer = ViewerViser(
             port=args.port,
-            label="Newton FEM Cable — CUDA Gravity Test",
+            label="Newton FEM Cable — Gravity Test",
             share=False,
         )
     finally:
@@ -137,9 +131,9 @@ def main():
     server.initial_camera.look_at = (0.20, 0.003, 0.42)
     server.initial_camera.up = (0.0, 0.0, 1.0)
     server.gui.add_markdown(
-        "## Gravity-loaded FEM cable (CUDA)\n"
-        "The left face is fixed. Python and the viewer use the CPU; "
-        "Newton FEM arrays and solver kernels use the selected GPU."
+        "## Gravity-loaded FEM cable\n"
+        "The left face is fixed. Newton FEM arrays and solver kernels use "
+        "the selected device."
     )
     status = server.gui.add_markdown("Preparing...")
 

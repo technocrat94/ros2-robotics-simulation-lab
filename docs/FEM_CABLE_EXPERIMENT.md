@@ -160,8 +160,9 @@ CUDA_VISIBLE_DEVICES=0 ~/newton_ws/.venv-cpu/bin/python \
 ```
 
 The virtual-environment name `.venv-cpu` is historical. The simulation
-refuses non-CUDA devices, allocates the Newton model explicitly on the chosen
-CUDA device, and reports that device in its result JSON.
+allocates the Newton model explicitly on the chosen device and reports that
+device in its result JSON. Use `cuda:0` on the school GPU machine or `cpu` on
+ROBO-JAZZY; the CPU simulation is substantially slower.
 
 Run the rod candidate separately:
 
