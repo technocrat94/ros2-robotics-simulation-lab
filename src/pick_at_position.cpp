@@ -623,7 +623,10 @@ bool move_staged_cartesian_to_pose(
   double velocity_scaling,
   double robot_padding_m,
   bool execute_motion,
-  const std::optional<ObstacleBox> & analysis_obstacle = std::nullopt)
+  const std::optional<ObstacleBox> & analysis_obstacle = std::nullopt,
+  bool obstacle_active = false,
+  double fingertip_drop_m = 0.0,
+  double obstacle_clearance_m = 0.0)
 {
   const auto current_state = move_group.getCurrentState(10.0);
   if (!current_state)
@@ -633,8 +636,24 @@ bool move_staged_cartesian_to_pose(
   }
 
   const auto current_pose = move_group.getCurrentPose("tool0").pose;
-  const double safe_z =
+  double safe_z =
     std::max(current_pose.position.z, target.position.z) + safe_transit_margin;
+  // tool0 cruises above the obstacle, but the open fingers hang about
+  // fingertip_drop_m below tool0; the padded fingertips must clear the top.
+  if (obstacle_active && analysis_obstacle)
+  {
+    const double obstacle_top =
+      analysis_obstacle->center[2] + 0.5 * analysis_obstacle->size[2];
+    const double obstacle_safe_z =
+      obstacle_top + fingertip_drop_m + robot_padding_m + obstacle_clearance_m;
+    RCLCPP_INFO(
+      logger,
+      "SAFE_PREGRASP_OBSTACLE_HEIGHT top=%.3f fingertip_drop=%.3f padding=%.3f "
+      "clearance=%.3f obstacle_safe_z=%.3f margin_safe_z=%.3f",
+      obstacle_top, fingertip_drop_m, robot_padding_m, obstacle_clearance_m,
+      obstacle_safe_z, safe_z);
+    safe_z = std::max(safe_z, obstacle_safe_z);
+  }
 
   auto raised_pose = current_pose;
   raised_pose.position.z = safe_z;
@@ -1051,6 +1070,10 @@ int main(int argc, char * argv[])
     bool_parameter("use_safe_pregrasp_path", true);
   const double safe_transit_margin =
     parameter("safe_transit_margin", 0.0500);
+  // Measured by step_c_geometry_preflight: lowest open fingertip is 0.160 m
+  // below tool0 at the start pose; 5 mm added for mesh tolerance.
+  const double fingertip_drop_m = parameter("fingertip_drop_m", 0.165);
+  const double obstacle_clearance_m = parameter("obstacle_clearance_m", 0.03);
   const double maximum_pregrasp_joint_travel =
     parameter("maximum_pregrasp_joint_travel", 1.6000);
   const double maximum_wrist_3_travel =
@@ -1325,7 +1348,8 @@ int main(int argc, char * argv[])
         move_group, display_publisher, logger, pregrasp_tool_pose,
         safe_transit_margin, maximum_pregrasp_joint_travel,
         maximum_wrist_3_travel,
-        velocity_scale, robot_padding_m, false, obstacle_box) :
+        velocity_scale, robot_padding_m, false, obstacle_box,
+        obstacles_enabled, fingertip_drop_m, obstacle_clearance_m) :
       move_to_pose_target(
         move_group, display_publisher, logger, pregrasp_tool_pose,
         "Absolute pre-grasp", robot_padding_m, false, obstacle_box);
@@ -1451,7 +1475,8 @@ int main(int argc, char * argv[])
           move_group, display_publisher, logger, pregrasp_tool_pose,
           safe_transit_margin, maximum_pregrasp_joint_travel,
           maximum_wrist_3_travel,
-          velocity_scale, robot_padding_m, true, obstacle_box) :
+          velocity_scale, robot_padding_m, true, obstacle_box,
+        obstacles_enabled, fingertip_drop_m, obstacle_clearance_m) :
         move_to_pose_target(
           move_group, display_publisher, logger, pregrasp_tool_pose,
           "Absolute pre-grasp", robot_padding_m, true, obstacle_box);
