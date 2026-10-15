@@ -29,6 +29,51 @@ def candidate_contact_grasp_pass(
     )
 
 
+def robot_obstacle_real_contact_count(samples):
+    """Count loaded or penetrating robot-obstacle contacts once each."""
+    return sum(
+        int(
+            sample["contact_force_magnitude_n"] > 0.0
+            or sample["penetration_depth_m"] > 0.0
+        )
+        for sample in samples
+    )
+
+
+def gripper_open_observed(
+    grip, first_observed_grip, closed_threshold=0.05, opening_delta=0.15
+):
+    """Recognize an absolute-open gripper or a clear opening from its start."""
+    return bool(
+        grip <= closed_threshold
+        or grip <= first_observed_grip - opening_delta
+    )
+
+
+def gripper_phase_flags(
+    open_seen,
+    closed_seen,
+    release_seen,
+    grip,
+    previous_grip,
+    first_observed_grip,
+    motion_epsilon=1.0e-7,
+):
+    """Advance open/close/release flags from gripper position and direction."""
+    open_seen = open_seen or gripper_open_observed(
+        grip, first_observed_grip
+    )
+    if closed_seen and grip < previous_grip - motion_epsilon:
+        release_seen = True
+    if (
+        open_seen
+        and not release_seen
+        and grip > previous_grip + motion_epsilon
+    ):
+        closed_seen = True
+    return open_seen, closed_seen, release_seen
+
+
 OBSTACLE_CONFIG_PATH = Path(os.environ.get(
     "NEWTON_OBSTACLE_CONFIG",
     str(Path.home() / "ur5_ws/src/ur5_moveit_demo/config/obstacles.yaml"),
@@ -586,7 +631,10 @@ sim_time = 0.0
 maximum_center_z = initial_center_z
 maximum_contacts = 0
 maximum_soft_contacts = 0
+# Acceptance metric: only contacts with load or penetration.
 maximum_robot_obstacle_contacts = 0
+# Diagnostic metric: every Newton contact candidate inside the detection gap.
+maximum_robot_obstacle_candidate_contacts = 0
 maximum_robot_obstacle_loaded_contacts = 0
 maximum_robot_obstacle_penetrating_contacts = 0
 robot_obstacle_candidate_samples = 0
@@ -636,7 +684,10 @@ diagnostic_lift_seen = False
 diagnostic_release_seen = False
 robot_obstacle_sampled_phases = set()
 robot_obstacle_penetration_seen = False
+robot_obstacle_real_touch_seen = False
 robot_state_initialized = False
+first_observed_grip = None
+previous_state_grip = None
 previous_grasp_z = initial_grasp_z
 closed_seen = False
 # A fresh bringup can report the gripper as closed before the task opens it.
@@ -717,6 +768,8 @@ try:
                     command_robot_q, received_robot_q, rtol=0.0, atol=1.0e-7
                 )
                 received_robot_q = command_robot_q.copy()
+                if first_observed_grip is None:
+                    first_observed_grip = float(command_robot_q[6])
                 # Synchronization establishes the initial state; it is not motion.
                 # Matching the previous state prevents a false velocity impulse.
                 if not robot_state_initialized or kind == "sync_robot_state":
@@ -821,10 +874,10 @@ try:
                 )
                 robot_obstacle_new_peak = (
                     robot_obstacle_candidates
-                    > maximum_robot_obstacle_contacts
+                    > maximum_robot_obstacle_candidate_contacts
                 )
-                maximum_robot_obstacle_contacts = max(
-                    maximum_robot_obstacle_contacts,
+                maximum_robot_obstacle_candidate_contacts = max(
+                    maximum_robot_obstacle_candidate_contacts,
                     robot_obstacle_candidates,
                 )
                 soft_count = int(contacts.soft_contact_count.numpy()[0])
@@ -840,19 +893,19 @@ try:
                 diagnostic_arm_step = float(np.max(np.abs(
                     q[:6] - diagnostic_previous_robot_q[:6]
                 )))
-                if current_grip <= GRIPPER_CLOSED_MIN:
-                    diagnostic_open_seen = True
-                if (
-                    diagnostic_closed_seen
-                    and current_grip < previous_grip - 1.0e-7
-                ):
-                    diagnostic_release_seen = True
-                if (
-                    diagnostic_open_seen
-                    and current_grip > GRIPPER_CLOSED_MIN
-                    and not diagnostic_release_seen
-                ):
-                    diagnostic_closed_seen = True
+                if first_observed_grip is not None:
+                    (
+                        diagnostic_open_seen,
+                        diagnostic_closed_seen,
+                        diagnostic_release_seen,
+                    ) = gripper_phase_flags(
+                        diagnostic_open_seen,
+                        diagnostic_closed_seen,
+                        diagnostic_release_seen,
+                        current_grip,
+                        previous_grip,
+                        first_observed_grip,
+                    )
                 if diagnostic_closed_seen and diagnostic_arm_step > 1.0e-7:
                     diagnostic_lift_seen = True
 
@@ -901,55 +954,66 @@ try:
                         sample["penetrating"]
                         for sample in robot_obstacle_samples
                     )
-                    first_penetration = (
-                        penetration_in_pass
-                        and not robot_obstacle_penetration_seen
+                    # Before the first penetration VBD cannot have a positive
+                    # cached normal multiplier, so separated candidates have
+                    # zero force.  After penetration, keep harvesting forces
+                    # so a loaded but currently separated constraint is still
+                    # counted by the acceptance metric.
+                    if penetration_in_pass or robot_obstacle_penetration_seen:
+                        (
+                            _diagnostic_body0,
+                            _diagnostic_body1,
+                            _diagnostic_point0,
+                            _diagnostic_point1,
+                            diagnostic_force_on_shape1,
+                            _diagnostic_count,
+                        ) = solver.collect_rigid_contact_forces(
+                            state_1.body_q,
+                            vbd_contact_body_q_prev,
+                            contacts,
+                            DT,
+                        )
+                        robot_obstacle_samples = robot_obstacle_contact_samples(
+                            contacts,
+                            count,
+                            current_body_poses,
+                            diagnostic_force_on_shape1.numpy()[:count],
+                            sim_time + DT,
+                            diagnostic_task_phase,
+                            "vbd_force_harvest",
+                        )
+                    loaded_in_pass = sum(
+                        int(sample["loaded"])
+                        for sample in robot_obstacle_samples
                     )
+                    penetrating_in_pass = sum(
+                        int(sample["penetrating"])
+                        for sample in robot_obstacle_samples
+                    )
+                    real_contacts_in_pass = robot_obstacle_real_contact_count(
+                        robot_obstacle_samples
+                    )
+                    maximum_robot_obstacle_contacts = max(
+                        maximum_robot_obstacle_contacts,
+                        real_contacts_in_pass,
+                    )
+                    maximum_robot_obstacle_loaded_contacts = max(
+                        maximum_robot_obstacle_loaded_contacts,
+                        loaded_in_pass,
+                    )
+                    maximum_robot_obstacle_penetrating_contacts = max(
+                        maximum_robot_obstacle_penetrating_contacts,
+                        penetrating_in_pass,
+                    )
+                    real_touch_in_pass = real_contacts_in_pass > 0
                     diagnostic_sample_needed = (
-                        diagnostic_sample_needed or first_penetration
+                        diagnostic_sample_needed
+                        or (
+                            real_touch_in_pass
+                            and not robot_obstacle_real_touch_seen
+                        )
                     )
                     if diagnostic_sample_needed:
-                        if penetration_in_pass:
-                            (
-                                _diagnostic_body0,
-                                _diagnostic_body1,
-                                _diagnostic_point0,
-                                _diagnostic_point1,
-                                diagnostic_force_on_shape1,
-                                _diagnostic_count,
-                            ) = solver.collect_rigid_contact_forces(
-                                state_1.body_q,
-                                vbd_contact_body_q_prev,
-                                contacts,
-                                DT,
-                            )
-                            robot_obstacle_samples = (
-                                robot_obstacle_contact_samples(
-                                    contacts,
-                                    count,
-                                    current_body_poses,
-                                    diagnostic_force_on_shape1.numpy()[:count],
-                                    sim_time + DT,
-                                    diagnostic_task_phase,
-                                    "vbd_force_harvest",
-                                )
-                            )
-                        loaded_in_pass = sum(
-                            int(sample["loaded"])
-                            for sample in robot_obstacle_samples
-                        )
-                        penetrating_in_pass = sum(
-                            int(sample["penetrating"])
-                            for sample in robot_obstacle_samples
-                        )
-                        maximum_robot_obstacle_loaded_contacts = max(
-                            maximum_robot_obstacle_loaded_contacts,
-                            loaded_in_pass,
-                        )
-                        maximum_robot_obstacle_penetrating_contacts = max(
-                            maximum_robot_obstacle_penetrating_contacts,
-                            penetrating_in_pass,
-                        )
                         for sample in robot_obstacle_samples:
                             phase_counts = robot_obstacle_samples_by_phase[
                                 sample["task_phase"]
@@ -992,6 +1056,10 @@ try:
                     robot_obstacle_penetration_seen = (
                         robot_obstacle_penetration_seen
                         or penetration_in_pass
+                    )
+                    robot_obstacle_real_touch_seen = (
+                        robot_obstacle_real_touch_seen
+                        or real_touch_in_pass
                     )
                 diagnostic_previous_robot_q = q.copy()
                 state_0, state_1 = state_1, state_0
@@ -1108,14 +1176,19 @@ try:
             current_mimic_error = mimic_error(latest_robot_q)
             maximum_mimic_error = max(maximum_mimic_error, current_mimic_error)
 
-            if grip <= GRIPPER_CLOSED_MIN:
-                open_seen = True
-            if (
-                open_seen
-                and GRIPPER_CLOSED_MIN < grip <= GRIPPER_CLOSED_MAX
-                and not release_seen
-            ):
-                closed_seen = True
+            release_was_seen = release_seen
+            if first_observed_grip is not None:
+                if previous_state_grip is None:
+                    previous_state_grip = grip
+                open_seen, closed_seen, release_seen = gripper_phase_flags(
+                    open_seen,
+                    closed_seen,
+                    release_seen,
+                    grip,
+                    previous_state_grip,
+                    first_observed_grip,
+                )
+            if closed_seen and not release_seen:
                 if FEM_MODE and not lift_started:
                     maximum_closed_left_loaded_soft_contacts = max(
                         maximum_closed_left_loaded_soft_contacts,
@@ -1198,15 +1271,15 @@ try:
                     maximum_lift_combined_force_z = max(
                         maximum_lift_combined_force_z, combined_force_z
                     )
-            elif closed_seen and grip <= 0.05:
-                if not release_seen:
-                    release_seen = True
+            if release_seen:
+                if not release_was_seen:
                     release_start_grasp_z = previous_grasp_z
                     minimum_post_release_grasp_z = grasp_z
                 else:
                     minimum_post_release_grasp_z = min(
                         minimum_post_release_grasp_z, grasp_z
                     )
+            previous_state_grip = grip
 
             command_queue_empty = (
                 not pending_robot_q and not command_segment_active
@@ -1411,6 +1484,9 @@ finally:
         "obstacle_ids": [obstacle["id"] for obstacle in ENABLED_OBSTACLES],
         "configured_obstacle_id": CONFIGURED_OBSTACLE["id"],
         "maximum_robot_obstacle_contacts": maximum_robot_obstacle_contacts,
+        "maximum_robot_obstacle_candidate_contacts": (
+            maximum_robot_obstacle_candidate_contacts
+        ),
         "maximum_robot_obstacle_loaded_contacts": (
             maximum_robot_obstacle_loaded_contacts
         ),
