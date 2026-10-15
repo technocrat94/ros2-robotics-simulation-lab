@@ -24,3 +24,13 @@ Review of fe3855f by Claude:
 
 Do not change geometry, padding, physics, or grasp parameters. Commit evidence, update
 docs/CODEX_STATUS.md (5 lines), push, and reply with the commit hash.
+
+## Run so the user can watch live
+
+Before running C1/C2:
+1. Print the exact command of each component (bringup, Newton endpoint, ros_adapter, pick).
+2. Run each component in its own window of a tmux session named `stepc`
+   (windows: bringup, endpoint, adapter, pick), also tee'd to the log files.
+3. Tell the user when it is running. They watch with `tmux attach -t stepc`
+   (switch: Ctrl+b then 0-3; leave: Ctrl+b then d; never Ctrl+c).
+4. Give the Newton viewer URL (Viser) so they can watch the robot and cable in the browser.
