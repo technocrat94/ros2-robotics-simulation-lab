@@ -367,7 +367,8 @@ def robot_obstacle_contact_count(contact_buffer, count):
 
 
 def robot_obstacle_contact_samples(
-    contact_buffer, count, body_poses, force_on_shape1, sample_time, task_phase
+    contact_buffer, count, body_poses, force_on_shape1, sample_time, task_phase,
+    force_source,
 ):
     """Return physical robot-wall contact diagnostics for one collision pass.
 
@@ -426,6 +427,7 @@ def robot_obstacle_contact_samples(
             ),
             "contact_force_on_shape1_xyz_n": [float(value) for value in force],
             "contact_force_magnitude_n": force_magnitude,
+            "contact_force_source": force_source,
             "loaded": force_magnitude > 0.0,
             "penetrating": signed_separation < 0.0,
             "real_touch": force_magnitude > 0.0 or signed_separation < 0.0,
@@ -633,6 +635,7 @@ diagnostic_closed_seen = False
 diagnostic_lift_seen = False
 diagnostic_release_seen = False
 robot_obstacle_sampled_phases = set()
+robot_obstacle_penetration_seen = False
 robot_state_initialized = False
 previous_grasp_z = initial_grasp_z
 closed_seen = False
@@ -665,6 +668,7 @@ maximum_closed_contact_z = -math.inf
 wall_start = time.monotonic()
 next_frame = time.monotonic()
 next_state = next_frame
+state_packet_sent = False
 
 print(
     "MOVEIT_GRASP_ENDPOINT_READY "
@@ -878,28 +882,58 @@ try:
                         or diagnostic_task_phase
                         not in robot_obstacle_sampled_phases
                     )
+                    available_rigid_contacts = min(
+                        count,
+                        contacts.rigid_contact_shape0.shape[0],
+                    )
+                    robot_obstacle_samples = robot_obstacle_contact_samples(
+                        contacts,
+                        count,
+                        current_body_poses,
+                        np.zeros(
+                            (available_rigid_contacts, 3), dtype=np.float64
+                        ),
+                        sim_time + DT,
+                        diagnostic_task_phase,
+                        "vbd_zero_for_nonpenetrating_constraint",
+                    )
+                    penetration_in_pass = any(
+                        sample["penetrating"]
+                        for sample in robot_obstacle_samples
+                    )
+                    first_penetration = (
+                        penetration_in_pass
+                        and not robot_obstacle_penetration_seen
+                    )
+                    diagnostic_sample_needed = (
+                        diagnostic_sample_needed or first_penetration
+                    )
                     if diagnostic_sample_needed:
-                        (
-                            _diagnostic_body0,
-                            _diagnostic_body1,
-                            _diagnostic_point0,
-                            _diagnostic_point1,
-                            diagnostic_force_on_shape1,
-                            _diagnostic_count,
-                        ) = solver.collect_rigid_contact_forces(
-                            state_1.body_q,
-                            vbd_contact_body_q_prev,
-                            contacts,
-                            DT,
-                        )
-                        robot_obstacle_samples = robot_obstacle_contact_samples(
-                            contacts,
-                            count,
-                            current_body_poses,
-                            diagnostic_force_on_shape1.numpy()[:count],
-                            sim_time + DT,
-                            diagnostic_task_phase,
-                        )
+                        if penetration_in_pass:
+                            (
+                                _diagnostic_body0,
+                                _diagnostic_body1,
+                                _diagnostic_point0,
+                                _diagnostic_point1,
+                                diagnostic_force_on_shape1,
+                                _diagnostic_count,
+                            ) = solver.collect_rigid_contact_forces(
+                                state_1.body_q,
+                                vbd_contact_body_q_prev,
+                                contacts,
+                                DT,
+                            )
+                            robot_obstacle_samples = (
+                                robot_obstacle_contact_samples(
+                                    contacts,
+                                    count,
+                                    current_body_poses,
+                                    diagnostic_force_on_shape1.numpy()[:count],
+                                    sim_time + DT,
+                                    diagnostic_task_phase,
+                                    "vbd_force_harvest",
+                                )
+                            )
                         loaded_in_pass = sum(
                             int(sample["loaded"])
                             for sample in robot_obstacle_samples
@@ -955,6 +989,10 @@ try:
                         robot_obstacle_sampled_phases.add(
                             diagnostic_task_phase
                         )
+                    robot_obstacle_penetration_seen = (
+                        robot_obstacle_penetration_seen
+                        or penetration_in_pass
+                    )
                 diagnostic_previous_robot_q = q.copy()
                 state_0, state_1 = state_1, state_0
                 sim_time += DT
@@ -1240,6 +1278,14 @@ try:
                 ),
             }
             state_socket.sendto(json.dumps(message).encode("utf-8"), STATE_ADDRESS)
+            if not state_packet_sent:
+                print(
+                    "MOVEIT_STATE_PACKET_SENT "
+                    f"address={STATE_ADDRESS[0]}:{STATE_ADDRESS[1]} "
+                    f"sequence={sequence}",
+                    flush=True,
+                )
+                state_packet_sent = True
             if grip >= 0.20 and phase == "MOVEIT_CONTACT":
                 print(
                     "MOVEIT_CONTACT_SAMPLE",
