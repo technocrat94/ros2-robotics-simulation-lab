@@ -9,9 +9,12 @@ padding, contact physics, cable physics, or grasp parameters.  It used commit
 Newton on `cuda:0`.
 
 MoveIt completed the staged motion and reported a maximum end-effector height of
-`0.375040 m` and a minimum planned robot-wall distance of `0.025938 m`.  The
-physical cable did not lift, so this is diagnostic evidence and not a C1 grasp
-acceptance result.
+`0.375040 m` and a minimum planned robot-wall distance of `0.025938 m`.  A later
+review found that the cable did lift to about `0.124 m`; the old endpoint state
+machine failed to set `lift_started` because it did not recognize a relative
+gripper opening from the initial value near `0.79 rad`.  This attempt therefore
+remains diagnostic evidence, but the earlier statement that the cable did not
+lift was incorrect.
 
 ## Result
 
@@ -66,17 +69,14 @@ run never observed penetration, so each separated record is reported with
 force.  Force harvesting remains enabled if a penetrating candidate is ever
 observed.
 
-## Proposed follow-up — approval required
+## Approved follow-up
 
-Change the acceptance metric named `maximum_robot_obstacle_contacts` to count
-only contacts for which `penetration_depth_m > 0` or
-`contact_force_magnitude_n > 0`.  Add a unit test proving that a positive-gap
-candidate is excluded while penetrating and positively loaded contacts are
-included.  Keep the raw candidate metric under an explicit diagnostic name so
-proximity information is not lost.
-
-This counting-policy change is only proposed.  It was not implemented, pending
-approval.
+The reviewer approved changing `maximum_robot_obstacle_contacts` to count only
+contacts for which `penetration_depth_m > 0` or
+`contact_force_magnitude_n > 0`, while retaining the raw candidate maximum under
+an explicit diagnostic name.  Commit `0ba9803` implemented this policy and its
+unit tests together with corrected relative-open phase detection.  The accepted
+C1/C2 rerun is recorded in sibling directory `attempt_20261015_0ba9803`.
 
 ## Evidence
 

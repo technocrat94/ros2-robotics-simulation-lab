@@ -134,6 +134,12 @@ def main():
             checks["zero_robot_wall_contacts"] = (
                 endpoint.get("maximum_robot_obstacle_contacts") == 0
             )
+            checks["zero_loaded_robot_wall_contacts"] = (
+                endpoint.get("maximum_robot_obstacle_loaded_contacts") == 0
+            )
+            checks["zero_penetrating_robot_wall_contacts"] = (
+                endpoint.get("maximum_robot_obstacle_penetrating_contacts") == 0
+            )
         result = {
             "step": (
                 "C0_moved_cable_without_wall"
@@ -154,6 +160,15 @@ def main():
             "release_drop_m": endpoint.get("release_drop_m"),
             "maximum_robot_obstacle_contacts": endpoint.get(
                 "maximum_robot_obstacle_contacts"
+            ),
+            "maximum_robot_obstacle_candidate_contacts": endpoint.get(
+                "maximum_robot_obstacle_candidate_contacts"
+            ),
+            "maximum_robot_obstacle_loaded_contacts": endpoint.get(
+                "maximum_robot_obstacle_loaded_contacts"
+            ),
+            "maximum_robot_obstacle_penetrating_contacts": endpoint.get(
+                "maximum_robot_obstacle_penetrating_contacts"
             ),
             "object_obstacle_max_penetration_m": endpoint.get(
                 "object_obstacle_max_penetration_m"

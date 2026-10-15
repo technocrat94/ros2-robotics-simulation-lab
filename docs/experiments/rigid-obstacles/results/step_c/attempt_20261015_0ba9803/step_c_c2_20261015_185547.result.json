@@ -1,0 +1,22 @@
+{
+  "checks": {
+    "no_robot_command_sent": true,
+    "plan_only_did_not_succeed": true,
+    "planning_failed": true,
+    "safe_pregrasp_path_logged": true,
+    "scene_profile_and_padding_logged": true,
+    "transit_padding_stage_logged": true
+  },
+  "moveit_contact_padding_m": 0.0,
+  "moveit_planning_time_s": 10.0,
+  "moveit_robot_padding_m": 0.02,
+  "moveit_transit_padding_m": 0.02,
+  "pass": true,
+  "planning_failed": true,
+  "robot_command_sent": false,
+  "route": null,
+  "scene_profile": "step_c_cable_tall_wall",
+  "step": "C2_tall_wall_negative_control",
+  "tested_commit": "b8daea1b5474cefed1fbe37533b6912a40ef4300",
+  "use_safe_pregrasp_path": true
+}

@@ -1,0 +1,304 @@
+[INFO] [launch]: All log files can be found below /home/aisc216/.ros/log/2026-10-15-18-50-20-886430-aisc-3080-16915
+[INFO] [launch]: Default logging verbosity is set to INFO
+WARNING:root:[33;21mCannot infer URDF from `/home/aisc216/ur5_ws/install_jazzy_port/ur5_moveit_demo/share/ur5_moveit_demo`. -- using config/ur.urdf[0m
+WARNING:root:[33;21mCannot infer SRDF from `/home/aisc216/ur5_ws/install_jazzy_port/ur5_moveit_demo/share/ur5_moveit_demo`. -- using config/ur.srdf[0m
+[INFO] [robot_state_publisher-1]: process started with pid [16924]
+[INFO] [ros2_control_node-2]: process started with pid [16925]
+[robot_state_publisher-1] [WARN] [1792061421.144610262] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[robot_state_publisher-1] [WARN] [1792061421.144619408] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+[ros2_control_node-2] [WARN] [1792061421.149862435] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[ros2_control_node-2] [WARN] [1792061421.149870907] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+[robot_state_publisher-1] [INFO] [1792061421.158870481] [robot_state_publisher]: Robot initialized
+[ros2_control_node-2] [INFO] [1792061421.163311622] [controller_manager]: Using Steady (Monotonic) clock for triggering controller manager cycles.
+[ros2_control_node-2] [INFO] [1792061421.165518589] [controller_manager]: Subscribing to '/robot_description' topic for robot description.
+[ros2_control_node-2] [INFO] [1792061421.166727614] [controller_manager]: update rate is 500 Hz
+[ros2_control_node-2] [INFO] [1792061421.166738591] [controller_manager]: Overruns handling is : enabled
+[ros2_control_node-2] [INFO] [1792061421.166744811] [controller_manager]: Spawning controller_manager RT thread with scheduler priority: 50
+[ros2_control_node-2] [WARN] [1792061421.166816648] [controller_manager]: Could not enable FIFO RT scheduling policy: with error number <1>(Operation not permitted). See [https://control.ros.org/master/doc/ros2_control/controller_manager/doc/userdoc.html] for details on how to enable realtime scheduling.
+[ros2_control_node-2] [INFO] [1792061421.511383266] [controller_manager]: Received robot description from topic.
+[ros2_control_node-2] [INFO] [1792061421.514335763] [controller_manager]: Loading hardware 'ur'
+[ros2_control_node-2] [INFO] [1792061421.514722293] [controller_manager]: Loaded hardware 'ur' from plugin 'mock_components/GenericSystem'
+[ros2_control_node-2] [INFO] [1792061421.514783448] [controller_manager]: Initialize hardware 'ur'
+[ros2_control_node-2] [INFO] [1792061421.518281999] [controller_manager]: Successful initialization of hardware 'ur'
+[ros2_control_node-2] [INFO] [1792061421.518482611] [controller_manager]: Loading hardware 'RobotiqGripperHardwareInterface'
+[ros2_control_node-2] [INFO] [1792061421.518497050] [controller_manager]: Loaded hardware 'RobotiqGripperHardwareInterface' from plugin 'mock_components/GenericSystem'
+[ros2_control_node-2] [INFO] [1792061421.518518888] [controller_manager]: Initialize hardware 'RobotiqGripperHardwareInterface'
+[ros2_control_node-2] [INFO] [1792061421.521682249] [controller_manager]: Successful initialization of hardware 'RobotiqGripperHardwareInterface'
+[ros2_control_node-2] [INFO] [1792061421.521742569] [resource_manager]: 'configure' hardware 'RobotiqGripperHardwareInterface'
+[ros2_control_node-2] [INFO] [1792061421.521751049] [resource_manager]: Successful 'configure' of hardware 'RobotiqGripperHardwareInterface'
+[ros2_control_node-2] [INFO] [1792061421.521755263] [resource_manager]: 'activate' hardware 'RobotiqGripperHardwareInterface'
+[ros2_control_node-2] [INFO] [1792061421.521759553] [resource_manager]: Successful 'activate' of hardware 'RobotiqGripperHardwareInterface'
+[ros2_control_node-2] [INFO] [1792061421.521794194] [resource_manager]: 'configure' hardware 'ur'
+[ros2_control_node-2] [INFO] [1792061421.521799863] [resource_manager]: Successful 'configure' of hardware 'ur'
+[ros2_control_node-2] [INFO] [1792061421.521804851] [resource_manager]: 'activate' hardware 'ur'
+[ros2_control_node-2] [INFO] [1792061421.521807027] [resource_manager]: Successful 'activate' of hardware 'ur'
+[ros2_control_node-2] [INFO] [1792061421.521820402] [controller_manager]: Registering statistics for : RobotiqGripperHardwareInterface
+[ros2_control_node-2] [INFO] [1792061421.521859136] [controller_manager]: Registering statistics for : ur
+[ros2_control_node-2] [INFO] [1792061421.521889227] [controller_manager]: Resource Manager has been successfully initialized. Starting Controller Manager services...
+[INFO] [spawner-3]: process started with pid [16986]
+[spawner-3] [WARN] [1792061423.381792895] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[spawner-3] [WARN] [1792061423.381800852] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+[spawner-3] [INFO] [1792061423.549739772] [spawner_joint_state_broadcaster]: waiting for service /controller_manager/list_controllers to become available...
+[INFO] [spawner-4]: process started with pid [17008]
+[spawner-4] [WARN] [1792061424.376689554] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[spawner-4] [WARN] [1792061424.376697041] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+[INFO] [spawner-5]: process started with pid [17013]
+[spawner-5] [WARN] [1792061424.878078331] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[spawner-5] [WARN] [1792061424.878085527] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+[ros2_control_node-2] [INFO] [1792061425.051579059] [controller_manager]: Loading controller : 'joint_state_broadcaster' of type 'joint_state_broadcaster/JointStateBroadcaster'
+[ros2_control_node-2] [INFO] [1792061425.051607998] [controller_manager]: Loading controller 'joint_state_broadcaster'
+[ros2_control_node-2] [INFO] [1792061425.053636544] [controller_manager]: Controller 'joint_state_broadcaster' node arguments: --ros-args --params-file /tmp/launch_params_z5_rlynj --params-file /home/aisc216/ur5_ws/install_jazzy_port/ur5_moveit_demo/share/ur5_moveit_demo/config/combined_controllers.yaml
+[spawner-3] [INFO] [1792061425.060078476] [spawner_joint_state_broadcaster]: Loaded joint_state_broadcaster
+[ros2_control_node-2] [INFO] [1792061425.060625603] [controller_manager]: Configuring controller: 'joint_state_broadcaster'
+[ros2_control_node-2] [INFO] [1792061425.060702079] [joint_state_broadcaster]: 'joints' or 'interfaces' parameter is empty. All available state interfaces will be published
+[ros2_control_node-2] [INFO] [1792061425.067810199] [controller_manager]: Activating controllers: [ joint_state_broadcaster ]
+[ros2_control_node-2] [INFO] [1792061425.069130183] [controller_manager]: Successfully switched controllers!
+[spawner-3] [INFO] [1792061425.071960242] [spawner_joint_state_broadcaster]: Configured and activated joint_state_broadcaster
+[INFO] [spawner-6]: process started with pid [17034]
+[spawner-5] [INFO] [1792061425.137289640] [spawner_robotiq_gripper_controller]: waiting for service /controller_manager/list_controllers to become available...
+[INFO] [spawner-3]: process has finished cleanly [pid 16986]
+[spawner-6] [WARN] [1792061425.378189506] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[spawner-6] [WARN] [1792061425.378196701] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+[INFO] [move_group-7]: process started with pid [17044]
+[INFO] [rviz2-8]: process started with pid [17045]
+[move_group-7] [WARN] [1792061426.240949847] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[move_group-7] [WARN] [1792061426.240960471] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+[move_group-7] [INFO] [1792061426.261294159] [move_group.moveit.moveit.ros.rdf_loader]: Loaded robot model in 0.00311646 seconds
+[move_group-7] [INFO] [1792061426.261367905] [move_group.moveit.moveit.core.robot_model]: Loading robot model 'ur'...
+[move_group-7] [INFO] [1792061426.261380706] [move_group.moveit.moveit.core.robot_model]: No root/virtual joint specified in SRDF. Assuming fixed joint
+[move_group-7] [INFO] [1792061426.269715966] [move_group.moveit.moveit.kinematics.kdl_kinematics_plugin]: Joint weights for group 'ur_manipulator': 1 1 1 1 1 1
+[rviz2-8] /opt/ros/jazzy/lib/rviz2/rviz2: symbol lookup error: /snap/core20/current/lib/x86_64-linux-gnu/libpthread.so.0: undefined symbol: __libc_pthread_init, version GLIBC_PRIVATE
+[ERROR] [rviz2-8]: process has died [pid 17045, exit code 127, cmd '/opt/ros/jazzy/lib/rviz2/rviz2 -d /home/aisc216/ur5_ws/install_jazzy_port/ur5_moveit_demo/share/ur5_moveit_demo/rviz/view_robot.rviz --ros-args -r __node:=rviz2_moveit --params-file /tmp/launch_params_5h036lhs --params-file /tmp/launch_params_44eu78lr --params-file /tmp/launch_params_innk718v'].
+[move_group-7] [INFO] [1792061426.302018049] [move_group.moveit.moveit.ros.planning_scene_monitor]: Publishing maintained planning scene on 'monitored_planning_scene'
+[move_group-7] [INFO] [1792061426.302124948] [move_group.moveit.moveit.ros.moveit_cpp]: Listening to 'joint_states' for joint states
+[move_group-7] [INFO] [1792061426.302559662] [move_group.moveit.moveit.ros.current_state_monitor]: Listening to joint states on topic 'joint_states'
+[move_group-7] [INFO] [1792061426.302779396] [move_group.moveit.moveit.ros.planning_scene_monitor]: Listening to '/attached_collision_object' for attached collision objects
+[move_group-7] [INFO] [1792061426.302790031] [move_group.moveit.moveit.ros.planning_scene_monitor]: Stopping existing planning scene publisher.
+[move_group-7] [INFO] [1792061426.302857018] [move_group.moveit.moveit.ros.planning_scene_monitor]: Stopped publishing maintained planning scene.
+[move_group-7] [INFO] [1792061426.303001357] [move_group.moveit.moveit.ros.planning_scene_monitor]: Publishing maintained planning scene on 'monitored_planning_scene'
+[move_group-7] [INFO] [1792061426.303046118] [move_group.moveit.moveit.ros.planning_scene_monitor]: Starting planning scene monitor
+[move_group-7] [INFO] [1792061426.303411087] [move_group.moveit.moveit.ros.planning_scene_monitor]: Listening to '/planning_scene'
+[move_group-7] [INFO] [1792061426.303423349] [move_group.moveit.moveit.ros.planning_scene_monitor]: Starting world geometry update monitor for collision objects, attached objects, octomap updates.
+[move_group-7] [INFO] [1792061426.303596615] [move_group.moveit.moveit.ros.planning_scene_monitor]: Listening to 'collision_object'
+[move_group-7] [INFO] [1792061426.303773976] [move_group.moveit.moveit.ros.planning_scene_monitor]: Listening to 'planning_scene_world' for planning scene world geometry
+[move_group-7] [WARN] [1792061426.303868193] [move_group.moveit.moveit.ros.occupancy_map_monitor]: Resolution not specified for Octomap. Assuming resolution = 0.1 instead
+[move_group-7] [ERROR] [1792061426.303879457] [move_group.moveit.moveit.ros.occupancy_map_monitor]: No 3D sensor plugin(s) defined for octomap updates
+[move_group-7] [INFO] [1792061426.316657883] [move_group.moveit.moveit.ros.planning_pipeline]: Successfully loaded planner 'OMPL'
+[move_group-7] [INFO] [1792061426.317349690] [move_group]: Try loading adapter 'default_planning_request_adapters/ResolveConstraintFrames'
+[move_group-7] [INFO] [1792061426.317964126] [move_group]: Loaded adapter 'default_planning_request_adapters/ResolveConstraintFrames'
+[move_group-7] [INFO] [1792061426.317974433] [move_group]: Try loading adapter 'default_planning_request_adapters/ValidateWorkspaceBounds'
+[move_group-7] [INFO] [1792061426.318100216] [move_group]: Loaded adapter 'default_planning_request_adapters/ValidateWorkspaceBounds'
+[move_group-7] [INFO] [1792061426.318108284] [move_group]: Try loading adapter 'default_planning_request_adapters/CheckStartStateBounds'
+[move_group-7] [INFO] [1792061426.318124513] [move_group]: Loaded adapter 'default_planning_request_adapters/CheckStartStateBounds'
+[move_group-7] [INFO] [1792061426.318129131] [move_group]: Try loading adapter 'default_planning_request_adapters/CheckStartStateCollision'
+[move_group-7] [INFO] [1792061426.318137249] [move_group]: Loaded adapter 'default_planning_request_adapters/CheckStartStateCollision'
+[move_group-7] [INFO] [1792061426.318778089] [move_group]: Try loading adapter 'default_planning_response_adapters/AddTimeOptimalParameterization'
+[move_group-7] [INFO] [1792061426.320077759] [move_group]: Loaded adapter 'default_planning_response_adapters/AddTimeOptimalParameterization'
+[move_group-7] [INFO] [1792061426.320086992] [move_group]: Try loading adapter 'default_planning_response_adapters/ValidateSolution'
+[move_group-7] [INFO] [1792061426.321471281] [move_group]: Loaded adapter 'default_planning_response_adapters/ValidateSolution'
+[move_group-7] [INFO] [1792061426.321481751] [move_group]: Try loading adapter 'default_planning_response_adapters/DisplayMotionPath'
+[move_group-7] [INFO] [1792061426.321761511] [move_group]: Loaded adapter 'default_planning_response_adapters/DisplayMotionPath'
+[move_group-7] [INFO] [1792061426.334929012] [move_group.moveit.moveit.plugins.simple_controller_manager]: Added FollowJointTrajectory controller for scaled_joint_trajectory_controller
+[move_group-7] [INFO] [1792061426.335804120] [move_group.moveit.moveit.plugins.simple_controller_manager]: Added FollowJointTrajectory controller for joint_trajectory_controller
+[move_group-7] [INFO] [1792061426.335904839] [move_group.moveit.moveit.plugins.simple_controller_manager]: Returned 2 controllers in list
+[move_group-7] [INFO] [1792061426.335925496] [move_group.moveit.moveit.plugins.simple_controller_manager]: Returned 2 controllers in list
+[move_group-7] [INFO] [1792061426.336097627] [move_group.moveit.moveit.ros.trajectory_execution_manager]: Trajectory execution is not managing controllers
+[move_group-7] [INFO] [1792061426.336109604] [move_group]: MoveGroup debug mode is ON
+[move_group-7] [INFO] [1792061426.345308334] [move_group.moveit.moveit.ros.move_group.executable]:
+[move_group-7]
+[move_group-7] ********************************************************
+[move_group-7] * MoveGroup using:
+[move_group-7] *     - apply_planning_scene_service
+[move_group-7] *     - clear_octomap_service
+[move_group-7] *     - get_group_urdf
+[move_group-7] *     - load_geometry_from_file
+[move_group-7] *     - CartesianPathService
+[move_group-7] *     - execute_trajectory_action
+[move_group-7] *     - get_planning_scene_service
+[move_group-7] *     - kinematics_service
+[move_group-7] *     - move_action
+[move_group-7] *     - motion_plan_service
+[move_group-7] *     - query_planners_service
+[move_group-7] *     - state_validation_service
+[move_group-7] *     - save_geometry_to_file
+[move_group-7] ********************************************************
+[move_group-7]
+[move_group-7] [INFO] [1792061426.345344961] [move_group.moveit.moveit.ros.move_group.context]: MoveGroup context using pipeline ompl
+[move_group-7] [INFO] [1792061426.345354428] [move_group.moveit.moveit.ros.move_group.context]: MoveGroup context initialization complete
+[move_group-7] [96mLoading 'move_group/ApplyPlanningSceneService'...[0m
+[move_group-7] [96mLoading 'move_group/ClearOctomapService'...[0m
+[move_group-7] [96mLoading 'move_group/GetUrdfService'...[0m
+[move_group-7] [96mLoading 'move_group/LoadGeometryFromFileService'...[0m
+[move_group-7] [96mLoading 'move_group/MoveGroupCartesianPathService'...[0m
+[move_group-7] [96mLoading 'move_group/MoveGroupExecuteTrajectoryAction'...[0m
+[move_group-7] [96mLoading 'move_group/MoveGroupGetPlanningSceneService'...[0m
+[move_group-7] [96mLoading 'move_group/MoveGroupKinematicsService'...[0m
+[move_group-7] [96mLoading 'move_group/MoveGroupMoveAction'...[0m
+[move_group-7] [96mLoading 'move_group/MoveGroupPlanService'...[0m
+[move_group-7] [96mLoading 'move_group/MoveGroupQueryPlannersService'...[0m
+[move_group-7] [96mLoading 'move_group/MoveGroupStateValidationService'...[0m
+[move_group-7] [96mLoading 'move_group/SaveGeometryToFileService'...[0m
+[move_group-7]
+[move_group-7] [92mYou can start planning now![0m
+[move_group-7]
+[ros2_control_node-2] [INFO] [1792061427.845228780] [controller_manager]: Received robot description from topic.
+[ros2_control_node-2] [WARN] [1792061427.845255311] [controller_manager]: ResourceManager has already loaded a urdf. Ignoring attempt to reload a robot description.
+[ros2_control_node-2] [INFO] [1792061427.907383901] [controller_manager]: Loading controller : 'robotiq_gripper_controller' of type 'position_controllers/GripperActionController'
+[ros2_control_node-2] [INFO] [1792061427.907412347] [controller_manager]: Loading controller 'robotiq_gripper_controller'
+[ros2_control_node-2] [INFO] [1792061427.908596600] [controller_manager]: Controller 'robotiq_gripper_controller' node arguments: --ros-args --params-file /tmp/launch_params_z5_rlynj --params-file /home/aisc216/ur5_ws/install_jazzy_port/ur5_moveit_demo/share/ur5_moveit_demo/config/combined_controllers.yaml
+[ros2_control_node-2] [WARN] [1792061427.913998206] [robotiq_gripper_controller]: [Deprecated]: the `position_controllers/GripperActionController` and `effort_controllers::GripperActionController` controllers are replaced by 'parallel_gripper_controllers/GripperActionController' controller
+[spawner-5] [INFO] [1792061427.916155662] [spawner_robotiq_gripper_controller]: Loaded robotiq_gripper_controller
+[ros2_control_node-2] [INFO] [1792061427.916680107] [controller_manager]: Configuring controller: 'robotiq_gripper_controller'
+[ros2_control_node-2] [INFO] [1792061427.916711497] [robotiq_gripper_controller]: Action status changes will be monitored at 20.000000 Hz.
+[ros2_control_node-2] [INFO] [1792061427.917866631] [controller_manager]: Activating controllers: [ robotiq_gripper_controller ]
+[ros2_control_node-2] [WARN] [1792061427.921407352] [controller_manager]: Overrun might occur, Total time : 2360.716 us (Expected < 2000.000 us) --> Read time : 10.150 us, Update time : 2347.812 us (Switch time : 2340.276 us (Switch chained mode time : 0.232 us, perform mode change time : 2.351 us, Activation time : 2336.931 us, Deactivation time : 0.128 us)), Write time : 2.754 us
+[ros2_control_node-2] [INFO] [1792061427.921407625] [controller_manager]: Successfully switched controllers!
+[ros2_control_node-2] [WARN] [1792061427.921429297] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.437804 ms (missed cycles : 2).
+[spawner-5] [INFO] [1792061427.923963570] [spawner_robotiq_gripper_controller]: Configured and activated robotiq_gripper_controller
+[spawner-6] [INFO] [1792061427.995995378] [spawner_robotiq_activation_controller]: waiting for service /controller_manager/list_controllers to become available...
+[INFO] [spawner-5]: process has finished cleanly [pid 17013]
+[ros2_control_node-2] [INFO] [1792061430.998544975] [controller_manager]: Loading controller : 'robotiq_activation_controller' of type 'robotiq_controllers/RobotiqActivationController'
+[ros2_control_node-2] [INFO] [1792061430.998573652] [controller_manager]: Loading controller 'robotiq_activation_controller'
+[ros2_control_node-2] [INFO] [1792061430.999497428] [controller_manager]: Controller 'robotiq_activation_controller' node arguments: --ros-args --params-file /tmp/launch_params_z5_rlynj --params-file /home/aisc216/ur5_ws/install_jazzy_port/ur5_moveit_demo/share/ur5_moveit_demo/config/combined_controllers.yaml
+[spawner-6] [INFO] [1792061431.006110811] [spawner_robotiq_activation_controller]: Loaded robotiq_activation_controller
+[ros2_control_node-2] [INFO] [1792061431.006660895] [controller_manager]: Configuring controller: 'robotiq_activation_controller'
+[ros2_control_node-2] [INFO] [1792061431.007946119] [controller_manager]: Activating controllers: [ robotiq_activation_controller ]
+[ros2_control_node-2] [INFO] [1792061431.010297437] [controller_manager]: Successfully switched controllers!
+[spawner-6] [INFO] [1792061431.012132127] [spawner_robotiq_activation_controller]: Configured and activated robotiq_activation_controller
+[spawner-4] [INFO] [1792061431.106881592] [spawner_joint_trajectory_controller]: waiting for service /controller_manager/list_controllers to become available...
+[INFO] [spawner-6]: process has finished cleanly [pid 17034]
+[ros2_control_node-2] [INFO] [1792061433.908316884] [controller_manager]: Loading controller : 'joint_trajectory_controller' of type 'joint_trajectory_controller/JointTrajectoryController'
+[ros2_control_node-2] [INFO] [1792061433.908340958] [controller_manager]: Loading controller 'joint_trajectory_controller'
+[ros2_control_node-2] [INFO] [1792061433.909538667] [controller_manager]: Controller 'joint_trajectory_controller' node arguments: --ros-args --params-file /tmp/launch_params_z5_rlynj --params-file /home/aisc216/ur5_ws/install_jazzy_port/ur5_moveit_demo/share/ur5_moveit_demo/config/combined_controllers.yaml
+[spawner-4] [INFO] [1792061433.922044606] [spawner_joint_trajectory_controller]: Loaded joint_trajectory_controller
+[ros2_control_node-2] [INFO] [1792061433.922697759] [controller_manager]: Configuring controller: 'joint_trajectory_controller'
+[ros2_control_node-2] [INFO] [1792061433.922823281] [joint_trajectory_controller]: No specific joint names are used for command interfaces. Using 'joints' parameter.
+[ros2_control_node-2] [INFO] [1792061433.922846769] [joint_trajectory_controller]: Command interfaces are [position] and state interfaces are [position velocity].
+[ros2_control_node-2] [INFO] [1792061433.922874558] [joint_trajectory_controller]: Using 'splines' interpolation method.
+[ros2_control_node-2] [INFO] [1792061433.924329638] [joint_trajectory_controller]: Action status changes will be monitored at 20.00 Hz.
+[ros2_control_node-2] [INFO] [1792061433.930243957] [controller_manager]: Activating controllers: [ joint_trajectory_controller ]
+[ros2_control_node-2] [INFO] [1792061433.931240050] [controller_manager]: Successfully switched controllers!
+[spawner-4] [INFO] [1792061433.934003005] [spawner_joint_trajectory_controller]: Configured and activated joint_trajectory_controller
+[INFO] [spawner-4]: process has finished cleanly [pid 17008]
+[ros2_control_node-2] [WARN] [1792061454.447122955] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.131000 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792061455.866049797] [controller_manager]: Overrun might occur, Total time : 3002.944 us (Expected < 2000.000 us) --> Read time : 15.964 us, Update time : 2983.979 us, Write time : 3.001 us
+[ros2_control_node-2] [WARN] [1792061455.866090270] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 3.098203 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792061491.261161600] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.169481 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792061493.382141387] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 3.149517 ms (missed cycles : 2).
+[ros2_control_node-2] [INFO] [1792061497.689577420] [robotiq_gripper_controller]: Received & accepted new action goal
+[move_group-7] [INFO] [1792061497.747352809] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Received request to compute Cartesian path
+[move_group-7] [INFO] [1792061497.747422930] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Attempting to follow 1 waypoints for link 'tool0' using a step of 0.005000 m and jump threshold 0.000000 (in global reference frame)
+[move_group-7] [INFO] [1792061497.750444656] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Computed Cartesian path with 16 points (followed 100.000000% of requested trajectory)
+[move_group-7] [INFO] [1792061497.750857442] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Received request to compute Cartesian path
+[move_group-7] [INFO] [1792061497.750894774] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Attempting to follow 2 waypoints for link 'tool0' using a step of 0.005000 m and jump threshold 0.000000 (in global reference frame)
+[move_group-7] [INFO] [1792061497.753865941] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Computed Cartesian path with 17 points (followed 100.000000% of requested trajectory)
+[move_group-7] [INFO] [1792061497.754077406] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Received request to compute Cartesian path
+[move_group-7] [INFO] [1792061497.754107777] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Attempting to follow 3 waypoints for link 'tool0' using a step of 0.005000 m and jump threshold 0.000000 (in global reference frame)
+[move_group-7] [INFO] [1792061497.771414342] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Computed Cartesian path with 76 points (followed 100.000000% of requested trajectory)
+[move_group-7] [INFO] [1792061497.771745698] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Received request to compute Cartesian path
+[move_group-7] [INFO] [1792061497.771785626] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Attempting to follow 4 waypoints for link 'tool0' using a step of 0.005000 m and jump threshold 0.000000 (in global reference frame)
+[move_group-7] [INFO] [1792061497.802613421] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Computed Cartesian path with 99 points (followed 100.000000% of requested trajectory)
+[move_group-7] [INFO] [1792061497.803007368] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Received request to compute Cartesian path
+[move_group-7] [INFO] [1792061497.803048480] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Attempting to follow 4 waypoints for link 'tool0' using a step of 0.005000 m and jump threshold 0.000000 (in global reference frame)
+[move_group-7] [INFO] [1792061497.826341386] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Computed Cartesian path with 99 points (followed 100.000000% of requested trajectory)
+[move_group-7] [INFO] [1792061497.911382498] [move_group.moveit.moveit.ros.move_group.clear_octomap_service]: Execution request received
+[move_group-7] [INFO] [1792061497.911429754] [move_group.moveit.moveit.plugins.simple_controller_manager]: Returned 2 controllers in list
+[move_group-7] [INFO] [1792061497.911447546] [move_group.moveit.moveit.plugins.simple_controller_manager]: Returned 2 controllers in list
+[move_group-7] [INFO] [1792061497.911564595] [move_group.moveit.moveit.ros.trajectory_execution_manager]: Validating trajectory with allowed_start_tolerance 0.01
+[move_group-7] [INFO] [1792061497.913257919] [move_group.moveit.moveit.ros.trajectory_execution_manager]: Starting trajectory execution ...
+[move_group-7] [INFO] [1792061497.913295295] [move_group.moveit.moveit.plugins.simple_controller_manager]: Returned 2 controllers in list
+[move_group-7] [INFO] [1792061497.913312244] [move_group.moveit.moveit.plugins.simple_controller_manager]: Returned 2 controllers in list
+[move_group-7] [INFO] [1792061497.913403090] [moveit.simple_controller_manager.follow_joint_trajectory_controller_handle]: sending trajectory to joint_trajectory_controller
+[ros2_control_node-2] [INFO] [1792061497.913709276] [joint_trajectory_controller]: Received new action goal
+[ros2_control_node-2] [INFO] [1792061497.913736567] [joint_trajectory_controller]: Accepted new action goal
+[move_group-7] [INFO] [1792061497.913897893] [moveit.simple_controller_manager.follow_joint_trajectory_controller_handle]: joint_trajectory_controller started execution
+[move_group-7] [INFO] [1792061497.913927861] [moveit.simple_controller_manager.follow_joint_trajectory_controller_handle]: Goal request accepted!
+[ros2_control_node-2] [INFO] [1792061502.909068000] [joint_trajectory_controller]: Goal reached, success!
+[move_group-7] [INFO] [1792061502.914159343] [moveit.simple_controller_manager.follow_joint_trajectory_controller_handle]: Controller 'joint_trajectory_controller' successfully finished
+[move_group-7] [INFO] [1792061502.919129748] [move_group.moveit.moveit.ros.trajectory_execution_manager]: Completed trajectory execution with status SUCCEEDED ...
+[move_group-7] [INFO] [1792061502.919194323] [move_group.moveit.moveit.ros.move_group.clear_octomap_service]: Execution completed: SUCCEEDED
+[move_group-7] [INFO] [1792061503.453275711] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Received request to compute Cartesian path
+[move_group-7] [INFO] [1792061503.463874468] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Attempting to follow 1 waypoints for link 'tool0' using a step of 0.005000 m and jump threshold 0.000000 (in global reference frame)
+[move_group-7] [INFO] [1792061503.466845772] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Computed Cartesian path with 20 points (followed 100.000000% of requested trajectory)
+[move_group-7] [INFO] [1792061503.467737875] [move_group.moveit.moveit.ros.move_group.clear_octomap_service]: Execution request received
+[move_group-7] [INFO] [1792061503.467762138] [move_group.moveit.moveit.plugins.simple_controller_manager]: Returned 2 controllers in list
+[move_group-7] [INFO] [1792061503.467774784] [move_group.moveit.moveit.plugins.simple_controller_manager]: Returned 2 controllers in list
+[move_group-7] [INFO] [1792061503.467812807] [move_group.moveit.moveit.ros.trajectory_execution_manager]: Validating trajectory with allowed_start_tolerance 0.01
+[move_group-7] [INFO] [1792061503.469167901] [move_group.moveit.moveit.ros.trajectory_execution_manager]: Starting trajectory execution ...
+[move_group-7] [INFO] [1792061503.469194144] [move_group.moveit.moveit.plugins.simple_controller_manager]: Returned 2 controllers in list
+[move_group-7] [INFO] [1792061503.469210347] [move_group.moveit.moveit.plugins.simple_controller_manager]: Returned 2 controllers in list
+[move_group-7] [INFO] [1792061503.469275942] [moveit.simple_controller_manager.follow_joint_trajectory_controller_handle]: sending trajectory to joint_trajectory_controller
+[ros2_control_node-2] [INFO] [1792061503.469387710] [joint_trajectory_controller]: Received new action goal
+[ros2_control_node-2] [INFO] [1792061503.469404764] [joint_trajectory_controller]: Accepted new action goal
+[move_group-7] [INFO] [1792061503.469505734] [moveit.simple_controller_manager.follow_joint_trajectory_controller_handle]: joint_trajectory_controller started execution
+[move_group-7] [INFO] [1792061503.469512826] [moveit.simple_controller_manager.follow_joint_trajectory_controller_handle]: Goal request accepted!
+[ros2_control_node-2] [INFO] [1792061504.507068499] [joint_trajectory_controller]: Goal reached, success!
+[move_group-7] [INFO] [1792061504.519726480] [moveit.simple_controller_manager.follow_joint_trajectory_controller_handle]: Controller 'joint_trajectory_controller' successfully finished
+[move_group-7] [INFO] [1792061504.525224150] [move_group.moveit.moveit.ros.trajectory_execution_manager]: Completed trajectory execution with status SUCCEEDED ...
+[move_group-7] [INFO] [1792061504.525283838] [move_group.moveit.moveit.ros.move_group.clear_octomap_service]: Execution completed: SUCCEEDED
+[ros2_control_node-2] [INFO] [1792061505.026508213] [robotiq_gripper_controller]: Received & accepted new action goal
+[move_group-7] [INFO] [1792061506.079375991] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Received request to compute Cartesian path
+[move_group-7] [INFO] [1792061506.079429240] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Attempting to follow 1 waypoints for link 'tool0' using a step of 0.005000 m and jump threshold 0.000000 (in global reference frame)
+[move_group-7] [INFO] [1792061506.086327793] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Computed Cartesian path with 26 points (followed 100.000000% of requested trajectory)
+[move_group-7] [INFO] [1792061506.088899667] [move_group.moveit.moveit.ros.move_group.clear_octomap_service]: Execution request received
+[move_group-7] [INFO] [1792061506.088928480] [move_group.moveit.moveit.plugins.simple_controller_manager]: Returned 2 controllers in list
+[move_group-7] [INFO] [1792061506.088941720] [move_group.moveit.moveit.plugins.simple_controller_manager]: Returned 2 controllers in list
+[move_group-7] [INFO] [1792061506.088992991] [move_group.moveit.moveit.ros.trajectory_execution_manager]: Validating trajectory with allowed_start_tolerance 0.01
+[move_group-7] [INFO] [1792061506.089196241] [move_group.moveit.moveit.ros.trajectory_execution_manager]: Starting trajectory execution ...
+[move_group-7] [INFO] [1792061506.089222304] [move_group.moveit.moveit.plugins.simple_controller_manager]: Returned 2 controllers in list
+[move_group-7] [INFO] [1792061506.089259105] [move_group.moveit.moveit.plugins.simple_controller_manager]: Returned 2 controllers in list
+[move_group-7] [INFO] [1792061506.089328087] [moveit.simple_controller_manager.follow_joint_trajectory_controller_handle]: sending trajectory to joint_trajectory_controller
+[ros2_control_node-2] [INFO] [1792061506.089529939] [joint_trajectory_controller]: Received new action goal
+[ros2_control_node-2] [INFO] [1792061506.089548142] [joint_trajectory_controller]: Accepted new action goal
+[move_group-7] [INFO] [1792061506.089634826] [moveit.simple_controller_manager.follow_joint_trajectory_controller_handle]: joint_trajectory_controller started execution
+[move_group-7] [INFO] [1792061506.089642076] [moveit.simple_controller_manager.follow_joint_trajectory_controller_handle]: Goal request accepted!
+[ros2_control_node-2] [INFO] [1792061509.649083204] [joint_trajectory_controller]: Goal reached, success!
+[move_group-7] [INFO] [1792061509.689819454] [moveit.simple_controller_manager.follow_joint_trajectory_controller_handle]: Controller 'joint_trajectory_controller' successfully finished
+[move_group-7] [INFO] [1792061509.695244851] [move_group.moveit.moveit.ros.trajectory_execution_manager]: Completed trajectory execution with status SUCCEEDED ...
+[move_group-7] [INFO] [1792061509.695312714] [move_group.moveit.moveit.ros.move_group.clear_octomap_service]: Execution completed: SUCCEEDED
+[ros2_control_node-2] [INFO] [1792061511.196036721] [robotiq_gripper_controller]: Received & accepted new action goal
+[move_group-7] [INFO] [1792061664.843372372] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Received request to compute Cartesian path
+[move_group-7] [INFO] [1792061664.843439751] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Attempting to follow 1 waypoints for link 'tool0' using a step of 0.005000 m and jump threshold 0.000000 (in global reference frame)
+[move_group-7] [INFO] [1792061664.856729361] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Computed Cartesian path with 18 points (followed 16.190476% of requested trajectory)
+[move_group-7] [INFO] [1792061664.857069082] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Received request to compute Cartesian path
+[move_group-7] [INFO] [1792061664.857112052] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Attempting to follow 2 waypoints for link 'tool0' using a step of 0.005000 m and jump threshold 0.000000 (in global reference frame)
+[move_group-7] [INFO] [1792061664.867287573] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Computed Cartesian path with 18 points (followed 8.095238% of requested trajectory)
+[move_group-7] [INFO] [1792061664.867555378] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Received request to compute Cartesian path
+[move_group-7] [INFO] [1792061664.867620041] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Attempting to follow 3 waypoints for link 'tool0' using a step of 0.005000 m and jump threshold 0.000000 (in global reference frame)
+[move_group-7] [INFO] [1792061664.878373773] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Computed Cartesian path with 18 points (followed 5.396825% of requested trajectory)
+[move_group-7] [INFO] [1792061664.878667684] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Received request to compute Cartesian path
+[move_group-7] [INFO] [1792061664.878704720] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Attempting to follow 4 waypoints for link 'tool0' using a step of 0.005000 m and jump threshold 0.000000 (in global reference frame)
+[move_group-7] [INFO] [1792061664.887273138] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Computed Cartesian path with 18 points (followed 4.047619% of requested trajectory)
+[move_group-7] [INFO] [1792061664.887520458] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Received request to compute Cartesian path
+[move_group-7] [INFO] [1792061664.887556046] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Attempting to follow 4 waypoints for link 'tool0' using a step of 0.005000 m and jump threshold 0.000000 (in global reference frame)
+[move_group-7] [INFO] [1792061664.900209724] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Computed Cartesian path with 18 points (followed 4.047619% of requested trajectory)
+[move_group-7] [INFO] [1792061688.957363975] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Received request to compute Cartesian path
+[move_group-7] [INFO] [1792061688.957480536] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Attempting to follow 1 waypoints for link 'tool0' using a step of 0.005000 m and jump threshold 0.000000 (in global reference frame)
+[move_group-7] [INFO] [1792061688.967999177] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Computed Cartesian path with 18 points (followed 16.190476% of requested trajectory)
+[move_group-7] [INFO] [1792061688.968458997] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Received request to compute Cartesian path
+[move_group-7] [INFO] [1792061688.968569352] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Attempting to follow 2 waypoints for link 'tool0' using a step of 0.005000 m and jump threshold 0.000000 (in global reference frame)
+[move_group-7] [INFO] [1792061688.978087412] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Computed Cartesian path with 18 points (followed 8.095238% of requested trajectory)
+[move_group-7] [INFO] [1792061688.978400197] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Received request to compute Cartesian path
+[move_group-7] [INFO] [1792061688.978437697] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Attempting to follow 3 waypoints for link 'tool0' using a step of 0.005000 m and jump threshold 0.000000 (in global reference frame)
+[move_group-7] [INFO] [1792061688.989003696] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Computed Cartesian path with 18 points (followed 5.396825% of requested trajectory)
+[move_group-7] [INFO] [1792061688.989299530] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Received request to compute Cartesian path
+[move_group-7] [INFO] [1792061688.989335511] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Attempting to follow 4 waypoints for link 'tool0' using a step of 0.005000 m and jump threshold 0.000000 (in global reference frame)
+[move_group-7] [INFO] [1792061689.002781097] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Computed Cartesian path with 18 points (followed 4.047619% of requested trajectory)
+[move_group-7] [INFO] [1792061689.003108375] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Received request to compute Cartesian path
+[move_group-7] [INFO] [1792061689.003155158] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Attempting to follow 4 waypoints for link 'tool0' using a step of 0.005000 m and jump threshold 0.000000 (in global reference frame)
+[move_group-7] [INFO] [1792061689.013314706] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Computed Cartesian path with 18 points (followed 4.047619% of requested trajectory)
+[move_group-7] [INFO] [1792061750.979326631] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Received request to compute Cartesian path
+[move_group-7] [INFO] [1792061750.979385677] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Attempting to follow 1 waypoints for link 'tool0' using a step of 0.005000 m and jump threshold 0.000000 (in global reference frame)
+[move_group-7] [INFO] [1792061750.989020680] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Computed Cartesian path with 18 points (followed 16.190476% of requested trajectory)
+[move_group-7] [INFO] [1792061750.989381335] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Received request to compute Cartesian path
+[move_group-7] [INFO] [1792061750.989416880] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Attempting to follow 2 waypoints for link 'tool0' using a step of 0.005000 m and jump threshold 0.000000 (in global reference frame)
+[move_group-7] [INFO] [1792061750.997887502] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Computed Cartesian path with 18 points (followed 8.095238% of requested trajectory)
+[move_group-7] [INFO] [1792061750.998157025] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Received request to compute Cartesian path
+[move_group-7] [INFO] [1792061750.998193212] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Attempting to follow 3 waypoints for link 'tool0' using a step of 0.005000 m and jump threshold 0.000000 (in global reference frame)
+[move_group-7] [INFO] [1792061751.006503291] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Computed Cartesian path with 18 points (followed 5.396825% of requested trajectory)
+[move_group-7] [INFO] [1792061751.006726167] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Received request to compute Cartesian path
+[move_group-7] [INFO] [1792061751.006766083] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Attempting to follow 4 waypoints for link 'tool0' using a step of 0.005000 m and jump threshold 0.000000 (in global reference frame)
+[move_group-7] [INFO] [1792061751.018716437] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Computed Cartesian path with 18 points (followed 4.047619% of requested trajectory)
+[move_group-7] [INFO] [1792061751.019000218] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Received request to compute Cartesian path
+[move_group-7] [INFO] [1792061751.019034346] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Attempting to follow 4 waypoints for link 'tool0' using a step of 0.005000 m and jump threshold 0.000000 (in global reference frame)
+[move_group-7] [INFO] [1792061751.029172459] [move_group.moveit.moveit.ros.move_group.cartesian_path_service_capability]: Computed Cartesian path with 18 points (followed 4.047619% of requested trajectory)
