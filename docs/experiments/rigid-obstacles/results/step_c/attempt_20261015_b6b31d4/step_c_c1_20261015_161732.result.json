@@ -1,0 +1,40 @@
+{
+  "candidate_contact_grasp_pass": false,
+  "checks": {
+    "candidate_contact_grasp_pass": false,
+    "contact_padding_stage_logged": true,
+    "endpoint_contact_padding_matches": true,
+    "endpoint_padding_matches": true,
+    "endpoint_profile_matches": true,
+    "endpoint_safe_pregrasp_path_matches": true,
+    "endpoint_transit_padding_matches": true,
+    "moveit_pick_succeeded": true,
+    "route_metrics_present": true,
+    "safe_pregrasp_path_logged": true,
+    "scene_profile_and_padding_logged": true,
+    "tested_commit_matches": true,
+    "transit_padding_stage_logged": true,
+    "zero_robot_wall_contacts": false
+  },
+  "endpoint_result": "jazzy_fem_cable_endpoint_20261015_161206.result.json",
+  "grasp_region_lift_m": 0.12005487270653248,
+  "maximum_robot_obstacle_contacts": 81,
+  "moveit_contact_padding_m": 0.0,
+  "moveit_planning_time_s": 10.0,
+  "moveit_robot_padding_m": 0.0275,
+  "moveit_transit_padding_m": 0.0275,
+  "object_obstacle_max_penetration_m": 0.0,
+  "pass": false,
+  "release_drop_m": 0.11742308083921671,
+  "route": {
+    "max_end_effector_height_m": 0.382547,
+    "min_robot_wall_distance_m": 0.018486,
+    "obstacle_id": "step_c_cable_wall",
+    "samples": 54,
+    "stage": "safe_staged_pregrasp"
+  },
+  "scene_profile": "step_c_cable_wall",
+  "step": "C1_moved_cable_with_wall",
+  "tested_commit": "b6b31d47d799a04a82dbc4eea38f96cd392b9965",
+  "use_safe_pregrasp_path": true
+}

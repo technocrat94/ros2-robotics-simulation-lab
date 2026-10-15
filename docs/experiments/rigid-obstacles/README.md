@@ -333,3 +333,42 @@ also left the runner waiting for an unrelated result.  None is acceptance
 evidence.  Every case must use a fresh bringup, wait for endpoint readiness,
 open the fake gripper before state synchronization, and terminate all
 bringup/adapter/endpoint processes afterward.
+
+## Approved 0.16 m wall and C1 padding follow-up at `b6b31d4`
+
+The regular Step C wall was lowered to center `z=0.08 m`, size
+`(0.20, 0.05, 0.16) m`; its x/y placement, cable pose, physics, grasp
+parameters, planning time, and acceptance thresholds stayed unchanged.  The
+fresh geometry preflight passed all gates: start-pose distance `0.04829 m`
+(`0.02829 m` after the approved `0.02 m` padding), padded open-finger
+clearance `0.02579 m`, cable-to-wall face gap `0.1190 m`, and the straight
+transfer still intersects the wall.
+
+C1 completed the physical pick at 20, 25, and 27.5 mm transit padding, but
+failed the zero-wall-contact acceptance gate each time.  Raising padding also
+raised the safe cruise height and changed the IK posture; the reported
+un-padded robot-to-wall distance therefore became smaller rather than larger.
+At 30 mm the route was rejected before execution because elbow cumulative
+travel exceeded its existing safety limit.  No wall/cable geometry, contact
+parameter, grasp parameter, travel limit, or acceptance threshold was changed.
+
+| Transit padding | MoveIt pick | Lift / release drop | Max EE z | Min robot-wall distance | Newton wall contacts | Outcome |
+|---:|---|---|---:|---:|---:|---|
+| `0.020 m` | success | `0.120138 / 0.117674 m` | `0.375040 m` | `0.025936 m` | `83` | fail |
+| `0.025 m` | success | `0.120063 / 0.117486 m` | `0.380041 m` | `0.020970 m` | `81` | fail |
+| `0.0275 m` | success | `0.120055 / 0.117423 m` | `0.382547 m` | `0.018486 m` | `81` | fail |
+| `0.030 m` | not executed | n/a | planned `0.385 m` cruise | n/a | n/a | elbow travel `1.639 > 1.600 rad` |
+
+All executed C1 routes were higher than the accepted C0 reference
+(`0.351039 m`) and all lifted/released the cable correctly, but C1 remains a
+failure because `maximum_robot_obstacle_contacts` was not zero.  C2 was not
+run, following the user's stop instruction.
+
+Evidence (repository-relative):
+
+- [geometry preflight](results/step_c/attempt_20261015_b6b31d4/step_c_geometry_20261015_154905.result.json)
+- [padding sweep summary](results/step_c/attempt_20261015_b6b31d4/c1_padding_sweep_summary.json)
+- 20 mm: [combined result](results/step_c/attempt_20261015_b6b31d4/step_c_c1_20261015_155546.result.json), [pick log](results/step_c/attempt_20261015_b6b31d4/jazzy_fem_cable_pick_20261015_155051.log), [endpoint result](results/step_c/attempt_20261015_b6b31d4/jazzy_fem_cable_endpoint_20261015_155020.result.json), [endpoint log](results/step_c/attempt_20261015_b6b31d4/jazzy_fem_cable_endpoint_20261015_155020.log)
+- 25 mm: [combined result](results/step_c/attempt_20261015_b6b31d4/step_c_c1_20261015_161027.result.json), [pick log](results/step_c/attempt_20261015_b6b31d4/jazzy_fem_cable_pick_20261015_160537.log), [endpoint result](results/step_c/attempt_20261015_b6b31d4/jazzy_fem_cable_endpoint_20261015_160507.result.json), [endpoint log](results/step_c/attempt_20261015_b6b31d4/jazzy_fem_cable_endpoint_20261015_160507.log)
+- 27.5 mm: [combined result](results/step_c/attempt_20261015_b6b31d4/step_c_c1_20261015_161732.result.json), [pick log](results/step_c/attempt_20261015_b6b31d4/jazzy_fem_cable_pick_20261015_161235.log), [endpoint result](results/step_c/attempt_20261015_b6b31d4/jazzy_fem_cable_endpoint_20261015_161206.result.json), [endpoint log](results/step_c/attempt_20261015_b6b31d4/jazzy_fem_cable_endpoint_20261015_161206.log)
+- 30 mm route rejection: [pick log](results/step_c/attempt_20261015_b6b31d4/jazzy_fem_cable_pick_20261015_155756.log)

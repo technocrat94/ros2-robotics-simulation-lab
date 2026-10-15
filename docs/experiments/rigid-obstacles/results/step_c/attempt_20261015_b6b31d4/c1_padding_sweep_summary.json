@@ -1,0 +1,58 @@
+{
+  "step": "C1_padding_only_followup",
+  "tested_commit": "b6b31d47d799a04a82dbc4eea38f96cd392b9965",
+  "wall_center_m": [0.487, 0.263, 0.08],
+  "wall_size_m": [0.20, 0.05, 0.16],
+  "contact_padding_m": 0.0,
+  "c0_reference": {
+    "tested_commit": "5cb882e",
+    "max_end_effector_height_m": 0.351039,
+    "maximum_robot_obstacle_contacts": 0,
+    "pass": true
+  },
+  "attempts": [
+    {
+      "transit_padding_m": 0.02,
+      "moveit_pick_succeeded": true,
+      "grasp_region_lift_m": 0.12013831036165357,
+      "release_drop_m": 0.11767393350601196,
+      "max_end_effector_height_m": 0.37504,
+      "min_robot_wall_distance_m": 0.025936,
+      "maximum_robot_obstacle_contacts": 83,
+      "pass": false
+    },
+    {
+      "transit_padding_m": 0.025,
+      "moveit_pick_succeeded": true,
+      "grasp_region_lift_m": 0.12006268929690123,
+      "release_drop_m": 0.11748609063215554,
+      "max_end_effector_height_m": 0.380041,
+      "min_robot_wall_distance_m": 0.02097,
+      "maximum_robot_obstacle_contacts": 81,
+      "pass": false
+    },
+    {
+      "transit_padding_m": 0.0275,
+      "moveit_pick_succeeded": true,
+      "grasp_region_lift_m": 0.12005487270653248,
+      "release_drop_m": 0.11742308083921671,
+      "max_end_effector_height_m": 0.382547,
+      "min_robot_wall_distance_m": 0.018486,
+      "maximum_robot_obstacle_contacts": 81,
+      "pass": false
+    },
+    {
+      "transit_padding_m": 0.03,
+      "moveit_pick_succeeded": false,
+      "failure": "safe_pregrasp_joint_travel_limit",
+      "joint": "elbow_joint",
+      "cumulative_joint_travel_rad": 1.639,
+      "limit_rad": 1.6,
+      "robot_command_sent": false,
+      "pass": false
+    }
+  ],
+  "c1_pass": false,
+  "c2_run": false,
+  "stop_reason": "No padding-only C1 attempt satisfied zero robot-wall contacts; C2 was withheld by user instruction."
+}
