@@ -12,6 +12,10 @@ ROUTE_PATTERN = re.compile(
     r'max_end_effector_height_m=([-0-9.]+) '
     r'min_robot_box_distance_m=([-0-9.]+) obstacle_id=([^\s]+)'
 )
+C2_PLANNING_FAILURE_PATTERN = re.compile(
+    r"(Absolute pre-grasp planning failed|No motion plan found|PLANNING_FAILED|"
+    r"Safe pre-grasp path is incomplete)"
+)
 
 
 def route_metrics(text):
@@ -26,6 +30,11 @@ def route_metrics(text):
         "min_robot_wall_distance_m": float(distance),
         "obstacle_id": obstacle_id,
     }
+
+
+def c2_planning_failed(text):
+    """Recognize every guarded C2 planning failure emitted by the picker."""
+    return bool(C2_PLANNING_FAILURE_PATTERN.search(text))
 
 
 def main():
@@ -58,10 +67,7 @@ def main():
     }
 
     if args.case == "c2":
-        planning_failed = bool(re.search(
-            r"(Absolute pre-grasp planning failed|No motion plan found|PLANNING_FAILED)",
-            text,
-        ))
+        planning_failed = c2_planning_failed(text)
         no_robot_command = not any(marker in text for marker in (
             "Execute request accepted",
             "Sending gripper command",

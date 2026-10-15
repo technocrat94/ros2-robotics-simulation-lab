@@ -264,6 +264,19 @@ def check_grasp_pass_policy():
     print("[pass-policy] obstacle-contact guard unit test run")
 
 
+def check_step_c_result_extractor():
+    result = subprocess.run(
+        [sys.executable, str(REPO / "scripts/test_extract_step_c_result.py")],
+        capture_output=True, text=True,
+    )
+    if result.returncode != 0:
+        failures.append(
+            "step-c-result: test_extract_step_c_result.py failed: "
+            + (result.stderr or result.stdout).strip().splitlines()[-1]
+        )
+    print("[step-c-result] C2 planning-failure classifier unit test run")
+
+
 def check_step_c_safe_pregrasp_policy():
     paths = (
         REPO / "scripts/run_step_c_pick_jazzy.sh",
@@ -291,6 +304,7 @@ def main():
     check_cpp_calibration_table()
     check_obstacle_defaults()
     check_grasp_pass_policy()
+    check_step_c_result_extractor()
     check_step_c_safe_pregrasp_policy()
     if failures:
         print("\nFAILED:")
