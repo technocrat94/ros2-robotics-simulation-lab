@@ -18,8 +18,8 @@
     {
       "id": "step_c_cable_wall",
       "frame_id": "world",
-      "center_m": [0.487, 0.263, 0.10],
-      "size_m": [0.20, 0.05, 0.20],
+      "center_m": [0.487, 0.263, 0.08],
+      "size_m": [0.20, 0.05, 0.16],
       "contact": {
         "ke_n_m": 50000.0,
         "kd_n_s_m": 500.0,
