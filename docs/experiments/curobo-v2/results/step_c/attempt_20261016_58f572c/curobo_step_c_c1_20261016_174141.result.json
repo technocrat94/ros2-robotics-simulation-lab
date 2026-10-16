@@ -1,0 +1,49 @@
+{
+  "candidate_contact_grasp_pass": true,
+  "checks": {
+    "all_segment_planning_times_logged": true,
+    "candidate_contact_grasp_pass": true,
+    "contact_padding_stage_logged": true,
+    "cuda_0_logged": true,
+    "curobo_pick_succeeded": true,
+    "endpoint_contact_padding_matches": true,
+    "endpoint_cuda_0": true,
+    "endpoint_profile_matches": true,
+    "endpoint_transit_padding_matches": true,
+    "route_metrics_present": true,
+    "safe_pregrasp_path_logged": true,
+    "scene_profile_and_padding_logged": true,
+    "tested_commit_matches": true,
+    "transit_padding_stage_logged": true,
+    "zero_loaded_robot_wall_contacts": true,
+    "zero_penetrating_robot_wall_contacts": true,
+    "zero_robot_wall_contacts": true
+  },
+  "device": "cuda:0",
+  "endpoint_result": "jazzy_fem_cable_endpoint_20261016_173748.result.json",
+  "grasp_region_lift_m": 0.11997691262513399,
+  "maximum_robot_obstacle_candidate_contacts": 83,
+  "maximum_robot_obstacle_contacts": 0,
+  "maximum_robot_obstacle_loaded_contacts": 0,
+  "maximum_robot_obstacle_penetrating_contacts": 0,
+  "object_obstacle_max_penetration_m": 0.0,
+  "pass": true,
+  "pick_log": "curobo_step_c_pick_20261016_173829.log",
+  "planner": "curobo_v2",
+  "planning_time_by_segment_s": {
+    "approach": 1.570706,
+    "grasp": 0.072951,
+    "lift": 0.076487
+  },
+  "release_drop_m": 0.12059404072351754,
+  "route": {
+    "max_end_effector_height_m": 0.375155,
+    "min_robot_wall_distance_m": 0.03457,
+    "obstacle_id": "step_c_cable_wall",
+    "samples": 41,
+    "stage": "curobo_pregrasp"
+  },
+  "scene_profile": "step_c_cable_wall",
+  "step": "C1_curobo_planner_newton_fem_cable_wall",
+  "tested_commit": "58f572c4e85be355d52ddc7d16a7a45f69f61b4f"
+}

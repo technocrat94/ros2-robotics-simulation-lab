@@ -1,5 +1,5 @@
-Presentation media was recorded at `61bc7a45be35ea3cdb5532afb164ec587f99368d` on `cuda:0`, 1280x720 H.264, with the fixed grasp camera and no parameter changes.
-The default grasp passed with `0.119899 m` lift and `0.120357 m` release drop; both 1x and 6x clips are included.
-C0 passed with `0.119951 m` lift, `0.120466 m` release drop, and `0.351039 m` route height.
-C1 passed with `0.119893 m` lift, `0.120327 m` release drop, `0.375040 m` route height, and zero loaded or penetrating wall contacts.
-C2 passed at `4.0%` safe path with no robot command; all clips and captions are in `docs/experiments/rigid-obstacles/media/`.
+cuRobo V2 replaced only the Step C arm planner; ros2_control, the ROS-Newton bridge, FEM cable, wall, physics, grasp calibration, and acceptance rules remained unchanged.
+Commit `58f572c4e85be355d52ddc7d16a7a45f69f61b4f` passed on `cuda:0`: approach/grasp/lift planning took `1.570706 / 0.072951 / 0.076487 s`.
+The pre-grasp route reached `0.375155 m` and kept `0.034570 m` fitted-sphere clearance from the wall; all three FK endpoint errors were below `0.5 um`.
+Newton reported `candidate_contact_grasp_pass=true`, `0.1199769126 m` lift, `0.1205940407 m` release drop, and zero loaded or penetrating robot-wall contacts.
+Complete logs and JSON are in `docs/experiments/curobo-v2/results/step_c/attempt_20261016_58f572c/`; next milestone is moving-obstacle cuRobo replanning, not part of this task.

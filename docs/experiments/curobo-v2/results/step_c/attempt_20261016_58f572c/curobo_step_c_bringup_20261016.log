@@ -1,0 +1,197 @@
+[INFO] [launch]: All log files can be found below /home/aisc216/.ros/log/2026-10-16-17-37-24-782858-aisc-3080-82493
+[INFO] [launch]: Default logging verbosity is set to INFO
+WARNING:root:[33;21mCannot infer URDF from `/home/aisc216/ur5_ws/install_jazzy_port/ur5_moveit_demo/share/ur5_moveit_demo`. -- using config/ur.urdf[0m
+WARNING:root:[33;21mCannot infer SRDF from `/home/aisc216/ur5_ws/install_jazzy_port/ur5_moveit_demo/share/ur5_moveit_demo`. -- using config/ur.srdf[0m
+[INFO] [robot_state_publisher-1]: process started with pid [82497]
+[INFO] [ros2_control_node-2]: process started with pid [82498]
+[robot_state_publisher-1] [WARN] [1792143445.043289514] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[robot_state_publisher-1] [WARN] [1792143445.043298515] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+[ros2_control_node-2] [WARN] [1792143445.048656383] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[ros2_control_node-2] [WARN] [1792143445.048664583] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+[robot_state_publisher-1] [INFO] [1792143445.057662656] [robot_state_publisher]: Robot initialized
+[ros2_control_node-2] [INFO] [1792143445.062680323] [controller_manager]: Using Steady (Monotonic) clock for triggering controller manager cycles.
+[ros2_control_node-2] [INFO] [1792143445.064892565] [controller_manager]: Subscribing to '/robot_description' topic for robot description.
+[ros2_control_node-2] [INFO] [1792143445.066162677] [controller_manager]: update rate is 500 Hz
+[ros2_control_node-2] [INFO] [1792143445.066176551] [controller_manager]: Overruns handling is : enabled
+[ros2_control_node-2] [INFO] [1792143445.066180700] [controller_manager]: Spawning controller_manager RT thread with scheduler priority: 50
+[ros2_control_node-2] [WARN] [1792143445.066233077] [controller_manager]: Could not enable FIFO RT scheduling policy: with error number <1>(Operation not permitted). See [https://control.ros.org/master/doc/ros2_control/controller_manager/doc/userdoc.html] for details on how to enable realtime scheduling.
+[ros2_control_node-2] [INFO] [1792143445.409522593] [controller_manager]: Received robot description from topic.
+[ros2_control_node-2] [INFO] [1792143445.411683948] [controller_manager]: Loading hardware 'ur'
+[ros2_control_node-2] [INFO] [1792143445.411989081] [controller_manager]: Loaded hardware 'ur' from plugin 'mock_components/GenericSystem'
+[ros2_control_node-2] [INFO] [1792143445.412038678] [controller_manager]: Initialize hardware 'ur'
+[ros2_control_node-2] [INFO] [1792143445.415552883] [controller_manager]: Successful initialization of hardware 'ur'
+[ros2_control_node-2] [INFO] [1792143445.415755372] [controller_manager]: Loading hardware 'RobotiqGripperHardwareInterface'
+[ros2_control_node-2] [INFO] [1792143445.415771324] [controller_manager]: Loaded hardware 'RobotiqGripperHardwareInterface' from plugin 'mock_components/GenericSystem'
+[ros2_control_node-2] [INFO] [1792143445.415795493] [controller_manager]: Initialize hardware 'RobotiqGripperHardwareInterface'
+[ros2_control_node-2] [INFO] [1792143445.419317068] [controller_manager]: Successful initialization of hardware 'RobotiqGripperHardwareInterface'
+[ros2_control_node-2] [INFO] [1792143445.419394751] [resource_manager]: 'configure' hardware 'RobotiqGripperHardwareInterface'
+[ros2_control_node-2] [INFO] [1792143445.419404281] [resource_manager]: Successful 'configure' of hardware 'RobotiqGripperHardwareInterface'
+[ros2_control_node-2] [INFO] [1792143445.419408616] [resource_manager]: 'activate' hardware 'RobotiqGripperHardwareInterface'
+[ros2_control_node-2] [INFO] [1792143445.419413117] [resource_manager]: Successful 'activate' of hardware 'RobotiqGripperHardwareInterface'
+[ros2_control_node-2] [INFO] [1792143445.419453156] [resource_manager]: 'configure' hardware 'ur'
+[ros2_control_node-2] [INFO] [1792143445.419459521] [resource_manager]: Successful 'configure' of hardware 'ur'
+[ros2_control_node-2] [INFO] [1792143445.419465021] [resource_manager]: 'activate' hardware 'ur'
+[ros2_control_node-2] [INFO] [1792143445.419467192] [resource_manager]: Successful 'activate' of hardware 'ur'
+[ros2_control_node-2] [INFO] [1792143445.419481628] [controller_manager]: Registering statistics for : RobotiqGripperHardwareInterface
+[ros2_control_node-2] [INFO] [1792143445.419522011] [controller_manager]: Registering statistics for : ur
+[ros2_control_node-2] [INFO] [1792143445.419552473] [controller_manager]: Resource Manager has been successfully initialized. Starting Controller Manager services...
+[INFO] [spawner-3]: process started with pid [82548]
+[spawner-3] [WARN] [1792143447.274538138] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[spawner-3] [WARN] [1792143447.274546001] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+[spawner-3] [INFO] [1792143447.331448250] [spawner_joint_state_broadcaster]: waiting for service /controller_manager/list_controllers to become available...
+[INFO] [spawner-4]: process started with pid [82562]
+[spawner-4] [WARN] [1792143448.272869092] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[spawner-4] [WARN] [1792143448.272877003] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+[INFO] [spawner-5]: process started with pid [82567]
+[spawner-5] [WARN] [1792143448.773555923] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[spawner-5] [WARN] [1792143448.773564390] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+[ros2_control_node-2] [INFO] [1792143448.833272366] [controller_manager]: Loading controller : 'joint_state_broadcaster' of type 'joint_state_broadcaster/JointStateBroadcaster'
+[ros2_control_node-2] [INFO] [1792143448.833299037] [controller_manager]: Loading controller 'joint_state_broadcaster'
+[ros2_control_node-2] [INFO] [1792143448.835349343] [controller_manager]: Controller 'joint_state_broadcaster' node arguments: --ros-args --params-file /tmp/launch_params_7rtu28f8 --params-file /home/aisc216/ur5_ws/install_jazzy_port/ur5_moveit_demo/share/ur5_moveit_demo/config/combined_controllers.yaml
+[spawner-3] [INFO] [1792143448.843575512] [spawner_joint_state_broadcaster]: Loaded joint_state_broadcaster
+[ros2_control_node-2] [INFO] [1792143448.844095075] [controller_manager]: Configuring controller: 'joint_state_broadcaster'
+[ros2_control_node-2] [INFO] [1792143448.844157740] [joint_state_broadcaster]: 'joints' or 'interfaces' parameter is empty. All available state interfaces will be published
+[ros2_control_node-2] [INFO] [1792143448.851442951] [controller_manager]: Activating controllers: [ joint_state_broadcaster ]
+[ros2_control_node-2] [INFO] [1792143448.852532257] [controller_manager]: Successfully switched controllers!
+[spawner-3] [INFO] [1792143448.855363408] [spawner_joint_state_broadcaster]: Configured and activated joint_state_broadcaster
+[spawner-5] [INFO] [1792143448.932394188] [spawner_robotiq_gripper_controller]: waiting for service /controller_manager/list_controllers to become available...
+[INFO] [spawner-3]: process has finished cleanly [pid 82548]
+[INFO] [spawner-6]: process started with pid [82583]
+[spawner-6] [WARN] [1792143449.275361122] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[spawner-6] [WARN] [1792143449.275368498] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+[INFO] [move_group-7]: process started with pid [82588]
+[INFO] [rviz2-8]: process started with pid [82589]
+[move_group-7] [WARN] [1792143450.140872021] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[move_group-7] [WARN] [1792143450.140882622] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+[move_group-7] [INFO] [1792143450.160738806] [move_group.moveit.moveit.ros.rdf_loader]: Loaded robot model in 0.00285844 seconds
+[move_group-7] [INFO] [1792143450.160806118] [move_group.moveit.moveit.core.robot_model]: Loading robot model 'ur'...
+[move_group-7] [INFO] [1792143450.160817382] [move_group.moveit.moveit.core.robot_model]: No root/virtual joint specified in SRDF. Assuming fixed joint
+[move_group-7] [INFO] [1792143450.169027524] [move_group.moveit.moveit.kinematics.kdl_kinematics_plugin]: Joint weights for group 'ur_manipulator': 1 1 1 1 1 1
+[rviz2-8] /opt/ros/jazzy/lib/rviz2/rviz2: symbol lookup error: /snap/core20/current/lib/x86_64-linux-gnu/libpthread.so.0: undefined symbol: __libc_pthread_init, version GLIBC_PRIVATE
+[ERROR] [rviz2-8]: process has died [pid 82589, exit code 127, cmd '/opt/ros/jazzy/lib/rviz2/rviz2 -d /home/aisc216/ur5_ws/install_jazzy_port/ur5_moveit_demo/share/ur5_moveit_demo/rviz/view_robot.rviz --ros-args -r __node:=rviz2_moveit --params-file /tmp/launch_params_lykujmqk --params-file /tmp/launch_params_5yn_38qs --params-file /tmp/launch_params_lisamy1d'].
+[move_group-7] [INFO] [1792143450.219965504] [move_group.moveit.moveit.ros.planning_scene_monitor]: Publishing maintained planning scene on 'monitored_planning_scene'
+[move_group-7] [INFO] [1792143450.220075385] [move_group.moveit.moveit.ros.moveit_cpp]: Listening to 'joint_states' for joint states
+[move_group-7] [INFO] [1792143450.220547862] [move_group.moveit.moveit.ros.current_state_monitor]: Listening to joint states on topic 'joint_states'
+[move_group-7] [INFO] [1792143450.220776133] [move_group.moveit.moveit.ros.planning_scene_monitor]: Listening to '/attached_collision_object' for attached collision objects
+[move_group-7] [INFO] [1792143450.220788205] [move_group.moveit.moveit.ros.planning_scene_monitor]: Stopping existing planning scene publisher.
+[move_group-7] [INFO] [1792143450.220892130] [move_group.moveit.moveit.ros.planning_scene_monitor]: Stopped publishing maintained planning scene.
+[move_group-7] [INFO] [1792143450.221054408] [move_group.moveit.moveit.ros.planning_scene_monitor]: Publishing maintained planning scene on 'monitored_planning_scene'
+[move_group-7] [INFO] [1792143450.221101333] [move_group.moveit.moveit.ros.planning_scene_monitor]: Starting planning scene monitor
+[move_group-7] [INFO] [1792143450.221477741] [move_group.moveit.moveit.ros.planning_scene_monitor]: Listening to '/planning_scene'
+[move_group-7] [INFO] [1792143450.221488998] [move_group.moveit.moveit.ros.planning_scene_monitor]: Starting world geometry update monitor for collision objects, attached objects, octomap updates.
+[move_group-7] [INFO] [1792143450.221673783] [move_group.moveit.moveit.ros.planning_scene_monitor]: Listening to 'collision_object'
+[move_group-7] [INFO] [1792143450.221856120] [move_group.moveit.moveit.ros.planning_scene_monitor]: Listening to 'planning_scene_world' for planning scene world geometry
+[move_group-7] [WARN] [1792143450.221959746] [move_group.moveit.moveit.ros.occupancy_map_monitor]: Resolution not specified for Octomap. Assuming resolution = 0.1 instead
+[move_group-7] [ERROR] [1792143450.221971808] [move_group.moveit.moveit.ros.occupancy_map_monitor]: No 3D sensor plugin(s) defined for octomap updates
+[move_group-7] [INFO] [1792143450.234530872] [move_group.moveit.moveit.ros.planning_pipeline]: Successfully loaded planner 'OMPL'
+[move_group-7] [INFO] [1792143450.235200420] [move_group]: Try loading adapter 'default_planning_request_adapters/ResolveConstraintFrames'
+[move_group-7] [INFO] [1792143450.235830319] [move_group]: Loaded adapter 'default_planning_request_adapters/ResolveConstraintFrames'
+[move_group-7] [INFO] [1792143450.235841633] [move_group]: Try loading adapter 'default_planning_request_adapters/ValidateWorkspaceBounds'
+[move_group-7] [INFO] [1792143450.235952355] [move_group]: Loaded adapter 'default_planning_request_adapters/ValidateWorkspaceBounds'
+[move_group-7] [INFO] [1792143450.235960459] [move_group]: Try loading adapter 'default_planning_request_adapters/CheckStartStateBounds'
+[move_group-7] [INFO] [1792143450.235976773] [move_group]: Loaded adapter 'default_planning_request_adapters/CheckStartStateBounds'
+[move_group-7] [INFO] [1792143450.235980820] [move_group]: Try loading adapter 'default_planning_request_adapters/CheckStartStateCollision'
+[move_group-7] [INFO] [1792143450.235988831] [move_group]: Loaded adapter 'default_planning_request_adapters/CheckStartStateCollision'
+[move_group-7] [INFO] [1792143450.236629623] [move_group]: Try loading adapter 'default_planning_response_adapters/AddTimeOptimalParameterization'
+[move_group-7] [INFO] [1792143450.237961378] [move_group]: Loaded adapter 'default_planning_response_adapters/AddTimeOptimalParameterization'
+[move_group-7] [INFO] [1792143450.237970090] [move_group]: Try loading adapter 'default_planning_response_adapters/ValidateSolution'
+[move_group-7] [INFO] [1792143450.239370626] [move_group]: Loaded adapter 'default_planning_response_adapters/ValidateSolution'
+[move_group-7] [INFO] [1792143450.239380992] [move_group]: Try loading adapter 'default_planning_response_adapters/DisplayMotionPath'
+[move_group-7] [INFO] [1792143450.239667429] [move_group]: Loaded adapter 'default_planning_response_adapters/DisplayMotionPath'
+[move_group-7] [INFO] [1792143450.252353869] [move_group.moveit.moveit.plugins.simple_controller_manager]: Added FollowJointTrajectory controller for scaled_joint_trajectory_controller
+[move_group-7] [INFO] [1792143450.253239077] [move_group.moveit.moveit.plugins.simple_controller_manager]: Added FollowJointTrajectory controller for joint_trajectory_controller
+[move_group-7] [INFO] [1792143450.253350459] [move_group.moveit.moveit.plugins.simple_controller_manager]: Returned 2 controllers in list
+[move_group-7] [INFO] [1792143450.253373049] [move_group.moveit.moveit.plugins.simple_controller_manager]: Returned 2 controllers in list
+[move_group-7] [INFO] [1792143450.253551669] [move_group.moveit.moveit.ros.trajectory_execution_manager]: Trajectory execution is not managing controllers
+[move_group-7] [INFO] [1792143450.253563646] [move_group]: MoveGroup debug mode is ON
+[move_group-7] [INFO] [1792143450.262417706] [move_group.moveit.moveit.ros.move_group.executable]:
+[move_group-7]
+[move_group-7] ********************************************************
+[move_group-7] * MoveGroup using:
+[move_group-7] *     - apply_planning_scene_service
+[move_group-7] *     - clear_octomap_service
+[move_group-7] *     - get_group_urdf
+[move_group-7] *     - load_geometry_from_file
+[move_group-7] *     - CartesianPathService
+[move_group-7] *     - execute_trajectory_action
+[move_group-7] *     - get_planning_scene_service
+[move_group-7] *     - kinematics_service
+[move_group-7] *     - move_action
+[move_group-7] *     - motion_plan_service
+[move_group-7] *     - query_planners_service
+[move_group-7] *     - state_validation_service
+[move_group-7] *     - save_geometry_to_file
+[move_group-7] ********************************************************
+[move_group-7]
+[move_group-7] [INFO] [1792143450.262446605] [move_group.moveit.moveit.ros.move_group.context]: MoveGroup context using pipeline ompl
+[move_group-7] [INFO] [1792143450.262455410] [move_group.moveit.moveit.ros.move_group.context]: MoveGroup context initialization complete
+[move_group-7] [96mLoading 'move_group/ApplyPlanningSceneService'...[0m
+[move_group-7] [96mLoading 'move_group/ClearOctomapService'...[0m
+[move_group-7] [96mLoading 'move_group/GetUrdfService'...[0m
+[move_group-7] [96mLoading 'move_group/LoadGeometryFromFileService'...[0m
+[move_group-7] [96mLoading 'move_group/MoveGroupCartesianPathService'...[0m
+[move_group-7] [96mLoading 'move_group/MoveGroupExecuteTrajectoryAction'...[0m
+[move_group-7] [96mLoading 'move_group/MoveGroupGetPlanningSceneService'...[0m
+[move_group-7] [96mLoading 'move_group/MoveGroupKinematicsService'...[0m
+[move_group-7] [96mLoading 'move_group/MoveGroupMoveAction'...[0m
+[move_group-7] [96mLoading 'move_group/MoveGroupPlanService'...[0m
+[move_group-7] [96mLoading 'move_group/MoveGroupQueryPlannersService'...[0m
+[move_group-7] [96mLoading 'move_group/MoveGroupStateValidationService'...[0m
+[move_group-7] [96mLoading 'move_group/SaveGeometryToFileService'...[0m
+[move_group-7]
+[move_group-7] [92mYou can start planning now![0m
+[move_group-7]
+[ros2_control_node-2] [INFO] [1792143451.746378305] [controller_manager]: Received robot description from topic.
+[ros2_control_node-2] [WARN] [1792143451.746407214] [controller_manager]: ResourceManager has already loaded a urdf. Ignoring attempt to reload a robot description.
+[ros2_control_node-2] [INFO] [1792143452.109531795] [controller_manager]: Loading controller : 'robotiq_gripper_controller' of type 'position_controllers/GripperActionController'
+[ros2_control_node-2] [INFO] [1792143452.109561173] [controller_manager]: Loading controller 'robotiq_gripper_controller'
+[ros2_control_node-2] [INFO] [1792143452.110516211] [controller_manager]: Controller 'robotiq_gripper_controller' node arguments: --ros-args --params-file /tmp/launch_params_7rtu28f8 --params-file /home/aisc216/ur5_ws/install_jazzy_port/ur5_moveit_demo/share/ur5_moveit_demo/config/combined_controllers.yaml
+[ros2_control_node-2] [WARN] [1792143452.115746642] [robotiq_gripper_controller]: [Deprecated]: the `position_controllers/GripperActionController` and `effort_controllers::GripperActionController` controllers are replaced by 'parallel_gripper_controllers/GripperActionController' controller
+[spawner-5] [INFO] [1792143452.117385072] [spawner_robotiq_gripper_controller]: Loaded robotiq_gripper_controller
+[ros2_control_node-2] [INFO] [1792143452.118008747] [controller_manager]: Configuring controller: 'robotiq_gripper_controller'
+[ros2_control_node-2] [INFO] [1792143452.118051478] [robotiq_gripper_controller]: Action status changes will be monitored at 20.000000 Hz.
+[ros2_control_node-2] [INFO] [1792143452.119346434] [controller_manager]: Activating controllers: [ robotiq_gripper_controller ]
+[ros2_control_node-2] [WARN] [1792143452.122840619] [controller_manager]: Overrun might occur, Total time : 2409.472 us (Expected < 2000.000 us) --> Read time : 11.732 us, Update time : 2394.859 us (Switch time : 2386.605 us (Switch chained mode time : 0.244 us, perform mode change time : 2.762 us, Activation time : 2382.749 us, Deactivation time : 0.137 us)), Write time : 2.881 us
+[ros2_control_node-2] [WARN] [1792143452.122862143] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.487626 ms (missed cycles : 2).
+[ros2_control_node-2] [INFO] [1792143452.122870084] [controller_manager]: Successfully switched controllers!
+[spawner-5] [INFO] [1792143452.125404501] [spawner_robotiq_gripper_controller]: Configured and activated robotiq_gripper_controller
+[spawner-6] [INFO] [1792143452.192536897] [spawner_robotiq_activation_controller]: waiting for service /controller_manager/list_controllers to become available...
+[INFO] [spawner-5]: process has finished cleanly [pid 82567]
+[ros2_control_node-2] [INFO] [1792143454.945154050] [controller_manager]: Loading controller : 'robotiq_activation_controller' of type 'robotiq_controllers/RobotiqActivationController'
+[ros2_control_node-2] [INFO] [1792143454.945181164] [controller_manager]: Loading controller 'robotiq_activation_controller'
+[ros2_control_node-2] [INFO] [1792143454.946091070] [controller_manager]: Controller 'robotiq_activation_controller' node arguments: --ros-args --params-file /tmp/launch_params_7rtu28f8 --params-file /home/aisc216/ur5_ws/install_jazzy_port/ur5_moveit_demo/share/ur5_moveit_demo/config/combined_controllers.yaml
+[spawner-6] [INFO] [1792143454.953570263] [spawner_robotiq_activation_controller]: Loaded robotiq_activation_controller
+[ros2_control_node-2] [INFO] [1792143454.954256966] [controller_manager]: Configuring controller: 'robotiq_activation_controller'
+[ros2_control_node-2] [INFO] [1792143454.955426152] [controller_manager]: Activating controllers: [ robotiq_activation_controller ]
+[ros2_control_node-2] [INFO] [1792143454.957397232] [controller_manager]: Successfully switched controllers!
+[spawner-6] [INFO] [1792143454.959461488] [spawner_robotiq_activation_controller]: Configured and activated robotiq_activation_controller
+[spawner-4] [INFO] [1792143455.052129218] [spawner_joint_trajectory_controller]: waiting for service /controller_manager/list_controllers to become available...
+[INFO] [spawner-6]: process has finished cleanly [pid 82583]
+[ros2_control_node-2] [INFO] [1792143457.807156869] [controller_manager]: Loading controller : 'joint_trajectory_controller' of type 'joint_trajectory_controller/JointTrajectoryController'
+[ros2_control_node-2] [INFO] [1792143457.807187745] [controller_manager]: Loading controller 'joint_trajectory_controller'
+[ros2_control_node-2] [INFO] [1792143457.808390356] [controller_manager]: Controller 'joint_trajectory_controller' node arguments: --ros-args --params-file /tmp/launch_params_7rtu28f8 --params-file /home/aisc216/ur5_ws/install_jazzy_port/ur5_moveit_demo/share/ur5_moveit_demo/config/combined_controllers.yaml
+[spawner-4] [INFO] [1792143457.819551230] [spawner_joint_trajectory_controller]: Loaded joint_trajectory_controller
+[ros2_control_node-2] [INFO] [1792143457.820217506] [controller_manager]: Configuring controller: 'joint_trajectory_controller'
+[ros2_control_node-2] [INFO] [1792143457.820356040] [joint_trajectory_controller]: No specific joint names are used for command interfaces. Using 'joints' parameter.
+[ros2_control_node-2] [INFO] [1792143457.820377553] [joint_trajectory_controller]: Command interfaces are [position] and state interfaces are [position velocity].
+[ros2_control_node-2] [INFO] [1792143457.820402338] [joint_trajectory_controller]: Using 'splines' interpolation method.
+[ros2_control_node-2] [INFO] [1792143457.821940685] [joint_trajectory_controller]: Action status changes will be monitored at 20.00 Hz.
+[ros2_control_node-2] [INFO] [1792143457.827357032] [controller_manager]: Activating controllers: [ joint_trajectory_controller ]
+[ros2_control_node-2] [INFO] [1792143457.828601524] [controller_manager]: Successfully switched controllers!
+[spawner-4] [INFO] [1792143457.831424225] [spawner_joint_trajectory_controller]: Configured and activated joint_trajectory_controller
+[INFO] [spawner-4]: process has finished cleanly [pid 82562]
+[ros2_control_node-2] [WARN] [1792143469.823053972] [controller_manager]: Overrun might occur, Total time : 2621.963 us (Expected < 2000.000 us) --> Read time : 17.539 us, Update time : 2601.410 us, Write time : 3.014 us
+[ros2_control_node-2] [WARN] [1792143469.823099368] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 2.724736 ms (missed cycles : 2).
+[ros2_control_node-2] [WARN] [1792143546.852128892] [controller_manager]: Overrun detected! The controller manager missed its desired rate of 500 Hz. The loop took 3.753884 ms (missed cycles : 2).
+[ros2_control_node-2] [INFO] [1792143556.619827743] [robotiq_gripper_controller]: Received & accepted new action goal
+[ros2_control_node-2] [INFO] [1792143556.671777027] [joint_trajectory_controller]: Received new action goal
+[ros2_control_node-2] [INFO] [1792143556.671809178] [joint_trajectory_controller]: Accepted new action goal
+[ros2_control_node-2] [INFO] [1792143561.672461851] [joint_trajectory_controller]: Goal reached, success!
+[ros2_control_node-2] [INFO] [1792143561.723418646] [joint_trajectory_controller]: Received new action goal
+[ros2_control_node-2] [INFO] [1792143561.723443645] [joint_trajectory_controller]: Accepted new action goal
+[ros2_control_node-2] [INFO] [1792143562.760446237] [joint_trajectory_controller]: Goal reached, success!
+[ros2_control_node-2] [INFO] [1792143562.774164836] [robotiq_gripper_controller]: Received & accepted new action goal
+[ros2_control_node-2] [INFO] [1792143563.825960037] [joint_trajectory_controller]: Received new action goal
+[ros2_control_node-2] [INFO] [1792143563.825985152] [joint_trajectory_controller]: Accepted new action goal
+[ros2_control_node-2] [INFO] [1792143567.384475618] [joint_trajectory_controller]: Goal reached, success!
+[ros2_control_node-2] [INFO] [1792143568.426802366] [robotiq_gripper_controller]: Received & accepted new action goal
