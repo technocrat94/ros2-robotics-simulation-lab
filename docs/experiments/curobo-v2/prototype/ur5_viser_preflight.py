@@ -20,6 +20,7 @@ import subprocess
 import sys
 import threading
 import time
+from types import SimpleNamespace
 from typing import Any
 
 import numpy as np
@@ -387,26 +388,81 @@ def plan_cable_pick(
     pregrasp_position, orientation = pregrasp_target(object_center)
     grasp_position = pregrasp_position.copy()
     grasp_position[2] -= approach_distance_m
-    grasp_pose = Pose.from_list([*grasp_position.tolist(), *orientation.tolist()])
-    goal = GoalToolPose.from_poses(
-        {TOOL_FRAME: grasp_pose},
-        ordered_tool_frames=[TOOL_FRAME],
-        num_goalset=1,
+    lift_position = grasp_position.copy()
+    lift_position[2] += LIFT_DISTANCE_M
+    targets = (
+        ("approach", pregrasp_position),
+        ("grasp", grasp_position),
+        ("lift", lift_position),
     )
+    phase_results: dict[str, Any] = {}
+    phase_times: dict[str, float] = {}
+    current_state = start_state
     started = time.monotonic()
-    result = planner.plan_grasp(
-        goal,
-        start_state,
-        grasp_approach_axis="z",
-        grasp_approach_offset=-approach_distance_m,
-        grasp_approach_in_tool_frame=True,
-        grasp_lift_axis="z",
-        grasp_lift_offset=LIFT_DISTANCE_M,
-        grasp_lift_in_tool_frame=False,
-        plan_approach_to_grasp=True,
-        plan_grasp_to_lift=True,
-    )
+    for phase, position in targets:
+        pose = Pose.from_list([*position.tolist(), *orientation.tolist()])
+        goal = GoalToolPose.from_poses(
+            {TOOL_FRAME: pose},
+            ordered_tool_frames=[TOOL_FRAME],
+            num_goalset=1,
+        )
+        torch.cuda.synchronize()
+        phase_started = time.monotonic()
+        phase_result = planner.plan_pose(goal, current_state)
+        torch.cuda.synchronize()
+        phase_times[phase] = time.monotonic() - phase_started
+        phase_results[phase] = phase_result
+        if phase_result is None or not phase_result.success.any():
+            break
+        active = effective_trajectory(
+            phase_result.interpolated_trajectory,
+            phase_result.interpolated_last_tstep,
+        ).reorder(list(ARM_JOINT_NAMES))
+        end_position = active.position.reshape(-1, len(ARM_JOINT_NAMES))[-1]
+        current_state = JointState.from_position(
+            end_position.unsqueeze(0),
+            joint_names=list(ARM_JOINT_NAMES),
+        )
     elapsed = time.monotonic() - started
+    false = torch.tensor([False], device=start_state.position.device)
+    approach_result = phase_results.get("approach")
+    grasp_result = phase_results.get("grasp")
+    lift_result = phase_results.get("lift")
+
+    def succeeded(phase_result) -> torch.Tensor:
+        return false if phase_result is None else phase_result.success
+
+    success = succeeded(lift_result)
+    result = SimpleNamespace(
+        success=success,
+        approach_success=succeeded(approach_result),
+        grasp_success=succeeded(grasp_result),
+        lift_success=success,
+        status=(
+            "Planning to lift pose succeeded."
+            if bool(success.any().item())
+            else "Sequential cuRobo pose planning failed."
+        ),
+        approach_interpolated_trajectory=(
+            None if approach_result is None else approach_result.interpolated_trajectory
+        ),
+        approach_interpolated_last_tstep=(
+            None if approach_result is None else approach_result.interpolated_last_tstep
+        ),
+        grasp_interpolated_trajectory=(
+            None if grasp_result is None else grasp_result.interpolated_trajectory
+        ),
+        grasp_interpolated_last_tstep=(
+            None if grasp_result is None else grasp_result.interpolated_last_tstep
+        ),
+        lift_interpolated_trajectory=(
+            None if lift_result is None else lift_result.interpolated_trajectory
+        ),
+        lift_interpolated_last_tstep=(
+            None if lift_result is None else lift_result.interpolated_last_tstep
+        ),
+        segment_planning_time_s=phase_times,
+    )
     return result, elapsed
 
 

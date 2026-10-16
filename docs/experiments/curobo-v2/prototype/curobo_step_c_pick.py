@@ -48,6 +48,7 @@ LIFT_EXECUTION_S = 3.559
 CONTACT_HOLD_S = 1.0
 LIFT_HOLD_S = 1.0
 START_TOLERANCE_RAD = 0.01
+ENDPOINT_TOLERANCE_M = 0.002
 
 
 class ControllerClient(Node):
@@ -229,6 +230,9 @@ def padded_planning_scene(
 
 
 def phase_planning_time(result: Any, phase: str) -> float:
+    measured_times = getattr(result, "segment_planning_time_s", {})
+    if phase in measured_times:
+        return float(measured_times[phase])
     phase_result = getattr(result, f"{phase}_result", None)
     if phase_result is None:
         return float("nan")
@@ -294,6 +298,28 @@ def route_metrics(
         "max_end_effector_height_m": float(np.max(tool_positions[:, 2])),
         "min_robot_wall_distance_m": minimum_distance,
     }
+
+
+def trajectory_endpoint_position(
+    planner,
+    trajectory: JointState,
+    last_tstep: torch.Tensor,
+) -> np.ndarray:
+    """Return tool0 world position at the final valid trajectory sample."""
+
+    active = preflight.effective_trajectory(trajectory, last_tstep)
+    active = active.reorder(list(preflight.ARM_JOINT_NAMES))
+    end_position = active.position.reshape(
+        -1, len(preflight.ARM_JOINT_NAMES)
+    )[-1]
+    end_state = JointState.from_position(
+        end_position.unsqueeze(0),
+        joint_names=list(preflight.ARM_JOINT_NAMES),
+    )
+    tool_pose = planner.kinematics.compute_kinematics(end_state).tool_poses[
+        preflight.TOOL_FRAME
+    ]
+    return tool_pose.position.detach().cpu().reshape(3).numpy()
 
 
 def obstacle_for_profile(repo: Path, profile_name: str) -> dict[str, Any]:
@@ -400,6 +426,50 @@ def execute() -> int:
         summary = preflight.pick_result_summary(result, wall_elapsed)
         if not summary["success"]:
             raise RuntimeError(f"cuRobo planning failed: {result.status}")
+
+        pregrasp_position, _ = preflight.pregrasp_target(measured_object_center)
+        grasp_position = pregrasp_position.copy()
+        grasp_position[2] -= calibration["approach_distance_m"]
+        lift_position = grasp_position.copy()
+        lift_position[2] += preflight.LIFT_DISTANCE_M
+        endpoint_checks = (
+            (
+                "approach",
+                result.approach_interpolated_trajectory,
+                result.approach_interpolated_last_tstep,
+                pregrasp_position,
+            ),
+            (
+                "grasp",
+                result.grasp_interpolated_trajectory,
+                result.grasp_interpolated_last_tstep,
+                grasp_position,
+            ),
+            (
+                "lift",
+                result.lift_interpolated_trajectory,
+                result.lift_interpolated_last_tstep,
+                lift_position,
+            ),
+        )
+        for phase, trajectory, last_tstep, target in endpoint_checks:
+            actual = trajectory_endpoint_position(
+                planner,
+                trajectory,
+                last_tstep,
+            )
+            error = float(np.linalg.norm(actual - target))
+            print(
+                "CUROBO_PHASE_ENDPOINT "
+                f"segment={phase} error_m={error:.9f} "
+                f"actual={actual.tolist()} target={target.tolist()}",
+                flush=True,
+            )
+            if error > ENDPOINT_TOLERANCE_M:
+                raise RuntimeError(
+                    f"{phase} endpoint error {error:.6f} m exceeds "
+                    f"{ENDPOINT_TOLERANCE_M:.6f} m."
+                )
 
         planning_times = {
             phase: phase_planning_time(result, phase)
