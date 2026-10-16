@@ -10,7 +10,6 @@ started and no command is sent to robot hardware.
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import math
 from pathlib import Path
@@ -32,61 +31,35 @@ from curobo.viewer import ViserVisualizer
 import ur5_viser_preflight as preflight
 
 
-OBSTACLE_NAME = "route_crossing_cylinder"
+CYLINDER_NAME = "route_crossing_cylinder"
 CYLINDER_RADIUS_M = 0.05
 CYLINDER_HEIGHT_M = 0.25
-# SceneCollision's generic backend has no analytic cylinder kernel.  Use its
-# fast native cuboid primitive as a conservative bounding volume so a 200 ms
-# control cycle remains achievable; Viser still renders the requested cylinder.
-COLLISION_REPRESENTATION = "conservative-0.10x0.10x0.25-m-cuboid"
-# The handoff's 0.30-0.45 m z range intersects the fitted UR5 + Robotiq
-# collision spheres at both shuttle endpoints.  This calibrated range keeps
-# the vertical 0.25 m cylinder close enough to influence the route while
-# allowing all seeded evidence runs to maintain positive clearance.
-RANDOM_BOUNDS_M = np.asarray(
-    [[0.44, 0.53], [0.15, 0.38], [0.60, 0.68]], dtype=np.float64
-)
-RANDOM_MAX_SPEED_M_S = 0.15
+CYLINDER_FLOOR_CENTER_Z_M = 0.5 * CYLINDER_HEIGHT_M
+CYLINDER_CENTER_X_M = 0.487
+# Automatic mode keeps the tested box-demo route above the robot. Interactive
+# mode overrides z so the vertical cylinder starts exactly on the floor.
+CYLINDER_CENTER_Z_M = 0.52
+CYLINDER_Y_MIN_M = 0.15
+CYLINDER_Y_MAX_M = 0.38
+CYLINDER_PERIOD_S = 6.0
 INTERPOLATION_DT_S = 0.025
-DISTANCE_ACTIVATION_M = 0.09
+DISTANCE_ACTIVATION_M = 2.0
 GOAL_POSITION_TOLERANCE_M = 0.006
 
 
-class SmoothRandomMotion:
-    """Seeded random waypoint motion with a smoothstep speed profile."""
+def cylinder_y_at_time(elapsed_s: float) -> float:
+    """Return a smooth back-and-forth cylinder position spanning both limits."""
 
-    def __init__(self, seed: int):
-        self.rng = np.random.default_rng(seed)
-        self.segment_start_s = 0.0
-        self.start = RANDOM_BOUNDS_M.mean(axis=1)
-        self.end = self._new_waypoint()
-        self.duration_s = self._segment_duration(self.start, self.end)
-
-    def _new_waypoint(self) -> np.ndarray:
-        return self.rng.uniform(RANDOM_BOUNDS_M[:, 0], RANDOM_BOUNDS_M[:, 1])
-
-    @staticmethod
-    def _segment_duration(start: np.ndarray, end: np.ndarray) -> float:
-        # Smoothstep's maximum derivative is 1.5, so this duration strictly
-        # bounds Cartesian speed by RANDOM_MAX_SPEED_M_S.
-        distance = float(np.linalg.norm(end - start))
-        return max(0.2, 1.5 * distance / RANDOM_MAX_SPEED_M_S)
-
-    def position(self, elapsed_s: float) -> np.ndarray:
-        while elapsed_s >= self.segment_start_s + self.duration_s:
-            self.segment_start_s += self.duration_s
-            self.start = self.end
-            self.end = self._new_waypoint()
-            self.duration_s = self._segment_duration(self.start, self.end)
-        u = (elapsed_s - self.segment_start_s) / self.duration_s
-        u = min(max(u, 0.0), 1.0)
-        smooth_u = u * u * (3.0 - 2.0 * u)
-        return self.start + smooth_u * (self.end - self.start)
+    midpoint = 0.5 * (CYLINDER_Y_MIN_M + CYLINDER_Y_MAX_M)
+    amplitude = 0.5 * (CYLINDER_Y_MAX_M - CYLINDER_Y_MIN_M)
+    # Begin at the upper limit so the first lazy planner query has an endpoint
+    # pose, rather than a route-centre pose, for the moving obstacle.
+    return midpoint + amplitude * math.cos(2.0 * math.pi * elapsed_s / CYLINDER_PERIOD_S)
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Live CUDA cuRobo replanning around a moving cylinder."
+        description="Live CUDA cuRobo replanning while a cylinder crosses the UR5 route."
     )
     parser.add_argument(
         "--duration",
@@ -96,8 +69,9 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--interval", type=float, default=0.2)
     parser.add_argument("--port", type=int, default=8082)
-    parser.add_argument("--mode", choices=("random", "interactive"), default="random")
-    parser.add_argument("--seed", type=int, default=7)
+    parser.add_argument(
+        "--mode", choices=("automatic", "interactive"), default="automatic"
+    )
     parser.add_argument("--show-spheres", action="store_true")
     parser.add_argument("--headless", action="store_true")
     parser.add_argument("--rebuild-model", action="store_true")
@@ -117,26 +91,40 @@ def parse_args() -> argparse.Namespace:
     return args
 
 
-def make_scene(position: np.ndarray) -> tuple[Scene, list[float]]:
-    """Create the conservative cylinder bounding volume for cuRobo."""
+def make_scene(cylinder_y_m: float) -> tuple[Scene, dict[str, Any], list[float]]:
+    """Create a scene containing only the moving cylinder, never the Step C wall."""
 
-    obstacle_pose = [*position.tolist(), 1.0, 0.0, 0.0, 0.0]
-    return (
-        Scene(
-            cuboid=[
-                Cuboid(
-                    name=OBSTACLE_NAME,
-                    dims=[
-                        2.0 * CYLINDER_RADIUS_M,
-                        2.0 * CYLINDER_RADIUS_M,
-                        CYLINDER_HEIGHT_M,
-                    ],
-                    pose=obstacle_pose,
-                )
-            ]
-        ),
-        obstacle_pose,
+    cylinder_pose = [
+        CYLINDER_CENTER_X_M,
+        cylinder_y_m,
+        CYLINDER_CENTER_Z_M,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+    ]
+    scene_model = {
+        "cuboid": {
+            CYLINDER_NAME: {
+                "dims": [
+                    2.0 * CYLINDER_RADIUS_M,
+                    2.0 * CYLINDER_RADIUS_M,
+                    CYLINDER_HEIGHT_M,
+                ],
+                "pose": cylinder_pose,
+            }
+        }
+    }
+    scene = Scene(
+        cuboid=[
+            Cuboid(
+                name=CYLINDER_NAME,
+                dims=scene_model["cuboid"][CYLINDER_NAME]["dims"],
+                pose=cylinder_pose,
+            )
+        ]
     )
+    return scene, scene_model, cylinder_pose
 
 
 def goal_from_pose(pose: Pose) -> GoalToolPose:
@@ -196,7 +184,7 @@ def make_collision_buffer(planner: Any, sample_state: JointState) -> CollisionBu
     )
 
 
-def minimum_obstacle_clearance_m(
+def minimum_cylinder_clearance_m(
     planner: Any,
     positions: torch.Tensor,
     collision_buffer: CollisionBuffer,
@@ -248,33 +236,18 @@ def tool_position(planner: Any, state: JointState) -> np.ndarray:
     return pose.position.detach().cpu().reshape(-1, 3)[0].numpy()
 
 
-def path_sha256(samples: list[list[float]]) -> str:
-    """Hash rounded path samples so independent seeded runs are comparable."""
-
-    normalized = np.round(np.asarray(samples, dtype=np.float64), decimals=6)
-    return hashlib.sha256(normalized.tobytes()).hexdigest()
-
-
 def summarize(
     samples_ms: list[float],
     successes: int,
     attempts: int,
     clearances_m: list[float],
     goal_switches: int,
-    obstacle_path: list[list[float]],
-    arm_path: list[list[float]],
-    sample_times_s: list[float],
 ) -> dict[str, Any]:
     """Build the machine-readable final result."""
 
     ordered = sorted(samples_ms)
     p95_index = max(0, math.ceil(0.95 * len(ordered)) - 1)
     minimum_clearance = min(clearances_m) if clearances_m else None
-    obstacle_array = np.asarray(obstacle_path, dtype=np.float64)
-    time_array = np.asarray(sample_times_s, dtype=np.float64)
-    observed_speeds = np.linalg.norm(np.diff(obstacle_array, axis=0), axis=1) / np.diff(
-        time_array
-    )
     return {
         "device": "cuda:0",
         "attempts": attempts,
@@ -286,11 +259,6 @@ def summarize(
         "overall_minimum_clearance_m": minimum_clearance,
         "clearance_positive": minimum_clearance is not None and minimum_clearance > 0.0,
         "goal_switches": goal_switches,
-        "obstacle_path_sha256": path_sha256(obstacle_path),
-        "arm_path_sha256": path_sha256(arm_path),
-        "obstacle_path_min_m": np.min(obstacle_array, axis=0).tolist(),
-        "obstacle_path_max_m": np.max(obstacle_array, axis=0).tolist(),
-        "maximum_observed_obstacle_speed_m_s": float(np.max(observed_speeds)),
         "finite_measurements": bool(samples_ms)
         and all(math.isfinite(value) for value in samples_ms + clearances_m),
     }
@@ -306,9 +274,13 @@ def main() -> int:
         args.rebuild_model,
     )
 
-    random_motion = SmoothRandomMotion(args.seed)
-    initial_obstacle_position = random_motion.position(0.0)
-    scene_model, obstacle_pose = make_scene(initial_obstacle_position)
+    initial_cylinder_y = cylinder_y_at_time(0.0)
+    _scene, scene_model, cylinder_pose = make_scene(initial_cylinder_y)
+    if args.mode == "interactive":
+        # A tall floor-standing cylinder at the box demo's upper y limit would
+        # cover the pre-grasp target. Start it midway across the same drag range.
+        cylinder_pose[1] = 0.5 * (CYLINDER_Y_MIN_M + CYLINDER_Y_MAX_M)
+        cylinder_pose[2] = CYLINDER_FLOOR_CENTER_Z_M
     planner = preflight.create_pick_planner(config_path, scene_model)
     robot = Kinematics(KinematicsCfg.from_robot_yaml_file(str(config_path)))
     current_state = preflight.make_initial_joint_state(
@@ -338,8 +310,8 @@ def main() -> int:
     goal_name = "cable_pregrasp"
 
     visualizer = None
-    obstacle_handle = None
-    obstacle_controls = None
+    cylinder_handle = None
+    cylinder_controls = None
     status_handle = None
     if not args.headless:
         visualizer = ViserVisualizer(
@@ -354,21 +326,20 @@ def main() -> int:
         visualizer._server.initial_camera.look_at = (0.35, 0.27, 0.30)
         visualizer._server.initial_camera.up = (0.0, 0.0, 1.0)
         visualizer.set_joint_state(current_state.squeeze(0))
-        obstacle_handle = visualizer._server.scene.add_cylinder(
-            name=f"/obstacles/{OBSTACLE_NAME}",
+        cylinder_handle = visualizer._server.scene.add_cylinder(
+            name=f"/obstacles/{CYLINDER_NAME}",
             radius=CYLINDER_RADIUS_M,
             height=CYLINDER_HEIGHT_M,
-            position=initial_obstacle_position,
+            position=np.asarray(cylinder_pose[:3]),
             color=(220, 65, 55),
             opacity=0.88,
         )
         if args.mode == "interactive":
-            obstacle_controls = visualizer._server.scene.add_transform_controls(
+            cylinder_controls = visualizer._server.scene.add_transform_controls(
                 name="/controls/cylinder",
-                position=initial_obstacle_position,
+                position=np.asarray(cylinder_pose[:3]),
                 scale=0.12,
                 disable_rotations=True,
-                translation_limits=tuple(tuple(row) for row in RANDOM_BOUNDS_M),
             )
         visualizer._server.scene.add_icosphere(
             name="/targets/start",
@@ -395,15 +366,21 @@ def main() -> int:
                 **cache_status,
                 "duration_s": args.duration,
                 "interval_s": args.interval,
-                "trajectory_dt_s": INTERPOLATION_DT_S,
                 "mode": args.mode,
-                "seed": args.seed,
-                "obstacle": "vertical_cylinder",
+                "trajectory_dt_s": INTERPOLATION_DT_S,
                 "cylinder_radius_m": CYLINDER_RADIUS_M,
                 "cylinder_height_m": CYLINDER_HEIGHT_M,
-                "collision_representation": COLLISION_REPRESENTATION,
-                "random_bounds_m": RANDOM_BOUNDS_M.tolist(),
-                "random_max_speed_m_s": RANDOM_MAX_SPEED_M_S,
+                "collision_dims_m": [
+                    2.0 * CYLINDER_RADIUS_M,
+                    2.0 * CYLINDER_RADIUS_M,
+                    CYLINDER_HEIGHT_M,
+                ],
+                "initial_cylinder_position_m": cylinder_pose[:3],
+                "initial_cylinder_bottom_z_m": (
+                    cylinder_pose[2] - 0.5 * CYLINDER_HEIGHT_M
+                ),
+                "cylinder_y_limits_m": [CYLINDER_Y_MIN_M, CYLINDER_Y_MAX_M],
+                "cylinder_period_s": CYLINDER_PERIOD_S,
                 "start_tool_position_m": start_position.tolist(),
                 "pregrasp_tool_position_m": pregrasp_position.tolist(),
                 "ros": False,
@@ -413,20 +390,21 @@ def main() -> int:
         flush=True,
     )
 
-    # Prime lazy planner kernels without the dynamic obstacle so one-time CUDA
-    # initialization is not mislabeled as a periodic replan.
-    planner.scene_collision_checker.enable_obstacle(OBSTACLE_NAME, False)
+    # Prime lazy planner kernels without the dynamic obstacle.  Its initial
+    # upper-limit pose deliberately guards the pre-grasp endpoint, so using it
+    # during the one-time warm-up would reject the goal before the live loop.
+    planner.scene_collision_checker.enable_obstacle(CYLINDER_NAME, False)
     torch.cuda.synchronize()
     prime_started = time.perf_counter()
     prime_result = planner.plan_pose(goals[goal_name], current_state)
     torch.cuda.synchronize()
     prime_ms = (time.perf_counter() - prime_started) * 1000.0
-    planner.scene_collision_checker.enable_obstacle(OBSTACLE_NAME, True)
+    planner.scene_collision_checker.enable_obstacle(CYLINDER_NAME, True)
     prime_trajectory = active_trajectory(prime_result)
     if prime_trajectory is None:
         raise RuntimeError("Initial cuRobo dodge planner prime failed")
     collision_buffer = make_collision_buffer(planner, current_state)
-    prime_clearance = minimum_obstacle_clearance_m(
+    prime_clearance = minimum_cylinder_clearance_m(
         planner, current_state.position, collision_buffer
     )
     print(
@@ -440,15 +418,13 @@ def main() -> int:
         ),
         flush=True,
     )
+    last_safe_cylinder_position = np.asarray(cylinder_pose[:3], dtype=np.float64).copy()
 
     samples_ms: list[float] = []
     clearances_m: list[float] = []
     successes = 0
     attempts = 0
     goal_switches = 0
-    obstacle_path: list[list[float]] = []
-    arm_path: list[list[float]] = []
-    sample_times_s: list[float] = []
     started = time.monotonic()
     next_tick = started
     interrupted = False
@@ -465,19 +441,44 @@ def main() -> int:
             if args.duration > 0.0 and elapsed >= args.duration:
                 break
 
-            if args.mode == "random":
-                obstacle_position = random_motion.position(elapsed)
+            placement_rejected = False
+            placement_clearance_m = None
+            if args.mode == "automatic":
+                cylinder_pose[1] = cylinder_y_at_time(elapsed)
             else:
-                if obstacle_controls is None:
+                if cylinder_controls is None:
                     raise RuntimeError("interactive controls were not created")
-                obstacle_position = np.asarray(obstacle_controls.position, dtype=np.float64)
-            obstacle_pose[:3] = obstacle_position.tolist()
+                requested_cylinder_position = np.asarray(
+                    cylinder_controls.position, dtype=np.float64
+                )
+                if np.isfinite(requested_cylinder_position).all():
+                    cylinder_pose[:3] = requested_cylinder_position.tolist()
+                    planner.scene_collision_checker.update_obstacle_pose(
+                        CYLINDER_NAME,
+                        Pose.from_list(cylinder_pose),
+                    )
+                    placement_clearance_m = minimum_cylinder_clearance_m(
+                        planner,
+                        current_state.position,
+                        collision_buffer,
+                    )
+                if (
+                    not np.isfinite(requested_cylinder_position).all()
+                    or placement_clearance_m is None
+                    or placement_clearance_m < 0.0
+                ):
+                    placement_rejected = True
+                    cylinder_pose[:3] = last_safe_cylinder_position.tolist()
+                    cylinder_controls.position = last_safe_cylinder_position
+                else:
+                    last_safe_cylinder_position = requested_cylinder_position.copy()
+            cylinder_y = float(cylinder_pose[1])
             planner.scene_collision_checker.update_obstacle_pose(
-                OBSTACLE_NAME,
-                Pose.from_list(obstacle_pose),
+                CYLINDER_NAME,
+                Pose.from_list(cylinder_pose),
             )
-            if obstacle_handle is not None:
-                obstacle_handle.position = obstacle_position
+            if cylinder_handle is not None:
+                cylinder_handle.position = np.asarray(cylinder_pose[:3], dtype=np.float64)
 
             torch.cuda.synchronize()
             plan_started = time.perf_counter()
@@ -506,18 +507,15 @@ def main() -> int:
                     joint_names=list(preflight.ARM_JOINT_NAMES),
                 )
 
-            minimum_clearance = minimum_obstacle_clearance_m(
+            minimum_clearance = minimum_cylinder_clearance_m(
                 planner,
                 executed_positions,
                 collision_buffer,
             )
             clearances_m.append(minimum_clearance)
-            current_tool_position = tool_position(planner, current_state)
-            obstacle_path.append(obstacle_position.tolist())
-            arm_path.append(current_tool_position.tolist())
-            sample_times_s.append(elapsed)
 
             if trajectory is not None:
+                current_tool_position = tool_position(planner, current_state)
                 goal_error = float(
                     np.linalg.norm(current_tool_position - target_positions[goal_name])
                 )
@@ -539,7 +537,10 @@ def main() -> int:
             record = {
                 "attempt": attempts,
                 "elapsed_s": elapsed,
-                "obstacle_position_m": obstacle_position.tolist(),
+                "cylinder_position_m": cylinder_pose[:3],
+                "cylinder_y_m": cylinder_y,
+                "placement_rejected": placement_rejected,
+                "placement_clearance_m": placement_clearance_m,
                 "goal": goal_name,
                 "replan_ms": replan_ms,
                 "success": success,
@@ -553,7 +554,8 @@ def main() -> int:
                     f"**Live CUDA dodge replanning**  \n"
                     f"Cycle: `{attempts}` | Goal: `{goal_name}` | Switches: `{goal_switches}`  \n"
                     f"Latest: `{replan_ms:.1f} ms` | Success: `{success}`  \n"
-                    f"Obstacle xyz: `{np.round(obstacle_position, 3).tolist()}`  \n"
+                    f"Cylinder xyz: `{np.round(cylinder_pose[:3], 3).tolist()}`  \n"
+                    f"Placement rejected: `{placement_rejected}`  \n"
                     f"Clearance: `{minimum_clearance:.4f} m`"
                 )
             next_tick = max(next_tick + args.interval, time.monotonic())
@@ -567,18 +569,14 @@ def main() -> int:
         attempts,
         clearances_m,
         goal_switches,
-        obstacle_path,
-        arm_path,
-        sample_times_s,
     )
     summary.update(
         {
             "requested_duration_s": args.duration,
-            "elapsed_s": time.monotonic() - started,
+            "wall_elapsed_s": time.monotonic() - started,
             "interval_s": args.interval,
             "mode": args.mode,
-            "seed": args.seed,
-            "collision_representation": COLLISION_REPRESENTATION,
+            "cylinder_period_s": CYLINDER_PERIOD_S,
             "interrupted": interrupted,
         }
     )
