@@ -1,0 +1,166 @@
+]0;cuRobo moving-wall replanningWarming up cuRobo motion planner...
+╭────── viser (listening *:8081) ───────╮
+│             ╷                         │
+│   HTTP      │ http://localhost:8081   │
+│   Websocket │ ws://localhost:8081     │
+│             ╵                         │
+╰───────────────────────────────────────╯
+MOVING_WALL_VISER_URL http://127.0.0.1:8081/
+CUROBO_MOVING_WALL_START {"device": "cuda:0", "gpu": "NVIDIA GeForce RTX 3080", "torch": "2.7.0+cu128", "torch_cuda": "12.8", "curobo": "0.8.0.post1.dev43", "curobo_path": "/home/aisc216/ur5_ws/src/ur5_moveit_demo/curobo/curobo/__init__.py", "cache_hit": true, "duration_s": 30.0, "interval_s": 0.2, "scene_profile": "step_c_cable_wall", "wall_size_m": [0.2, 0.05, 0.16], "wall_center_xyz_m": [0.487, 0.263, 0.08], "target_position_m": [0.487, 0.41, 0.263], "ros": false, "newton": false}
+CUROBO_MOVING_WALL_PRIME {"replan_ms": 1534.8326820094371, "success": true}
+CUROBO_MOVING_WALL_START_DELAY 8.000
+MOVING_WALL_REPLAN {"attempt": 1, "elapsed_s": 3.1170056900009513e-06, "wall_x_m": 0.4870002448090544, "replan_ms": 75.17226200434379, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 2, "elapsed_s": 0.20006644300883636, "wall_x_m": 0.502648600657001, "replan_ms": 72.11205500061624, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 3, "elapsed_s": 0.4000960609992035, "wall_x_m": 0.5179088747031197, "replan_ms": 72.31738399423193, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 4, "elapsed_s": 0.6000615390075836, "wall_x_m": 0.5324033563892159, "replan_ms": 73.22537001164164, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 5, "elapsed_s": 0.8000915459997486, "wall_x_m": 0.5457843419143602, "replan_ms": 73.11156000650954, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 6, "elapsed_s": 1.0000948980014073, "wall_x_m": 0.557715948181138, "replan_ms": 72.21665699034929, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 7, "elapsed_s": 1.200090911006555, "wall_x_m": 0.567905896096589, "replan_ms": 72.43066400405951, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 8, "elapsed_s": 1.400060593005037, "wall_x_m": 0.5761028128421513, "replan_ms": 74.0453170001274, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 9, "elapsed_s": 1.6000602850108407, "wall_x_m": 0.582107114648442, "replan_ms": 67.53704200673383, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 10, "elapsed_s": 1.800063674003468, "wall_x_m": 0.5857696162560893, "replan_ms": 78.21669000259135, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 11, "elapsed_s": 2.0000592790020164, "wall_x_m": 0.5869999998916194, "replan_ms": 86.36168099474162, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 12, "elapsed_s": 2.2000607500085607, "wall_x_m": 0.5857680875521842, "replan_ms": 71.66878000134602, "success": true, "waypoints": 41}
+(viser) Connection opened (0, 1 total), 193 persistent messages
+MOVING_WALL_REPLAN {"attempt": 13, "elapsed_s": 2.40006237399939, "wall_x_m": 0.5821041376898237, "replan_ms": 83.40990899887402, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 14, "elapsed_s": 2.6000621410057647, "wall_x_m": 0.5760984365924828, "replan_ms": 73.54127301368862, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 15, "elapsed_s": 2.800058363005519, "wall_x_m": 0.5678990050508637, "replan_ms": 75.84017599583603, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 16, "elapsed_s": 3.000060140999267, "wall_x_m": 0.5577073380470302, "replan_ms": 79.60214599734172, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 17, "elapsed_s": 3.200092963001225, "wall_x_m": 0.5457726181991931, "replan_ms": 71.56179800222162, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 18, "elapsed_s": 3.4000910200120416, "wall_x_m": 0.5323926803240465, "replan_ms": 78.01762998860795, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 19, "elapsed_s": 3.6000608559988905, "wall_x_m": 0.5178971537144268, "replan_ms": 71.64475601166487, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 20, "elapsed_s": 3.800062776004779, "wall_x_m": 0.5026385767707264, "replan_ms": 71.83404899842571, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 21, "elapsed_s": 4.0000616000033915, "wall_x_m": 0.486995161947049, "replan_ms": 73.28416100062896, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 22, "elapsed_s": 4.200087144999998, "wall_x_m": 0.47134979344566275, "replan_ms": 71.73373299883679, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 23, "elapsed_s": 4.400058851009817, "wall_x_m": 0.45609390467201494, "replan_ms": 70.18353800231125, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 24, "elapsed_s": 4.600060028998996, "wall_x_m": 0.4415967492778426, "replan_ms": 71.90496000112034, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 25, "elapsed_s": 4.800059928005794, "wall_x_m": 0.4282176670076071, "replan_ms": 71.61550500313751, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 26, "elapsed_s": 5.000060120000853, "wall_x_m": 0.41628598313359766, "replan_ms": 72.37110300047789, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 27, "elapsed_s": 5.200059934009914, "wall_x_m": 0.406095533825793, "replan_ms": 71.6648579982575, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 28, "elapsed_s": 5.400091287010582, "wall_x_m": 0.39789609285035604, "replan_ms": 71.66431899531744, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 29, "elapsed_s": 5.60006218100898, "wall_x_m": 0.3918928393422326, "replan_ms": 79.18391199200414, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 30, "elapsed_s": 5.800064410010236, "wall_x_m": 0.3882303747039574, "replan_ms": 72.67907699861098, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 31, "elapsed_s": 6.000065560001531, "wall_x_m": 0.38700000013256464, "replan_ms": 74.7764370025834, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 32, "elapsed_s": 6.200062890013214, "wall_x_m": 0.38823193874868817, "replan_ms": 74.5938850013772, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 33, "elapsed_s": 6.400063958004466, "wall_x_m": 0.39189590076006775, "replan_ms": 72.95001699822024, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 34, "elapsed_s": 6.600060709009995, "wall_x_m": 0.39790151234296833, "replan_ms": 70.88844499958213, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 35, "elapsed_s": 6.8000602800020715, "wall_x_m": 0.40610108345208634, "replan_ms": 70.88217099953908, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 36, "elapsed_s": 7.000061891012592, "wall_x_m": 0.4162927591464314, "replan_ms": 71.26342899573501, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 37, "elapsed_s": 7.2000644670042675, "wall_x_m": 0.4282255710825206, "replan_ms": 74.41627900698222, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 38, "elapsed_s": 7.4000671620015055, "wall_x_m": 0.4416056500517333, "replan_ms": 73.14215500082355, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 39, "elapsed_s": 7.600092421998852, "wall_x_m": 0.4561052041794326, "replan_ms": 71.49205601308495, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 40, "elapsed_s": 7.8000660550023895, "wall_x_m": 0.47136167759253683, "replan_ms": 75.77929701074027, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 41, "elapsed_s": 8.000062101011281, "wall_x_m": 0.48700487740201853, "replan_ms": 73.17398600571323, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 42, "elapsed_s": 8.200059571012389, "wall_x_m": 0.5026480675807554, "replan_ms": 73.47813199157827, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 43, "elapsed_s": 8.400064354005735, "wall_x_m": 0.5179065063722278, "replan_ms": 71.45494800352026, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 44, "elapsed_s": 8.60006243501266, "wall_x_m": 0.5324034190896376, "replan_ms": 75.16320400463883, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 45, "elapsed_s": 8.800063482005498, "wall_x_m": 0.5457825588057466, "replan_ms": 73.32027699158061, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 46, "elapsed_s": 9.000090665998869, "wall_x_m": 0.5577157131696169, "replan_ms": 73.78754300589208, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 47, "elapsed_s": 9.200066082004923, "wall_x_m": 0.567904749974272, "replan_ms": 74.3573439976899, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 48, "elapsed_s": 9.40006329100288, "wall_x_m": 0.5761029090336687, "replan_ms": 72.29286798974499, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 49, "elapsed_s": 9.600091735002934, "wall_x_m": 0.5821078778038465, "replan_ms": 72.82631899579428, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 50, "elapsed_s": 9.80006552200939, "wall_x_m": 0.5857696389540343, "replan_ms": 71.99389599554706, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 51, "elapsed_s": 10.000062995008193, "wall_x_m": 0.5869999998776054, "replan_ms": 75.63534298969898, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 52, "elapsed_s": 10.200061566007207, "wall_x_m": 0.5857680775235117, "replan_ms": 72.20366099500097, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 53, "elapsed_s": 10.400060655010748, "wall_x_m": 0.5821041794161188, "replan_ms": 73.60163200064562, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 54, "elapsed_s": 10.600060310011031, "wall_x_m": 0.5760985018851975, "replan_ms": 73.54291700175963, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 55, "elapsed_s": 10.800060546011082, "wall_x_m": 0.5678989042669266, "replan_ms": 73.15113399818074, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 56, "elapsed_s": 11.000058849007473, "wall_x_m": 0.5577074098024866, "replan_ms": 72.54237799497787, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 57, "elapsed_s": 11.200060881004902, "wall_x_m": 0.5457746567801931, "replan_ms": 73.5235059983097, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 58, "elapsed_s": 11.400060817002668, "wall_x_m": 0.5323947939794113, "replan_ms": 73.74681500368752, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 59, "elapsed_s": 11.600060224009212, "wall_x_m": 0.5178972009221333, "replan_ms": 72.15517299482599, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 60, "elapsed_s": 11.800064667011611, "wall_x_m": 0.502638430078754, "replan_ms": 74.07302399224136, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 61, "elapsed_s": 12.000060436999775, "wall_x_m": 0.4869952532891394, "replan_ms": 73.31650200649165, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 62, "elapsed_s": 12.200059195005451, "wall_x_m": 0.4713519615869629, "replan_ms": 73.55958299012855, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 63, "elapsed_s": 12.40005855599884, "wall_x_m": 0.456093926707767, "replan_ms": 70.10812299267855, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 64, "elapsed_s": 12.60005996300606, "wall_x_m": 0.4415967538958837, "replan_ms": 73.25266300176736, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 65, "elapsed_s": 12.800061685004039, "wall_x_m": 0.42821755537173134, "replan_ms": 73.88628298940603, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 66, "elapsed_s": 13.00006024700997, "wall_x_m": 0.4162859760803481, "replan_ms": 72.12140200135764, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 67, "elapsed_s": 13.200118312000996, "wall_x_m": 0.4060928390920019, "replan_ms": 73.2683719979832, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 68, "elapsed_s": 13.400058828003239, "wall_x_m": 0.39789725008554366, "replan_ms": 72.68484099768102, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 69, "elapsed_s": 13.600060393000604, "wall_x_m": 0.39189288273101386, "replan_ms": 72.24704200052656, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 70, "elapsed_s": 13.80005981400609, "wall_x_m": 0.3882304311546078, "replan_ms": 73.11162499536294, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 71, "elapsed_s": 14.000061523009208, "wall_x_m": 0.3870000001167414, "replan_ms": 70.49605899374001, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 72, "elapsed_s": 14.200063513009809, "wall_x_m": 0.3882319464054314, "replan_ms": 70.34769299207255, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 73, "elapsed_s": 14.400059350009542, "wall_x_m": 0.39189578890672816, "replan_ms": 72.35544300056063, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 74, "elapsed_s": 14.600061168006505, "wall_x_m": 0.3979015287106369, "replan_ms": 72.17524699808564, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 75, "elapsed_s": 14.800061526999343, "wall_x_m": 0.4061011410229389, "replan_ms": 69.82997100567445, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 76, "elapsed_s": 15.000098825999885, "wall_x_m": 0.41629481049869776, "replan_ms": 70.71524400089402, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 77, "elapsed_s": 15.20009205500537, "wall_x_m": 0.428227324103663, "replan_ms": 72.09116499871016, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 78, "elapsed_s": 15.400061864012969, "wall_x_m": 0.4416052792916329, "replan_ms": 72.80377400456928, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 79, "elapsed_s": 15.600059953008895, "wall_x_m": 0.4561027788349696, "replan_ms": 73.88999201066326, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 80, "elapsed_s": 15.800059961999068, "wall_x_m": 0.47136120493713385, "replan_ms": 72.66431399330031, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 81, "elapsed_s": 16.000061272003222, "wall_x_m": 0.4870048122918779, "replan_ms": 71.42461100011133, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 82, "elapsed_s": 16.200061629002448, "wall_x_m": 0.5026482272237283, "replan_ms": 70.97957999212667, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 83, "elapsed_s": 16.400060066007427, "wall_x_m": 0.5179061860818314, "replan_ms": 72.27483499445952, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 84, "elapsed_s": 16.60006200900534, "wall_x_m": 0.5324033892786055, "replan_ms": 71.51777199760545, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 85, "elapsed_s": 16.800091935001547, "wall_x_m": 0.5457843666302584, "replan_ms": 72.25886199739762, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 86, "elapsed_s": 17.00005922499986, "wall_x_m": 0.5577139671639237, "replan_ms": 72.80406000791118, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 87, "elapsed_s": 17.20005976500397, "wall_x_m": 0.5679044583726292, "replan_ms": 71.7718529922422, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 88, "elapsed_s": 17.400091284012888, "wall_x_m": 0.5761039070427721, "replan_ms": 70.73407698771916, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 89, "elapsed_s": 17.600093537999783, "wall_x_m": 0.58210792155303, "replan_ms": 75.79677199828438, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 90, "elapsed_s": 17.80005885301216, "wall_x_m": 0.5857695570417736, "replan_ms": 73.65800900151953, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 91, "elapsed_s": 18.0000606149988, "wall_x_m": 0.5869999998866791, "replan_ms": 73.6948909907369, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 92, "elapsed_s": 18.20006497199938, "wall_x_m": 0.5857680356632247, "replan_ms": 73.72699100233149, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 93, "elapsed_s": 18.400090558003285, "wall_x_m": 0.5821034535337295, "replan_ms": 73.4172059892444, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 94, "elapsed_s": 18.600059914999292, "wall_x_m": 0.5760985159711717, "replan_ms": 72.4834070133511, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 95, "elapsed_s": 18.800096090999432, "wall_x_m": 0.5678972632097635, "replan_ms": 71.49976499204058, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 96, "elapsed_s": 19.000097344003734, "wall_x_m": 0.557705271811835, "replan_ms": 71.10278299660422, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 97, "elapsed_s": 19.20006153199938, "wall_x_m": 0.5457746154145293, "replan_ms": 72.10479299828876, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 98, "elapsed_s": 19.400062958011404, "wall_x_m": 0.532394644149004, "replan_ms": 71.49878099153284, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 99, "elapsed_s": 19.60005936201196, "wall_x_m": 0.5178972653106936, "replan_ms": 71.63171999854967, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 100, "elapsed_s": 19.8000655650103, "wall_x_m": 0.5026383604178625, "replan_ms": 71.70440199843142, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 101, "elapsed_s": 20.000091573005193, "wall_x_m": 0.48699280787299676, "replan_ms": 72.01101700775325, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 102, "elapsed_s": 20.200060251008836, "wall_x_m": 0.47135187967036796, "replan_ms": 72.94933400407899, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 103, "elapsed_s": 20.400093167001614, "wall_x_m": 0.4560913414611375, "replan_ms": 72.29451199236792, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 104, "elapsed_s": 20.600062508005067, "wall_x_m": 0.4415965758025189, "replan_ms": 70.91685499472078, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 105, "elapsed_s": 20.80005926800368, "wall_x_m": 0.4282177089427457, "replan_ms": 72.50803998613264, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 106, "elapsed_s": 21.000091532012448, "wall_x_m": 0.41628423873886233, "replan_ms": 71.34104099532124, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 107, "elapsed_s": 21.20009044901235, "wall_x_m": 0.40609412522907284, "replan_ms": 71.31128601031378, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 108, "elapsed_s": 21.4001061420131, "wall_x_m": 0.3978955632560749, "replan_ms": 71.24077600019518, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 109, "elapsed_s": 21.600061596007436, "wall_x_m": 0.39189285353817677, "replan_ms": 73.76298400049563, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 110, "elapsed_s": 21.80005935500958, "wall_x_m": 0.38823043679232605, "replan_ms": 71.90856500528753, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 111, "elapsed_s": 22.000090725006885, "wall_x_m": 0.38700000025386555, "replan_ms": 71.81762999971397, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 112, "elapsed_s": 22.200061018011183, "wall_x_m": 0.38823191574157967, "replan_ms": 71.5574889909476, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 113, "elapsed_s": 22.40009164600633, "wall_x_m": 0.39189657287806945, "replan_ms": 72.33716698829085, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 114, "elapsed_s": 22.600090891006403, "wall_x_m": 0.39790258864794575, "replan_ms": 72.20619199506473, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 115, "elapsed_s": 22.80006165600207, "wall_x_m": 0.4061011469786877, "replan_ms": 71.98116699873935, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 116, "elapsed_s": 23.000059210011386, "wall_x_m": 0.41629261024716935, "replan_ms": 76.10820399713702, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 117, "elapsed_s": 23.200062320000143, "wall_x_m": 0.4282254346568447, "replan_ms": 73.35020700702444, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 118, "elapsed_s": 23.400060015002964, "wall_x_m": 0.44160514989570265, "replan_ms": 76.25172300322447, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 119, "elapsed_s": 23.600058875003015, "wall_x_m": 0.45610269831123273, "replan_ms": 71.20060799934436, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 120, "elapsed_s": 23.800061826012097, "wall_x_m": 0.47136134953505215, "replan_ms": 72.0020519947866, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 121, "elapsed_s": 24.000059825004428, "wall_x_m": 0.4870046986448584, "replan_ms": 72.46080800541677, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 122, "elapsed_s": 24.20005986900651, "wall_x_m": 0.5026480906968401, "replan_ms": 72.01998301025014, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 123, "elapsed_s": 24.40005949100305, "wall_x_m": 0.5179061431320721, "replan_ms": 71.661521011265, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 124, "elapsed_s": 24.600060040000244, "wall_x_m": 0.5324032514920004, "replan_ms": 71.92071100871544, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 125, "elapsed_s": 24.800059562010574, "wall_x_m": 0.5457823097378324, "replan_ms": 71.92787200619932, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 126, "elapsed_s": 25.000060369013227, "wall_x_m": 0.5577140306949082, "replan_ms": 72.24601598863956, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 127, "elapsed_s": 25.20006082901091, "wall_x_m": 0.5679045074888244, "replan_ms": 72.06878199940547, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 128, "elapsed_s": 25.40006142501079, "wall_x_m": 0.5761028425056336, "replan_ms": 71.6281560016796, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 129, "elapsed_s": 25.60006040200824, "wall_x_m": 0.5821071174875707, "replan_ms": 72.86528700205963, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 130, "elapsed_s": 25.800060455003404, "wall_x_m": 0.5857695767185509, "replan_ms": 72.86886400834192, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 131, "elapsed_s": 26.000061579004978, "wall_x_m": 0.586999999883046, "replan_ms": 80.74202899297234, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 132, "elapsed_s": 26.20005998700799, "wall_x_m": 0.5857680969294705, "replan_ms": 76.41853200038895, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 133, "elapsed_s": 26.400061256004847, "wall_x_m": 0.58210416482776, "replan_ms": 74.2881330079399, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 134, "elapsed_s": 26.600060900003882, "wall_x_m": 0.5760984808462523, "replan_ms": 73.05075498879887, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 135, "elapsed_s": 26.80006097200385, "wall_x_m": 0.5678988845998724, "replan_ms": 76.65531800012104, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 136, "elapsed_s": 27.000059879006585, "wall_x_m": 0.5577073525977512, "replan_ms": 71.47506299952511, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 137, "elapsed_s": 27.200092425002367, "wall_x_m": 0.5457726523854733, "replan_ms": 70.63833001302555, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 138, "elapsed_s": 27.400060374013265, "wall_x_m": 0.5323948249803349, "replan_ms": 71.45140200736932, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 139, "elapsed_s": 27.600061074001133, "wall_x_m": 0.517897137430321, "replan_ms": 71.59951400535647, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 140, "elapsed_s": 27.800065177012584, "wall_x_m": 0.5026383905162, "replan_ms": 73.77622000058182, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 141, "elapsed_s": 28.000062393010012, "wall_x_m": 0.4869950996644549, "replan_ms": 74.33063699863851, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 142, "elapsed_s": 28.2000604650093, "wall_x_m": 0.47135186306986443, "replan_ms": 72.32256000861526, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 143, "elapsed_s": 28.400061937005376, "wall_x_m": 0.4560936741646481, "replan_ms": 74.74073900084477, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 144, "elapsed_s": 28.600065586011624, "wall_x_m": 0.44159636041071443, "replan_ms": 74.34454199392349, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 145, "elapsed_s": 28.800092913006665, "wall_x_m": 0.4282155712305289, "replan_ms": 75.85052799549885, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 146, "elapsed_s": 29.000059216006775, "wall_x_m": 0.4162860333354932, "replan_ms": 73.4233969997149, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 147, "elapsed_s": 29.2000906230096, "wall_x_m": 0.40609411719735494, "replan_ms": 74.67092499427963, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 148, "elapsed_s": 29.400091431001783, "wall_x_m": 0.3978960877168812, "replan_ms": 73.86440099799074, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 149, "elapsed_s": 29.60006006200274, "wall_x_m": 0.3918928907632082, "replan_ms": 72.95349800551776, "success": true, "waypoints": 41}
+MOVING_WALL_REPLAN {"attempt": 150, "elapsed_s": 29.800061514004483, "wall_x_m": 0.38823041027414273, "replan_ms": 73.79258499713615, "success": true, "waypoints": 41}
+CUROBO_MOVING_WALL_RESULT {"device": "cuda:0", "scene_profile": "step_c_cable_wall", "wall_center_x_m": 0.487, "wall_amplitude_x_m": 0.1, "wall_period_s": 8.0, "attempts": 150, "successes": 150, "success_rate": 1.0, "mean_replan_ms": 73.05656733951764, "p95_replan_ms": 76.65531800012104, "max_replan_ms": 86.36168099474162, "finite_timings": true, "requested_duration_s": 30.0, "wall_elapsed_s": 30.000109398999484, "interval_s": 0.2}
+CUROBO_MOVING_WALL_RESULT_JSON /home/aisc216/ur5_ws/src/ur5_moveit_demo/docs/experiments/curobo-v2/results/moving-wall/result.json
+(viser) Connection closed (0, 0 total)
+(viser) Server stopped

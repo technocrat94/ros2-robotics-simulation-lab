@@ -1,0 +1,17 @@
+{
+  "device": "cuda:0",
+  "scene_profile": "step_c_cable_wall",
+  "wall_center_x_m": 0.487,
+  "wall_amplitude_x_m": 0.1,
+  "wall_period_s": 8.0,
+  "attempts": 150,
+  "successes": 150,
+  "success_rate": 1.0,
+  "mean_replan_ms": 75.84537097311113,
+  "p95_replan_ms": 78.74525099759921,
+  "max_replan_ms": 82.52628998889122,
+  "finite_timings": true,
+  "requested_duration_s": 30.0,
+  "wall_elapsed_s": 30.00011991499923,
+  "interval_s": 0.2
+}
