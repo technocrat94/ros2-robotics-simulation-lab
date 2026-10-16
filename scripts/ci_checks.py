@@ -277,6 +277,23 @@ def check_step_c_result_extractor():
     print("[step-c-result] C2 planning-failure classifier unit test run")
 
 
+def check_curobo_step_c_result_extractor():
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(REPO / "scripts/test_extract_curobo_step_c_result.py"),
+        ],
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        failures.append(
+            "curobo-step-c-result: test_extract_curobo_step_c_result.py failed: "
+            + (result.stderr or result.stdout).strip().splitlines()[-1]
+        )
+    print("[curobo-step-c-result] cuRobo/Newton C1 extractor unit test run")
+
+
 def check_step_c_safe_pregrasp_policy():
     paths = (
         REPO / "scripts/run_step_c_pick_jazzy.sh",
@@ -305,6 +322,7 @@ def main():
     check_obstacle_defaults()
     check_grasp_pass_policy()
     check_step_c_result_extractor()
+    check_curobo_step_c_result_extractor()
     check_step_c_safe_pregrasp_policy()
     if failures:
         print("\nFAILED:")
