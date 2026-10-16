@@ -1,0 +1,18 @@
+{
+  "device": "cuda:0",
+  "attempts": 150,
+  "successes": 150,
+  "success_rate": 1.0,
+  "mean_replan_ms": 89.67396692634793,
+  "p95_replan_ms": 97.0287199888844,
+  "max_replan_ms": 99.59794201131444,
+  "overall_minimum_clearance_m": 0.021934989886677414,
+  "clearance_positive": true,
+  "goal_switches": 7,
+  "finite_measurements": true,
+  "requested_duration_s": 30.0,
+  "wall_elapsed_s": 30.000115666989586,
+  "interval_s": 0.2,
+  "cube_period_s": 6.0,
+  "interrupted": false
+}
