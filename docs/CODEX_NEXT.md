@@ -4,18 +4,22 @@ Written by Claude (reviewer). Read this file at the start of a session after `gi
 When the task below is done, replace this file's task section with "No pending task" in the same commit
 as your evidence.
 
-## Task: presentation stills for Steps A, B, C (branch `main`)
+## Task: cuRobo plans, Newton verifies — C1 wall + FEM cable (branch `experiment/curobo-v2-viser`)
 
-Save PNGs (1280x720) to docs/experiments/rigid-obstacles/media/ and add them to its README
-(file, what it shows, commit, source). Do not change any parameter.
+MoveIt Step C is already accepted; do not redo a MoveIt comparison.
+Goal: replace only the PLANNER with cuRobo and keep everything after it unchanged:
+cuRobo plan -> ros2_control (FollowJointTrajectory to joint_trajectory_controller) -> existing
+ROS-Newton bridge (sync, start-state guard, trajectory shadow) -> Newton endpoint (FEM cable,
+wall, result JSON, metrics).
 
-- A: `A0_sphere_on_box.png`, `A1_fem_strip_on_box.png` — Newton viewer of the existing Step A drop
-  scripts, final settled state (strip resting on the box).
-- B: `B_disabled_route.png`, `B_enabled_route.png`, `B_tall_wall_refused.png` — RViz with the planned
-  trajectory shown, same target (x=0.20), box visible; disabled crosses the box, enabled goes over,
-  tall wall refused (terminal is fine for the last one).
-- C: extract frames with ffmpeg from the existing 1x videos (no rerun):
-  `C1_over_wall.png` (gripper above the wall), `C1_grasp.png` (fingers closed on cable),
-  `C1_lift.png` (cable lifted), `C0_grasp.png`.
+1. Use profile `step_c_cable_wall` from config/obstacles.yaml for the cuRobo scene (already read by
+   ur5_viser_preflight.py) and the same start pose, cable target and gripper width calibration.
+2. Sequence: cuRobo plan start -> pre-grasp over the wall; then descend, close, lift, open
+   (cuRobo or the existing Cartesian stages, your choice — state which).
+3. Log cuRobo planning time per segment and the route max height / min wall distance.
+4. Accept exactly as C1: candidate_contact_grasp_pass=true, loaded/penetrating robot-wall
+   contacts == 0. GPU cuda:0. Use the stepc tmux session so the user can watch.
 
-Commit, update docs/CODEX_STATUS.md (3 lines), push, reply with the hash.
+Do not change wall, cable, physics, grasp parameters or acceptance rules. Commit evidence,
+update docs/CODEX_STATUS.md (5 lines), push, reply with the hash.
+Next (not now): moving obstacle with cuRobo replanning.
