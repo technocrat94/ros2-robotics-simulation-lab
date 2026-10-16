@@ -33,6 +33,7 @@ import ur5_viser_preflight as preflight
 
 CUBE_NAME = "route_crossing_cube"
 CUBE_SIZE_M = 0.10
+CUBE_FLOOR_CENTER_Z_M = 0.5 * CUBE_SIZE_M
 CUBE_CENTER_X_M = 0.487
 # The handoff suggested z ~= 0.40 m.  With this repository's fitted UR5 +
 # Robotiq collision spheres, a 0.10 m cube at z=0.40 sweeps through both end
@@ -70,6 +71,9 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--interval", type=float, default=0.2)
     parser.add_argument("--port", type=int, default=8082)
+    parser.add_argument(
+        "--mode", choices=("automatic", "interactive"), default="automatic"
+    )
     parser.add_argument("--show-spheres", action="store_true")
     parser.add_argument("--headless", action="store_true")
     parser.add_argument("--rebuild-model", action="store_true")
@@ -84,6 +88,8 @@ def parse_args() -> argparse.Namespace:
         parser.error("--duration cannot be negative")
     if args.interval <= 0.0:
         parser.error("--interval must be greater than zero")
+    if args.headless and args.mode == "interactive":
+        parser.error("--mode interactive requires the Viser viewer")
     return args
 
 
@@ -268,6 +274,8 @@ def main() -> int:
 
     initial_cube_y = cube_y_at_time(0.0)
     _scene, scene_model, cube_pose = make_scene(initial_cube_y)
+    if args.mode == "interactive":
+        cube_pose[2] = CUBE_FLOOR_CENTER_Z_M
     planner = preflight.create_pick_planner(config_path, scene_model)
     robot = Kinematics(KinematicsCfg.from_robot_yaml_file(str(config_path)))
     current_state = preflight.make_initial_joint_state(
@@ -298,6 +306,7 @@ def main() -> int:
 
     visualizer = None
     cube_handle = None
+    cube_controls = None
     status_handle = None
     if not args.headless:
         visualizer = ViserVisualizer(
@@ -319,6 +328,13 @@ def main() -> int:
             color=(220, 65, 55),
             opacity=0.88,
         )
+        if args.mode == "interactive":
+            cube_controls = visualizer._server.scene.add_transform_controls(
+                name="/controls/cube",
+                position=np.asarray(cube_pose[:3]),
+                scale=0.12,
+                disable_rotations=True,
+            )
         visualizer._server.scene.add_icosphere(
             name="/targets/start",
             position=start_position,
@@ -344,6 +360,7 @@ def main() -> int:
                 **cache_status,
                 "duration_s": args.duration,
                 "interval_s": args.interval,
+                "mode": args.mode,
                 "trajectory_dt_s": INTERPOLATION_DT_S,
                 "cube_size_m": [CUBE_SIZE_M] * 3,
                 "cube_xz_m": [CUBE_CENTER_X_M, CUBE_CENTER_Z_M],
@@ -386,6 +403,7 @@ def main() -> int:
         ),
         flush=True,
     )
+    last_safe_cube_position = np.asarray(cube_pose[:3], dtype=np.float64).copy()
 
     samples_ms: list[float] = []
     clearances_m: list[float] = []
@@ -408,8 +426,38 @@ def main() -> int:
             if args.duration > 0.0 and elapsed >= args.duration:
                 break
 
-            cube_y = cube_y_at_time(elapsed)
-            cube_pose[1] = cube_y
+            placement_rejected = False
+            placement_clearance_m = None
+            if args.mode == "automatic":
+                cube_pose[1] = cube_y_at_time(elapsed)
+            else:
+                if cube_controls is None:
+                    raise RuntimeError("interactive controls were not created")
+                requested_cube_position = np.asarray(
+                    cube_controls.position, dtype=np.float64
+                )
+                if np.isfinite(requested_cube_position).all():
+                    cube_pose[:3] = requested_cube_position.tolist()
+                    planner.scene_collision_checker.update_obstacle_pose(
+                        CUBE_NAME,
+                        Pose.from_list(cube_pose),
+                    )
+                    placement_clearance_m = minimum_cube_clearance_m(
+                        planner,
+                        current_state.position,
+                        collision_buffer,
+                    )
+                if (
+                    not np.isfinite(requested_cube_position).all()
+                    or placement_clearance_m is None
+                    or placement_clearance_m < 0.0
+                ):
+                    placement_rejected = True
+                    cube_pose[:3] = last_safe_cube_position.tolist()
+                    cube_controls.position = last_safe_cube_position
+                else:
+                    last_safe_cube_position = requested_cube_position.copy()
+            cube_y = float(cube_pose[1])
             planner.scene_collision_checker.update_obstacle_pose(
                 CUBE_NAME,
                 Pose.from_list(cube_pose),
@@ -474,7 +522,10 @@ def main() -> int:
             record = {
                 "attempt": attempts,
                 "elapsed_s": elapsed,
+                "cube_position_m": cube_pose[:3],
                 "cube_y_m": cube_y,
+                "placement_rejected": placement_rejected,
+                "placement_clearance_m": placement_clearance_m,
                 "goal": goal_name,
                 "replan_ms": replan_ms,
                 "success": success,
@@ -488,7 +539,9 @@ def main() -> int:
                     f"**Live CUDA dodge replanning**  \n"
                     f"Cycle: `{attempts}` | Goal: `{goal_name}` | Switches: `{goal_switches}`  \n"
                     f"Latest: `{replan_ms:.1f} ms` | Success: `{success}`  \n"
-                    f"Cube y: `{cube_y:.3f} m` | Clearance: `{minimum_clearance:.4f} m`"
+                    f"Cube xyz: `{np.round(cube_pose[:3], 3).tolist()}`  \n"
+                    f"Placement rejected: `{placement_rejected}`  \n"
+                    f"Clearance: `{minimum_clearance:.4f} m`"
                 )
             next_tick = max(next_tick + args.interval, time.monotonic())
     except KeyboardInterrupt:
@@ -507,6 +560,7 @@ def main() -> int:
             "requested_duration_s": args.duration,
             "wall_elapsed_s": time.monotonic() - started,
             "interval_s": args.interval,
+            "mode": args.mode,
             "cube_period_s": CUBE_PERIOD_S,
             "interrupted": interrupted,
         }
