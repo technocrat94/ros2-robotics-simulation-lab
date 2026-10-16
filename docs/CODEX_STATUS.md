@@ -1,3 +1,3 @@
-The cuRobo-only moving-cube demo ran on `cuda:0` for `30.000 s`: `150/150` replans succeeded (`100%`) and the arm completed `7` goal switches.
-Replan mean / p95 / maximum was `89.674 / 97.029 / 99.598 ms`; the overall minimum cuRobo robot-to-cube clearance stayed positive at `0.021935 m`.
-Each `0.2 s` cycle advanced `8` x `25 ms` samples; code and JSON/log evidence are under `docs/experiments/curobo-v2/`, and live Viser uses `http://127.0.0.1:8082/`.
+Three CUDA random-cylinder runs (seeds `11/22/33`, `12 s` each) completed `180/180` replans with `9` goal switches; each cycle advanced `8 x 25 ms` trajectory samples.
+All obstacle and arm path hashes differ; minimum cuRobo clearance was `0.035993 m`, maximum observed obstacle speed `0.149395 m/s`, and weighted mean / worst p95 / max replan was `87.668 / 94.910 / 97.044 ms`.
+Random and Viser-drag interactive modes, JSON/log proof, and instructions are under `docs/experiments/curobo-v2/`; live interactive Viser is `http://127.0.0.1:8082/`.

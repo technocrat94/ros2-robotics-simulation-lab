@@ -1,0 +1,33 @@
+{
+  "device": "cuda:0",
+  "attempts": 60,
+  "successes": 60,
+  "success_rate": 1.0,
+  "mean_replan_ms": 86.30881479984964,
+  "p95_replan_ms": 89.895520999562,
+  "max_replan_ms": 90.70483299728949,
+  "overall_minimum_clearance_m": 0.03599340904245463,
+  "clearance_positive": true,
+  "goal_switches": 3,
+  "obstacle_path_sha256": "8f4cc083ba8f75015b9f45b9775f645c09236400931efad3dacf20f09fd013a0",
+  "arm_path_sha256": "5f74e67d9b207768b3cdc9d746dc697dd92994814c537b57893dc416861ef417",
+  "obstacle_path_min_m": [
+    0.4425831272553837,
+    0.15797381526379822,
+    0.6017227419629922
+  ],
+  "obstacle_path_max_m": [
+    0.5203653725870498,
+    0.347860470795751,
+    0.6782979151634663
+  ],
+  "maximum_observed_obstacle_speed_m_s": 0.14723031670291198,
+  "finite_measurements": true,
+  "requested_duration_s": 12.0,
+  "elapsed_s": 12.000345452004694,
+  "interval_s": 0.2,
+  "mode": "random",
+  "seed": 11,
+  "collision_representation": "conservative-0.10x0.10x0.25-m-cuboid",
+  "interrupted": false
+}
