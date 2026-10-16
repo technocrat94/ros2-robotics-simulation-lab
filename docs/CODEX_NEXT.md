@@ -12,8 +12,16 @@ route barely changed. Make a new script (keep moving_wall_replan.py unchanged), 
 
 1. Arm shuttles continuously between the start pose (tool over y=0.116) and the pre-grasp over the
    cable (y=0.410); when a goal is reached, switch to the other one.
-2. Obstacle: a 0.10 m cube that crosses the arm's route: it moves back and forth along y between
-   0.15 and 0.38 at tool-route height (z ~0.40), period ~6 s. Remove the static Step C wall.
+2. Obstacle: a CYLINDER (radius 0.05 m, height 0.25 m, vertical) crossing the arm's route
+   (if cuRobo V2 has no cylinder primitive, use the closest supported shape and say which).
+   Two modes, selected by a flag:
+   a. `--mode random --seed N`: random but smooth motion generated at runtime (e.g. random
+      waypoints inside x 0.40-0.58, y 0.15-0.38, z 0.30-0.45, interpolated, speed <= 0.15 m/s).
+      Print the seed and log the obstacle pose every cycle.
+   b. `--mode interactive`: the user drags the cylinder in the Viser viewer with a transform gizmo;
+      its pose is read every cycle.
+   Proof that nothing is pre-scripted: run random mode with 3 different seeds and report that the
+   obstacle paths and the arm paths differ, all with minimum distance > 0.
 3. Every 0.2 s: update the cube pose, replan from the current state to the current goal, then
    advance the robot along the new plan by 0.2 s of trajectory time (real-time motion).
 4. Every cycle log: replan time (ms), success, and the minimum robot-to-cube distance from cuRobo's
