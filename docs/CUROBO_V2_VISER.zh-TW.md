@@ -7,11 +7,14 @@
 
 ```text
 既有版本：抓取目標 -> MoveIt -> JointTrajectory -> ROS 2 controller -> Newton
-新實驗版：抓取目標 -> cuRoboV2 (CUDA) -> Viser 軌跡動畫
-                                      -> 尚不發布 ROS 2 trajectory
+新預覽版：抓取目標 -> cuRoboV2 (CUDA) -> Viser 軌跡動畫
+新整合版：抓取目標 -> cuRoboV2 (CUDA) -> FollowJointTrajectory
+          -> ros2_control -> 既有 ROS-Newton bridge -> Newton FEM cable
 ```
 
-目前不會啟動 MoveIt、Isaac Sim、Newton 或實體 UR5，也不會發布 `JointTrajectory`。
+Viser 指令不會啟動 MoveIt、Newton 或實體 UR5，也不會發布
+`JointTrajectory`。另外的 Step-C ROS 指令才會把軌跡送到 fake-hardware
+controller 和 Newton；它仍不會控制實體 UR5。
 
 ## 為什麼不是複製整份 MoveIt 程式
 
@@ -98,6 +101,41 @@ http://localhost:8080
   --scene-profile step_c_cable_no_wall
 ```
 
+## Step C：送到既有 Newton FEM endpoint
+
+`curobo_step_c_pick.py` 不使用 MoveIt planner。它在 `cuda:0` 上以 cuRobo
+規劃三段 arm path：start → pre-grasp、垂直下降、垂直抬升；之後透過既有
+ROS 2 action server 執行：
+
+```text
+cuRobo approach -> FollowJointTrajectory
+cuRobo descend  -> FollowJointTrajectory
+Robotiq close   -> GripperCommand
+cuRobo lift     -> FollowJointTrajectory
+Robotiq open    -> GripperCommand
+```
+
+它沿用 C1 已通過的設定：
+
+- `step_c_cable_wall`
+- transit padding `0.020 m`、contact padding `0.000 m`
+- 線材寬 `6 mm`、總壓縮 `2 mm`
+- CSV 校正後夾爪命令約 `0.766352 rad`
+- closure drop 補償後下降約 `0.091385 m`
+- lift `0.120 m`
+- 已驗證的下降與抬升執行時間
+
+完整實驗仍需先在 `stepc` tmux session 啟動 bringup、Newton endpoint 和
+ROS adapter。pick window 執行：
+
+```bash
+cd ~/ur5_ws/src/ur5_moveit_demo
+./scripts/run_step_c_curobo_pick_jazzy.sh
+```
+
+腳本會保留原本的 start-state guard 與 trajectory shadow，並產生 cuRobo
+每段規劃時間、route 最高點、最小牆距，以及合併後的 C1 JSON。
+
 ## Cache 與 GPU
 
 第一次執行約需 30 秒，在 GPU 上為 UR5 + Robotiq 的 collision meshes 擬合 spheres。
@@ -131,9 +169,11 @@ cuRobo 第一階段只規劃手臂，因此用 joint name 將
 
 ## 下一步
 
-目前已完成 collision-aware approach、grasp、lift 的 GPU 規劃與 Viser 動畫。下一階段才加入：
+目前已完成 collision-aware approach、grasp、lift 的 GPU 規劃、Viser 動畫，
+以及 ROS/Newton 執行 client。正式驗證完成前仍不能宣稱 Newton C1 通過。
+驗證工作依序是：
 
-1. 與 MoveIt 結果和 clearance 指標比較。
-2. 將驗證過的軌跡轉成 ROS 2 `JointTrajectory`。
-3. 送入 Newton endpoint，而不是直接送實體 UR5。
-4. 由 Newton 處理 FEM cable 的接觸、附著和變形。
+1. 在 `stepc` 的四個視窗跑完整 FEM cable 實驗。
+2. 確認 `candidate_contact_grasp_pass=true`。
+3. 確認 loaded／penetrating robot-wall contacts 都為零。
+4. 保存結果、更新狀態並提交證據。

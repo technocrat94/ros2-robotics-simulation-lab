@@ -10,9 +10,11 @@ downloaded cuRobo source tree and this repository stay clean.
 from __future__ import annotations
 
 import argparse
+import csv
 import hashlib
 import json
 import math
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -44,9 +46,10 @@ ARM_JOINT_NAMES = (
 )
 GRIPPER_JOINT_NAME = "robotiq_85_left_knuckle_joint"
 GRIPPER_OPEN_RAD = 0.0
-GRIPPER_CLOSED_RAD = 0.376
 TOOL_FRAME = "tool0"
-APPROACH_DISTANCE_M = 0.100
+OBJECT_WIDTH_MM = 6.0
+TOTAL_COMPRESSION_MM = 2.0
+UNCOMPENSATED_APPROACH_DISTANCE_M = 0.105
 LIFT_DISTANCE_M = 0.120
 GRASP_CENTER_BELOW_TOOL_M = 0.159
 CABLE_LENGTH_M = 0.400
@@ -207,6 +210,40 @@ def load_initial_arm_positions(repo: Path) -> dict[str, float]:
     return {name: float(data[name]) for name in ARM_JOINT_NAMES}
 
 
+def solve_gripper_calibration(repo: Path) -> dict[str, float]:
+    """Use the same width calibration and closure compensation as MoveIt C1."""
+
+    path = repo / "config" / "gripper_kinematics_calibration.csv"
+    with path.open(newline="", encoding="utf-8") as stream:
+        rows = [
+            {key: float(value) for key, value in row.items()}
+            for row in csv.DictReader(stream)
+        ]
+    target_gap_m = (OBJECT_WIDTH_MM - TOTAL_COMPRESSION_MM) / 1000.0
+    for upper, lower in zip(rows, rows[1:]):
+        upper_gap = upper["estimated_pad_gap_m"]
+        lower_gap = lower["estimated_pad_gap_m"]
+        if upper_gap >= target_gap_m >= lower_gap:
+            fraction = (upper_gap - target_gap_m) / (upper_gap - lower_gap)
+            command = upper["command_rad"] + fraction * (
+                lower["command_rad"] - upper["command_rad"]
+            )
+            closure_drop = upper["closure_drop_m"] + fraction * (
+                lower["closure_drop_m"] - upper["closure_drop_m"]
+            )
+            return {
+                "command_rad": command,
+                "closure_drop_m": closure_drop,
+                "approach_distance_m": (
+                    UNCOMPENSATED_APPROACH_DISTANCE_M - closure_drop
+                ),
+            }
+    raise RuntimeError(
+        f"Target gripper gap {target_gap_m * 1000.0:.3f} mm is outside "
+        f"the calibration table in {path}."
+    )
+
+
 def load_scene(
     repo: Path,
     profile_name: str,
@@ -343,12 +380,13 @@ def plan_cable_pick(
     planner: MotionPlanner,
     start_state: JointState,
     object_center: list[float],
+    approach_distance_m: float,
 ):
     """Plan transit, vertical approach, and world-up lift for the cable tip."""
 
     pregrasp_position, orientation = pregrasp_target(object_center)
     grasp_position = pregrasp_position.copy()
-    grasp_position[2] -= APPROACH_DISTANCE_M
+    grasp_position[2] -= approach_distance_m
     grasp_pose = Pose.from_list([*grasp_position.tolist(), *orientation.tolist()])
     goal = GoalToolPose.from_poses(
         {TOOL_FRAME: grasp_pose},
@@ -360,7 +398,7 @@ def plan_cable_pick(
         goal,
         start_state,
         grasp_approach_axis="z",
-        grasp_approach_offset=-APPROACH_DISTANCE_M,
+        grasp_approach_offset=-approach_distance_m,
         grasp_approach_in_tool_frame=True,
         grasp_lift_axis="z",
         grasp_lift_offset=LIFT_DISTANCE_M,
@@ -422,7 +460,9 @@ def verify_cuda_and_source(repo: Path) -> dict[str, Any]:
             "CUDA is unavailable. This preflight intentionally refuses CPU fallback; "
             "run it through scripts/run_curobo_v2_viser.sh on the GPU host."
         )
-    expected_root = (repo / "curobo").resolve()
+    expected_root = Path(
+        os.environ.get("CUROBO_SOURCE_DIR", str(repo / "curobo"))
+    ).resolve()
     imported_path = Path(curobo.__file__).resolve()
     if expected_root not in imported_path.parents:
         raise RuntimeError(
@@ -480,6 +520,7 @@ def main() -> int:
 
     robot = Kinematics(KinematicsCfg.from_robot_yaml_file(str(config_path)))
     initial_positions = load_initial_arm_positions(repo)
+    gripper_calibration = solve_gripper_calibration(repo)
     joint_state = make_initial_joint_state(robot, initial_positions)
     kinematics_state = robot.compute_kinematics(joint_state)
     tool_pose = kinematics_state.tool_poses[TOOL_FRAME]
@@ -493,6 +534,8 @@ def main() -> int:
         "dof": robot.get_dof(),
         "joint_names": robot.joint_names,
         "locked_joints": {GRIPPER_JOINT_NAME: GRIPPER_OPEN_RAD},
+        "gripper_closed_rad": gripper_calibration["command_rad"],
+        "approach_distance_m": gripper_calibration["approach_distance_m"],
         "tool_frame": TOOL_FRAME,
         "initial_tool_position_m": tool_pose.position.detach().cpu().reshape(-1).tolist(),
         "scene_profile": args.scene_profile,
@@ -507,7 +550,12 @@ def main() -> int:
         planner = create_pick_planner(config_path, scene_model)
 
     if args.plan_pick:
-        result, elapsed = plan_cable_pick(planner, joint_state.unsqueeze(0), object_center)
+        result, elapsed = plan_cable_pick(
+            planner,
+            joint_state.unsqueeze(0),
+            object_center,
+            gripper_calibration["approach_distance_m"],
+        )
         plan_summary = pick_result_summary(result, elapsed)
         print("CUROBO_V2_UR5_PICK_PLAN " + json.dumps(plan_summary))
         if args.headless:
@@ -628,6 +676,7 @@ def main() -> int:
                 planner,
                 joint_state.unsqueeze(0),
                 object_center,
+                gripper_calibration["approach_distance_m"],
             )
             plan_summary = pick_result_summary(result, elapsed)
             print("CUROBO_V2_UR5_PICK_PLAN " + json.dumps(plan_summary))
@@ -651,7 +700,7 @@ def main() -> int:
             )
             for gripper_position in np.linspace(
                 GRIPPER_OPEN_RAD,
-                GRIPPER_CLOSED_RAD,
+                gripper_calibration["command_rad"],
                 20,
             ):
                 set_visual_state(grasp_state, float(gripper_position))
@@ -662,7 +711,7 @@ def main() -> int:
             animate_phase(
                 result.lift_interpolated_trajectory,
                 result.lift_interpolated_last_tstep,
-                GRIPPER_CLOSED_RAD,
+                gripper_calibration["command_rad"],
                 True,
             )
             status_handle.content = (

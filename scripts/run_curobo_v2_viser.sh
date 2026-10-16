@@ -32,6 +32,7 @@ source "${CUROBO_ENV}/bin/activate"
 set -u
 
 export PYTHONPATH="${CUROBO_DIR}${PYTHONPATH:+:${PYTHONPATH}}"
+export CUROBO_SOURCE_DIR="${CUROBO_DIR}"
 
 cd "${REPO_DIR}"
 exec python "${PYTHON_ENTRY}" "$@"
