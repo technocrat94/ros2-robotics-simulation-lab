@@ -46,7 +46,7 @@ ros2 launch ur5_moveit_demo pick_at_position.launch.py \
   uncompensated_approach_distance:=0.105 \
   lift_distance:=0.120 \
   lift_velocity_scale:=0.030 \
-  planning_time_s:="${MOVEIT_PLANNING_TIME_SECONDS}" \
+  planning_time_s:="${MOVEIT_PLANNING_TIME_SECONDS}" "$@" \
   2>&1 | tee "${PICK_LOG}"
 status=${PIPESTATUS[0]}
 set -e
