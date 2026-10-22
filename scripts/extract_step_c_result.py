@@ -140,6 +140,13 @@ def main():
             checks["zero_penetrating_robot_wall_contacts"] = (
                 endpoint.get("maximum_robot_obstacle_penetrating_contacts") == 0
             )
+            if args.profile == "moving_wall":
+                checks["dynamic_wall_replanned"] = (
+                    text.count("DYNAMIC_WALL_REPLAN") >= 1
+                )
+                checks["command_backlog_within_limit"] = (
+                    int(endpoint.get("maximum_command_backlog", -1)) <= 5
+                )
         result = {
             "step": (
                 "C0_moved_cable_without_wall"
@@ -172,6 +179,11 @@ def main():
             ),
             "object_obstacle_max_penetration_m": endpoint.get(
                 "object_obstacle_max_penetration_m"
+            ),
+            "dynamic_wall_replan_count": text.count("DYNAMIC_WALL_REPLAN"),
+            "maximum_command_backlog": endpoint.get("maximum_command_backlog"),
+            "minimum_robot_wall_distance_m": endpoint.get(
+                "minimum_robot_obstacle_signed_surface_separation_m"
             ),
             "route": route,
             "endpoint_result": args.endpoint_json.name,
