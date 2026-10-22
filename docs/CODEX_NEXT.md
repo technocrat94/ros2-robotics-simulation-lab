@@ -13,7 +13,7 @@ stop. Reply in 3 lines with the pushed hash.
 Write the code for:
 1. config/obstacles.yaml: new profile `moving_wall` = step_c_cable_wall plus
    `motion: {axis: x, amplitude_m: 0.10, period_s: 8.0}`. Existing profiles unchanged (CI too).
-2. Newton (robot_segmented_grasp_batch.py + newton_moving_grasp_endpoint.py): when the profile has
+2. Newton (robot_segmented_grasp_batch.py + newton_moveit_grasp_endpoint.py): when the profile has
    `motion`, the wall is a kinematic body whose pose is set every substep from SIM time
    (center + amplitude*sin(2*pi*t/period)); contacts must not push it. Static profiles: identical
    behaviour to today.
