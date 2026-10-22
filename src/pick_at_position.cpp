@@ -1394,10 +1394,18 @@ int main(int argc, char * argv[])
   if (dynamic_obstacle_replanning)
   {
     dynamic_replanning.enabled = true;
-    dynamic_replanning.padding_m = robot_padding_m;
+    // Replan before the wall violates the same clearance used to construct
+    // the safe staged route.  Checking padding alone can never trigger when
+    // a valid route intentionally stays obstacle_clearance_m farther away.
+    dynamic_replanning.padding_m = robot_padding_m + obstacle_clearance_m;
     dynamic_replanning.maximum_replans = maximum_dynamic_replans;
     dynamic_replanning.obstacle = std::make_shared<MovingObstacleCapture>();
     dynamic_replanning.obstacle->box = obstacle_box;
+    RCLCPP_INFO(
+      logger,
+      "DYNAMIC_WALL_CLEARANCE padding_m=%.6f safety_clearance_m=%.6f "
+      "replan_threshold_m=%.6f",
+      robot_padding_m, obstacle_clearance_m, dynamic_replanning.padding_m);
     obstacle_pose_subscription =
       node->create_subscription<geometry_msgs::msg::PoseArray>(
       obstacle_pose_topic, rclcpp::QoS(10),
