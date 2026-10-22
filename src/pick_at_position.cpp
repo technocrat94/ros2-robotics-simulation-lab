@@ -210,7 +210,8 @@ bool remaining_trajectory_within_wall_padding(
   const rclcpp::Logger & logger,
   const MoveGroup::Plan & plan,
   const ObstacleBox & obstacle,
-  double padding_m)
+  double padding_m,
+  bool log_blocked = true)
 {
   moveit::core::RobotState start_state(move_group.getRobotModel());
   moveit::core::robotStateMsgToRobotState(plan.start_state, start_state);
@@ -264,11 +265,14 @@ bool remaining_trajectory_within_wall_padding(
       request, result, trajectory.getWayPoint(index));
     if (result.minimum_distance.distance <= padding_m)
     {
-      RCLCPP_WARN(
-        logger,
-        "DYNAMIC_WALL_PATH_BLOCKED waypoint=%zu remaining_start=%zu "
-        "distance_m=%.6f padding_m=%.6f",
-        index, nearest, result.minimum_distance.distance, padding_m);
+      if (log_blocked)
+      {
+        RCLCPP_WARN(
+          logger,
+          "DYNAMIC_WALL_PATH_BLOCKED waypoint=%zu remaining_start=%zu "
+          "distance_m=%.6f padding_m=%.6f",
+          index, nearest, result.minimum_distance.distance, padding_m);
+      }
       return true;
     }
   }
@@ -334,6 +338,37 @@ bool execute_with_dynamic_replanning(
     RCLCPP_INFO(
       logger, "DYNAMIC_WALL_REPLAN stage=\"%s\" attempt=%d",
       stage_name.c_str(), attempt + 1);
+
+    // A moving obstacle can still occupy the route at the exact instant the
+    // controller stops.  Planning immediately then fails for a valid reason.
+    // Wait for the live wall to clear the safety envelope, and only then plan
+    // again from the measured stopped state.
+    bool wall_cleared = false;
+    std::size_t clear_sequence = wall_sequence;
+    for (int wait_step = 0; wait_step < 1800; ++wait_step)
+    {
+      auto [wait_wall, wait_sequence] = moving_obstacle_snapshot();
+      clear_sequence = wait_sequence;
+      if (!remaining_trajectory_within_wall_padding(
+          move_group, logger, plan, wait_wall,
+          dynamic_replanning.padding_m, false))
+      {
+        wall_cleared = true;
+        RCLCPP_INFO(
+          logger,
+          "DYNAMIC_WALL_ROUTE_CLEAR stage=\"%s\" sequence=%zu wait_s=%.1f",
+          stage_name.c_str(), clear_sequence, wait_step * 0.1);
+        break;
+      }
+      std::this_thread::sleep_for(100ms);
+    }
+    if (!wall_cleared)
+    {
+      RCLCPP_ERROR(
+        logger, "%s moving wall did not clear within 180 s.",
+        stage_name.c_str());
+      return false;
+    }
     move_group.setStartStateToCurrentState();
     move_group.setPoseTarget(target, "tool0");
     const auto result = move_group.plan(plan);
