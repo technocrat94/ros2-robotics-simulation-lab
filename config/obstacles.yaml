@@ -70,7 +70,7 @@
       "box_id": "step_c_cable_wall",
       "motion": {
         "axis": "x",
-        "amplitude_m": 0.10,
+        "amplitude_m": 0.25,
         "period_s": 8.0
       }
     }

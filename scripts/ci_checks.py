@@ -244,7 +244,7 @@ def check_obstacle_defaults():
         "object_center_m": [0.487, 0.410, 0.004],
         "obstacles_enabled": True,
         "box_id": "step_c_cable_wall",
-        "motion": {"axis": "x", "amplitude_m": 0.10, "period_s": 8.0},
+        "motion": {"axis": "x", "amplitude_m": 0.25, "period_s": 8.0},
     }
     if profiles.get("moving_wall") != expected_moving_wall:
         failures.append("obstacles: moving_wall profile differs from approval")
