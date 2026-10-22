@@ -1,0 +1,19 @@
+{
+  "device": "cuda:0",
+  "seeds": [11, 22, 33],
+  "duration_per_seed_s": 12.0,
+  "total_attempts": 180,
+  "total_successes": 180,
+  "success_rate": 1.0,
+  "all_clearance_positive": true,
+  "minimum_clearance_m": 0.03599340904245463,
+  "maximum_observed_speed_m_s": 0.14939492704948684,
+  "speed_limit_m_s": 0.15,
+  "obstacle_paths_distinct": true,
+  "arm_paths_distinct": true,
+  "mean_replan_ms_weighted": 87.6678923949334,
+  "p95_replan_ms_max": 94.90980200644117,
+  "max_replan_ms": 97.04382000199985,
+  "goal_switches": 9,
+  "collision_representation": "conservative-0.10x0.10x0.25-m-cuboid"
+}

@@ -1,3 +1,3 @@
-The cuRobo-only `step_c_cable_wall` demo updated the wall every `0.2 s` for `30.000 s` on `cuda:0`; no ROS or Newton process was started.
-The recorded run completed `150/150` replans (`100%`): mean `75.845 ms`, p95 `78.745 ms`, and maximum `82.526 ms` (one-time CUDA prime excluded).
-Code, JSON/log evidence, and the validated `1280x720` MP4 plus `<5 MB` GIF are under `docs/experiments/curobo-v2/`; Viser URL is `http://127.0.0.1:8081/`.
+Three CUDA random-cylinder runs (seeds `11/22/33`, `12 s` each) completed `180/180` replans with `9` goal switches; each cycle advanced `8 x 25 ms` trajectory samples.
+All obstacle and arm path hashes differ; minimum cuRobo clearance was `0.035993 m`, maximum observed obstacle speed `0.149395 m/s`, and weighted mean / worst p95 / max replan was `87.668 / 94.910 / 97.044 ms`.
+Random and Viser-drag interactive modes, JSON/log proof, and instructions are under `docs/experiments/curobo-v2/`; live interactive Viser is `http://127.0.0.1:8082/`.
