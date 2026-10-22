@@ -1,10 +1,11 @@
 import os
 
 from launch import LaunchDescription
-from launch.actions import TimerAction
-from launch.substitutions import PathJoinSubstitution
+from launch.actions import DeclareLaunchArgument, TimerAction
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 
 from launch_ros.actions import Node
+from launch_ros.parameter_descriptions import ParameterValue
 from launch_ros.substitutions import FindPackageShare
 from moveit_configs_utils import MoveItConfigsBuilder
 
@@ -12,7 +13,10 @@ from moveit_configs_utils import MoveItConfigsBuilder
 def generate_launch_description():
 
     scene_profile = os.environ.get("GRASP_SCENE_PROFILE", "default")
-    profile_default_padding = 0.02 if scene_profile.startswith("step_c_") else 0.0
+    profile_default_padding = (
+        0.02 if scene_profile.startswith("step_c_") or scene_profile == "moving_wall"
+        else 0.0
+    )
     robot_padding_m = float(os.environ.get(
         "MOVEIT_ROBOT_PADDING_M", str(profile_default_padding)
     ))
@@ -20,6 +24,7 @@ def generate_launch_description():
         raise RuntimeError("MOVEIT_ROBOT_PADDING_M must be nonnegative")
 
     package_share = FindPackageShare("ur5_moveit_demo")
+    use_sim_time = ParameterValue(LaunchConfiguration("use_sim_time"), value_type=bool)
 
     controllers_file = PathJoinSubstitution([
         package_share,
@@ -66,7 +71,7 @@ def generate_launch_description():
         package="robot_state_publisher",
         executable="robot_state_publisher",
         output="screen",
-        parameters=[robot_description],
+        parameters=[robot_description, {"use_sim_time": use_sim_time}],
     )
 
     # 唯一一個 Controller Manager，同時管理 UR5 與 Robotiq
@@ -77,6 +82,7 @@ def generate_launch_description():
         parameters=[
             robot_description,
             controllers_file,
+            {"use_sim_time": use_sim_time},
         ],
     )
 
@@ -130,7 +136,7 @@ def generate_launch_description():
         output="screen",
         parameters=[
             moveit_config.to_dict(),
-            {"use_sim_time": False},
+            {"use_sim_time": use_sim_time},
             {"robot_description_planning.default_robot_padding": robot_padding_m},
         ],
     )
@@ -149,12 +155,13 @@ def generate_launch_description():
         arguments=["-d", rviz_config],
         parameters=[
             moveit_config.to_dict(),
-            {"use_sim_time": False},
+            {"use_sim_time": use_sim_time},
             {"robot_description_planning.default_robot_padding": robot_padding_m},
         ],
     )
 
     return LaunchDescription([
+        DeclareLaunchArgument("use_sim_time", default_value="false"),
         robot_state_publisher,
         controller_manager,
 

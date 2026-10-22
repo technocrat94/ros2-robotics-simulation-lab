@@ -8,8 +8,9 @@ import uuid
 
 import rclpy
 from control_msgs.msg import JointTrajectoryControllerState
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import Pose, PoseArray, PoseStamped
 from rclpy.node import Node
+from rosgraph_msgs.msg import Clock
 from sensor_msgs.msg import JointState
 from std_msgs.msg import Bool, Float64, String
 from std_srvs.srv import SetBool, Trigger
@@ -33,6 +34,9 @@ class NewtonRosBridge(Node):
         self.socket.bind(STATE_ADDRESS)
         self.socket.setblocking(False)
         self.pose_pub = self.create_publisher(PoseStamped, "/newton/object_pose", 10)
+        self.obstacle_pose_pub = self.create_publisher(
+            PoseArray, "/newton/obstacle_poses", 10)
+        self.clock_pub = self.create_publisher(Clock, "/clock", 10)
         self.time_pub = self.create_publisher(Float64, "/newton/sim_time", 10)
         self.running_pub = self.create_publisher(Bool, "/newton/running", 10)
         self.status_pub = self.create_publisher(String, "/newton/bridge_status", 10)
@@ -159,7 +163,17 @@ class NewtonRosBridge(Node):
                 data = json.loads(payload.decode("utf-8"))
                 if data.get("type") != "state" or data.get("protocol") != PROTOCOL:
                     continue
-                stamp = self.get_clock().now().to_msg()
+                sim_time = float(data["sim_time_s"])
+                seconds = int(sim_time)
+                nanoseconds = int(round((sim_time - seconds) * 1.0e9))
+                if nanoseconds >= 1_000_000_000:
+                    seconds += 1
+                    nanoseconds -= 1_000_000_000
+                clock = Clock()
+                clock.clock.sec = seconds
+                clock.clock.nanosec = nanoseconds
+                stamp = clock.clock
+                self.clock_pub.publish(clock)
                 if "position_m" in data:
                     position = data["position_m"]
                     orientation = data["orientation_xyzw"]
@@ -170,6 +184,19 @@ class NewtonRosBridge(Node):
                     (pose.pose.orientation.x, pose.pose.orientation.y,
                      pose.pose.orientation.z, pose.pose.orientation.w) = orientation
                     self.pose_pub.publish(pose)
+                if "obstacle_poses" in data:
+                    obstacle_poses = PoseArray()
+                    obstacle_poses.header.stamp = stamp
+                    obstacle_poses.header.frame_id = data["frame_id"]
+                    for obstacle in data["obstacle_poses"]:
+                        position = obstacle["position_m"]
+                        orientation = obstacle["orientation_xyzw"]
+                        pose = Pose()
+                        pose.position.x, pose.position.y, pose.position.z = position
+                        (pose.orientation.x, pose.orientation.y,
+                         pose.orientation.z, pose.orientation.w) = orientation
+                        obstacle_poses.poses.append(pose)
+                    self.obstacle_pose_pub.publish(obstacle_poses)
                 if "joint_names" in data:
                     joints = JointState()
                     joints.header.stamp = stamp
@@ -189,7 +216,7 @@ class NewtonRosBridge(Node):
                                 self.latest_desired_arm, self.latest_newton_arm)
                         )
                         self.shadow_error_pub.publish(Float64(data=maximum_error))
-                self.time_pub.publish(Float64(data=float(data["sim_time_s"])))
+                self.time_pub.publish(Float64(data=sim_time))
                 self.running_pub.publish(Bool(data=bool(data["running"])))
                 self.last_received = time.monotonic()
                 self.last_sequence = int(data["sequence"])

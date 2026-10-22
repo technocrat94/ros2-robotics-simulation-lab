@@ -537,9 +537,20 @@ def build_scene(obstacles=None):
             has_shape_collision=True,
             has_particle_collision=True,
         )
+        obstacle_body = -1
+        obstacle_xform = wp.transform(wp.vec3(*center), wp.quat_identity())
+        if obstacle.get("motion") is not None:
+            obstacle_body = builder.add_body(
+                xform=obstacle_xform,
+                label=f"kinematic_obstacle_{obstacle['id']}",
+            )
+            builder.body_flags[obstacle_body] = newton.BodyFlags.KINEMATIC
+            obstacle_xform = wp.transform(
+                wp.vec3(0.0, 0.0, 0.0), wp.quat_identity()
+            )
         obstacle_shapes.append(builder.add_shape_box(
-            -1,
-            xform=wp.transform(wp.vec3(*center), wp.quat_identity()),
+            obstacle_body,
+            xform=obstacle_xform,
             hx=size[0] / 2.0,
             hy=size[1] / 2.0,
             hz=size[2] / 2.0,

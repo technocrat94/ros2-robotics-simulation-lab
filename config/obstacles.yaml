@@ -63,6 +63,16 @@
       "object_center_m": [0.487, 0.410, 0.004],
       "obstacles_enabled": true,
       "box_id": "step_c_cable_tall_wall"
+    },
+    "moving_wall": {
+      "object_center_m": [0.487, 0.410, 0.004],
+      "obstacles_enabled": true,
+      "box_id": "step_c_cable_wall",
+      "motion": {
+        "axis": "x",
+        "amplitude_m": 0.10,
+        "period_s": 8.0
+      }
     }
   },
   "step_a": {

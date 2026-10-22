@@ -74,6 +74,24 @@ def gripper_phase_flags(
     return open_seen, closed_seen, release_seen
 
 
+def moving_obstacle_center(center_m, motion, sim_time_s):
+    """Return the commanded obstacle center at Newton simulation time."""
+    center = [float(value) for value in center_m]
+    if motion is None:
+        return center
+    axis = str(motion["axis"])
+    if axis not in {"x", "y", "z"}:
+        raise ValueError(f"unsupported obstacle motion axis: {axis}")
+    amplitude = float(motion["amplitude_m"])
+    period = float(motion["period_s"])
+    if amplitude < 0.0 or period <= 0.0:
+        raise ValueError("obstacle motion needs nonnegative amplitude and positive period")
+    center[{"x": 0, "y": 1, "z": 2}[axis]] += amplitude * math.sin(
+        2.0 * math.pi * float(sim_time_s) / period
+    )
+    return center
+
+
 OBSTACLE_CONFIG_PATH = Path(os.environ.get(
     "NEWTON_OBSTACLE_CONFIG",
     str(Path.home() / "ur5_ws/src/ur5_moveit_demo/config/obstacles.yaml"),
@@ -98,7 +116,7 @@ def load_scene_profile(path):
     box_id = profile.get("box_id")
     if box_id not in boxes_by_id:
         raise ValueError(f"scene profile {profile_name} references unknown box {box_id}")
-    box = boxes_by_id[box_id]
+    box = dict(boxes_by_id[box_id])
     if len(box.get("center_m", [])) != 3 or len(box.get("size_m", [])) != 3:
         raise ValueError(f"obstacle box {box_id} needs three center and size values")
     if any(float(value) < 0.01 for value in box["size_m"]):
@@ -110,6 +128,11 @@ def load_scene_profile(path):
         if value is not None:
             os.environ[variable] = str(float(value))
     enabled = bool(profile.get("obstacles_enabled", False))
+    if profile.get("motion") is not None:
+        # Keep geometry/material in the box table while motion remains a scene
+        # property.  The merged runtime copy is passed to Newton only.
+        moving_obstacle_center(box["center_m"], profile["motion"], 0.0)
+        box["motion"] = dict(profile["motion"])
     return profile_name, profile, box, [box] if enabled else []
 
 
@@ -179,7 +202,9 @@ MAX_ALLOWED_PENETRATION = float(
 if MAX_ALLOWED_PENETRATION < 0.0:
     raise ValueError("GRASP_MAX_ALLOWED_PENETRATION must be nonnegative")
 PROFILE_DEFAULT_TRANSIT_PADDING_M = (
-    0.02 if SCENE_PROFILE_NAME.startswith("step_c_") else 0.0
+    0.02
+    if SCENE_PROFILE_NAME.startswith("step_c_") or SCENE_PROFILE_NAME == "moving_wall"
+    else 0.0
 )
 MOVEIT_ROBOT_PADDING_M = float(os.environ.get(
     "MOVEIT_ROBOT_PADDING_M", str(PROFILE_DEFAULT_TRANSIT_PADDING_M)
@@ -296,6 +321,55 @@ robot_particle_colliders = sum(
 )
 strip_shape_set = {int(index) for index in strip_shapes}
 obstacle_shape_set = {int(index) for index in obstacle_shapes}
+obstacle_runtime = []
+for obstacle, shape_index in zip(ENABLED_OBSTACLES, obstacle_shapes):
+    obstacle_runtime.append({
+        "id": str(obstacle["id"]),
+        "center_m": [float(value) for value in obstacle["center_m"]],
+        "motion": obstacle.get("motion"),
+        "shape": int(shape_index),
+        "body": int(shape_bodies[int(shape_index)]),
+    })
+
+
+def set_kinematic_obstacle_poses(state, sample_time_s):
+    """Command moving obstacle bodies before collision detection."""
+    moving = [item for item in obstacle_runtime if item["motion"] is not None]
+    if not moving:
+        return
+    body_poses = state.body_q.numpy()
+    for item in moving:
+        if item["body"] < 0:
+            raise RuntimeError(f"moving obstacle {item['id']} has no kinematic body")
+        center = moving_obstacle_center(
+            item["center_m"], item["motion"], sample_time_s
+        )
+        body_poses[item["body"], :3] = center
+        body_poses[item["body"], 3:] = [0.0, 0.0, 0.0, 1.0]
+    state.body_q.assign(body_poses)
+
+
+def obstacle_pose_payload(state, sample_time_s):
+    """Serialize enabled obstacle poses in deterministic config order."""
+    body_poses = state.body_q.numpy() if obstacle_runtime else None
+    result = []
+    for item in obstacle_runtime:
+        if item["body"] >= 0:
+            position = body_poses[item["body"], :3]
+            orientation = body_poses[item["body"], 3:]
+        else:
+            position = moving_obstacle_center(
+                item["center_m"], item["motion"], sample_time_s
+            )
+            orientation = [0.0, 0.0, 0.0, 1.0]
+        result.append({
+            "id": item["id"],
+            "position_m": [float(value) for value in position],
+            "orientation_xyzw": [float(value) for value in orientation],
+        })
+    return result
+
+
 left_finger_shape_set = set()
 right_finger_shape_set = set()
 for shape_index in range(robot_shapes):
@@ -560,6 +634,7 @@ previous_robot_q = robot_q.copy()
 q[:12] = robot_q
 model.joint_q.assign(q)
 newton.eval_fk(model, model.joint_q, model.joint_qd, state_0)
+set_kinematic_obstacle_poses(state_0, 0.0)
 initial_poses = state_0.body_q.numpy()
 if FEM_MODE:
     initial_particles = state_0.particle_q.numpy()
@@ -733,6 +808,7 @@ print(
     f"scene_profile={SCENE_PROFILE_NAME} "
     f"obstacles_enabled={bool(ENABLED_OBSTACLES)} "
     f"obstacle_shapes={len(obstacle_shapes)} "
+    f"moving_obstacles={sum(item['motion'] is not None for item in obstacle_runtime)} "
     f"robot_friction={CONTACT_FRICTION} strip_friction={STRIP_FRICTION} "
     f"ground_friction={GROUND_FRICTION} "
     f"density={DENSITY:.1f} youngs_modulus={YOUNGS_MODULUS:.1f} "
@@ -865,6 +941,7 @@ try:
                     state_0,
                     body_flag_filter=newton.BodyFlags.KINEMATIC,
                 )
+                set_kinematic_obstacle_poses(state_0, sim_time + DT)
                 state_0.clear_forces()
                 collision.collide(state_0, contacts)
                 count = int(contacts.rigid_contact_count.numpy()[0])
@@ -1317,6 +1394,7 @@ try:
                 "running": phase == "MOVEIT_CONTACT", "frame_id": "world",
                 "object": OBJECT_MODEL, "position_m": [float(v) for v in center],
                 "orientation_xyzw": [0.0, 0.0, 0.0, 1.0],
+                "obstacle_poses": obstacle_pose_payload(state_0, sim_time),
                 "joint_names": JOINT_NAMES,
                 "joint_positions": [float(latest_robot_q[i]) for i in JOINT_Q_INDICES],
                 "demo_phase": phase,

@@ -208,7 +208,7 @@ def check_obstacle_defaults():
         failures.append("obstacles: default_scene_profile must be default")
     expected_profiles = {
         "default", "step_c_cable_no_wall", "step_c_cable_wall",
-        "step_c_cable_tall_wall",
+        "step_c_cable_tall_wall", "moving_wall",
     }
     if set(profiles) != expected_profiles:
         failures.append(
@@ -240,6 +240,14 @@ def check_obstacle_defaults():
     for name, expected in expected_step_c.items():
         if profiles.get(name) != expected:
             failures.append(f"obstacles: profile {name} differs from Step C approval")
+    expected_moving_wall = {
+        "object_center_m": [0.487, 0.410, 0.004],
+        "obstacles_enabled": True,
+        "box_id": "step_c_cable_wall",
+        "motion": {"axis": "x", "amplitude_m": 0.10, "period_s": 8.0},
+    }
+    if profiles.get("moving_wall") != expected_moving_wall:
+        failures.append("obstacles: moving_wall profile differs from approval")
     expected_walls = {
         "step_c_cable_wall": ([0.487, 0.263, 0.08], [0.20, 0.05, 0.16]),
         "step_c_cable_tall_wall": ([0.487, 0.263, 0.30], [0.20, 0.05, 0.60]),
@@ -310,6 +318,19 @@ def check_step_c_safe_pregrasp_policy():
     print("[step-c-safe-route] Step C scripts preserve the verified safe route")
 
 
+def check_moving_wall_pose():
+    result = subprocess.run(
+        [sys.executable, str(REPO / "scripts/test_moving_wall_pose.py")],
+        capture_output=True, text=True,
+    )
+    if result.returncode != 0:
+        failures.append(
+            "moving-wall-pose: test_moving_wall_pose.py failed: "
+            + (result.stderr or result.stdout).strip().splitlines()[-1]
+        )
+    print("[moving-wall-pose] sinusoidal pose unit test run")
+
+
 def main():
     check("python", compile_python, tracked("*.py"))
     check("shell", check_shell, tracked("*.sh"))
@@ -324,6 +345,7 @@ def main():
     check_step_c_result_extractor()
     check_curobo_step_c_result_extractor()
     check_step_c_safe_pregrasp_policy()
+    check_moving_wall_pose()
     if failures:
         print("\nFAILED:")
         for failure in failures:

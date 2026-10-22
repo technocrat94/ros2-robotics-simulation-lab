@@ -19,6 +19,10 @@ def bool_parameter(name):
     return ParameterValue(LaunchConfiguration(name), value_type=bool)
 
 
+def int_parameter(name):
+    return ParameterValue(LaunchConfiguration(name), value_type=int)
+
+
 def generate_launch_description():
     obstacle_config_path = (
         Path(get_package_share_directory("ur5_moveit_demo"))
@@ -46,7 +50,10 @@ def generate_launch_description():
     if not isinstance(object_center, list) or len(object_center) != 3:
         raise RuntimeError(f"scene profile {scene_profile} needs object_center_m")
     object_z = 0.0100 if object_center[2] is None else float(object_center[2])
-    profile_default_padding = 0.02 if scene_profile.startswith("step_c_") else 0.0
+    profile_default_padding = (
+        0.02 if scene_profile.startswith("step_c_") or scene_profile == "moving_wall"
+        else 0.0
+    )
     robot_padding_m = float(os.environ.get(
         "MOVEIT_ROBOT_PADDING_M", str(profile_default_padding)
     ))
@@ -94,6 +101,12 @@ def generate_launch_description():
         DeclareLaunchArgument("floor_thickness", default_value="0.02"),
         DeclareLaunchArgument("object_pose_topic", default_value="/newton/object_pose"),
         DeclareLaunchArgument("object_pose_timeout", default_value="5.0"),
+        DeclareLaunchArgument("use_sim_time", default_value="false"),
+        DeclareLaunchArgument("dynamic_obstacle_replanning", default_value="false"),
+        DeclareLaunchArgument(
+            "obstacle_pose_topic", default_value="/newton/obstacle_poses"
+        ),
+        DeclareLaunchArgument("maximum_dynamic_replans", default_value="3"),
         DeclareLaunchArgument(
             "obstacles_enabled",
             default_value=str(bool(profile["obstacles_enabled"])).lower(),
@@ -166,7 +179,12 @@ def generate_launch_description():
         {"lift_only": bool_parameter("lift_only")},
         {"use_width_calibration": bool_parameter("use_width_calibration")},
         {"obstacles_enabled": bool_parameter("obstacles_enabled")},
+        {"use_sim_time": bool_parameter("use_sim_time")},
+        {"dynamic_obstacle_replanning": bool_parameter(
+            "dynamic_obstacle_replanning")},
+        {"maximum_dynamic_replans": int_parameter("maximum_dynamic_replans")},
         {"object_pose_topic": LaunchConfiguration("object_pose_topic")},
+        {"obstacle_pose_topic": LaunchConfiguration("obstacle_pose_topic")},
         {"planning_time_s": LaunchConfiguration("planning_time_s")},
         {"obstacle_id": LaunchConfiguration("obstacle_id")},
         {"obstacle_frame": LaunchConfiguration("obstacle_frame")},

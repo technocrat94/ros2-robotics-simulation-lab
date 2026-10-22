@@ -15,6 +15,7 @@
 
 #include <control_msgs/action/gripper_command.hpp>
 #include <geometry_msgs/msg/pose.hpp>
+#include <geometry_msgs/msg/pose_array.hpp>
 #include <geometry_msgs/msg/pose_stamped.hpp>
 #include <moveit/move_group_interface/move_group_interface.h>
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
@@ -63,6 +64,23 @@ struct ObstacleBox
   std::array<double, 3> center;
   std::array<double, 3> size;
 };
+
+struct MovingObstacleCapture
+{
+  std::mutex mutex;
+  ObstacleBox box;
+  std::size_t update_sequence{0};
+};
+
+struct DynamicReplanningOptions
+{
+  bool enabled{false};
+  double padding_m{0.0};
+  int maximum_replans{0};
+  std::shared_ptr<MovingObstacleCapture> obstacle;
+};
+
+DynamicReplanningOptions dynamic_replanning;
 
 bool apply_robot_padding(
   MoveGroup & move_group,
@@ -173,6 +191,159 @@ bool report_route_metrics(
     minimum_robot_box_distance, obstacle.id.c_str());
   return std::isfinite(maximum_end_effector_height) &&
          std::isfinite(minimum_robot_box_distance);
+}
+
+
+std::pair<ObstacleBox, std::size_t> moving_obstacle_snapshot()
+{
+  std::lock_guard<std::mutex> lock(dynamic_replanning.obstacle->mutex);
+  return {
+    dynamic_replanning.obstacle->box,
+    dynamic_replanning.obstacle->update_sequence
+  };
+}
+
+
+bool remaining_trajectory_within_wall_padding(
+  MoveGroup & move_group,
+  const rclcpp::Logger & logger,
+  const MoveGroup::Plan & plan,
+  const ObstacleBox & obstacle,
+  double padding_m)
+{
+  moveit::core::RobotState start_state(move_group.getRobotModel());
+  moveit::core::robotStateMsgToRobotState(plan.start_state, start_state);
+  robot_trajectory::RobotTrajectory trajectory(
+    move_group.getRobotModel(), move_group.getName());
+  trajectory.setRobotTrajectoryMsg(start_state, plan.trajectory);
+  if (trajectory.getWayPointCount() == 0)
+  {
+    return true;
+  }
+
+  const auto current_state = move_group.getCurrentState(1.0);
+  if (!current_state)
+  {
+    RCLCPP_WARN(logger, "Dynamic obstacle check could not read current state.");
+    return true;
+  }
+  const auto * group = move_group.getRobotModel()->getJointModelGroup(
+    move_group.getName());
+  std::size_t nearest = 0;
+  double nearest_distance = std::numeric_limits<double>::infinity();
+  for (std::size_t index = 0; index < trajectory.getWayPointCount(); ++index)
+  {
+    const double distance = trajectory.getWayPoint(index).distance(
+      *current_state, group);
+    if (distance < nearest_distance)
+    {
+      nearest_distance = distance;
+      nearest = index;
+    }
+  }
+
+  planning_scene::PlanningScene analysis_scene(move_group.getRobotModel());
+  auto collision_object = make_box_obstacle(obstacle);
+  collision_object.operation = moveit_msgs::msg::CollisionObject::ADD;
+  if (!analysis_scene.processCollisionObjectMsg(collision_object))
+  {
+    RCLCPP_WARN(logger, "Dynamic obstacle check could not create the wall.");
+    return true;
+  }
+  for (std::size_t index = nearest; index < trajectory.getWayPointCount(); ++index)
+  {
+    collision_detection::DistanceRequest request;
+    collision_detection::DistanceResult result;
+    request.type = collision_detection::DistanceRequestTypes::GLOBAL;
+    request.enable_signed_distance = true;
+    request.group_name = move_group.getName();
+    request.enableGroup(move_group.getRobotModel());
+    request.acm = &analysis_scene.getAllowedCollisionMatrix();
+    analysis_scene.getCollisionEnv()->distanceRobot(
+      request, result, trajectory.getWayPoint(index));
+    if (result.minimum_distance.distance <= padding_m)
+    {
+      RCLCPP_WARN(
+        logger,
+        "DYNAMIC_WALL_PATH_BLOCKED waypoint=%zu remaining_start=%zu "
+        "distance_m=%.6f padding_m=%.6f",
+        index, nearest, result.minimum_distance.distance, padding_m);
+      return true;
+    }
+  }
+  return false;
+}
+
+
+bool execute_with_dynamic_replanning(
+  MoveGroup & move_group,
+  const rclcpp::Logger & logger,
+  MoveGroup::Plan plan,
+  const geometry_msgs::msg::Pose & target,
+  const std::string & stage_name)
+{
+  if (!dynamic_replanning.enabled)
+  {
+    return static_cast<bool>(move_group.execute(plan));
+  }
+
+  for (int attempt = 0; attempt <= dynamic_replanning.maximum_replans; ++attempt)
+  {
+    auto [wall, wall_sequence] = moving_obstacle_snapshot();
+    if (!remaining_trajectory_within_wall_padding(
+        move_group, logger, plan, wall, dynamic_replanning.padding_m))
+    {
+      auto execution = std::async(
+        std::launch::async,
+        [&move_group, &plan]() {
+          return static_cast<bool>(move_group.execute(plan));
+        });
+      bool interrupted = false;
+      while (execution.wait_for(50ms) != std::future_status::ready)
+      {
+        auto [latest_wall, latest_sequence] = moving_obstacle_snapshot();
+        if (latest_sequence == wall_sequence)
+        {
+          continue;
+        }
+        wall_sequence = latest_sequence;
+        if (remaining_trajectory_within_wall_padding(
+            move_group, logger, plan, latest_wall,
+            dynamic_replanning.padding_m))
+        {
+          move_group.stop();
+          interrupted = true;
+          break;
+        }
+      }
+      const bool executed = execution.get();
+      if (!interrupted)
+      {
+        return executed;
+      }
+    }
+
+    if (attempt == dynamic_replanning.maximum_replans)
+    {
+      RCLCPP_ERROR(
+        logger, "%s exhausted %d dynamic replans.", stage_name.c_str(),
+        dynamic_replanning.maximum_replans);
+      return false;
+    }
+    RCLCPP_INFO(
+      logger, "DYNAMIC_WALL_REPLAN stage=\"%s\" attempt=%d",
+      stage_name.c_str(), attempt + 1);
+    move_group.setStartStateToCurrentState();
+    move_group.setPoseTarget(target, "tool0");
+    const auto result = move_group.plan(plan);
+    move_group.clearPoseTargets();
+    if (!static_cast<bool>(result))
+    {
+      RCLCPP_ERROR(logger, "%s dynamic replan failed.", stage_name.c_str());
+      return false;
+    }
+  }
+  return false;
 }
 
 
@@ -538,8 +709,8 @@ bool move_relative(
     return true;
   }
 
-  const bool executed =
-    static_cast<bool>(move_group.execute(plan));
+  const bool executed = execute_with_dynamic_replanning(
+    move_group, logger, plan, target_pose, stage_name);
 
   if (!executed)
   {
@@ -799,7 +970,8 @@ bool move_staged_cartesian_to_pose(
     return true;
   }
 
-  if (!static_cast<bool>(move_group.execute(plan)))
+  if (!execute_with_dynamic_replanning(
+      move_group, logger, plan, target, "Safe staged pre-grasp"))
   {
     RCLCPP_ERROR(logger, "Safe pre-grasp execution failed.");
     return false;
@@ -956,7 +1128,8 @@ bool move_to_pose_target(
     return true;
   }
 
-  if (!static_cast<bool>(move_group.execute(plan)))
+  if (!execute_with_dynamic_replanning(
+      move_group, logger, plan, target, stage_name))
   {
     RCLCPP_ERROR(logger, "%s execution failed.", stage_name.c_str());
     return false;
@@ -990,6 +1163,13 @@ int main(int argc, char * argv[])
         node->declare_parameter<bool>(name, default_value);
       }
       return node->get_parameter(name).as_bool();
+    };
+  auto int_parameter = [&node](const std::string & name, int default_value) {
+      if (!node->has_parameter(name))
+      {
+        node->declare_parameter<int>(name, default_value);
+      }
+      return static_cast<int>(node->get_parameter(name).as_int());
     };
   auto string_parameter =
     [&node](const std::string & name, const std::string & default_value) {
@@ -1041,6 +1221,12 @@ int main(int argc, char * argv[])
   const double robot_padding_m = parameter("robot_padding_m", 0.0);
   const double contact_padding_m = parameter("contact_padding_m", 0.0);
   const bool obstacles_enabled = bool_parameter("obstacles_enabled", false);
+  const bool dynamic_obstacle_replanning =
+    bool_parameter("dynamic_obstacle_replanning", false);
+  const std::string obstacle_pose_topic =
+    string_parameter("obstacle_pose_topic", "/newton/obstacle_poses");
+  const int maximum_dynamic_replans =
+    int_parameter("maximum_dynamic_replans", 3);
   ObstacleBox obstacle_box;
   try
   {
@@ -1185,11 +1371,62 @@ int main(int argc, char * argv[])
     rclcpp::shutdown();
     return 1;
   }
+  if (dynamic_obstacle_replanning &&
+    (!obstacles_enabled || maximum_dynamic_replans < 1 || obstacle_pose_topic.empty()))
+  {
+    RCLCPP_ERROR(
+      logger,
+      "Dynamic obstacle replanning needs an enabled obstacle, a pose topic, "
+      "and at least one replan.");
+    rclcpp::shutdown();
+    return 1;
+  }
   if (safe_transit_margin <= 0.0 || maximum_pregrasp_joint_travel <= 0.0)
   {
     RCLCPP_ERROR(logger, "Safe pre-grasp limits must be positive.");
     rclcpp::shutdown();
     return 1;
+  }
+
+  rclcpp::Subscription<geometry_msgs::msg::PoseArray>::SharedPtr
+    obstacle_pose_subscription;
+  if (dynamic_obstacle_replanning)
+  {
+    dynamic_replanning.enabled = true;
+    dynamic_replanning.padding_m = robot_padding_m;
+    dynamic_replanning.maximum_replans = maximum_dynamic_replans;
+    dynamic_replanning.obstacle = std::make_shared<MovingObstacleCapture>();
+    dynamic_replanning.obstacle->box = obstacle_box;
+    obstacle_pose_subscription =
+      node->create_subscription<geometry_msgs::msg::PoseArray>(
+      obstacle_pose_topic, rclcpp::QoS(10),
+      [logger](const geometry_msgs::msg::PoseArray::SharedPtr message) {
+        if (message->poses.empty())
+        {
+          RCLCPP_WARN(logger, "Received an empty obstacle pose array.");
+          return;
+        }
+        ObstacleBox updated;
+        {
+          std::lock_guard<std::mutex> lock(dynamic_replanning.obstacle->mutex);
+          updated = dynamic_replanning.obstacle->box;
+          updated.frame = message->header.frame_id.empty() ?
+            updated.frame : message->header.frame_id;
+          updated.center = {
+            message->poses.front().position.x,
+            message->poses.front().position.y,
+            message->poses.front().position.z};
+          dynamic_replanning.obstacle->box = updated;
+          ++dynamic_replanning.obstacle->update_sequence;
+        }
+        auto collision_object = make_box_obstacle(updated);
+        collision_object.operation = moveit_msgs::msg::CollisionObject::ADD;
+        moveit::planning_interface::PlanningSceneInterface planning_scene;
+        if (!planning_scene.applyCollisionObject(collision_object))
+        {
+          RCLCPP_WARN(logger, "Failed to update moving wall in planning scene.");
+        }
+      });
   }
 
   rclcpp::executors::SingleThreadedExecutor executor;
@@ -1262,9 +1499,11 @@ int main(int argc, char * argv[])
   RCLCPP_INFO(
     logger,
     "SCENE_CONFIG profile=%s obstacles_enabled=%s transit_padding_m=%.6f "
-    "contact_padding_m=%.6f planning_time_s=%.3f",
+    "contact_padding_m=%.6f planning_time_s=%.3f dynamic_replanning=%s "
+    "maximum_dynamic_replans=%d",
     scene_profile.c_str(), obstacles_enabled ? "true" : "false", robot_padding_m,
-    contact_padding_m, planning_time_s);
+    contact_padding_m, planning_time_s,
+    dynamic_obstacle_replanning ? "true" : "false", maximum_dynamic_replans);
   RCLCPP_INFO(
     logger, "USE_SAFE_PREGRASP_PATH %s",
     use_safe_pregrasp_path ? "true" : "false");
