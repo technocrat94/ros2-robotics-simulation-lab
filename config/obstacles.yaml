@@ -71,7 +71,8 @@
       "motion": {
         "axis": "x",
         "amplitude_m": 0.25,
-        "period_s": 8.0
+        "period_s": 8.0,
+        "phase_rad": 1.5707963267948966
       }
     }
   },

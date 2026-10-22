@@ -42,6 +42,9 @@ def main():
     close(pose(center, motion, 2.0), [0.587, 0.263, 0.08])
     close(pose(center, motion, 4.0), center)
     close(pose(center, motion, 6.0), [0.387, 0.263, 0.08])
+    phased = dict(motion, phase_rad=math.pi / 2.0)
+    close(pose(center, phased, 0.0), [0.587, 0.263, 0.08])
+    close(pose(center, phased, 2.0), center)
     close(pose(center, None, 123.0), center)
     try:
         pose(center, {"axis": "q", "amplitude_m": 0.1, "period_s": 8.0}, 0.0)

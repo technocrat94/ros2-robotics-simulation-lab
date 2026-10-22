@@ -5,7 +5,7 @@ REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ROS_WS="${HOME}/ur5_ws"
 SAFE_PREGRASP="${FEM_CABLE_SAFE_PREGRASP:-true}"
 export GRASP_SCENE_PROFILE="${GRASP_SCENE_PROFILE:-default}"
-if [[ "${GRASP_SCENE_PROFILE}" == step_c_* ]]; then
+if [[ "${GRASP_SCENE_PROFILE}" == step_c_* || "${GRASP_SCENE_PROFILE}" == "moving_wall" ]]; then
   PROFILE_DEFAULT_PADDING="0.02"
 else
   PROFILE_DEFAULT_PADDING="0.0"

@@ -68,7 +68,9 @@ class NewtonRosBridge(Node):
         self.latest_newton_arm = None
         self.latest_gripper = 0.0
         self.shadow_enabled = False
-        self.last_shadow_send = 0.0
+        self.endpoint_pending_commands = 0
+        self.shadow_command_in_flight = False
+        self.last_sent_shadow = None
         self.get_logger().info(
             "ROS_ADAPTER_READY protocol=1 state=%d command=%d"
             % (STATE_PORT, COMMAND_PORT)
@@ -137,6 +139,11 @@ class NewtonRosBridge(Node):
             response.message = "no controller desired state available"
             return response
         self.shadow_enabled = bool(request.data)
+        if not self.shadow_enabled:
+            self.shadow_command_in_flight = False
+            self.last_sent_shadow = None
+        else:
+            self.maybe_send_shadow()
         response.success = True
         response.message = "trajectory shadow enabled" if self.shadow_enabled else "trajectory shadow disabled"
         return response
@@ -144,14 +151,20 @@ class NewtonRosBridge(Node):
     def maybe_send_shadow(self):
         if not self.shadow_enabled or self.latest_desired_arm is None:
             return
-        now = time.monotonic()
-        if now - self.last_shadow_send < 0.02:
+        target = tuple(self.latest_desired_arm) + (float(self.latest_gripper),)
+        if target == self.last_sent_shadow:
+            return
+        # Pace ROS commands from Newton's simulated-time consumption, not wall
+        # time.  On a slow CPU, a 20 ms wall-time sender can otherwise build
+        # seconds of stale trajectory backlog.
+        if self.endpoint_pending_commands > 0 or self.shadow_command_in_flight:
             return
         self.send_command(
             "set_robot_positions",
             self.robot_state_value(self.latest_desired_arm),
         )
-        self.last_shadow_send = now
+        self.shadow_command_in_flight = True
+        self.last_sent_shadow = target
 
     def receive(self):
         while True:
@@ -163,6 +176,11 @@ class NewtonRosBridge(Node):
                 data = json.loads(payload.decode("utf-8"))
                 if data.get("type") != "state" or data.get("protocol") != PROTOCOL:
                     continue
+                self.endpoint_pending_commands = int(
+                    data.get("pending_robot_commands", 0))
+                # This state packet was emitted after the endpoint processed
+                # all UDP commands received before its current physics step.
+                self.shadow_command_in_flight = False
                 sim_time = float(data["sim_time_s"])
                 seconds = int(sim_time)
                 nanoseconds = int(round((sim_time - seconds) * 1.0e9))
@@ -220,6 +238,7 @@ class NewtonRosBridge(Node):
                 self.running_pub.publish(Bool(data=bool(data["running"])))
                 self.last_received = time.monotonic()
                 self.last_sequence = int(data["sequence"])
+                self.maybe_send_shadow()
             except Exception as error:
                 self.get_logger().warning("Rejected state packet: %s" % error)
 

@@ -68,6 +68,7 @@ struct ObstacleBox
 struct MovingObstacleCapture
 {
   std::mutex mutex;
+  std::condition_variable condition;
   ObstacleBox box;
   std::size_t update_sequence{0};
 };
@@ -1418,6 +1419,7 @@ int main(int argc, char * argv[])
             message->poses.front().position.z};
           dynamic_replanning.obstacle->box = updated;
           ++dynamic_replanning.obstacle->update_sequence;
+          dynamic_replanning.obstacle->condition.notify_all();
         }
         auto collision_object = make_box_obstacle(updated);
         collision_object.operation = moveit_msgs::msg::CollisionObject::ADD;
@@ -1432,6 +1434,34 @@ int main(int argc, char * argv[])
   rclcpp::executors::SingleThreadedExecutor executor;
   executor.add_node(node);
   std::thread spinner([&executor]() {executor.spin();});
+
+  if (dynamic_obstacle_replanning)
+  {
+    RCLCPP_INFO(
+      logger, "Waiting up to %.1f s for live obstacle pose on %s...",
+      object_pose_timeout, obstacle_pose_topic.c_str());
+    std::unique_lock<std::mutex> lock(dynamic_replanning.obstacle->mutex);
+    const bool received = dynamic_replanning.obstacle->condition.wait_for(
+      lock, std::chrono::duration<double>(object_pose_timeout),
+      []() {return dynamic_replanning.obstacle->update_sequence > 0;});
+    if (!received)
+    {
+      RCLCPP_ERROR(
+        logger, "No live obstacle pose received from %s.",
+        obstacle_pose_topic.c_str());
+      lock.unlock();
+      executor.cancel();
+      spinner.join();
+      rclcpp::shutdown();
+      return 1;
+    }
+    obstacle_box = dynamic_replanning.obstacle->box;
+    RCLCPP_INFO(
+      logger,
+      "LIVE_OBSTACLE_INITIAL_POSE topic=%s center=(%.4f, %.4f, %.4f) m sequence=%zu",
+      obstacle_pose_topic.c_str(), obstacle_box.center[0], obstacle_box.center[1],
+      obstacle_box.center[2], dynamic_replanning.obstacle->update_sequence);
+  }
 
   rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr
     object_pose_subscription;

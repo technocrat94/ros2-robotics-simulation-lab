@@ -84,10 +84,11 @@ def moving_obstacle_center(center_m, motion, sim_time_s):
         raise ValueError(f"unsupported obstacle motion axis: {axis}")
     amplitude = float(motion["amplitude_m"])
     period = float(motion["period_s"])
+    phase = float(motion.get("phase_rad", 0.0))
     if amplitude < 0.0 or period <= 0.0:
         raise ValueError("obstacle motion needs nonnegative amplitude and positive period")
     center[{"x": 0, "y": 1, "z": 2}[axis]] += amplitude * math.sin(
-        2.0 * math.pi * float(sim_time_s) / period
+        2.0 * math.pi * float(sim_time_s) / period + phase
     )
     return center
 
@@ -322,6 +323,7 @@ robot_particle_colliders = sum(
 strip_shape_set = {int(index) for index in strip_shapes}
 obstacle_shape_set = {int(index) for index in obstacle_shapes}
 obstacle_runtime = []
+obstacle_motion_epoch_s = 0.0
 for obstacle, shape_index in zip(ENABLED_OBSTACLES, obstacle_shapes):
     obstacle_runtime.append({
         "id": str(obstacle["id"]),
@@ -342,7 +344,8 @@ def set_kinematic_obstacle_poses(state, sample_time_s):
         if item["body"] < 0:
             raise RuntimeError(f"moving obstacle {item['id']} has no kinematic body")
         center = moving_obstacle_center(
-            item["center_m"], item["motion"], sample_time_s
+            item["center_m"], item["motion"],
+            sample_time_s - obstacle_motion_epoch_s,
         )
         body_poses[item["body"], :3] = center
         body_poses[item["body"], 3:] = [0.0, 0.0, 0.0, 1.0]
@@ -359,7 +362,8 @@ def obstacle_pose_payload(state, sample_time_s):
             orientation = body_poses[item["body"], 3:]
         else:
             position = moving_obstacle_center(
-                item["center_m"], item["motion"], sample_time_s
+                item["center_m"], item["motion"],
+                sample_time_s - obstacle_motion_epoch_s,
             )
             orientation = [0.0, 0.0, 0.0, 1.0]
         result.append({
@@ -861,6 +865,10 @@ try:
                     queue_drained_reported = True
                     consecutive_identical_samples = 1
                     maximum_command_backlog = 0
+                    # Restart the moving-wall phase when ROS and Newton are
+                    # synchronized, so every pick begins with the wall clear
+                    # and then moves into the transit route deterministically.
+                    obstacle_motion_epoch_s = sim_time
                     phase = "ROS_SYNCHRONIZED"
                     last_command = (
                         "sync_robot_state" if kind == "sync_robot_state"
