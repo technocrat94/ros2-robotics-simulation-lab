@@ -1,0 +1,8 @@
+Laboratory isolation environment
+  user=yuhao uid=1000
+  ROS_DOMAIN_ID=20 ROS_LOCALHOST_ONLY=1
+  Newton state=20000 command=20001 viewer=30000
+[WARN] [1792661277.449673340] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[WARN] [1792661277.449689090] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+[INFO] [1792661277.496478860] [newton_ros_bridge]: ROS_ADAPTER_READY protocol=1 state=20000 command=20001
+[ros2run]: Killed

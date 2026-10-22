@@ -390,3 +390,45 @@ C0 control at 6× speed: cable at y = 0.410 m, no wall, complete pick cycle.
 
 ![C1 wall crossing 6×](media/04_c1_wall_crossing_6x.gif)
 C1 wall crossing at 6× speed: raise over the 0.16 m wall (route height 0.375 m), descend, grasp, lift 0.120 m, release drop 0.120 m; loaded wall contacts 0.
+
+## Moving-wall C1 acceptance at `0f9f1c4`
+
+The moving-wall profile keeps the accepted cable and wall geometry, adds a
+`0.25 m` sinusoidal X motion, and begins each synchronized pick with the wall
+outside the crossing.  MoveIt now waits for the first live
+`/newton/obstacle_poses` sample before planning.  During execution, it stops
+when the wall enters the `0.020 m` padding plus `0.030 m` safety-clearance
+envelope, waits for the wall to clear, and replans from the measured state.
+
+The original adapter generated one command every 20 ms of wall time.  On the
+home CPU, Newton ran at `0.0552×` real time, so that policy built a backlog of
+`96` commands.  The adapter now sends the newest controller target only after
+Newton reports that its previous command has drained.  The accepted run's
+maximum backlog was `2`.
+
+| Check | Accepted value |
+|---|---:|
+| Stop-and-replan events | `2` |
+| FEM cable lift | `0.120050 m` |
+| Release drop | `0.120503 m` |
+| Minimum robot-wall surface separation | `0.045716 m` |
+| Robot-wall contacts (accepted / loaded / penetrating) | `0 / 0 / 0` |
+| Transit / contact padding | `0.020 / 0.000 m` |
+| Maximum ROS-to-Newton command backlog | `2` |
+| Candidate-contact grasp pass | `true` |
+
+Two diagnostics explain the final control logic.  Replanning immediately
+while the wall still occupied the route was correctly rejected by MoveIt, so
+the controller now stops, waits for a live clear pose, and then replans.
+Keeping the wall monitor active during the vertical contact descent also
+interrupted the verified grasp sequence, so dynamic route monitoring ends at
+pre-grasp; Newton still measures wall contacts through closure, lift, and
+release.  C2 was deliberately not run.
+
+Accepted evidence (repository-relative):
+
+- [combined result](results/step_c/attempt_20261022_0f9f1c4_moving_wall/moving_wall_c1_20261022_172748.result.json)
+- [MoveIt pick log](results/step_c/attempt_20261022_0f9f1c4_moving_wall/jazzy_fem_cable_pick_20261022_172816.log)
+- [Newton result](results/step_c/attempt_20261022_0f9f1c4_moving_wall/jazzy_fem_cable_endpoint_20261022_172752.result.json)
+- [Newton endpoint log](results/step_c/attempt_20261022_0f9f1c4_moving_wall/jazzy_fem_cable_endpoint_20261022_172752.log)
+- [ROS adapter log](results/step_c/attempt_20261022_0f9f1c4_moving_wall/moving_wall_c1_20261022_172748_adapter.log)
