@@ -27,7 +27,7 @@ echo "NEWTON_DEVICE ${GRASP_DEVICE}"
 export NEWTON_ROBOT_URDF="${ASSET}"
 export NEWTON_OBSTACLE_CONFIG="${REPO_DIR}/config/obstacles.yaml"
 export GRASP_SCENE_PROFILE="${GRASP_SCENE_PROFILE:-default}"
-if [[ "${GRASP_SCENE_PROFILE}" == step_c_* ]]; then
+if [[ "${GRASP_SCENE_PROFILE}" == step_c_* || "${GRASP_SCENE_PROFILE}" == "moving_wall" ]]; then
   PROFILE_DEFAULT_PADDING="0.02"
 else
   PROFILE_DEFAULT_PADDING="0.0"
