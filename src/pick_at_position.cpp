@@ -1806,6 +1806,17 @@ int main(int argc, char * argv[])
     return 0;
   }
 
+  if (success && dynamic_replanning.enabled)
+  {
+    // The moving wall guards only the transit to pre-grasp.  Contact descent,
+    // closure, lift, and release use the verified unpadded grasp sequence;
+    // Newton continues measuring physical wall contacts for the whole run.
+    dynamic_replanning.enabled = false;
+    RCLCPP_INFO(
+      logger,
+      "DYNAMIC_WALL_MONITOR_DISABLED stage=contact transit_replanning_complete=true");
+  }
+
   if (success)
   {
     success = apply_robot_padding(
