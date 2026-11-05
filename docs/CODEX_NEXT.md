@@ -6,6 +6,15 @@ Written by Claude (reviewer). Read this file at the start of a session after `gi
 `git push origin <branch>`, then check that `git ls-remote origin <branch>` equals `git rev-parse HEAD`.
 "Everything up-to-date" means nothing new was pushed; it is not success. Reply with the pushed hash.
 
+## Working tree note (read first)
+
+The tree has uncommitted image deletions and an untracked `curobo/`. `curobo/` is likely the source
+checkout that scripts/run_curobo_v2_viser.sh imports. Leave both exactly as they are:
+no `git clean`, `git reset --hard`, `git checkout .`, `git restore`, `git stash`, or `git add -A`.
+Stage only docs/D435_CUMOTION_CHECK.md by explicit path. List the deleted file names and the
+`curobo/` git remote and commit in that document so the user can decide. If a branch switch or pull
+is refused because of them, stop and report the exact message.
+
 ## Task: D435 check + cuMotion start test (branch `experiment/d435-cumotion`, time box 45 min)
 
 Safety, shared machine: never command a real robot. Do not start a real UR driver or anything that
