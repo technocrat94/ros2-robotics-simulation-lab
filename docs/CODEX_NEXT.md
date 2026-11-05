@@ -15,26 +15,21 @@ No pending task
 Leave the deleted 05_c2_tall_wall_refused.png and the untracked curobo/ untouched. Stage files by
 explicit path only. No git clean/reset/restore/stash/add -A.
 
-## Task: compile cuRobo extensions in OUR OWN copy (branch `experiment/d435-cumotion`, time box 40 min)
+## Task: resume the copy build (branch `experiment/d435-cumotion`, time box 30 min)
 
-The retry failed with an undefined torch symbol in geom_cu: the prebuilt CUDA extensions do not match
-the venv's PyTorch, and the fallback JIT compiles inside ~/isaac_ros_ws, which we must not modify.
-Fix it in a copy, leaving the original untouched.
+The copy failed on version detection only, because its `.git` pointer is dead. Claude added
+SETUPTOOLS_SCM_PRETEND_VERSION=0.7.7 to scripts/use_cumotion_copy_env.sh. Do not edit the copy's `.git`.
+All rules of the previous task still apply: no sudo, no pip, no change to ~/curobo_ros_env or
+~/isaac_ros_ws, never launch the ur5e URDF as a driver, ROS_DOMAIN_ID=20, logs under /tmp.
 
-Rules: no sudo; no pip install or any change to ~/curobo_ros_env (our demos use it); no write to
-~/isaac_ros_ws or its scripts. Never launch the ur5e URDF as a driver. ROS_DOMAIN_ID=20, logs under /tmp.
-
-1. Report the venv's torch version and its CUDA version.
-2. Copy only `~/isaac_ros_ws/src/isaac_ros_cumotion/curobo_core/curobo` to `~/cumotion_copy/curobo`.
-3. Add scripts/use_cumotion_copy_env.sh: source ~/use_cumotion_rviz_env.sh, then put
-   ~/cumotion_copy/curobo/src first on PYTHONPATH and set TORCH_CUDA_ARCH_LIST="8.6" (RTX 3080).
-4. With that env, `import curobo`, confirm its path is in ~/cumotion_copy, and let JIT compile there.
-   Report compile time, and confirm with `git -C ~/isaac_ros_ws/src/isaac_ros_cumotion status --short`
-   that the original shows no new changes.
-5. Rerun the same planner start command. Report whether it reaches "cuMotion is ready for planning
-   queries!" and the GPU memory used. If ready, send one plan-only MoveGroup goal (no execution) and
+1. Rerun the same timed import command with this env. Confirm curobo.__file__ is under ~/cumotion_copy
+   and let JIT compile there. Report compile time and any .so files created (paths only).
+2. Check `git -C ~/isaac_ros_ws/src/isaac_ros_cumotion status --short` still shows only the two
+   modifications listed in the Copy build section.
+3. Rerun the planner start command. Report whether it reaches "cuMotion is ready for planning
+   queries!" and GPU memory used. If ready, send one plan-only MoveGroup goal (no execution) and
    report success and planning time.
-6. On failure, paste the exact error and your read of the cause. Do not try further fixes.
+4. On failure, paste the exact error and your read of the cause. Do not try further fixes.
 
-Append a "Copy build" section to docs/D435_CUMOTION_CHECK.md. Stop every process you started.
+Append a "Copy build retry" section to docs/D435_CUMOTION_CHECK.md. Stop every process you started.
 Commit by path, push, reply in 5 lines with the hash.
