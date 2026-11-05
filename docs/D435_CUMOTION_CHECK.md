@@ -626,3 +626,132 @@ git -C /home/aisc216/isaac_ros_ws/src/isaac_ros_cumotion status --short
 
 returned the same two lines and no new changes. No `cumotion_copy`, planner, ninja, or nvcc
 process remained after the command exited.
+
+## Copy build retry
+
+Retry date: 2026-11-05 (Asia/Taipei)
+
+Claude added the following version override to `scripts/use_cumotion_copy_env.sh` before this
+retry, so the dead copied submodule `.git` pointer did not need to be edited:
+
+```bash
+export SETUPTOOLS_SCM_PRETEND_VERSION=0.7.7
+```
+
+All other copy-build safety rules remained in effect.
+
+### Timed import and JIT result
+
+The same timed command was rerun:
+
+```bash
+set +u
+source /home/aisc216/ur5_ws/src/ur5_moveit_demo/scripts/use_cumotion_copy_env.sh
+set -u
+export ROS_DOMAIN_ID=20
+export ROS_LOG_DIR=/tmp/d435-cumotion-ros-log
+export ROS_HOME=/tmp/d435-cumotion-ros-home
+export PYTHONDONTWRITEBYTECODE=1
+/usr/bin/time \
+  -f 'COMPILE_ELAPSED_SECONDS=%e\nCOMPILE_MAX_RSS_KB=%M\nCOMPILE_EXIT=%x' \
+  python - <<'PY'
+import curobo
+print(f'curobo_file={curobo.__file__}', flush=True)
+print(f'curobo_version={getattr(curobo, "__version__", "not exposed")}', flush=True)
+from curobo.wrap.reacher.motion_gen import MotionGen
+print(f'motion_gen_import={MotionGen.__module__}', flush=True)
+PY
+```
+
+It selected the independent copy and successfully imported the motion generator:
+
+```text
+curobo_file=/home/aisc216/cumotion_copy/curobo/src/curobo/__init__.py
+curobo_version=0.7.7
+motion_gen_import=curobo.wrap.reacher.motion_gen
+COMPILE_ELAPSED_SECONDS=196.84
+COMPILE_MAX_RSS_KB=2770648
+COMPILE_EXIT=0
+```
+
+The JIT sequence rebuilt `kinematics_fused_cu`, `geom_cu`, `tensor_step_cu`,
+`lbfgs_step_cu`, and `line_search_cu` for Python 3.12, CUDA 12.8, and RTX 3080 compute
+capability 8.6. PyTorch placed the newly created shared objects in its extension cache rather
+than overwriting the copied checkout's old binaries. New `.so` paths:
+
+```text
+/home/aisc216/.cache/torch_extensions/py312_cu128/kinematics_fused_cu/kinematics_fused_cu.so
+/home/aisc216/.cache/torch_extensions/py312_cu128/geom_cu/geom_cu.so
+/home/aisc216/.cache/torch_extensions/py312_cu128/tensor_step_cu/tensor_step_cu.so
+/home/aisc216/.cache/torch_extensions/py312_cu128/lbfgs_step_cu/lbfgs_step_cu.so
+/home/aisc216/.cache/torch_extensions/py312_cu128/line_search_cu/line_search_cu.so
+```
+
+The source copy's five old `.so` files retained their 2026-05-28 timestamps.
+
+### Original workspace check
+
+Before and after the successful JIT, the required command:
+
+```bash
+git -C /home/aisc216/isaac_ros_ws/src/isaac_ros_cumotion status --short
+```
+
+returned only the same two pre-existing modifications:
+
+```text
+ M isaac_ros_cumotion/isaac_ros_cumotion/cumotion_planner.py
+ M isaac_ros_cumotion/isaac_ros_cumotion/update_kinematics.py
+```
+
+No new original-workspace change was observed.
+
+### Planner retry result
+
+The planner was started with the copy environment and the same UR5e description:
+
+```bash
+set +u
+source /home/aisc216/ur5_ws/src/ur5_moveit_demo/scripts/use_cumotion_copy_env.sh
+set -u
+export ROS_DOMAIN_ID=20
+export ROS_LOG_DIR=/tmp/d435-cumotion-ros-log
+export ROS_HOME=/tmp/d435-cumotion-ros-home
+export PYTHONDONTWRITEBYTECODE=1
+ros2 launch isaac_ros_cumotion isaac_ros_cumotion.launch.py \
+  cumotion_planner.urdf_path:=/home/aisc216/isaac_ros_ws/install/isaac_ros_cumotion_robot_description/share/isaac_ros_cumotion_robot_description/urdf/ur5e_robotiq_2f_85.urdf \
+  cumotion_planner.yml_file_path:=/home/aisc216/isaac_ros_ws/install/isaac_ros_cumotion_robot_description/share/isaac_ros_cumotion_robot_description/xrdf/ur5e_robotiq_2f_85.xrdf \
+  cumotion_planner.tool_frame:=grasp_frame \
+  cumotion_planner.read_esdf_world:=false
+```
+
+Both processes started, all five rebuilt extensions loaded, the planner reached its grid
+configuration step, and `static_planning_scene_server` initialized. The planner then exited
+with code 1 before warmup. Exact decisive error:
+
+```text
+File "/home/aisc216/isaac_ros_ws/build/isaac_ros_cumotion/isaac_ros_cumotion/update_kinematics.py", line 74, in get_robot_config
+  robot_config = load_robot_yaml(content_path)
+File "/home/aisc216/isaac_ros_ws/build/isaac_ros_cumotion/isaac_ros_cumotion/update_kinematics.py", line 3, in load_robot_yaml
+  with open(file_path, 'r') as f:
+TypeError: expected str, bytes or os.PathLike object, not ContentPath
+```
+
+Best cause assessment: one of the two pre-existing workspace modifications adds a local
+`load_robot_yaml(file_path)` helper that calls Python `open()` directly. The XRDF path passes a
+cuRobo `ContentPath` object to that helper, which is not an `os.PathLike` value. This is a
+workspace source compatibility problem after extension loading, not a CUDA-extension failure.
+Per the instruction, it was not edited and no further fix was attempted.
+
+Result:
+
+- Reached `cuMotion is ready for planning queries!`: **no**.
+- Planner action server ready: **no**.
+- Plan-only MoveGroup goal: **not sent**.
+- Planning success/time: **not applicable**.
+- Planner GPU memory: **not established**, because the planner failed before warmup and exited
+  before a concurrent sample could be taken. After shutdown, GPU use was `850 MiB / 10240 MiB`;
+  the only compute process was the pre-existing GNOME remote desktop daemon at `259 MiB`.
+
+The remaining static planning scene process was stopped with Ctrl-C and exited cleanly. No
+planner, static scene, ninja, or nvcc process remained afterward.
