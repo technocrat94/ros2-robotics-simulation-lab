@@ -493,3 +493,136 @@ the first attempt's missing `setuptools_scm` and does not implicate the project'
 No retry process remained afterward. A read-only timestamp check showed that the existing
 workspace CUDA `.so` files still had their original 2026-05-28 modification times; the retry
 did not replace them. `PYTHONDONTWRITEBYTECODE=1` prevented new Python bytecode cache files.
+
+## Copy build — independent cuRobo copy
+
+Copy-build date: 2026-11-05 (Asia/Taipei)
+
+The task required CUDA extensions to be built outside the shared workspace and existing venv.
+No package was installed, and neither `/home/aisc216/curobo_ros_env` nor
+`/home/aisc216/isaac_ros_ws` was edited.
+
+### PyTorch and CUDA
+
+With `/home/aisc216/use_cumotion_rviz_env.sh` sourced, the existing venv reported:
+
+```text
+torch=2.7.0+cu128
+torch CUDA version=12.8
+```
+
+The RTX 3080 is compute capability 8.6. GPU visibility was unavailable inside the restricted
+inspection shell, so the later import/compile command was run with direct host GPU visibility.
+
+### Independent source copy and environment script
+
+`/home/aisc216/cumotion_copy` did not previously exist. Only the requested cuRobo checkout was
+copied:
+
+```bash
+mkdir -p /home/aisc216/cumotion_copy
+cp -a \
+  /home/aisc216/isaac_ros_ws/src/isaac_ros_cumotion/curobo_core/curobo \
+  /home/aisc216/cumotion_copy/curobo
+```
+
+The new repository script `scripts/use_cumotion_copy_env.sh` sources the existing cuMotion
+helper first, then sets:
+
+```text
+CUROBO_COPY_PATH=/home/aisc216/cumotion_copy/curobo/src
+PYTHONPATH=/home/aisc216/cumotion_copy/curobo/src:<existing PYTHONPATH>
+TORCH_CUDA_ARCH_LIST=8.6
+```
+
+### Import and intended JIT compile
+
+The timed command was:
+
+```bash
+set +u
+source /home/aisc216/ur5_ws/src/ur5_moveit_demo/scripts/use_cumotion_copy_env.sh
+set -u
+export ROS_DOMAIN_ID=20
+export ROS_LOG_DIR=/tmp/d435-cumotion-ros-log
+export ROS_HOME=/tmp/d435-cumotion-ros-home
+export PYTHONDONTWRITEBYTECODE=1
+/usr/bin/time \
+  -f 'COMPILE_ELAPSED_SECONDS=%e\nCOMPILE_MAX_RSS_KB=%M\nCOMPILE_EXIT=%x' \
+  python - <<'PY'
+import curobo
+print(f'curobo_file={curobo.__file__}', flush=True)
+print(f'curobo_version={getattr(curobo, "__version__", "not exposed")}', flush=True)
+from curobo.wrap.reacher.motion_gen import MotionGen
+print(f'motion_gen_import={MotionGen.__module__}', flush=True)
+PY
+```
+
+The copied module path was selected, but import failed during version discovery before the
+path could be printed by the caller and before any CUDA extension JIT began. Exact decisive
+error:
+
+```text
+File "/home/aisc216/cumotion_copy/curobo/src/curobo/__init__.py", line 60, in _get_version
+  return setuptools_scm.get_version(
+LookupError: setuptools-scm was unable to detect version for /home/aisc216/cumotion_copy/curobo.
+
+However, a repository was found in a parent directory: /home/aisc216/cumotion_copy/curobo
+
+To fix this, you have a few options:
+
+1. Use the 'relative_to' parameter to specify the file as reference:
+   setuptools_scm.get_version(relative_to=__file__)
+
+2. Enable parent directory search in your configuration:
+   [tool.setuptools_scm]
+   search_parent_directories = true
+
+3. Change your working directory to the repository root: /home/aisc216/cumotion_copy/curobo
+
+4. Set the root explicitly in your configuration:
+   [tool.setuptools_scm]
+   root = "/home/aisc216/cumotion_copy/curobo"
+```
+
+Timing:
+
+```text
+COMPILE_ELAPSED_SECONDS=0.24
+COMPILE_MAX_RSS_KB=38928
+COMPILE_EXIT=1
+```
+
+Best cause assessment: the requested directory copy also copied the submodule `.git` file,
+whose contents are:
+
+```text
+gitdir: ../../.git/modules/curobo_core/curobo
+```
+
+That relative gitdir is valid in the original submodule location but points to a nonexistent
+parent repository from `/home/aisc216/cumotion_copy/curobo`. Consequently `setuptools-scm`
+cannot derive the cuRobo version in the copy. The failure occurred before motion-generator
+import and before JIT compilation, so there is no extension compile time or GPU-memory result.
+
+Per the instruction to make no further fixes after a failure, the copied `.git` pointer was not
+changed and the planner was not launched again. Therefore it did not reach ready, no MoveGroup
+goal was sent, and no planning time exists for this attempt.
+
+### Original workspace verification
+
+Before the copy/import attempt, the original repository had these existing modifications:
+
+```text
+ M isaac_ros_cumotion/isaac_ros_cumotion/cumotion_planner.py
+ M isaac_ros_cumotion/isaac_ros_cumotion/update_kinematics.py
+```
+
+After the failed import, the exact required check:
+
+```bash
+git -C /home/aisc216/isaac_ros_ws/src/isaac_ros_cumotion status --short
+```
+
+returned the same two lines and no new changes. No `cumotion_copy`, planner, ninja, or nvcc
+process remained after the command exited.
