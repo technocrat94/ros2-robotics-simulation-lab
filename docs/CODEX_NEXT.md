@@ -6,48 +6,29 @@ Written by Claude (reviewer). Read this file at the start of a session after `gi
 `git push origin <branch>`, then check that `git ls-remote origin <branch>` equals `git rev-parse HEAD`.
 "Everything up-to-date" means nothing new was pushed; it is not success. Reply with the pushed hash.
 
-## Working tree note (read first)
+## Working tree note
 
-The tree has uncommitted image deletions and an untracked `curobo/`. `curobo/` is likely the source
-checkout that scripts/run_curobo_v2_viser.sh imports. Leave both exactly as they are:
-no `git clean`, `git reset --hard`, `git checkout .`, `git restore`, `git stash`, or `git add -A`.
-Stage only docs/D435_CUMOTION_CHECK.md by explicit path. List the deleted file names and the
-`curobo/` git remote and commit in that document so the user can decide. If a branch switch or pull
-is refused because of them, stop and report the exact message.
+Leave the deleted 05_c2_tall_wall_refused.png and the untracked curobo/ untouched. Stage only the
+report by explicit path. No git clean/reset/restore/stash/add -A.
 
-## Task: D435 check + cuMotion start test (branch `experiment/d435-cumotion`, time box 45 min)
+## Task: retry cuMotion with its own environment (branch `experiment/d435-cumotion`, time box 30 min)
 
-Safety, shared machine: never command a real robot. Do not start a real UR driver or anything that
-connects to a robot IP; use fake hardware only. No sudo, install, reboot, or system change. Do not
-build or edit anything inside ~/isaac_ros_ws; if a rebuild seems needed, stop and report. Check
-`nvidia-smi` first and do not stop other users' processes. Record no video or screenshots.
+The first start failed on a missing `setuptools_scm` because only Jazzy + the workspace were sourced.
+Part 0 found ~/use_cumotion_rviz_env.sh, which references isaac_ros_ws and was not used.
 
-Write the facts to docs/D435_CUMOTION_CHECK.md, including the exact commands that worked.
+Rules: no install, sudo, build, or edit in ~/isaac_ros_ws. Never launch the ur5e URDF as a driver:
+it has a real URPositionHardwareInterface and an embedded robot IP. Keep ROS_DOMAIN_ID=20 and the
+ROS_LOG_DIR / ROS_HOME under /tmp, and set PYTHONDONTWRITEBYTECODE=1 so that no cache files are
+written into the workspace.
 
-### Part 0: is ~/isaac_ros_ws in active use? (read-only, do this before Part 2)
-Report in the document: `git config user.name` and `git log -3 --format='%an %ad %s'` in its two repos;
-newest file dates in build/, install/, log/; whether any running process uses it
-(`ps -eo user,args | grep isaac_ros_ws`); `who`; whether files in this home or ~/.bashrc reference it
-(`grep -l isaac_ros_ws ~/.bashrc ~/*.sh`). Do not read shell history or other users' homes.
-Whatever the result, do not change it. Part 2 only runs it, so continue to Part 2 unless a process is
-using it right now.
+1. Read ~/use_cumotion_rviz_env.sh and summarise what it sets (venv, paths, CUDA). Do not edit it.
+2. Check that its Python can `import setuptools_scm` and `import curobo`, and report the versions.
+3. Source it and rerun the same planner start command from docs/D435_CUMOTION_CHECK.md.
+   Report whether it reaches "cuMotion is ready for planning queries!" and GPU memory used.
+4. If ready: send one plan-only MoveGroup action goal to the cuMotion server (no controller, no
+   execution) and report success and planning time. This uses the ur5e description, so it is only a
+   start test.
+5. If it fails: paste the exact error and your best read of the cause. Do not try more fixes.
 
-### Part 1: D435 (the user just plugged it in)
-1. `lsusb`, `ls /dev/video*`, `rs-enumerate-devices -s`: model, serial, firmware, USB type.
-   USB type must be 3.x; if it reports 2.x, stop and tell the user to change the cable or port.
-2. Start `realsense2_camera` with depth, color and pointcloud enabled in ROS domain 20 for about 30 s.
-   Report `ros2 topic hz` for depth, color and pointcloud, plus the frame ids. Then stop it.
-3. Tell the user how to view it: only one program can open the camera at a time, so leave the
-   camera free and give the exact commands for `realsense-viewer` and for RViz with the pointcloud.
-
-### Part 2: cuMotion start test (no camera needed, no robot motion)
-1. In a shell sourcing Jazzy then ~/isaac_ros_ws/install/setup.bash, confirm the cuMotion packages resolve.
-   Record which ROS distro it was built against, from the install or build files.
-2. Find a UR5 or closest UR robot description/XRDF in isaac_ros_cumotion_robot_description, and
-   report what it uses. Do not edit it; if none fits, stop and report.
-3. Start the cuMotion planner node. Report whether it starts, reaches ready, and uses the GPU.
-   If it does, send one plan-only request with fake hardware and report planning time and success.
-4. On failure, paste the exact error and your best read of the cause (version mismatch, missing
-   dependency, cuRobo 0.7.7 vs the project's 0.8.0). Do not try fixes beyond environment sourcing.
-
-Stop all processes you started. Commit, push, reply in 5 lines with the hash.
+Append a "Retry" section to docs/D435_CUMOTION_CHECK.md. Stop every process you started. Commit, push,
+reply in 5 lines with the hash.
