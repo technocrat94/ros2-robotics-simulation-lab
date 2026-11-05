@@ -15,21 +15,25 @@ No pending task
 Leave the deleted 05_c2_tall_wall_refused.png and the untracked curobo/ untouched. Stage files by
 explicit path only. No git clean/reset/restore/stash/add -A.
 
-## Task: resume the copy build (branch `experiment/d435-cumotion`, time box 30 min)
+## Task: last cuMotion attempt, clean upstream Python in our copy (branch `experiment/d435-cumotion`, time box 30 min)
 
-The copy failed on version detection only, because its `.git` pointer is dead. Claude added
-SETUPTOOLS_SCM_PRETEND_VERSION=0.7.7 to scripts/use_cumotion_copy_env.sh. Do not edit the copy's `.git`.
-All rules of the previous task still apply: no sudo, no pip, no change to ~/curobo_ros_env or
+Extensions now build and load. The planner stops in a local, uncommitted edit of update_kinematics.py
+in ~/isaac_ros_ws. Previous rules still apply: no sudo, no pip, no change to ~/curobo_ros_env or
 ~/isaac_ros_ws, never launch the ur5e URDF as a driver, ROS_DOMAIN_ID=20, logs under /tmp.
 
-1. Rerun the same timed import command with this env. Confirm curobo.__file__ is under ~/cumotion_copy
-   and let JIT compile there. Report compile time and any .so files created (paths only).
-2. Check `git -C ~/isaac_ros_ws/src/isaac_ros_cumotion status --short` still shows only the two
-   modifications listed in the Copy build section.
-3. Rerun the planner start command. Report whether it reaches "cuMotion is ready for planning
-   queries!" and GPU memory used. If ready, send one plan-only MoveGroup goal (no execution) and
-   report success and planning time.
-4. On failure, paste the exact error and your read of the cause. Do not try further fixes.
+1. First check a side effect: the JIT wrote to the shared ~/.cache/torch_extensions/py312_cu128/.
+   Using the env from scripts/run_curobo_v2_viser.sh, import the project's cuRobo 0.8 and construct its
+   MotionPlanner as our demo does (no viewer). Report whether it still works, or recompiles, and whether it
+   uses the same cache names. Do not delete the cache.
+2. Save `git -C ~/isaac_ros_ws/src/isaac_ros_cumotion diff` to the report in a collapsed section. It is
+   someone's work, so read only, and summarise what the two edits try to do.
+3. Copy the Python package to ~/cumotion_copy/isaac_ros_cumotion_py/isaac_ros_cumotion using committed
+   HEAD content (`git archive` or `git show HEAD:<file>`), so it has neither local edit. Add it first on
+   PYTHONPATH in scripts/use_cumotion_copy_env.sh. Confirm which file Python imports.
+4. Rerun the planner start command. Report whether it reaches "cuMotion is ready for planning queries!"
+   and GPU memory used. If ready, send one plan-only MoveGroup goal (no execution) and report success and time.
+5. On failure, paste the exact error and your read of the cause, then stop. No further fixes: Claude will
+   decide whether to keep this path or move to a clean Isaac ROS 4.6.
 
-Append a "Copy build retry" section to docs/D435_CUMOTION_CHECK.md. Stop every process you started.
+Append a "Clean Python attempt" section to docs/D435_CUMOTION_CHECK.md. Stop every process you started.
 Commit by path, push, reply in 5 lines with the hash.
