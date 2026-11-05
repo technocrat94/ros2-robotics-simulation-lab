@@ -5,6 +5,10 @@ When the task below is done, replace this file's task section with "No pending t
 as your evidence.
 
 No pending task
+**Standing rule for every task:** a task is done only when the commit is on GitHub. Commit, run
+`git push origin <branch>`, then check that `git ls-remote origin <branch>` equals `git rev-parse HEAD`.
+"Everything up-to-date" means nothing new was pushed; it is not success. Reply with the pushed hash.
+
 ## Task: READ-ONLY follow-up, existing Isaac folders + camera (branch `experiment/camera-survey`)
 
 Same rules as the first survey: no sudo, install, reboot, or system change; do not build, launch, or
@@ -18,3 +22,11 @@ modify anything in these folders. Append the facts to docs/CAMERA_SURVEY.md unde
 3. If a camera is now plugged in: lsusb, ls /dev/video*, rs-enumerate-devices -s (model, serial,
    firmware, USB type). If not, say "still not connected".
 Do not stream video or start realsense2_camera. Commit, push, reply in 5 lines with the hash.
+
+## Correction (read this first)
+
+Your last report showed HEAD and remote both at f8386ff, which is the commit that assigned this
+task, so the follow-up was never committed. Check `git status --short` and whether
+docs/CAMERA_SURVEY.md has a "Follow-up" section. Do the survey above if it is missing, then
+`git add docs/CAMERA_SURVEY.md`, commit, and push. Done means HEAD is no longer f8386ff and
+`git ls-remote origin experiment/camera-survey` equals the new HEAD.
