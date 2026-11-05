@@ -367,3 +367,129 @@ no environment or workspace file was changed.
 
 After the failure, a process check found no `realsense2_camera`,
 `cumotion_goal_set_planner_node`, or `static_planning_scene` process left running.
+
+## Retry — cuMotion dedicated environment
+
+Retry date: 2026-11-05 (Asia/Taipei)
+
+This retry followed `/home/aisc216/use_cumotion_rviz_env.sh` without editing it or the
+workspace.
+
+### Environment helper
+
+`use_cumotion_rviz_env.sh` does the following:
+
+1. Sources `/home/aisc216/use_curobo_ros_env.sh`, which sets CUDA 12.8 through
+   `CUDA_HOME=/usr/local/cuda-12.8`, prepends its `bin` and `lib64` paths, sources ROS 2
+   Jazzy and `/home/aisc216/ur5_policy_no_gripper_state/install/setup.bash`, then activates
+   `/home/aisc216/curobo_ros_env`.
+2. Sources `/home/aisc216/isaac_ros_ws/install/setup.bash`.
+3. Prepends the cuMotion workspace's bundled cuRobo source and the venv's Python 3.12
+   site-packages to `PYTHONPATH`, in that order:
+
+```text
+CUROBO_CORE_PATH=/home/aisc216/isaac_ros_ws/src/isaac_ros_cumotion/curobo_core/curobo/src
+CUROBO_ROS_VENV_SITE=/home/aisc216/curobo_ros_env/lib/python3.12/site-packages
+```
+
+The ordering intentionally selects cuMotion's bundled cuRobo instead of the separate
+`/home/aisc216/ur5_ws/src/ur5_moveit_demo/curobo` checkout while still exposing venv
+dependencies to ROS console scripts.
+
+### Import check
+
+Command:
+
+```bash
+set +u
+source /home/aisc216/use_cumotion_rviz_env.sh
+set -u
+export PYTHONDONTWRITEBYTECODE=1
+python - <<'PY'
+import sys
+import setuptools_scm
+import curobo
+from importlib.metadata import version
+print(sys.executable)
+print(setuptools_scm.__file__)
+print(version('setuptools-scm'))
+print(curobo.__file__)
+print(curobo.__version__)
+PY
+```
+
+Result:
+
+```text
+Python: /home/aisc216/curobo_ros_env/bin/python
+setuptools_scm: /home/aisc216/curobo_ros_env/lib/python3.12/site-packages/setuptools_scm/__init__.py
+setuptools-scm distribution: 10.0.5
+cuRobo: /home/aisc216/isaac_ros_ws/src/isaac_ros_cumotion/curobo_core/curobo/src/curobo/__init__.py
+cuRobo reported version: 0.0.post1.dev57
+ROS_DISTRO: jazzy
+CUDA_HOME: /usr/local/cuda-12.8
+```
+
+The dedicated environment therefore fixed the first attempt's missing `setuptools_scm`
+dependency and selected the intended workspace cuRobo source.
+
+### Planner retry
+
+The exact retry command was:
+
+```bash
+set +u
+source /home/aisc216/use_cumotion_rviz_env.sh
+set -u
+export ROS_DOMAIN_ID=20
+export ROS_LOG_DIR=/tmp/d435-cumotion-ros-log
+export ROS_HOME=/tmp/d435-cumotion-ros-home
+export PYTHONDONTWRITEBYTECODE=1
+ros2 launch isaac_ros_cumotion isaac_ros_cumotion.launch.py \
+  cumotion_planner.urdf_path:=/home/aisc216/isaac_ros_ws/install/isaac_ros_cumotion_robot_description/share/isaac_ros_cumotion_robot_description/urdf/ur5e_robotiq_2f_85.urdf \
+  cumotion_planner.yml_file_path:=/home/aisc216/isaac_ros_ws/install/isaac_ros_cumotion_robot_description/share/isaac_ros_cumotion_robot_description/xrdf/ur5e_robotiq_2f_85.xrdf \
+  cumotion_planner.tool_frame:=grasp_frame \
+  cumotion_planner.read_esdf_world:=false
+```
+
+Both `static_planning_scene` and `cumotion_goal_set_planner_node` started. The missing Python
+dependency did not recur, but the existing CUDA extensions could not load. The decisive error
+was:
+
+```text
+ImportError: /home/aisc216/isaac_ros_ws/src/isaac_ros_cumotion/curobo_core/curobo/src/curobo/curobolib/geom_cu.cpython-312-x86_64-linux-gnu.so: undefined symbol: _ZN3c106detail23torchInternalAssertFailEPKcS2_jS2_RKSs
+```
+
+The fallback then announced prohibited build work:
+
+```text
+kinematics_fused_cu not found, JIT compiling...
+geom_cu binary not found, jit compiling...
+```
+
+PyTorch also warned that `TORCH_CUDA_ARCH_LIST` was unset. The launch was interrupted with
+Ctrl-C immediately after the JIT requirement was identified, because the task explicitly
+forbids building or rebuilding the workspace. The resulting `KeyboardInterrupt` traces came
+from stopping the two compile/import paths; no further fix was attempted.
+
+Result:
+
+- Reached `cuMotion is ready for planning queries!`: **no**.
+- Planner action server ready: **no**.
+- Plan-only goal: **not sent**.
+- Planning result/time: **not applicable**.
+- Planner GPU memory: **not established**; failure occurred in extension import/JIT before
+  planner warmup. After shutdown, total GPU usage was `858 MiB / 10240 MiB`, and the only
+  compute process reported by `nvidia-smi` was the pre-existing GNOME remote desktop daemon
+  using `259 MiB`.
+
+Best cause assessment: the workspace's existing cuRobo CUDA extension binary was built against
+a different PyTorch/C10 ABI than the PyTorch currently supplied by `curobo_ros_env`. The missing
+or incompatible binary causes cuRobo to fall back to JIT compilation. A compatible rebuild would
+be required to proceed, but that is outside this task's allowed actions. This is distinct from
+the first attempt's missing `setuptools_scm` and does not implicate the project's separate cuRobo
+0.8.0 checkout, because this retry correctly loaded the workspace-bundled source.
+
+No retry process remained afterward. A read-only timestamp check showed that the existing
+workspace CUDA `.so` files still had their original 2026-05-28 modification times; the retry
+did not replace them. `PYTHONDONTWRITEBYTECODE=1` prevented new Python bytecode cache files.
