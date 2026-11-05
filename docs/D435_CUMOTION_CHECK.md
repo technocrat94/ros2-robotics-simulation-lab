@@ -8,6 +8,28 @@ This check used no real robot, UR driver, robot IP connection, package installat
 or modification of `/home/aisc216/isaac_ros_ws`. The camera was used only for live ROS topic
 rate checks; no video or screenshots were recorded.
 
+## Existing working-tree state left untouched
+
+The following state existed before this task and was deliberately not staged, restored,
+removed, or otherwise changed:
+
+```text
+ D docs/experiments/rigid-obstacles/media/05_c2_tall_wall_refused.png
+?? curobo/
+```
+
+The untracked `curobo/` directory is a Git checkout with:
+
+```text
+remote:  https://github.com/NVlabs/curobo.git
+branch:  main
+commit:  78fd485fa82d9b9a063fb4985e371814587e666a
+describe: v0.8.0-43-g78fd485
+```
+
+This is the source checkout used by `scripts/run_curobo_v2_viser.sh`; it was not added to the
+outer repository.
+
 ## Summary
 
 - The connected Intel RealSense D435 passed the USB safety gate: USB type `3.2`.
@@ -39,6 +61,56 @@ GPU utilization: 12%
 ```
 
 Only existing desktop processes were listed. No other user's process was stopped.
+
+## Part 0: is `/home/aisc216/isaac_ros_ws` in active use?
+
+This check was performed read-only. Neither repository has a local `git config user.name` value.
+
+Recent repository history:
+
+```text
+isaac_ros_common:
+  Jaiveer Singh | 2026-04-30T19:58:46-07:00 | Merge pull request #236 from NVIDIA-ISAAC-ROS/release-4.4
+  Kajanan Chinniah | 2026-04-30T19:52:12-07:00 | Isaac ROS 4.4
+  chengronglai | 2026-03-23T19:29:00-07:00 | Merge pull request #233 from NVIDIA-ISAAC-ROS/release-4.3
+
+isaac_ros_cumotion:
+  Kajanan Chinniah | 2026-02-19T20:32:18-08:00 | Isaac ROS 4.2
+  kajananchinniahNV | 2026-02-02T20:58:52-08:00 | Merge pull request #48 from NVIDIA-ISAAC-ROS/release-4.1
+  Kajanan Chinniah | 2026-02-02T19:12:02-08:00 | Isaac ROS 4.1
+```
+
+Newest observed files:
+
+| Area | Newest file and timestamp |
+| --- | --- |
+| `build/` | `compile_commands.json` — `2026-05-28 17:49:42 +0800` |
+| `install/` | `isaac_ros_cumotion/.../launch/__pycache__/isaac_ros_cumotion.launch.cpython-312.pyc` — `2026-11-05 17:20:59 +0800` |
+| `log/` | `build_2026-05-28_17-45-57/logger_all.log` — `2026-05-28 17:49:42 +0800` |
+
+The install-space Python cache timestamp coincides with this task's planner launch. It was an
+automatic Python import cache produced while running the existing launch file, not a build or
+manual source edit; it was left unchanged after observation.
+
+Commands used for active-use checks:
+
+```bash
+ps -eo user,args | grep isaac_ros_ws
+who
+grep -l isaac_ros_ws ~/.bashrc ~/*.sh
+```
+
+Results:
+
+- No host process command referenced `isaac_ros_ws` after excluding the inspection command
+  itself.
+- `who` showed only `aisc216` on `seat0` and display `:1`; no other login was listed.
+- `/home/aisc216/use_cumotion_rviz_env.sh` was the only matched startup/script file.
+  `/home/aisc216/.bashrc` did not match.
+- No shell history or other user's home directory was read.
+
+No active workspace user was found at check time. The start test described below had already
+finished and left no process running.
 
 ## Part 1: Intel RealSense D435
 
