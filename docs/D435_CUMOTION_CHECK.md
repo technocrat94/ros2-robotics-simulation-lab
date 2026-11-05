@@ -755,3 +755,162 @@ Result:
 
 The remaining static planning scene process was stopped with Ctrl-C and exited cleanly. No
 planner, static scene, ninja, or nvcc process remained afterward.
+
+## Clean Python attempt
+
+Attempt date: 2026-11-05 (Asia/Taipei)
+
+### Shared Torch extension cache check with project cuRobo 0.8
+
+The project environment from `scripts/run_curobo_v2_viser.sh` was used with no viewer. Its
+headless pick-planning path constructs and warms up `MotionPlanner` exactly as the demo does:
+
+```bash
+export PYTHONDONTWRITEBYTECODE=1
+/usr/bin/time \
+  -f 'PROJECT_08_ELAPSED_SECONDS=%e\nPROJECT_08_MAX_RSS_KB=%M\nPROJECT_08_EXIT=%x' \
+  scripts/run_curobo_v2_viser.sh --headless --plan-pick
+```
+
+The project copy was selected as cuRobo `0.8.0.post1.dev43` from
+`/home/aisc216/ur5_ws/src/ur5_moveit_demo/curobo/curobo/__init__.py`. MotionPlanner warmup and
+the complete approach, grasp, and lift plan succeeded:
+
+```text
+CUROBO_V2_UR5_PICK_PLAN {"success": true, "approach_success": true, "grasp_success": true, "lift_success": true, "status": "Planning to lift pose succeeded.", "planning_elapsed_s": 1.5635767269413918, "approach_waypoints": 41, "grasp_waypoints": 41, "lift_waypoints": 41}
+PROJECT_08_ELAPSED_SECONDS=9.47
+PROJECT_08_MAX_RSS_KB=1920284
+PROJECT_08_EXIT=0
+```
+
+It reused the shared cache rather than recompiling. All five `.so` modification times were
+unchanged before and after the run, and the project cuRobo worktree remained clean. The cache
+names are the same five names produced by the copied cuRobo 0.7.7 attempt:
+
+```text
+2026-11-05 17:57:18 /home/aisc216/.cache/torch_extensions/py312_cu128/kinematics_fused_cu/kinematics_fused_cu.so
+2026-11-05 17:58:01 /home/aisc216/.cache/torch_extensions/py312_cu128/geom_cu/geom_cu.so
+2026-11-05 17:58:34 /home/aisc216/.cache/torch_extensions/py312_cu128/tensor_step_cu/tensor_step_cu.so
+2026-11-05 17:59:25 /home/aisc216/.cache/torch_extensions/py312_cu128/lbfgs_step_cu/lbfgs_step_cu.so
+2026-11-05 17:59:59 /home/aisc216/.cache/torch_extensions/py312_cu128/line_search_cu/line_search_cu.so
+```
+
+The cache was not deleted or modified manually.
+
+### Existing isaac_ros_cumotion workspace edits
+
+The `cumotion_planner.py` edit forces the workspace cuRobo build onto `sys.path` and injects
+minimal mock `isaac_manipulator_ros_python_utils` types so imports can proceed without that
+package. The `update_kinematics.py` edit replaces cuRobo's loader with a local YAML loader that
+wraps YAML lacking a top-level `robot_cfg`; it also passes cuRobo's `ContentPath` directly to
+Python `open()`, which caused the previous attempt's `TypeError`.
+
+The original workspace was read only. Its exact
+`git -C /home/aisc216/isaac_ros_ws/src/isaac_ros_cumotion diff` was:
+
+<details>
+<summary>Existing uncommitted isaac_ros_cumotion diff</summary>
+
+```diff
+diff --git a/isaac_ros_cumotion/isaac_ros_cumotion/cumotion_planner.py b/isaac_ros_cumotion/isaac_ros_cumotion/cumotion_planner.py
+index 652caf1..4be6355 100644
+--- a/isaac_ros_cumotion/isaac_ros_cumotion/cumotion_planner.py
++++ b/isaac_ros_cumotion/isaac_ros_cumotion/cumotion_planner.py
+@@ -1,3 +1,22 @@
++from __future__ import annotations
++import sys
++sys.path.insert(0, '/home/aisc216/isaac_ros_ws/build/curobo_core/curobo/src')
++from types import ModuleType
++mock_manipulator_utils = ModuleType('isaac_manipulator_ros_python_utils')
++mock_types = ModuleType('isaac_manipulator_ros_python_utils.manipulator_types')
++class MockRobotConfig: __init__ = lambda s, *a, **k: None
++class MockJointState: __init__ = lambda s, *a, **k: None
++class MockEnumItem: value = 'CUSTOM_MESH'
++class MockObjectAttachmentShape:
++    CUSTOM_MESH = MockEnumItem
++    BOX = MockEnumItem
++    SPHERE = MockEnumItem
++    CYLINDER = MockEnumItem
++mock_types.RobotConfig = MockRobotConfig
++mock_types.JointState = MockJointState
++mock_types.ObjectAttachmentShape = MockObjectAttachmentShape
++sys.modules['isaac_manipulator_ros_python_utils'] = mock_manipulator_utils
++sys.modules['isaac_manipulator_ros_python_utils.manipulator_types'] = mock_types
+ # Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ #
+ # NVIDIA CORPORATION, its affiliates and licensors retain all intellectual
+diff --git a/isaac_ros_cumotion/isaac_ros_cumotion/update_kinematics.py b/isaac_ros_cumotion/isaac_ros_cumotion/update_kinematics.py
+index 8a27ef4..bd63ec8 100644
+--- a/isaac_ros_cumotion/isaac_ros_cumotion/update_kinematics.py
++++ b/isaac_ros_cumotion/isaac_ros_cumotion/update_kinematics.py
+@@ -1,3 +1,10 @@
++import yaml
++def load_robot_yaml(file_path):
++    with open(file_path, 'r') as f:
++        content = yaml.safe_load(f)
++    if 'robot_cfg' in content:
++        return content
++    return {'robot_cfg': content}
+ # Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ #
+ # NVIDIA CORPORATION, its affiliates and licensors retain all intellectual
+@@ -13,7 +20,7 @@ from typing import Dict, List, Optional
+
+ from ament_index_python.packages import get_package_share_directory
+ from curobo.cuda_robot_model.cuda_robot_model import CudaRobotModel
+-from curobo.cuda_robot_model.util import load_robot_yaml
++
+ from curobo.types.base import TensorDeviceType
+ from curobo.types.file_path import ContentPath
+ from curobo.types.state import JointState as CuJointState
+```
+
+</details>
+
+### Clean committed Python copy
+
+Only committed `HEAD` content was extracted with `git archive`; neither workspace edit is in
+the new package:
+
+```text
+/home/aisc216/cumotion_copy/isaac_ros_cumotion_py/isaac_ros_cumotion
+```
+
+`scripts/use_cumotion_copy_env.sh` now prepends the package's parent before both the copied
+cuRobo source and the inherited environment. A direct import confirmed the selected file:
+
+```text
+ISAAC_ROS_CUMOTION_IMPORT=/home/aisc216/cumotion_copy/isaac_ros_cumotion_py/isaac_ros_cumotion/__init__.py
+```
+
+### Planner result
+
+The same planner launch was rerun with `ROS_DOMAIN_ID=20`, ROS logs and home under `/tmp`, the
+UR5e/Robotiq description, `grasp_frame`, and `read_esdf_world:=false`. The static planning scene
+initialized, but the action server exited during import before planner warmup. Exact decisive
+error:
+
+```text
+File "/home/aisc216/cumotion_copy/isaac_ros_cumotion_py/isaac_ros_cumotion/cumotion_goal_set_planner.py", line 18, in <module>
+  from isaac_ros_cumotion.cumotion_planner import CumotionActionServer
+File "/home/aisc216/cumotion_copy/isaac_ros_cumotion_py/isaac_ros_cumotion/cumotion_planner.py", line 33, in <module>
+  from isaac_manipulator_ros_python_utils.manipulator_types import (
+ModuleNotFoundError: No module named 'isaac_manipulator_ros_python_utils'
+```
+
+Cause assessment: committed upstream `cumotion_planner.py` has a hard dependency on
+`isaac_manipulator_ros_python_utils`, but that Python package is absent from this environment.
+The local workspace edit had been masking the dependency with mock modules; the clean copy
+correctly exposes it. This is a Python dependency failure, not a Torch extension failure.
+
+Result:
+
+- Reached `cuMotion is ready for planning queries!`: **no**.
+- Planner action server ready: **no**.
+- Planner GPU memory: **not established**; failure occurred during Python import, before warmup.
+- Plan-only MoveGroup goal: **not sent**, because the action server never became ready.
+- Planning success/time: **not applicable**.
+
+Per the stop-on-failure instruction, no dependency workaround or further fix was attempted.
+The remaining static planning scene process was stopped with Ctrl-C and exited cleanly. No
+cuMotion planner or static planning scene process remained afterward.
