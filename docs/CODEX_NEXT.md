@@ -24,6 +24,14 @@ build or edit anything inside ~/isaac_ros_ws; if a rebuild seems needed, stop an
 
 Write the facts to docs/D435_CUMOTION_CHECK.md, including the exact commands that worked.
 
+### Part 0: is ~/isaac_ros_ws in active use? (read-only, do this before Part 2)
+Report in the document: `git config user.name` and `git log -3 --format='%an %ad %s'` in its two repos;
+newest file dates in build/, install/, log/; whether any running process uses it
+(`ps -eo user,args | grep isaac_ros_ws`); `who`; whether files in this home or ~/.bashrc reference it
+(`grep -l isaac_ros_ws ~/.bashrc ~/*.sh`). Do not read shell history or other users' homes.
+Whatever the result, do not change it. Part 2 only runs it, so continue to Part 2 unless a process is
+using it right now.
+
 ### Part 1: D435 (the user just plugged it in)
 1. `lsusb`, `ls /dev/video*`, `rs-enumerate-devices -s`: model, serial, firmware, USB type.
    USB type must be 3.x; if it reports 2.x, stop and tell the user to change the cable or port.
