@@ -12,27 +12,29 @@ No pending task
 
 ## Working tree note
 
-Leave the deleted 05_c2_tall_wall_refused.png and the untracked curobo/ untouched. Stage only the
-report by explicit path. No git clean/reset/restore/stash/add -A.
+Leave the deleted 05_c2_tall_wall_refused.png and the untracked curobo/ untouched. Stage files by
+explicit path only. No git clean/reset/restore/stash/add -A.
 
-## Task: retry cuMotion with its own environment (branch `experiment/d435-cumotion`, time box 30 min)
+## Task: compile cuRobo extensions in OUR OWN copy (branch `experiment/d435-cumotion`, time box 40 min)
 
-The first start failed on a missing `setuptools_scm` because only Jazzy + the workspace were sourced.
-Part 0 found ~/use_cumotion_rviz_env.sh, which references isaac_ros_ws and was not used.
+The retry failed with an undefined torch symbol in geom_cu: the prebuilt CUDA extensions do not match
+the venv's PyTorch, and the fallback JIT compiles inside ~/isaac_ros_ws, which we must not modify.
+Fix it in a copy, leaving the original untouched.
 
-Rules: no install, sudo, build, or edit in ~/isaac_ros_ws. Never launch the ur5e URDF as a driver:
-it has a real URPositionHardwareInterface and an embedded robot IP. Keep ROS_DOMAIN_ID=20 and the
-ROS_LOG_DIR / ROS_HOME under /tmp, and set PYTHONDONTWRITEBYTECODE=1 so that no cache files are
-written into the workspace.
+Rules: no sudo; no pip install or any change to ~/curobo_ros_env (our demos use it); no write to
+~/isaac_ros_ws or its scripts. Never launch the ur5e URDF as a driver. ROS_DOMAIN_ID=20, logs under /tmp.
 
-1. Read ~/use_cumotion_rviz_env.sh and summarise what it sets (venv, paths, CUDA). Do not edit it.
-2. Check that its Python can `import setuptools_scm` and `import curobo`, and report the versions.
-3. Source it and rerun the same planner start command from docs/D435_CUMOTION_CHECK.md.
-   Report whether it reaches "cuMotion is ready for planning queries!" and GPU memory used.
-4. If ready: send one plan-only MoveGroup action goal to the cuMotion server (no controller, no
-   execution) and report success and planning time. This uses the ur5e description, so it is only a
-   start test.
-5. If it fails: paste the exact error and your best read of the cause. Do not try more fixes.
+1. Report the venv's torch version and its CUDA version.
+2. Copy only `~/isaac_ros_ws/src/isaac_ros_cumotion/curobo_core/curobo` to `~/cumotion_copy/curobo`.
+3. Add scripts/use_cumotion_copy_env.sh: source ~/use_cumotion_rviz_env.sh, then put
+   ~/cumotion_copy/curobo/src first on PYTHONPATH and set TORCH_CUDA_ARCH_LIST="8.6" (RTX 3080).
+4. With that env, `import curobo`, confirm its path is in ~/cumotion_copy, and let JIT compile there.
+   Report compile time, and confirm with `git -C ~/isaac_ros_ws/src/isaac_ros_cumotion status --short`
+   that the original shows no new changes.
+5. Rerun the same planner start command. Report whether it reaches "cuMotion is ready for planning
+   queries!" and the GPU memory used. If ready, send one plan-only MoveGroup goal (no execution) and
+   report success and planning time.
+6. On failure, paste the exact error and your read of the cause. Do not try further fixes.
 
-Append a "Retry" section to docs/D435_CUMOTION_CHECK.md. Stop every process you started. Commit, push,
-reply in 5 lines with the hash.
+Append a "Copy build" section to docs/D435_CUMOTION_CHECK.md. Stop every process you started.
+Commit by path, push, reply in 5 lines with the hash.
