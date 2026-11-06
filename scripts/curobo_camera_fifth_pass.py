@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fifth-pass real-time camera planning: capture, update, replan, advance."""
+"""Sixth-pass correction to real-time camera planning unknown extents."""
 
 from __future__ import annotations
 
@@ -43,7 +43,9 @@ MAIN_CENTER_XY = (0.487, 0.263)
 MAIN_DIMS_XY = (0.200, 0.060)
 FIT_PADDING_XY_M = 0.015
 FIT_PADDING_Z_M = 0.020
-SIDE_UNKNOWN_MARGIN_M = 0.100
+HORIZONTAL_UNKNOWN_MARGIN_M = 0.030
+CAMERA_NEAR_TOP_M = 0.030
+FIXED_UNKNOWN_TOP_ABOVE_START_CAMERA_M = 0.100
 MIN_POINTS = 40
 CYCLE_CAP = 80
 FAR_ADVANCE_RAD = 0.050
@@ -178,27 +180,29 @@ def make_loop_planner(
         interpolation_dt=0.025,
     )
     planner = MotionPlanner(config)
-    print("Warming one fifth-pass cuRobo motion planner...", flush=True)
+    print("Warming one sixth-pass cuRobo motion planner...", flush=True)
     planner.warmup(enable_graph=True, num_warmup_iterations=3)
     planner.scene_collision_checker.enable_obstacle("camera_obstacle", False)
     return planner, limit_report
 
 
 def fit_with_unknown_extent(
-    points: np.ndarray, capture: fourth.Capture
+    points: np.ndarray,
+    capture: fourth.Capture,
+    fixed_unknown_top_m: float,
 ) -> tuple[dict[str, Any] | None, dict[str, Any]]:
     flags = {
         name: bool(capture.metadata.get("border_touches", {}).get(name, False))
         for name in ("top", "bottom", "left", "right")
     }
-    extension = {
-        "active": any(flags.values()),
-        "directions": [name for name, active in flags.items() if active],
+    extension: dict[str, Any] = {
+        "active": False,
+        "directions": [],
         "border_touches": flags,
         "border_pixel_counts": capture.metadata.get("border_pixel_counts", {}),
-        "upward_limit_m": float(capture.camera_transform[2]),
-        "side_margin_m": SIDE_UNKNOWN_MARGIN_M,
-        "bottom_limit_m": 0.0,
+        "horizontal_margin_m": HORIZONTAL_UNKNOWN_MARGIN_M,
+        "world_horizontal_directions": {},
+        "border_extension_never_changes_height": True,
     }
     if len(points) < MIN_POINTS:
         return None, extension
@@ -209,27 +213,54 @@ def fit_with_unknown_extent(
         (FIT_PADDING_XY_M, FIT_PADDING_XY_M, FIT_PADDING_Z_M)
     )
     low[2] = max(0.0, float(low[2]))
-    if flags["top"]:
-        high[2] = max(float(high[2]), float(capture.camera_transform[2]))
-    if flags["bottom"]:
-        low[2] = 0.0
     rotation = fourth.wxyz_matrix(capture.camera_transform[[6, 3, 4, 5]])
-    image_right_xy = rotation[:2, 0]
-    norm = float(np.linalg.norm(image_right_xy))
-    if norm > 1.0e-9:
-        image_right_xy = image_right_xy / norm
-        for active, direction in (
-            (flags["right"], image_right_xy),
-            (flags["left"], -image_right_xy),
-        ):
-            if not active:
-                continue
-            delta = SIDE_UNKNOWN_MARGIN_M * direction
-            for axis in (0, 1):
-                if delta[axis] >= 0.0:
-                    high[axis] += delta[axis]
-                else:
-                    low[axis] += delta[axis]
+    camera_border_directions = {
+        "top": np.array((0.0, 1.0, 0.0)),
+        "bottom": np.array((0.0, -1.0, 0.0)),
+        "left": np.array((-1.0, 0.0, 0.0)),
+        "right": np.array((1.0, 0.0, 0.0)),
+    }
+    for name, camera_direction in camera_border_directions.items():
+        if not flags[name]:
+            continue
+        world_direction = rotation @ camera_direction
+        horizontal = world_direction[:2]
+        norm = float(np.linalg.norm(horizontal))
+        if norm <= 1.0e-9:
+            extension["world_horizontal_directions"][name] = None
+            continue
+        horizontal = horizontal / norm
+        extension["directions"].append(name)
+        extension["world_horizontal_directions"][name] = horizontal.tolist()
+        delta = HORIZONTAL_UNKNOWN_MARGIN_M * horizontal
+        for axis in (0, 1):
+            if delta[axis] >= 0.0:
+                high[axis] += delta[axis]
+            else:
+                low[axis] += delta[axis]
+    extension["active"] = bool(extension["directions"])
+
+    same_frame_highest = (
+        float(np.max(capture.points[:, 2])) if len(capture.points) else None
+    )
+    camera_height = float(capture.camera_transform[2])
+    height_guard_active = bool(
+        same_frame_highest is not None
+        and abs(camera_height - same_frame_highest) <= CAMERA_NEAR_TOP_M
+    )
+    observed_padded_top = float(high[2])
+    if height_guard_active:
+        high[2] = max(observed_padded_top, fixed_unknown_top_m)
+    height_rule = {
+        "same_frame_highest_obstacle_m": same_frame_highest,
+        "same_frame_camera_height_m": camera_height,
+        "near_camera_threshold_m": CAMERA_NEAR_TOP_M,
+        "guard_active": height_guard_active,
+        "fixed_unknown_top_m": fixed_unknown_top_m,
+        "observed_padded_top_m": observed_padded_top,
+        "fitted_top_m": float(high[2]),
+        "follows_current_camera": False,
+    }
     return {
         "center_m": (0.5 * (low + high)).tolist(),
         "dims_m": np.maximum(high - low, 0.01).tolist(),
@@ -239,6 +270,7 @@ def fit_with_unknown_extent(
         "padding_xy_m": FIT_PADDING_XY_M,
         "padding_z_m": FIT_PADDING_Z_M,
         "unknown_extension": extension,
+        "height_rule": height_rule,
     }, extension
 
 
@@ -271,6 +303,7 @@ def motion_metrics(
         else 0.0
     )
     straight = float(np.linalg.norm(tool[-1] - tool[0]))
+    max_tool_height = float(np.max(tool[:, 2]))
     return {
         "states": int(len(q)),
         "joint_travel_rad": {
@@ -285,6 +318,8 @@ def motion_metrics(
         "tool_path_over_straight_line": (
             tool_length / straight if straight > 1.0e-9 else None
         ),
+        "maximum_tool_height_m": max_tool_height,
+        "tool_height_climb_from_start_m": max_tool_height - float(tool[0, 2]),
         "start_tool_m": tool[0].tolist(),
         "end_tool_m": tool[-1].tolist(),
     }
@@ -330,6 +365,7 @@ def run_loop(
     center: np.ndarray,
     dims: np.ndarray,
     wrist_limits: tuple[float, float],
+    fixed_unknown_top_m: float,
 ) -> tuple[dict[str, Any], list[dict[str, Any]], torch.Tensor]:
     fourth.update_fit_in_place(planner, None)
     current = torch.as_tensor(start_q, device="cuda", dtype=torch.float32)
@@ -360,7 +396,9 @@ def run_loop(
             if accumulated
             else np.empty((0, 3), dtype=np.float32)
         )
-        fit, extension = fit_with_unknown_extent(points, capture)
+        fit, extension = fit_with_unknown_extent(
+            points, capture, fixed_unknown_top_m
+        )
         fourth.update_fit_in_place(planner, fit)
         current_fit_clearance = (
             None
@@ -371,6 +409,22 @@ def run_loop(
                 np.asarray(fit["center_m"]),
                 np.asarray(fit["dims_m"]),
             )
+        )
+        goal_fit_clearance = (
+            None
+            if fit is None
+            else fourth.state_clearance(
+                robot,
+                goal_q,
+                np.asarray(fit["center_m"]),
+                np.asarray(fit["dims_m"]),
+            )
+        )
+        tool_height_start = float(fourth.tool_position(robot, current)[2])
+        box_top = (
+            None
+            if fit is None
+            else float(fit["center_m"][2] + 0.5 * fit["dims_m"][2])
         )
         advance = (
             NEAR_ADVANCE_RAD
@@ -395,6 +449,10 @@ def run_loop(
             "plan_ms": plan_ms,
             "planner_failure_status": planner_failure,
             "current_to_fit_clearance_m": current_fit_clearance,
+            "goal_to_fit_clearance_m": goal_fit_clearance,
+            "box_top_m": box_top,
+            "tool_height_start_m": tool_height_start,
+            "tool_height_end_m": tool_height_start,
             "advance_rule": (
                 f"{NEAR_ADVANCE_RAD:.3f} rad when current-to-fit clearance is below "
                 f"{NEAR_BOX_CLEARANCE_M:.3f} m; otherwise {FAR_ADVANCE_RAD:.3f} rad"
@@ -408,6 +466,8 @@ def run_loop(
             final_planner_failure = planner_failure
             if current_fit_clearance is not None and current_fit_clearance < 0.0:
                 final_stop_reason = "FITTED_BOX_COVERS_CURRENT_STATE"
+            elif goal_fit_clearance is not None and goal_fit_clearance < 0.0:
+                final_stop_reason = "FITTED_BOX_COVERS_GOAL_STATE"
             else:
                 final_stop_reason = planner_failure or "NO_PLAN"
             record["stop_reason"] = final_stop_reason
@@ -433,6 +493,9 @@ def run_loop(
         record["executed"] = executed
         record["clearances"] = clearances
         current = executed[-1].detach().clone()
+        record["tool_height_end_m"] = float(
+            fourth.tool_position(robot, current)[2]
+        )
         if float(np.min(clearances)) < 0.0:
             true_collision = True
             final_stop_reason = "TRUE_COLLISION"
@@ -474,6 +537,27 @@ def run_loop(
             record["cycle"] for record in history if record["extension"]["active"]
         ],
         "motion": motion_metrics(robot, executed_path, start_q),
+        "final_stop_diagnostics": (
+            None
+            if not history
+            else {
+                "current_to_fit_clearance_m": history[-1][
+                    "current_to_fit_clearance_m"
+                ],
+                "goal_to_fit_clearance_m": history[-1][
+                    "goal_to_fit_clearance_m"
+                ],
+                "planner_failure_status": history[-1][
+                    "planner_failure_status"
+                ],
+                "classification": (
+                    "BOX_COVERING_GOAL"
+                    if history[-1]["goal_to_fit_clearance_m"] is not None
+                    and history[-1]["goal_to_fit_clearance_m"] < 0.0
+                    else "NOT_BOX_COVERING_GOAL"
+                ),
+            }
+        ),
     }
     return summary, history, executed_path
 
@@ -492,6 +576,10 @@ def serialize_history(history: list[dict[str, Any]]) -> list[dict[str, Any]]:
             "whole_cycle_ms": record["whole_cycle_ms"],
             "planner_failure_status": record["planner_failure_status"],
             "current_to_fit_clearance_m": record["current_to_fit_clearance_m"],
+            "goal_to_fit_clearance_m": record["goal_to_fit_clearance_m"],
+            "box_top_m": record["box_top_m"],
+            "tool_height_start_m": record["tool_height_start_m"],
+            "tool_height_end_m": record["tool_height_end_m"],
             "advance_rule": record["advance_rule"],
             "advance_joint_length_rad": record["advance_joint_length_rad"],
             "executed_states": (
@@ -647,6 +735,8 @@ def start_viewer(
     )
     clearance_text = server.gui.add_text("True clearance", "", disabled=True)
     cycle_text = server.gui.add_text("Current cycle", "", disabled=True)
+    box_top_text = server.gui.add_text("Box top height", "", disabled=True)
+    tool_height_text = server.gui.add_text("Tool height", "", disabled=True)
     stop_text = server.gui.add_text("Stop reason", "", disabled=True)
     status_text = server.gui.add_text("Case status", "", disabled=True)
     playback_error = server.gui.add_text("Playback error", "none", disabled=True)
@@ -685,6 +775,14 @@ def start_viewer(
             "not measured" if clearance is None else f"{clearance:+.4f} m"
         )
         cycle_text.value = str(case.get("cycle", "n/a"))
+        box_top_text.value = (
+            "n/a" if fit is None else f"{float(fit['fitted_top_z_m']):.4f} m"
+        )
+        tool_height_text.value = (
+            f"{float(fourth.tool_position(robot, case_path[0])[2]):.4f} m"
+            if len(case_path)
+            else "n/a"
+        )
         stop_text.value = str(case.get("stop_reason", "n/a"))
         status_text.value = case.get("status", "VALID")
 
@@ -719,6 +817,14 @@ def start_viewer(
                             else np.zeros((1, 3))
                         )
                         show_fit(record["fit"], record["extension"]["active"])
+                        box_top_text.value = (
+                            "n/a"
+                            if record["box_top_m"] is None
+                            else f"{record['box_top_m']:.4f} m"
+                        )
+                        tool_height_text.value = (
+                            f"{record['tool_height_start_m']:.4f} m"
+                        )
                     if positions is None:
                         continue
                     if verification_mode.is_set() and len(positions) > 2:
@@ -731,6 +837,9 @@ def start_viewer(
                         position, wxyz = fourth.camera_pose_for_q(robot, q, mount)
                         live_frustum.position = tuple(position)
                         live_frustum.wxyz = tuple(wxyz)
+                        tool_height_text.value = (
+                            f"{float(fourth.tool_position(robot, q)[2]):.4f} m"
+                        )
                         if clearances is not None:
                             clearance_text.value = f"{float(clearances[index]):+.4f} m"
                         commanded.append(q.detach().cpu().numpy().copy())
@@ -760,13 +869,13 @@ def start_viewer(
                 playback_done.set()
 
         threading.Thread(
-            target=worker_thread, name=f"fifth-playback-{name}", daemon=True
+            target=worker_thread, name=f"sixth-playback-{name}", daemon=True
         ).start()
 
     selector.on_update(apply_case)
     play.on_click(playback)
     apply_case()
-    print(f"SIM_CAMERA_CUROBO_FIFTH_PASS_VISER http://127.0.0.1:{actual_port}", flush=True)
+    print(f"SIM_CAMERA_CUROBO_SIXTH_PASS_VISER http://127.0.0.1:{actual_port}", flush=True)
 
     def verify_callbacks() -> dict[str, Any]:
         records: list[dict[str, Any]] = []
@@ -777,7 +886,7 @@ def start_viewer(
                     continue
                 selector.value = name
                 callback = threading.Thread(
-                    target=playback, args=(None,), name=f"fifth-callback-{name}"
+                    target=playback, args=(None,), name=f"sixth-callback-{name}"
                 )
                 callback.start()
                 callback.join(timeout=5.0)
@@ -812,6 +921,7 @@ def build_results(
     robot: Kinematics,
     robot_config: Path,
     goal: GoalToolPose,
+    prior_blind_search: dict[str, Any],
 ) -> tuple[dict[str, Any], dict[str, dict[str, Any]], MotionPlanner]:
     planner, limit_report = make_loop_planner(robot_config, CAMERA_FRONT_SEED)
     start_q, start_report = solve_raised_start(robot, planner)
@@ -830,9 +940,14 @@ def build_results(
     goal_q = baseline[-1]
     baseline_motion = motion_metrics(robot, baseline, start_q)
     baseline_motion["planner_failure_status"] = fourth.failure_status(baseline_result)
+    baseline_tool_climb = baseline_motion["tool_height_climb_from_start_m"]
+    fixed_unknown_top_m = (
+        float(start_report["camera_world_m"][2])
+        + FIXED_UNKNOWN_TOP_ABOVE_START_CAMERA_M
+    )
     scenes = scene_candidates(robot, baseline)
     results: dict[str, Any] = {
-        "schema": 4,
+        "schema": 5,
         "date": "2026-11-06",
         "mode": "capture-merge-fit-update-replan-advance loop only; no scan or overview motion",
         "planner_truth_rule": "truth is used only for scene validity and offline scoring",
@@ -843,12 +958,24 @@ def build_results(
             f"{NEAR_BOX_CLEARANCE_M:.3f} m; otherwise advance {FAR_ADVANCE_RAD:.3f} rad"
         ),
         "unknown_extent_rule": {
-            "top_border": "extend fitted top to current camera world Z",
-            "left_or_right_border": (
-                f"extend in the camera-image horizontal direction by {SIDE_UNKNOWN_MARGIN_M:.3f} m"
+            "all_borders": (
+                "transform each same-frame image-border outward direction to world, "
+                "project to the horizontal plane, and extend by "
+                f"{HORIZONTAL_UNKNOWN_MARGIN_M:.3f} m; border touches never change height"
             ),
-            "bottom_border": "extend fitted bottom to the floor at world Z=0",
-            "shrink_rule": "extensions use only the current frame flags and disappear once the edge is inside",
+            "normal_height": (
+                f"highest observed point plus {FIT_PADDING_Z_M:.3f} m padding"
+            ),
+            "near_camera_exception": (
+                f"when the same-frame highest point is within {CAMERA_NEAR_TOP_M:.3f} m "
+                "of the camera height, use the fixed raised-start camera height plus "
+                f"{FIXED_UNKNOWN_TOP_ABOVE_START_CAMERA_M:.3f} m"
+            ),
+            "fixed_unknown_top_m": fixed_unknown_top_m,
+            "shrink_rule": (
+                "horizontal extensions use only current-frame flags and disappear "
+                "once that edge is inside"
+            ),
         },
         "cycle_cap": CYCLE_CAP,
         "baseline_no_obstacle": {
@@ -885,8 +1012,21 @@ def build_results(
         if validity["valid"]:
             summary, history, path = run_loop(
                 worker, planner, robot, start_q, goal, goal_q,
-                center, dims, wrist_limits,
+                center, dims, wrist_limits, fixed_unknown_top_m,
             )
+            scene_tool_climb = summary["motion"]["tool_height_climb_from_start_m"]
+            excess_climb = scene_tool_climb - baseline_tool_climb
+            summary["tool_climb_vs_no_obstacle"] = {
+                "scene_climb_m": scene_tool_climb,
+                "no_obstacle_climb_m": baseline_tool_climb,
+                "excess_m": excess_climb,
+                "within_no_obstacle_climb": excess_climb <= 1.0e-4,
+                "reason_if_higher": (
+                    None
+                    if excess_climb <= 1.0e-4
+                    else "collision-free detour around the camera-fitted obstacle"
+                ),
+            }
             entry.update({
                 "loop": summary,
                 "first_frame": first_frame_report(history[0]["capture"], top, WALL_BOTTOM_M),
@@ -916,43 +1056,10 @@ def build_results(
                 "status": "INVALID_SCENE: " + "; ".join(validity["reasons"]),
             }
         results["scenes"][key] = entry
-    selected, attempts = select_blind_wall(worker, robot, start_q, baseline)
-    results["blind_search"] = {
-        "candidate_count": len(blind_candidates()),
-        "attempts": attempts,
-        "selected": None,
-        "result": None,
-    }
-    if selected is not None:
-        center, dims = selected
-        summary, history, path = run_loop(
-            worker, planner, robot, start_q, goal, goal_q,
-            center, dims, wrist_limits,
-        )
-        results["blind_search"]["selected"] = {
-            "center_m": center.tolist(),
-            "dims_m": dims.tolist(),
-            "standing_on_floor": True,
-        }
-        results["blind_search"]["result"] = {
-            "loop": summary,
-            "cycles": serialize_history(history),
-        }
-        visuals["E blind floor wall"] = {
-            "valid_e": True,
-            "center": center, "dims": dims,
-            "points": history[-1]["points"], "fit": history[-1]["fit"],
-            "path": path, "history": history,
-            "clearance": summary["minimum_true_clearance_m"],
-            "cycle": summary["cycles"],
-            "stop_reason": summary["final_stop_reason"],
-            "status": "VALID E BLIND",
-        }
-    else:
-        results["blind_search"]["conclusion"] = (
-            "No standing floor wall in the short deterministic search was both valid, "
-            "route-blocking, and unseen from the raised first frame; no floating block used."
-        )
+    results["blind_search"] = json.loads(json.dumps(prior_blind_search))
+    results["blind_search"]["reused_from"] = (
+        "fifth_pass.json; the 27-candidate search was not repeated"
+    )
     if first_valid is None:
         planner.destroy()
         raise RuntimeError("no valid main E scene for viewer default")
@@ -989,6 +1096,22 @@ def main() -> int:
         default=REPO / "docs/experiments/sim-camera-curobo/results",
     )
     args = parser.parse_args()
+    fifth_result_path = args.results_dir / "fifth_pass.json"
+    if not fifth_result_path.is_file():
+        raise RuntimeError(
+            f"accepted blind-search source is missing: {fifth_result_path}"
+        )
+    prior_blind_search = json.loads(
+        fifth_result_path.read_text(encoding="utf-8")
+    )["blind_search"]
+    if (
+        prior_blind_search.get("candidate_count") != 27
+        or prior_blind_search.get("selected") is not None
+        or prior_blind_search.get("result") is not None
+    ):
+        raise RuntimeError(
+            "fifth-pass blind-search result is not the accepted 27-candidate no-result"
+        )
     robot = Kinematics(
         KinematicsCfg.from_robot_yaml_file(
             str(args.robot_config), tool_frames=[preflight.TOOL_FRAME]
@@ -997,11 +1120,11 @@ def main() -> int:
     goal = goal_from_scene()
     worker_log: list[str] = []
     planner: MotionPlanner | None = None
-    with tempfile.TemporaryDirectory(prefix="newton-camera-fifth-") as temp:
+    with tempfile.TemporaryDirectory(prefix="newton-camera-sixth-") as temp:
         worker = fourth.NewtonWorker(args.newton_python, Path(temp))
         try:
             results, visuals, planner = build_results(
-                worker, robot, args.robot_config, goal
+                worker, robot, args.robot_config, goal, prior_blind_search
             )
         finally:
             worker.close()
@@ -1027,11 +1150,11 @@ def main() -> int:
             planner.destroy()
     results["newton_worker_lines"] = len(worker_log)
     args.results_dir.mkdir(parents=True, exist_ok=True)
-    result_path = args.results_dir / "fifth_pass.json"
-    log_path = args.results_dir / "fifth_pass.log"
+    result_path = args.results_dir / "sixth_pass.json"
+    log_path = args.results_dir / "sixth_pass.log"
     result_path.write_text(json.dumps(results, indent=2) + "\n", encoding="utf-8")
     log_lines = [
-        "SIM_CAMERA_CUROBO_FIFTH_PASS",
+        "SIM_CAMERA_CUROBO_SIXTH_PASS",
         "raised_start=" + json.dumps(results["raised_start"], sort_keys=True),
         "wrist_limit=" + json.dumps(results["wrist_3_limit"], sort_keys=True),
         "scenes=" + json.dumps({
@@ -1042,7 +1165,7 @@ def main() -> int:
         f"newton_worker_lines={len(worker_log)}",
     ]
     log_path.write_text("\n".join(log_lines) + "\n", encoding="utf-8")
-    print("SIM_CAMERA_CUROBO_FIFTH_PASS_RESULT " + json.dumps(results, sort_keys=True), flush=True)
+    print("SIM_CAMERA_CUROBO_SIXTH_PASS_RESULT " + json.dumps(results, sort_keys=True), flush=True)
     return 0
 
 

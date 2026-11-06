@@ -629,3 +629,137 @@ cd ~/ur5_ws/src/ur5_moveit_demo && scripts/run_sim_camera_curobo_fifth_pass.sh
 
 The validated run stopped its Newton worker and Viser server. No ROS, Newton
 physics, nvblox, cuMotion, real robot, install, or media path was used.
+
+## Sixth pass: corrected camera-border extent
+
+Check date: 2026-11-06 (Asia/Taipei)
+
+Correction to Fifth pass: its image-top touch was incorrectly treated as world
+up. That made a `0.22 m` wall produce a `0.445 m` fitted top, then allowed the
+box to follow the rising camera to about `0.612 m`. Those fifth-pass stops are
+kept as historical results but are superseded by this corrected run.
+
+Every touched image border now uses its outward image direction transformed by
+the same-frame camera pose and projected into world XY. The axis-aligned fit is
+extended `0.030 m` horizontally in that direction; a border touch never changes
+height. Normal height is the highest accumulated observed point plus `0.020 m`.
+If the same-frame highest point is within `0.030 m` of the camera height, the
+only exception is the fixed raised-start camera height plus `0.100 m`, or
+`0.545000 m`. It never follows the current camera. The exception did not
+activate in these three scenes.
+
+The raised start, goal, wrist-3 range `[-5.830452, +0.452733] rad`, fixed speed
+rule, one warmed planner, 80-cycle cap, and scene geometry are unchanged. The
+blind search was not repeated: the accepted fifth-pass result remains 27
+floor-standing candidates with no candidate simultaneously valid,
+route-blocking, and unseen.
+
+### Raised-start validity and first view
+
+| Wall top | Start clearance | Goal clearance | Baseline interior | First-frame points | Seen vertical fraction | Border touch |
+| ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| 0.22 m | +137.295 mm | +34.531 mm | -34.233 mm | 761 | 98.157% | top |
+| 0.26 m | +103.503 mm | +34.531 mm | -46.567 mm | 833 | 98.452% | top |
+| 0.30 m | +75.095 mm | +34.531 mm | -46.567 mm | 853 | 98.665% | top, right |
+
+### Loop results and stop diagnostics
+
+| Wall top | Goal | Cycles | Final stop | Min truth clearance | Median / p95 whole cycle | Planner failure |
+| ---: | --- | ---: | --- | ---: | ---: | --- |
+| 0.22 m | yes | 25 | `GOAL_REACHED` | +28.030 mm | 137.70 / 148.81 ms | none |
+| 0.26 m | yes | 27 | `GOAL_REACHED` | +28.127 mm | 134.62 / 147.89 ms | none |
+| 0.30 m | no | 1 | `FITTED_BOX_COVERS_GOAL_STATE` | +75.095 mm | 774.17 / 774.17 ms | `NO_RESULT_IK_OR_GRAPH_FAILED` |
+
+| Wall top | Final current-to-fit | Final goal-to-fit | Planner status | Classification |
+| ---: | ---: | ---: | --- | --- |
+| 0.22 m | +18.733 mm | +19.531 mm | success | not covering goal |
+| 0.26 m | +19.404 mm | +15.173 mm | success | not covering goal |
+| 0.30 m | +51.511 mm | -6.023 mm | `NO_RESULT_IK_OR_GRAPH_FAILED` | box covering goal |
+
+The 0.30 m failure is specifically the fitted box covering the unchanged goal,
+not an upward-chasing box and not an unexplained IK failure. Its top is only
+`0.320000 m` (observed `0.300000 m` plus padding).
+
+| Case | pan | lift | elbow | wrist 1 | wrist 2 | wrist 3 | Max wrist-3 delta | Tool path / straight line |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| E, 0.22 m | 0.419334 | 0.363215 | 0.151057 | 0.358132 | 0.058571 | 0.419057 | 0.419052 | 0.420365 / 0.378041 m (1.1120x) |
+| E, 0.26 m | 0.434098 | 0.358473 | 0.210314 | 0.356105 | 0.077116 | 0.415529 | 0.415524 | 0.444818 / 0.375292 m (1.1853x) |
+| E, 0.30 m | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 / 0 m (n/a) |
+| No-obstacle baseline | 0.419341 | 0.363572 | 0.005257 | 0.358316 | 0 | 0.419341 | 0.419340 | 0.384134 / 0.378260 m (1.0155x) |
+
+Joint travel and wrist delta are in radians. The no-obstacle path's maximum
+tool height is `0.501000 m`, effectively no climb from its start. The 0.22 m
+case also never climbs. The 0.26 m case peaks at `0.502586 m`, a `1.587 mm`
+climb caused by its collision-free fitted-obstacle detour; the fit stays at
+`0.280000 m`, so this is not camera/box positive feedback. The 0.30 m case does
+not move.
+
+### Box top and tool height by cycle
+
+Tool height is the capture/start-of-cycle value; each cycle's recorded end
+height is the next row's start, with final ends `0.263290 m` and `0.267144 m`
+for the 0.22 and 0.26 m cases. Raw JSON includes both start and end values.
+
+| Cycle | 0.22 m box / tool (m) | 0.26 m box / tool (m) | 0.30 m box / tool (m) |
+| ---: | ---: | ---: | ---: |
+| 1 | 0.2400 / 0.5010 | 0.2800 / 0.5010 | 0.3200 / 0.5010 |
+| 2 | 0.2400 / 0.4972 | 0.2800 / 0.5022 | n/a |
+| 3 | 0.2400 / 0.4929 | 0.2800 / 0.5025 | n/a |
+| 4 | 0.2400 / 0.4884 | 0.2800 / 0.5016 | n/a |
+| 5 | 0.2400 / 0.4813 | 0.2800 / 0.4998 | n/a |
+| 6 | 0.2400 / 0.4736 | 0.2800 / 0.4957 | n/a |
+| 7 | 0.2400 / 0.4655 | 0.2800 / 0.4899 | n/a |
+| 8 | 0.2400 / 0.4538 | 0.2800 / 0.4867 | n/a |
+| 9 | 0.2400 / 0.4473 | 0.2800 / 0.4831 | n/a |
+| 10 | 0.2400 / 0.4406 | 0.2800 / 0.4791 | n/a |
+| 11 | 0.2400 / 0.4336 | 0.2800 / 0.4748 | n/a |
+| 12 | 0.2400 / 0.4266 | 0.2800 / 0.4677 | n/a |
+| 13 | 0.2400 / 0.4194 | 0.2800 / 0.4600 | n/a |
+| 14 | 0.2400 / 0.4122 | 0.2800 / 0.4517 | n/a |
+| 15 | 0.2400 / 0.3989 | 0.2800 / 0.4430 | n/a |
+| 16 | 0.2400 / 0.3859 | 0.2800 / 0.4343 | n/a |
+| 17 | 0.2400 / 0.3735 | 0.2800 / 0.4178 | n/a |
+| 18 | 0.2400 / 0.3620 | 0.2800 / 0.4020 | n/a |
+| 19 | 0.2400 / 0.3514 | 0.2800 / 0.3871 | n/a |
+| 20 | 0.2400 / 0.3361 | 0.2800 / 0.3735 | n/a |
+| 21 | 0.2400 / 0.3235 | 0.2800 / 0.3613 | n/a |
+| 22 | 0.2400 / 0.3086 | 0.2800 / 0.3443 | n/a |
+| 23 | 0.2400 / 0.2974 | 0.2800 / 0.3302 | n/a |
+| 24 | 0.2400 / 0.2861 | 0.2800 / 0.3185 | n/a |
+| 25 | 0.2400 / 0.2746 | 0.2800 / 0.3049 | n/a |
+| 26 | n/a | 0.2800 / 0.2912 | n/a |
+| 27 | n/a | 0.2800 / 0.2796 | n/a |
+
+The complete per-cycle records also include border flags, projected world XY
+directions, current/goal fit clearances, planner status, and stop reason in
+[`sixth_pass.json`](experiments/sim-camera-curobo/results/sixth_pass.json).
+The compact console record is
+[`sixth_pass.log`](experiments/sim-camera-curobo/results/sixth_pass.log).
+
+### Viewer and what you should see
+
+The normal viewer remains on `127.0.0.1:8084`, contains only the three E cases
+and **NO OBSTACLE BASELINE**, and defaults to `E wall top 0.22`. The viewer now
+shows box-top height and live tool height during playback in addition to cycle,
+stop reason, frustum, points, clearance, and Playback error. Callback smoke
+tests moved the robot and frustum for both successful E paths and the baseline,
+with no playback error.
+
+What you should see:
+
+- a horizontal orange extension in the projected direction of every touched border;
+- constant box tops of 0.240, 0.280, and 0.320 m rather than a box chasing the camera;
+- the 0.22 and 0.26 m cases descending around the wall and reaching the goal;
+- the 0.30 m case remaining at start and reporting that its fit covers the goal;
+- live box-top and tool-height text changing with the selected playback cycle;
+- **NO OBSTACLE BASELINE** following its direct 41-state path;
+- an empty Playback error field during successful playback.
+
+Exact one-line command:
+
+```bash
+cd ~/ur5_ws/src/ur5_moveit_demo && scripts/run_sim_camera_curobo_sixth_pass.sh
+```
+
+The validated run stopped its Newton worker and Viser server. No ROS, Newton
+physics, nvblox, cuMotion, real robot, install, or media path was used.
