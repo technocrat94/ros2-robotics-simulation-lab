@@ -358,7 +358,7 @@ obstacle pixels and zero perceived points.
 ### E reuse, timing, and stop reason
 
 E owns one warmed planner. Its preallocated `camera_obstacle` pose is updated
-through the collision checker and its dimensions through cuRobo 1.5.1's
+through the collision checker and its dimensions through cuRobo 0.8's
 `CuboidData.update_dims`; the graph buffer is reset without rebuilding or
 rewarming the planner. Whole-cycle time covers capture, conversion, merge,
 fit, in-place scene update, and plan. In the validated playback run the first
@@ -408,3 +408,115 @@ cd ~/ur5_ws/src/ur5_moveit_demo && scripts/run_sim_camera_curobo_second_pass.sh
 
 The run stopped its Newton worker and Viser server. No ROS, Newton physics,
 nvblox, cuMotion, real robot, install, or media path was used.
+
+## Fourth pass: camera side correction and completed matrix
+
+Check date: 2026-11-06 (Asia/Taipei)
+
+This pass uses one named `25 mm` endpoint-clearance threshold and rotates the
+experiment start and goal by pi about tool Z. The mount YAML is unchanged.
+The loaded model confirms the reviewer's offsets: at the mount-match pose,
+camera minus tool flange is `[+0.106, 0.000, -0.056] m`; at the original
+start it is `[-0.106, 0.000, -0.056] m`. The new camera therefore sits away
+from the base.
+
+`wrist_3_joint` changes from `-5.830452` to `-2.688859 rad`, within its
+`[-2 pi, +2 pi]` model limits. The 112 collision spheres before and after the
+flip match with `0.000 mm` maximum bidirectional center deviation, which is
+inside the `2 mm` symmetry criterion.
+
+| Pose | Flange before/after (m) | tool0 before/after (m) | Camera before (m) | Camera after (m) |
+| --- | --- | --- | --- | --- |
+| Start | `[0.488, 0.116, 0.301]` / same | `[0.488, 0.116, 0.301]` / same | `[0.382, 0.116, 0.245]` | `[0.594, 0.116, 0.245]` |
+| Goal | `[0.487, 0.410, 0.263]` / same | `[0.487, 0.410, 0.263]` / same | `[0.381, 0.410, 0.207]` | `[0.593, 0.410, 0.207]` |
+
+The actual imported Python package reports `0.8.0.post1.dev43`; its checkout
+is `v0.8.0-43-g78fd485`. The earlier third-pass `cuRobo 1.5.1` label was
+therefore wrong and has been corrected to cuRobo 0.8.
+
+### Scene validity and completed cases
+
+All three same-XY scenes are valid at `25 mm`. Start, goal, and interior
+no-obstacle clearance are kept separate; the negative interior values prove
+that every scene blocks the baseline route.
+
+| Wall top | Start | Goal | No-obstacle interior | Status |
+| ---: | ---: | ---: | ---: | --- |
+| 0.18 m | +33.844 mm | +34.531 mm | -42.505 mm | VALID |
+| 0.22 m | +29.834 mm | +34.531 mm | -44.659 mm | VALID |
+| 0.26 m | +29.834 mm | +34.531 mm | -64.692 mm | VALID |
+
+Every A and B row and every final scan plan ran three seeded repeats. A
+collided with truth in all repeats. B used exact truth as its planner input;
+no other case did. The standard and overview scans saw each true wall top and
+returned to start without collision or planner failure.
+
+| Top | A min | B min | Standard scan min | Overview scan min | 0 mm final min | 20 mm/standard final min | Overview final min |
+| ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 0.18 m | -42.505 mm | +9.869 mm | +24.929 mm | +33.844 mm | +16.089 mm | +29.454 mm | +29.386 mm |
+| 0.22 m | -44.659 mm | +9.488 mm | +21.451 mm | +27.437 mm | +16.269 mm | +27.418 mm | +27.236 mm |
+| 0.26 m | -64.692 mm | +9.392 mm | +24.798 mm | +24.798 mm | +16.049 mm | +27.713 mm | +27.556 mm |
+
+All tabled B, padding, standard, and overview final plans returned `3/3`; their
+per-repeat records contain separate start, goal, and interior clearance plus a
+planner-failure field. The only completed planner call that failed was E at
+the `0.22 m` wall, cycle 3: `planner_failure_status=TRAJOPT_FAILED`, with the
+more specific stop classification `FITTED_BOX_COVERS_CURRENT_STATE`.
+
+### Look while moving and timing
+
+| Scene | Cycles | First seen | Clearance then | Minimum executed | Final stop | Goal? |
+| --- | ---: | ---: | ---: | ---: | --- | --- |
+| Main 0.18 m | 12 | 1 | +33.844 mm | +20.388 mm | `MAX_CYCLES_REACHED` | no |
+| Main 0.22 m | 3 | 1 | +29.834 mm | +1.819 mm | `FITTED_BOX_COVERS_CURRENT_STATE` | no |
+| Main 0.26 m | 2 | 1 | +29.834 mm | -0.860 mm | `TRUE_COLLISION` | no |
+| Blind | 2 | never | n/a | -7.459 mm | `TRUE_COLLISION` | no |
+
+Whole-cycle timing includes capture, conversion, merge, fit, in-place scene
+update, and plan. Main scenes had a fitted obstacle in every cycle: median /
+p95 were `103.75 / 114.34 ms`, `110.14 / 110.58 ms`, and
+`129.62 / 129.67 ms` for wall tops `0.18`, `0.22`, and `0.26 m`. They had no
+no-box cycles. The blind run never formed a box; its two no-box cycles measured
+`88.58 / 91.64 ms` median / p95, with no with-box sample. Thus the old `82 ms`
+number is not presented as fitted-box performance.
+
+The new blind cuboid is centered at `[0.647, 0.260, 0.380] m`, dimensions
+`[0.050, 0.040, 0.060] m`. Its start, goal, and baseline-interior clearances
+are `+31.239`, `+138.973`, and `-28.895 mm`, respectively. The start capture
+has zero obstacle pixels and points. A and one-view C each returned `3/3` and
+hit truth at `-28.895 mm`; C had no fitted box. E also never saw the obstacle,
+so `first_seen_cycle` and its associated clearance are `null`; it collided in
+cycle 2 and did not reach the goal.
+
+Raw measurements are in
+[`fourth_pass.json`](experiments/sim-camera-curobo/results/fourth_pass.json)
+and the compact summary is in
+[`fourth_pass.log`](experiments/sim-camera-curobo/results/fourth_pass.log).
+
+### Viewer and what you should see
+
+The viewer now defaults to `B god view wall top 0.18`, the first valid case.
+Its automated port-8085 smoke test exercised B, padding, standard, overview,
+E-main, blind C/E, and the explicit baseline; every callback changed both the
+robot and live frustum without an error. Invalid scenes, when present, show
+their status with no path and playback disabled. The normal command still
+requests `127.0.0.1:8084` exactly.
+
+What you should see:
+
+- the camera in front of the flange, with its live world position shown as text;
+- the valid B case selected initially, with a safe path around the red truth box;
+- all three valid wall heights under padding, standard, overview, B, and E selectors;
+- E at `0.22 m` holding on its fitted-box stop and E at `0.26 m` reporting the measured collision;
+- the unseen blind obstacle with no one-view points and E colliding before first sight;
+- **NO OBSTACLE BASELINE (expected truth collision)** as an explicit selector;
+- any invalid case showing status text, no path, and disabled playback.
+
+Exact one-line command:
+
+```bash
+cd ~/ur5_ws/src/ur5_moveit_demo && scripts/run_sim_camera_curobo_second_pass.sh
+```
+
+The validated run stopped its Newton worker and Viser server. No ROS, Newton
+physics, nvblox, cuMotion, real robot, install, or media path was used.

@@ -1,0 +1,3522 @@
+{
+  "baseline_no_obstacle": {
+    "flipped": {
+      "states": 41,
+      "joint_path_length_rad": 0.9327346086502075,
+      "failure_status": null
+    },
+    "original": {
+      "states": 41,
+      "joint_path_length_rad": 0.9327357411384583,
+      "failure_status": null
+    }
+  },
+  "experiment_pose": {
+    "tool_z_flip_rad": 3.141592653589793,
+    "wrist_3_joint_before_rad": -5.830451965332031,
+    "wrist_3_joint_after_rad": -2.688859224319458,
+    "wrist_3_urdf_limits_rad": [
+      -6.283185307179586,
+      6.283185307179586
+    ],
+    "mount_offset_world_checks": {
+      "mount_match_arm_camera_minus_flange_m": [
+        0.1059999961182595,
+        -8.777415988481252e-09,
+        -0.0559999887126138
+      ],
+      "original_start_camera_minus_flange_m": [
+        -0.10599999935759108,
+        -1.9479121426968504e-08,
+        -0.05600001456742848
+      ]
+    },
+    "start_before": {
+      "flange_m": [
+        0.4880000352859497,
+        0.1159999817609787,
+        0.3009999990463257
+      ],
+      "tool0_m": [
+        0.4880000352859497,
+        0.1159999817609787,
+        0.3009999990463257
+      ],
+      "camera_world_m": [
+        0.38200003592835863,
+        0.11599996228185727,
+        0.2449999844788972
+      ]
+    },
+    "start_after": {
+      "flange_m": [
+        0.4880000352859497,
+        0.1159999817609787,
+        0.3009999990463257
+      ],
+      "tool0_m": [
+        0.4880000352859497,
+        0.1159999817609787,
+        0.3009999990463257
+      ],
+      "camera_world_m": [
+        0.5940000305288896,
+        0.11599997474529058,
+        0.2450000086768569
+      ]
+    },
+    "goal_before": {
+      "flange_m": [
+        0.4869998097419739,
+        0.4099997878074646,
+        0.26299989223480225
+      ],
+      "tool0_m": [
+        0.4869998097419739,
+        0.4099997878074646,
+        0.26299989223480225
+      ],
+      "camera_world_m": [
+        0.3809998219493297,
+        0.4099997354061023,
+        0.20699988108726325
+      ]
+    },
+    "goal_after": {
+      "flange_m": [
+        0.4869998097419739,
+        0.4099997580051422,
+        0.26299989223480225
+      ],
+      "tool0_m": [
+        0.4869998097419739,
+        0.4099997580051422,
+        0.26299989223480225
+      ],
+      "camera_world_m": [
+        0.5929998157223976,
+        0.40999977824342076,
+        0.20699990355488992
+      ]
+    },
+    "gripper_symmetry": {
+      "collision_spheres": 112,
+      "bidirectional_max_center_deviation_m": 0.0,
+      "symmetric_enough": true,
+      "criterion_m": 0.002
+    }
+  },
+  "model_start_points": {
+    "flange_tool0_m": [
+      0.4880000352859497,
+      0.1159999817609787,
+      0.3009999990463257
+    ],
+    "wrist_1_link_name": "wrist_1_link",
+    "wrist_1_center_m": [
+      0.5731144547462463,
+      0.15740230679512024,
+      0.38329997658729553
+    ],
+    "flange_m": [
+      0.48799997568130493,
+      0.11600001156330109,
+      0.3009999990463257
+    ],
+    "source": "Newton FK from the loaded URDF model"
+  },
+  "padding_sweep": {
+    "top_0.18_m": {
+      "0_mm": {
+        "z_padding_m": 0.0,
+        "fit": {
+          "center_m": [
+            0.487008735537529,
+            0.2609158232808113,
+            0.09604562819004059
+          ],
+          "dims_m": [
+            0.22998279213905337,
+            0.08583177506923678,
+            0.16790884733200073
+          ],
+          "highest_seen_z_m": 0.18000005185604095,
+          "fitted_top_z_m": 0.18000005185604095,
+          "points": 2062,
+          "z_padding_m": 0.0
+        },
+        "validity": {
+          "status": "VALID",
+          "valid": true,
+          "start_clearance_m": 0.03384373073700975,
+          "goal_clearance_m": 0.03453064110875129,
+          "along_path_clearance_m": -0.04250459320098163,
+          "reasons": []
+        },
+        "scan": {
+          "capture_count": 4,
+          "capture_points": [
+            240,
+            682,
+            386,
+            754
+          ],
+          "capture_ms": [
+            76.89423486590385,
+            40.72543000802398,
+            26.586377061903477,
+            46.554939821362495
+          ],
+          "highest_seen_z_m": 0.18000005185604095,
+          "scan_collision": false,
+          "scan_no_plan": false,
+          "scan_min_clearance_m": 0.024929483876052053,
+          "returned_to_start": true,
+          "failure_statuses": []
+        },
+        "final_plan": {
+          "attempts": 3,
+          "successes": 3,
+          "planning_median_ms": 60.46562106348574,
+          "minimum_true_clearance_m": 0.01608898543143865,
+          "minimum_along_path_clearance_m": 0.01608898543143865,
+          "path_length_median_rad": 0.9963479042053223,
+          "paths_identical": false,
+          "records": [
+            {
+              "repeat": 0,
+              "success": true,
+              "planning_ms": 1428.4495499450713,
+              "true_clearance_m": 0.01608898543143865,
+              "start_clearance_m": 0.03384373073700975,
+              "goal_clearance_m": 0.03453064110875129,
+              "along_path_clearance_m": 0.01608898543143865,
+              "path_length_rad": 0.9964247941970825,
+              "failure_status": null
+            },
+            {
+              "repeat": 1,
+              "success": true,
+              "planning_ms": 59.66381495818496,
+              "true_clearance_m": 0.016097725831101403,
+              "start_clearance_m": 0.03384373073700975,
+              "goal_clearance_m": 0.03453064110875129,
+              "along_path_clearance_m": 0.016097725831101403,
+              "path_length_rad": 0.9963479042053223,
+              "failure_status": null
+            },
+            {
+              "repeat": 2,
+              "success": true,
+              "planning_ms": 60.46562106348574,
+              "true_clearance_m": 0.016097725831101403,
+              "start_clearance_m": 0.03384373073700975,
+              "goal_clearance_m": 0.03453064110875129,
+              "along_path_clearance_m": 0.016097725831101403,
+              "path_length_rad": 0.9963479042053223,
+              "failure_status": null
+            }
+          ]
+        },
+        "case_pass": true
+      },
+      "20_mm": {
+        "z_padding_m": 0.02,
+        "fit": {
+          "center_m": [
+            0.487008735537529,
+            0.2609158232808113,
+            0.10000002592802047
+          ],
+          "dims_m": [
+            0.22998279213905337,
+            0.08583177506923678,
+            0.20000005185604094
+          ],
+          "highest_seen_z_m": 0.18000005185604095,
+          "fitted_top_z_m": 0.20000005185604094,
+          "points": 2062,
+          "z_padding_m": 0.02
+        },
+        "validity": {
+          "status": "VALID",
+          "valid": true,
+          "start_clearance_m": 0.03384373073700975,
+          "goal_clearance_m": 0.03453064110875129,
+          "along_path_clearance_m": -0.04250459320098163,
+          "reasons": []
+        },
+        "scan": {
+          "capture_count": 4,
+          "capture_points": [
+            240,
+            682,
+            386,
+            754
+          ],
+          "capture_ms": [
+            76.89423486590385,
+            40.72543000802398,
+            26.586377061903477,
+            46.554939821362495
+          ],
+          "highest_seen_z_m": 0.18000005185604095,
+          "scan_collision": false,
+          "scan_no_plan": false,
+          "scan_min_clearance_m": 0.024929483876052053,
+          "returned_to_start": true,
+          "failure_statuses": []
+        },
+        "final_plan": {
+          "attempts": 3,
+          "successes": 3,
+          "planning_median_ms": 60.57417392730713,
+          "minimum_true_clearance_m": 0.029453559184460888,
+          "minimum_along_path_clearance_m": 0.029453559184460888,
+          "path_length_median_rad": 1.0329246520996094,
+          "paths_identical": false,
+          "records": [
+            {
+              "repeat": 0,
+              "success": true,
+              "planning_ms": 1399.3293489329517,
+              "true_clearance_m": 0.029458963613863264,
+              "start_clearance_m": 0.03384373073700975,
+              "goal_clearance_m": 0.03453064110875129,
+              "along_path_clearance_m": 0.029458963613863264,
+              "path_length_rad": 1.0329415798187256,
+              "failure_status": null
+            },
+            {
+              "repeat": 1,
+              "success": true,
+              "planning_ms": 60.540287056937814,
+              "true_clearance_m": 0.029453559184460888,
+              "start_clearance_m": 0.03384373073700975,
+              "goal_clearance_m": 0.03453064110875129,
+              "along_path_clearance_m": 0.029453559184460888,
+              "path_length_rad": 1.0329246520996094,
+              "failure_status": null
+            },
+            {
+              "repeat": 2,
+              "success": true,
+              "planning_ms": 60.57417392730713,
+              "true_clearance_m": 0.029453559184460888,
+              "start_clearance_m": 0.03384373073700975,
+              "goal_clearance_m": 0.03453064110875129,
+              "along_path_clearance_m": 0.029453559184460888,
+              "path_length_rad": 1.0329246520996094,
+              "failure_status": null
+            }
+          ]
+        },
+        "case_pass": true
+      }
+    },
+    "top_0.22_m": {
+      "0_mm": {
+        "z_padding_m": 0.0,
+        "fit": {
+          "center_m": [
+            0.487008735537529,
+            0.2609158232808113,
+            0.11604561656713486
+          ],
+          "dims_m": [
+            0.22998279213905337,
+            0.08583177506923678,
+            0.20790882408618927
+          ],
+          "highest_seen_z_m": 0.2200000286102295,
+          "fitted_top_z_m": 0.2200000286102295,
+          "points": 2288,
+          "z_padding_m": 0.0
+        },
+        "validity": {
+          "status": "VALID",
+          "valid": true,
+          "start_clearance_m": 0.02983356732130052,
+          "goal_clearance_m": 0.03453064110875129,
+          "along_path_clearance_m": -0.044659199595451365,
+          "reasons": []
+        },
+        "scan": {
+          "capture_count": 4,
+          "capture_points": [
+            240,
+            761,
+            403,
+            884
+          ],
+          "capture_ms": [
+            77.19871099106967,
+            51.89108499325812,
+            29.8439331818372,
+            65.12749497778714
+          ],
+          "highest_seen_z_m": 0.2200000286102295,
+          "scan_collision": false,
+          "scan_no_plan": false,
+          "scan_min_clearance_m": 0.021450516760349286,
+          "returned_to_start": true,
+          "failure_statuses": []
+        },
+        "final_plan": {
+          "attempts": 3,
+          "successes": 3,
+          "planning_median_ms": 63.841452822089195,
+          "minimum_true_clearance_m": 0.016269039292387093,
+          "minimum_along_path_clearance_m": 0.016269039292387093,
+          "path_length_median_rad": 1.0729422569274902,
+          "paths_identical": false,
+          "records": [
+            {
+              "repeat": 0,
+              "success": true,
+              "planning_ms": 1494.4464969448745,
+              "true_clearance_m": 0.016278283886452433,
+              "start_clearance_m": 0.02983356732130052,
+              "goal_clearance_m": 0.03453064110875129,
+              "along_path_clearance_m": 0.016278283886452433,
+              "path_length_rad": 1.072972297668457,
+              "failure_status": null
+            },
+            {
+              "repeat": 1,
+              "success": true,
+              "planning_ms": 63.46753519028425,
+              "true_clearance_m": 0.016269039292387093,
+              "start_clearance_m": 0.02983356732130052,
+              "goal_clearance_m": 0.03453064110875129,
+              "along_path_clearance_m": 0.016269039292387093,
+              "path_length_rad": 1.0729422569274902,
+              "failure_status": null
+            },
+            {
+              "repeat": 2,
+              "success": true,
+              "planning_ms": 63.841452822089195,
+              "true_clearance_m": 0.016269039292387093,
+              "start_clearance_m": 0.02983356732130052,
+              "goal_clearance_m": 0.03453064110875129,
+              "along_path_clearance_m": 0.016269039292387093,
+              "path_length_rad": 1.0729422569274902,
+              "failure_status": null
+            }
+          ]
+        },
+        "case_pass": true
+      },
+      "20_mm": {
+        "z_padding_m": 0.02,
+        "fit": {
+          "center_m": [
+            0.487008735537529,
+            0.2609158232808113,
+            0.12000001430511474
+          ],
+          "dims_m": [
+            0.22998279213905337,
+            0.08583177506923678,
+            0.24000002861022948
+          ],
+          "highest_seen_z_m": 0.2200000286102295,
+          "fitted_top_z_m": 0.24000002861022948,
+          "points": 2288,
+          "z_padding_m": 0.02
+        },
+        "validity": {
+          "status": "VALID",
+          "valid": true,
+          "start_clearance_m": 0.02983356732130052,
+          "goal_clearance_m": 0.03453064110875129,
+          "along_path_clearance_m": -0.044659199595451365,
+          "reasons": []
+        },
+        "scan": {
+          "capture_count": 4,
+          "capture_points": [
+            240,
+            761,
+            403,
+            884
+          ],
+          "capture_ms": [
+            77.19871099106967,
+            51.89108499325812,
+            29.8439331818372,
+            65.12749497778714
+          ],
+          "highest_seen_z_m": 0.2200000286102295,
+          "scan_collision": false,
+          "scan_no_plan": false,
+          "scan_min_clearance_m": 0.021450516760349286,
+          "returned_to_start": true,
+          "failure_statuses": []
+        },
+        "final_plan": {
+          "attempts": 3,
+          "successes": 3,
+          "planning_median_ms": 64.08427888527513,
+          "minimum_true_clearance_m": 0.027417745602715093,
+          "minimum_along_path_clearance_m": 0.027417745602715093,
+          "path_length_median_rad": 1.1165168285369873,
+          "paths_identical": false,
+          "records": [
+            {
+              "repeat": 0,
+              "success": true,
+              "planning_ms": 1564.3297829665244,
+              "true_clearance_m": 0.027429066380211344,
+              "start_clearance_m": 0.02983356732130052,
+              "goal_clearance_m": 0.03453064110875129,
+              "along_path_clearance_m": 0.027429066380211344,
+              "path_length_rad": 1.1165437698364258,
+              "failure_status": null
+            },
+            {
+              "repeat": 1,
+              "success": true,
+              "planning_ms": 62.174669932574034,
+              "true_clearance_m": 0.027417745602715093,
+              "start_clearance_m": 0.02983356732130052,
+              "goal_clearance_m": 0.03453064110875129,
+              "along_path_clearance_m": 0.027417745602715093,
+              "path_length_rad": 1.1165168285369873,
+              "failure_status": null
+            },
+            {
+              "repeat": 2,
+              "success": true,
+              "planning_ms": 64.08427888527513,
+              "true_clearance_m": 0.027417745602715093,
+              "start_clearance_m": 0.02983356732130052,
+              "goal_clearance_m": 0.03453064110875129,
+              "along_path_clearance_m": 0.027417745602715093,
+              "path_length_rad": 1.1165168285369873,
+              "failure_status": null
+            }
+          ]
+        },
+        "case_pass": true
+      }
+    },
+    "top_0.26_m": {
+      "0_mm": {
+        "z_padding_m": 0.0,
+        "fit": {
+          "center_m": [
+            0.4870086759328842,
+            0.260864295065403,
+            0.13604561239480972
+          ],
+          "dims_m": [
+            0.22998279213905337,
+            0.08572865903377536,
+            0.247908815741539
+          ],
+          "highest_seen_z_m": 0.2600000202655792,
+          "fitted_top_z_m": 0.2600000202655792,
+          "points": 2481,
+          "z_padding_m": 0.0
+        },
+        "validity": {
+          "status": "VALID",
+          "valid": true,
+          "start_clearance_m": 0.02983356732130052,
+          "goal_clearance_m": 0.03453064110875129,
+          "along_path_clearance_m": -0.06469233170151711,
+          "reasons": []
+        },
+        "scan": {
+          "capture_count": 4,
+          "capture_points": [
+            240,
+            833,
+            403,
+            1005
+          ],
+          "capture_ms": [
+            80.07317804731429,
+            65.6545739620924,
+            23.59064994379878,
+            62.003121012821794
+          ],
+          "highest_seen_z_m": 0.2600000202655792,
+          "scan_collision": false,
+          "scan_no_plan": false,
+          "scan_min_clearance_m": 0.02479755598306657,
+          "returned_to_start": true,
+          "failure_statuses": []
+        },
+        "final_plan": {
+          "attempts": 3,
+          "successes": 3,
+          "planning_median_ms": 63.71584604494274,
+          "minimum_true_clearance_m": 0.01604924595920153,
+          "minimum_along_path_clearance_m": 0.01604924595920153,
+          "path_length_median_rad": 1.1624021530151367,
+          "paths_identical": false,
+          "records": [
+            {
+              "repeat": 0,
+              "success": true,
+              "planning_ms": 1586.2712420057505,
+              "true_clearance_m": 0.01606728663223694,
+              "start_clearance_m": 0.02983356732130052,
+              "goal_clearance_m": 0.03453064110875129,
+              "along_path_clearance_m": 0.01606728663223694,
+              "path_length_rad": 1.162416934967041,
+              "failure_status": null
+            },
+            {
+              "repeat": 1,
+              "success": true,
+              "planning_ms": 62.117900932207704,
+              "true_clearance_m": 0.01604924595920153,
+              "start_clearance_m": 0.02983356732130052,
+              "goal_clearance_m": 0.03453064110875129,
+              "along_path_clearance_m": 0.01604924595920153,
+              "path_length_rad": 1.1624021530151367,
+              "failure_status": null
+            },
+            {
+              "repeat": 2,
+              "success": true,
+              "planning_ms": 63.71584604494274,
+              "true_clearance_m": 0.01604924595920153,
+              "start_clearance_m": 0.02983356732130052,
+              "goal_clearance_m": 0.03453064110875129,
+              "along_path_clearance_m": 0.01604924595920153,
+              "path_length_rad": 1.1624021530151367,
+              "failure_status": null
+            }
+          ]
+        },
+        "case_pass": true
+      },
+      "20_mm": {
+        "z_padding_m": 0.02,
+        "fit": {
+          "center_m": [
+            0.4870086759328842,
+            0.260864295065403,
+            0.14000001013278962
+          ],
+          "dims_m": [
+            0.22998279213905337,
+            0.08572865903377536,
+            0.28000002026557924
+          ],
+          "highest_seen_z_m": 0.2600000202655792,
+          "fitted_top_z_m": 0.28000002026557924,
+          "points": 2481,
+          "z_padding_m": 0.02
+        },
+        "validity": {
+          "status": "VALID",
+          "valid": true,
+          "start_clearance_m": 0.02983356732130052,
+          "goal_clearance_m": 0.03453064110875129,
+          "along_path_clearance_m": -0.06469233170151711,
+          "reasons": []
+        },
+        "scan": {
+          "capture_count": 4,
+          "capture_points": [
+            240,
+            833,
+            403,
+            1005
+          ],
+          "capture_ms": [
+            80.07317804731429,
+            65.6545739620924,
+            23.59064994379878,
+            62.003121012821794
+          ],
+          "highest_seen_z_m": 0.2600000202655792,
+          "scan_collision": false,
+          "scan_no_plan": false,
+          "scan_min_clearance_m": 0.02479755598306657,
+          "returned_to_start": true,
+          "failure_statuses": []
+        },
+        "final_plan": {
+          "attempts": 3,
+          "successes": 3,
+          "planning_median_ms": 62.83157900907099,
+          "minimum_true_clearance_m": 0.027713061939062873,
+          "minimum_along_path_clearance_m": 0.027713061939062873,
+          "path_length_median_rad": 1.2092058658599854,
+          "paths_identical": false,
+          "records": [
+            {
+              "repeat": 0,
+              "success": true,
+              "planning_ms": 1598.0279759969562,
+              "true_clearance_m": 0.027713061939062873,
+              "start_clearance_m": 0.02983356732130052,
+              "goal_clearance_m": 0.03453064110875129,
+              "along_path_clearance_m": 0.027713061939062873,
+              "path_length_rad": 1.2097699642181396,
+              "failure_status": null
+            },
+            {
+              "repeat": 1,
+              "success": true,
+              "planning_ms": 62.28669313713908,
+              "true_clearance_m": 0.02791400802156043,
+              "start_clearance_m": 0.02983356732130052,
+              "goal_clearance_m": 0.03453064110875129,
+              "along_path_clearance_m": 0.02791400802156043,
+              "path_length_rad": 1.2092058658599854,
+              "failure_status": null
+            },
+            {
+              "repeat": 2,
+              "success": true,
+              "planning_ms": 62.83157900907099,
+              "true_clearance_m": 0.02791400802156043,
+              "start_clearance_m": 0.02983356732130052,
+              "goal_clearance_m": 0.03453064110875129,
+              "along_path_clearance_m": 0.02791400802156043,
+              "path_length_rad": 1.2092058658599854,
+              "failure_status": null
+            }
+          ]
+        },
+        "case_pass": true
+      }
+    }
+  },
+  "height_sweep": {
+    "top_0.18_m": {
+      "true_top_z_m": 0.18,
+      "validity": {
+        "status": "VALID",
+        "valid": true,
+        "start_clearance_m": 0.03384373073700975,
+        "goal_clearance_m": 0.03453064110875129,
+        "along_path_clearance_m": -0.04250459320098163,
+        "reasons": []
+      },
+      "status": "VALID",
+      "fit": {
+        "center_m": [
+          0.487008735537529,
+          0.2609158232808113,
+          0.10000002592802047
+        ],
+        "dims_m": [
+          0.22998279213905337,
+          0.08583177506923678,
+          0.20000005185604094
+        ],
+        "highest_seen_z_m": 0.18000005185604095,
+        "fitted_top_z_m": 0.20000005185604094,
+        "points": 2062,
+        "z_padding_m": 0.02
+      },
+      "scan": {
+        "capture_count": 4,
+        "capture_points": [
+          240,
+          682,
+          386,
+          754
+        ],
+        "capture_ms": [
+          76.89423486590385,
+          40.72543000802398,
+          26.586377061903477,
+          46.554939821362495
+        ],
+        "highest_seen_z_m": 0.18000005185604095,
+        "scan_collision": false,
+        "scan_no_plan": false,
+        "scan_min_clearance_m": 0.024929483876052053,
+        "returned_to_start": true,
+        "failure_statuses": []
+      },
+      "final_plan": {
+        "attempts": 3,
+        "successes": 3,
+        "planning_median_ms": 60.04921882413328,
+        "minimum_true_clearance_m": 0.029453559184460888,
+        "minimum_along_path_clearance_m": 0.029453559184460888,
+        "path_length_median_rad": 1.0329246520996094,
+        "paths_identical": false,
+        "records": [
+          {
+            "repeat": 0,
+            "success": true,
+            "planning_ms": 1412.9440139513463,
+            "true_clearance_m": 0.029458963613863264,
+            "start_clearance_m": 0.03384373073700975,
+            "goal_clearance_m": 0.03453064110875129,
+            "along_path_clearance_m": 0.029458963613863264,
+            "path_length_rad": 1.0329415798187256,
+            "failure_status": null
+          },
+          {
+            "repeat": 1,
+            "success": true,
+            "planning_ms": 60.04921882413328,
+            "true_clearance_m": 0.029453559184460888,
+            "start_clearance_m": 0.03384373073700975,
+            "goal_clearance_m": 0.03453064110875129,
+            "along_path_clearance_m": 0.029453559184460888,
+            "path_length_rad": 1.0329246520996094,
+            "failure_status": null
+          },
+          {
+            "repeat": 2,
+            "success": true,
+            "planning_ms": 59.764720033854246,
+            "true_clearance_m": 0.029453559184460888,
+            "start_clearance_m": 0.03384373073700975,
+            "goal_clearance_m": 0.03453064110875129,
+            "along_path_clearance_m": 0.029453559184460888,
+            "path_length_rad": 1.0329246520996094,
+            "failure_status": null
+          }
+        ]
+      },
+      "top_seen": true,
+      "case_pass": true
+    },
+    "top_0.22_m": {
+      "true_top_z_m": 0.22,
+      "validity": {
+        "status": "VALID",
+        "valid": true,
+        "start_clearance_m": 0.02983356732130052,
+        "goal_clearance_m": 0.03453064110875129,
+        "along_path_clearance_m": -0.044659199595451365,
+        "reasons": []
+      },
+      "status": "VALID",
+      "fit": {
+        "center_m": [
+          0.487008735537529,
+          0.2609158232808113,
+          0.12000001430511474
+        ],
+        "dims_m": [
+          0.22998279213905337,
+          0.08583177506923678,
+          0.24000002861022948
+        ],
+        "highest_seen_z_m": 0.2200000286102295,
+        "fitted_top_z_m": 0.24000002861022948,
+        "points": 2288,
+        "z_padding_m": 0.02
+      },
+      "scan": {
+        "capture_count": 4,
+        "capture_points": [
+          240,
+          761,
+          403,
+          884
+        ],
+        "capture_ms": [
+          77.19871099106967,
+          51.89108499325812,
+          29.8439331818372,
+          65.12749497778714
+        ],
+        "highest_seen_z_m": 0.2200000286102295,
+        "scan_collision": false,
+        "scan_no_plan": false,
+        "scan_min_clearance_m": 0.021450516760349286,
+        "returned_to_start": true,
+        "failure_statuses": []
+      },
+      "final_plan": {
+        "attempts": 3,
+        "successes": 3,
+        "planning_median_ms": 63.33731580525637,
+        "minimum_true_clearance_m": 0.027417745602715093,
+        "minimum_along_path_clearance_m": 0.027417745602715093,
+        "path_length_median_rad": 1.1165168285369873,
+        "paths_identical": false,
+        "records": [
+          {
+            "repeat": 0,
+            "success": true,
+            "planning_ms": 1545.7185090053827,
+            "true_clearance_m": 0.027429066380211344,
+            "start_clearance_m": 0.02983356732130052,
+            "goal_clearance_m": 0.03453064110875129,
+            "along_path_clearance_m": 0.027429066380211344,
+            "path_length_rad": 1.1165437698364258,
+            "failure_status": null
+          },
+          {
+            "repeat": 1,
+            "success": true,
+            "planning_ms": 62.064199009910226,
+            "true_clearance_m": 0.027417745602715093,
+            "start_clearance_m": 0.02983356732130052,
+            "goal_clearance_m": 0.03453064110875129,
+            "along_path_clearance_m": 0.027417745602715093,
+            "path_length_rad": 1.1165168285369873,
+            "failure_status": null
+          },
+          {
+            "repeat": 2,
+            "success": true,
+            "planning_ms": 63.33731580525637,
+            "true_clearance_m": 0.027417745602715093,
+            "start_clearance_m": 0.02983356732130052,
+            "goal_clearance_m": 0.03453064110875129,
+            "along_path_clearance_m": 0.027417745602715093,
+            "path_length_rad": 1.1165168285369873,
+            "failure_status": null
+          }
+        ]
+      },
+      "top_seen": true,
+      "case_pass": true
+    },
+    "top_0.26_m": {
+      "true_top_z_m": 0.26,
+      "validity": {
+        "status": "VALID",
+        "valid": true,
+        "start_clearance_m": 0.02983356732130052,
+        "goal_clearance_m": 0.03453064110875129,
+        "along_path_clearance_m": -0.06469233170151711,
+        "reasons": []
+      },
+      "status": "VALID",
+      "fit": {
+        "center_m": [
+          0.4870086759328842,
+          0.260864295065403,
+          0.14000001013278962
+        ],
+        "dims_m": [
+          0.22998279213905337,
+          0.08572865903377536,
+          0.28000002026557924
+        ],
+        "highest_seen_z_m": 0.2600000202655792,
+        "fitted_top_z_m": 0.28000002026557924,
+        "points": 2481,
+        "z_padding_m": 0.02
+      },
+      "scan": {
+        "capture_count": 4,
+        "capture_points": [
+          240,
+          833,
+          403,
+          1005
+        ],
+        "capture_ms": [
+          80.07317804731429,
+          65.6545739620924,
+          23.59064994379878,
+          62.003121012821794
+        ],
+        "highest_seen_z_m": 0.2600000202655792,
+        "scan_collision": false,
+        "scan_no_plan": false,
+        "scan_min_clearance_m": 0.02479755598306657,
+        "returned_to_start": true,
+        "failure_statuses": []
+      },
+      "final_plan": {
+        "attempts": 3,
+        "successes": 3,
+        "planning_median_ms": 64.11679298616946,
+        "minimum_true_clearance_m": 0.027713061939062873,
+        "minimum_along_path_clearance_m": 0.027713061939062873,
+        "path_length_median_rad": 1.2092058658599854,
+        "paths_identical": false,
+        "records": [
+          {
+            "repeat": 0,
+            "success": true,
+            "planning_ms": 1616.7791499756277,
+            "true_clearance_m": 0.027713061939062873,
+            "start_clearance_m": 0.02983356732130052,
+            "goal_clearance_m": 0.03453064110875129,
+            "along_path_clearance_m": 0.027713061939062873,
+            "path_length_rad": 1.2097699642181396,
+            "failure_status": null
+          },
+          {
+            "repeat": 1,
+            "success": true,
+            "planning_ms": 63.31216311082244,
+            "true_clearance_m": 0.02791400802156043,
+            "start_clearance_m": 0.02983356732130052,
+            "goal_clearance_m": 0.03453064110875129,
+            "along_path_clearance_m": 0.02791400802156043,
+            "path_length_rad": 1.2092058658599854,
+            "failure_status": null
+          },
+          {
+            "repeat": 2,
+            "success": true,
+            "planning_ms": 64.11679298616946,
+            "true_clearance_m": 0.02791400802156043,
+            "start_clearance_m": 0.02983356732130052,
+            "goal_clearance_m": 0.03453064110875129,
+            "along_path_clearance_m": 0.02791400802156043,
+            "path_length_rad": 1.2092058658599854,
+            "failure_status": null
+          }
+        ]
+      },
+      "top_seen": true,
+      "case_pass": true
+    }
+  },
+  "overview_height_sweep": {
+    "top_0.18_m": {
+      "true_top_z_m": 0.18,
+      "validity": {
+        "status": "VALID",
+        "valid": true,
+        "start_clearance_m": 0.03384373073700975,
+        "goal_clearance_m": 0.03453064110875129,
+        "along_path_clearance_m": -0.04250459320098163,
+        "reasons": []
+      },
+      "status": "VALID",
+      "fit": {
+        "center_m": [
+          0.48703494668006897,
+          0.2607589587569237,
+          0.10000002592802047
+        ],
+        "dims_m": [
+          0.22993025064468386,
+          0.08551798641681674,
+          0.20000005185604094
+        ],
+        "highest_seen_z_m": 0.18000005185604095,
+        "fitted_top_z_m": 0.20000005185604094,
+        "points": 922,
+        "z_padding_m": 0.02
+      },
+      "scan": {
+        "capture_count": 2,
+        "capture_points": [
+          240,
+          682
+        ],
+        "capture_ms": [
+          49.246212001889944,
+          40.50974501296878
+        ],
+        "highest_seen_z_m": 0.18000005185604095,
+        "scan_collision": false,
+        "scan_no_plan": false,
+        "scan_min_clearance_m": 0.033843694314829635,
+        "returned_to_start": true,
+        "failure_statuses": []
+      },
+      "final_plan": {
+        "attempts": 3,
+        "successes": 3,
+        "planning_median_ms": 64.30886802263558,
+        "minimum_true_clearance_m": 0.029386393269607854,
+        "minimum_along_path_clearance_m": 0.029386393269607854,
+        "path_length_median_rad": 1.0326491594314575,
+        "paths_identical": false,
+        "records": [
+          {
+            "repeat": 0,
+            "success": true,
+            "planning_ms": 1464.9624088779092,
+            "true_clearance_m": 0.029388815989638606,
+            "start_clearance_m": 0.03384373073700975,
+            "goal_clearance_m": 0.03453064110875129,
+            "along_path_clearance_m": 0.029388815989638606,
+            "path_length_rad": 1.0326378345489502,
+            "failure_status": null
+          },
+          {
+            "repeat": 1,
+            "success": true,
+            "planning_ms": 63.40168998576701,
+            "true_clearance_m": 0.029386393269607854,
+            "start_clearance_m": 0.03384373073700975,
+            "goal_clearance_m": 0.03453064110875129,
+            "along_path_clearance_m": 0.029386393269607854,
+            "path_length_rad": 1.0326491594314575,
+            "failure_status": null
+          },
+          {
+            "repeat": 2,
+            "success": true,
+            "planning_ms": 64.30886802263558,
+            "true_clearance_m": 0.029386393269607854,
+            "start_clearance_m": 0.03384373073700975,
+            "goal_clearance_m": 0.03453064110875129,
+            "along_path_clearance_m": 0.029386393269607854,
+            "path_length_rad": 1.0326491594314575,
+            "failure_status": null
+          }
+        ]
+      },
+      "top_seen": true,
+      "case_pass": true
+    },
+    "top_0.22_m": {
+      "true_top_z_m": 0.22,
+      "validity": {
+        "status": "VALID",
+        "valid": true,
+        "start_clearance_m": 0.02983356732130052,
+        "goal_clearance_m": 0.03453064110875129,
+        "along_path_clearance_m": -0.044659199595451365,
+        "reasons": []
+      },
+      "status": "VALID",
+      "fit": {
+        "center_m": [
+          0.48703494668006897,
+          0.2607770040631294,
+          0.12000001430511474
+        ],
+        "dims_m": [
+          0.22993025064468386,
+          0.08555407702922824,
+          0.24000002861022948
+        ],
+        "highest_seen_z_m": 0.2200000286102295,
+        "fitted_top_z_m": 0.24000002861022948,
+        "points": 1001,
+        "z_padding_m": 0.02
+      },
+      "scan": {
+        "capture_count": 2,
+        "capture_points": [
+          240,
+          761
+        ],
+        "capture_ms": [
+          51.405498990789056,
+          51.76663096062839
+        ],
+        "highest_seen_z_m": 0.2200000286102295,
+        "scan_collision": false,
+        "scan_no_plan": false,
+        "scan_min_clearance_m": 0.02743664081590296,
+        "returned_to_start": true,
+        "failure_statuses": []
+      },
+      "final_plan": {
+        "attempts": 3,
+        "successes": 3,
+        "planning_median_ms": 61.636682134121656,
+        "minimum_true_clearance_m": 0.027235519804948656,
+        "minimum_along_path_clearance_m": 0.027235519804948656,
+        "path_length_median_rad": 1.116248607635498,
+        "paths_identical": false,
+        "records": [
+          {
+            "repeat": 0,
+            "success": true,
+            "planning_ms": 1537.5593630596995,
+            "true_clearance_m": 0.027241971116007943,
+            "start_clearance_m": 0.02983356732130052,
+            "goal_clearance_m": 0.03453064110875129,
+            "along_path_clearance_m": 0.027241971116007943,
+            "path_length_rad": 1.1162776947021484,
+            "failure_status": null
+          },
+          {
+            "repeat": 1,
+            "success": true,
+            "planning_ms": 61.636682134121656,
+            "true_clearance_m": 0.027235519804948656,
+            "start_clearance_m": 0.02983356732130052,
+            "goal_clearance_m": 0.03453064110875129,
+            "along_path_clearance_m": 0.027235519804948656,
+            "path_length_rad": 1.116248607635498,
+            "failure_status": null
+          },
+          {
+            "repeat": 2,
+            "success": true,
+            "planning_ms": 61.39417993836105,
+            "true_clearance_m": 0.027235519804948656,
+            "start_clearance_m": 0.02983356732130052,
+            "goal_clearance_m": 0.03453064110875129,
+            "along_path_clearance_m": 0.027235519804948656,
+            "path_length_rad": 1.116248607635498,
+            "failure_status": null
+          }
+        ]
+      },
+      "top_seen": true,
+      "case_pass": true
+    },
+    "top_0.26_m": {
+      "true_top_z_m": 0.26,
+      "validity": {
+        "status": "VALID",
+        "valid": true,
+        "start_clearance_m": 0.02983356732130052,
+        "goal_clearance_m": 0.03453064110875129,
+        "along_path_clearance_m": -0.06469233170151711,
+        "reasons": []
+      },
+      "status": "VALID",
+      "fit": {
+        "center_m": [
+          0.48703494668006897,
+          0.2607770040631294,
+          0.14000001013278962
+        ],
+        "dims_m": [
+          0.22993025064468386,
+          0.08555407702922824,
+          0.28000002026557924
+        ],
+        "highest_seen_z_m": 0.2600000202655792,
+        "fitted_top_z_m": 0.28000002026557924,
+        "points": 1073,
+        "z_padding_m": 0.02
+      },
+      "scan": {
+        "capture_count": 2,
+        "capture_points": [
+          240,
+          833
+        ],
+        "capture_ms": [
+          34.90950400009751,
+          43.58875914476812
+        ],
+        "highest_seen_z_m": 0.2600000202655792,
+        "scan_collision": false,
+        "scan_no_plan": false,
+        "scan_min_clearance_m": 0.02479755598306657,
+        "returned_to_start": true,
+        "failure_statuses": []
+      },
+      "final_plan": {
+        "attempts": 3,
+        "successes": 3,
+        "planning_median_ms": 63.66116902790964,
+        "minimum_true_clearance_m": 0.027555662663011946,
+        "minimum_along_path_clearance_m": 0.027555662663011946,
+        "path_length_median_rad": 1.2094838619232178,
+        "paths_identical": false,
+        "records": [
+          {
+            "repeat": 0,
+            "success": true,
+            "planning_ms": 1634.732770966366,
+            "true_clearance_m": 0.027560356856095043,
+            "start_clearance_m": 0.02983356732130052,
+            "goal_clearance_m": 0.03453064110875129,
+            "along_path_clearance_m": 0.027560356856095043,
+            "path_length_rad": 1.2095341682434082,
+            "failure_status": null
+          },
+          {
+            "repeat": 1,
+            "success": true,
+            "planning_ms": 63.60577489249408,
+            "true_clearance_m": 0.027555662663011946,
+            "start_clearance_m": 0.02983356732130052,
+            "goal_clearance_m": 0.03453064110875129,
+            "along_path_clearance_m": 0.027555662663011946,
+            "path_length_rad": 1.2094838619232178,
+            "failure_status": null
+          },
+          {
+            "repeat": 2,
+            "success": true,
+            "planning_ms": 63.66116902790964,
+            "true_clearance_m": 0.027555662663011946,
+            "start_clearance_m": 0.02983356732130052,
+            "goal_clearance_m": 0.03453064110875129,
+            "along_path_clearance_m": 0.027555662663011946,
+            "path_length_rad": 1.2094838619232178,
+            "failure_status": null
+          }
+        ]
+      },
+      "top_seen": true,
+      "case_pass": true
+    }
+  },
+  "god_view": {
+    "top_0.18_m": {
+      "planner_obstacle": "exact truth cuboid (case B only)",
+      "final_plan": {
+        "attempts": 3,
+        "successes": 3,
+        "planning_median_ms": 60.07595988921821,
+        "minimum_true_clearance_m": 0.009868925251259389,
+        "minimum_along_path_clearance_m": 0.009868925251259389,
+        "path_length_median_rad": 0.9848222732543945,
+        "paths_identical": true,
+        "records": [
+          {
+            "repeat": 0,
+            "success": true,
+            "planning_ms": 60.07595988921821,
+            "true_clearance_m": 0.009868925251259389,
+            "start_clearance_m": 0.03384373073700975,
+            "goal_clearance_m": 0.03453064110875129,
+            "along_path_clearance_m": 0.009868925251259389,
+            "path_length_rad": 0.9848222732543945,
+            "failure_status": null
+          },
+          {
+            "repeat": 1,
+            "success": true,
+            "planning_ms": 58.494526194408536,
+            "true_clearance_m": 0.009868925251259389,
+            "start_clearance_m": 0.03384373073700975,
+            "goal_clearance_m": 0.03453064110875129,
+            "along_path_clearance_m": 0.009868925251259389,
+            "path_length_rad": 0.9848222732543945,
+            "failure_status": null
+          },
+          {
+            "repeat": 2,
+            "success": true,
+            "planning_ms": 61.07205990701914,
+            "true_clearance_m": 0.009868925251259389,
+            "start_clearance_m": 0.03384373073700975,
+            "goal_clearance_m": 0.03453064110875129,
+            "along_path_clearance_m": 0.009868925251259389,
+            "path_length_rad": 0.9848222732543945,
+            "failure_status": null
+          }
+        ]
+      }
+    },
+    "top_0.22_m": {
+      "planner_obstacle": "exact truth cuboid (case B only)",
+      "final_plan": {
+        "attempts": 3,
+        "successes": 3,
+        "planning_median_ms": 62.72496818564832,
+        "minimum_true_clearance_m": 0.009487899068782776,
+        "minimum_along_path_clearance_m": 0.009487899068782776,
+        "path_length_median_rad": 1.0526905059814453,
+        "paths_identical": true,
+        "records": [
+          {
+            "repeat": 0,
+            "success": true,
+            "planning_ms": 62.03893688507378,
+            "true_clearance_m": 0.009487899068782776,
+            "start_clearance_m": 0.02983356732130052,
+            "goal_clearance_m": 0.03453064110875129,
+            "along_path_clearance_m": 0.009487899068782776,
+            "path_length_rad": 1.0526905059814453,
+            "failure_status": null
+          },
+          {
+            "repeat": 1,
+            "success": true,
+            "planning_ms": 62.74105980992317,
+            "true_clearance_m": 0.009487899068782776,
+            "start_clearance_m": 0.02983356732130052,
+            "goal_clearance_m": 0.03453064110875129,
+            "along_path_clearance_m": 0.009487899068782776,
+            "path_length_rad": 1.0526905059814453,
+            "failure_status": null
+          },
+          {
+            "repeat": 2,
+            "success": true,
+            "planning_ms": 62.72496818564832,
+            "true_clearance_m": 0.009487899068782776,
+            "start_clearance_m": 0.02983356732130052,
+            "goal_clearance_m": 0.03453064110875129,
+            "along_path_clearance_m": 0.009487899068782776,
+            "path_length_rad": 1.0526905059814453,
+            "failure_status": null
+          }
+        ]
+      }
+    },
+    "top_0.26_m": {
+      "planner_obstacle": "exact truth cuboid (case B only)",
+      "final_plan": {
+        "attempts": 3,
+        "successes": 3,
+        "planning_median_ms": 62.61614104732871,
+        "minimum_true_clearance_m": 0.009392434512378794,
+        "minimum_along_path_clearance_m": 0.009392434512378794,
+        "path_length_median_rad": 1.1352958679199219,
+        "paths_identical": true,
+        "records": [
+          {
+            "repeat": 0,
+            "success": true,
+            "planning_ms": 63.963742926716805,
+            "true_clearance_m": 0.009392434512378794,
+            "start_clearance_m": 0.02983356732130052,
+            "goal_clearance_m": 0.03453064110875129,
+            "along_path_clearance_m": 0.009392434512378794,
+            "path_length_rad": 1.1352958679199219,
+            "failure_status": null
+          },
+          {
+            "repeat": 1,
+            "success": true,
+            "planning_ms": 62.61614104732871,
+            "true_clearance_m": 0.009392434512378794,
+            "start_clearance_m": 0.02983356732130052,
+            "goal_clearance_m": 0.03453064110875129,
+            "along_path_clearance_m": 0.009392434512378794,
+            "path_length_rad": 1.1352958679199219,
+            "failure_status": null
+          },
+          {
+            "repeat": 2,
+            "success": true,
+            "planning_ms": 62.27991613559425,
+            "true_clearance_m": 0.009392434512378794,
+            "start_clearance_m": 0.02983356732130052,
+            "goal_clearance_m": 0.03453064110875129,
+            "along_path_clearance_m": 0.009392434512378794,
+            "path_length_rad": 1.1352958679199219,
+            "failure_status": null
+          }
+        ]
+      }
+    }
+  },
+  "main_case_a": {
+    "top_0.18_m": {
+      "attempts": 3,
+      "successes": 3,
+      "planning_median_ms": 57.93968099169433,
+      "minimum_true_clearance_m": -0.04250459320098163,
+      "minimum_along_path_clearance_m": -0.04250459320098163,
+      "path_length_median_rad": 0.9327346086502075,
+      "paths_identical": true,
+      "records": [
+        {
+          "repeat": 0,
+          "success": true,
+          "planning_ms": 58.83038090541959,
+          "true_clearance_m": -0.04250459320098163,
+          "start_clearance_m": 0.03384373073700975,
+          "goal_clearance_m": 0.03453064110875129,
+          "along_path_clearance_m": -0.04250459320098163,
+          "path_length_rad": 0.9327346086502075,
+          "failure_status": null
+        },
+        {
+          "repeat": 1,
+          "success": true,
+          "planning_ms": 55.6467070709914,
+          "true_clearance_m": -0.04250459320098163,
+          "start_clearance_m": 0.03384373073700975,
+          "goal_clearance_m": 0.03453064110875129,
+          "along_path_clearance_m": -0.04250459320098163,
+          "path_length_rad": 0.9327346086502075,
+          "failure_status": null
+        },
+        {
+          "repeat": 2,
+          "success": true,
+          "planning_ms": 57.93968099169433,
+          "true_clearance_m": -0.04250459320098163,
+          "start_clearance_m": 0.03384373073700975,
+          "goal_clearance_m": 0.03453064110875129,
+          "along_path_clearance_m": -0.04250459320098163,
+          "path_length_rad": 0.9327346086502075,
+          "failure_status": null
+        }
+      ]
+    },
+    "top_0.22_m": {
+      "attempts": 3,
+      "successes": 3,
+      "planning_median_ms": 58.72622411698103,
+      "minimum_true_clearance_m": -0.044659199595451365,
+      "minimum_along_path_clearance_m": -0.044659199595451365,
+      "path_length_median_rad": 0.9327346086502075,
+      "paths_identical": true,
+      "records": [
+        {
+          "repeat": 0,
+          "success": true,
+          "planning_ms": 56.96830595843494,
+          "true_clearance_m": -0.044659199595451365,
+          "start_clearance_m": 0.02983356732130052,
+          "goal_clearance_m": 0.03453064110875129,
+          "along_path_clearance_m": -0.044659199595451365,
+          "path_length_rad": 0.9327346086502075,
+          "failure_status": null
+        },
+        {
+          "repeat": 1,
+          "success": true,
+          "planning_ms": 58.72622411698103,
+          "true_clearance_m": -0.044659199595451365,
+          "start_clearance_m": 0.02983356732130052,
+          "goal_clearance_m": 0.03453064110875129,
+          "along_path_clearance_m": -0.044659199595451365,
+          "path_length_rad": 0.9327346086502075,
+          "failure_status": null
+        },
+        {
+          "repeat": 2,
+          "success": true,
+          "planning_ms": 60.480151092633605,
+          "true_clearance_m": -0.044659199595451365,
+          "start_clearance_m": 0.02983356732130052,
+          "goal_clearance_m": 0.03453064110875129,
+          "along_path_clearance_m": -0.044659199595451365,
+          "path_length_rad": 0.9327346086502075,
+          "failure_status": null
+        }
+      ]
+    },
+    "top_0.26_m": {
+      "attempts": 3,
+      "successes": 3,
+      "planning_median_ms": 58.39991779066622,
+      "minimum_true_clearance_m": -0.06469233170151711,
+      "minimum_along_path_clearance_m": -0.06469233170151711,
+      "path_length_median_rad": 0.9327346086502075,
+      "paths_identical": true,
+      "records": [
+        {
+          "repeat": 0,
+          "success": true,
+          "planning_ms": 57.806018041446805,
+          "true_clearance_m": -0.06469233170151711,
+          "start_clearance_m": 0.02983356732130052,
+          "goal_clearance_m": 0.03453064110875129,
+          "along_path_clearance_m": -0.06469233170151711,
+          "path_length_rad": 0.9327346086502075,
+          "failure_status": null
+        },
+        {
+          "repeat": 1,
+          "success": true,
+          "planning_ms": 59.291970916092396,
+          "true_clearance_m": -0.06469233170151711,
+          "start_clearance_m": 0.02983356732130052,
+          "goal_clearance_m": 0.03453064110875129,
+          "along_path_clearance_m": -0.06469233170151711,
+          "path_length_rad": 0.9327346086502075,
+          "failure_status": null
+        },
+        {
+          "repeat": 2,
+          "success": true,
+          "planning_ms": 58.39991779066622,
+          "true_clearance_m": -0.06469233170151711,
+          "start_clearance_m": 0.02983356732130052,
+          "goal_clearance_m": 0.03453064110875129,
+          "along_path_clearance_m": -0.06469233170151711,
+          "path_length_rad": 0.9327346086502075,
+          "failure_status": null
+        }
+      ]
+    }
+  },
+  "blind_scene": {
+    "center_m": [
+      0.647,
+      0.26,
+      0.38
+    ],
+    "dims_m": [
+      0.05,
+      0.04,
+      0.06
+    ],
+    "validity": {
+      "status": "VALID",
+      "valid": true,
+      "start_clearance_m": 0.031239403515056524,
+      "goal_clearance_m": 0.138972979330704,
+      "along_path_clearance_m": -0.028895193219184857,
+      "reasons": []
+    },
+    "selection_attempts": [
+      {
+        "center_m": [
+          0.407,
+          0.22,
+          0.38
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.06
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": -0.027267072941324865,
+          "goal_clearance_m": 0.007056533789318226,
+          "along_path_clearance_m": -0.0443330629169941,
+          "reasons": [
+            "start clearance -0.027267 m is below 0.025000 m",
+            "goal clearance 0.007057 m is below 0.025000 m"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.447,
+          0.22,
+          0.38
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.06
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": -0.03769365623593331,
+          "goal_clearance_m": 0.043470197054385915,
+          "along_path_clearance_m": -0.049330495148897174,
+          "reasons": [
+            "start clearance -0.037694 m is below 0.025000 m"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.487,
+          0.22,
+          0.38
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.06
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": -0.0550800970196724,
+          "goal_clearance_m": 0.08172192283378682,
+          "along_path_clearance_m": -0.05535448700189591,
+          "reasons": [
+            "start clearance -0.055080 m is below 0.025000 m"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.527,
+          0.22,
+          0.38
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.06
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": -0.03244594377279284,
+          "goal_clearance_m": 0.12069891479203887,
+          "along_path_clearance_m": -0.06426576930284497,
+          "reasons": [
+            "start clearance -0.032446 m is below 0.025000 m"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.567,
+          0.22,
+          0.38
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.06
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": -0.04050895701348787,
+          "goal_clearance_m": 0.13364631677929764,
+          "along_path_clearance_m": -0.06730932906270028,
+          "reasons": [
+            "start clearance -0.040509 m is below 0.025000 m"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.607,
+          0.22,
+          0.38
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.06
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": -0.015045437216758727,
+          "goal_clearance_m": 0.14838123783195264,
+          "along_path_clearance_m": -0.06244115829467774,
+          "reasons": [
+            "start clearance -0.015045 m is below 0.025000 m"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.647,
+          0.22,
+          0.38
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.06
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": -0.0024954198469938627,
+          "goal_clearance_m": 0.16950179693568443,
+          "along_path_clearance_m": -0.026754492402076703,
+          "reasons": [
+            "start clearance -0.002495 m is below 0.025000 m"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.407,
+          0.26,
+          0.38
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.06
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.004020839833773583,
+          "goal_clearance_m": 0.03321312303355631,
+          "along_path_clearance_m": -0.0519375677406788,
+          "reasons": [
+            "start clearance 0.004021 m is below 0.025000 m"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.447,
+          0.26,
+          0.38
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.06
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": -0.011160871006653698,
+          "goal_clearance_m": 0.06253870164322983,
+          "along_path_clearance_m": -0.05468355849385262,
+          "reasons": [
+            "start clearance -0.011161 m is below 0.025000 m"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.487,
+          0.26,
+          0.38
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.06
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": -0.03438616347312926,
+          "goal_clearance_m": 0.08681377490601244,
+          "along_path_clearance_m": -0.05616290670633315,
+          "reasons": [
+            "start clearance -0.034386 m is below 0.025000 m"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.527,
+          0.26,
+          0.38
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.06
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": -0.06334195494651794,
+          "goal_clearance_m": 0.08721210787810527,
+          "along_path_clearance_m": -0.06412234783172609,
+          "reasons": [
+            "start clearance -0.063342 m is below 0.025000 m"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.567,
+          0.26,
+          0.38
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.06
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": -0.024186040639877372,
+          "goal_clearance_m": 0.09580606110560122,
+          "along_path_clearance_m": -0.06525899079442019,
+          "reasons": [
+            "start clearance -0.024186 m is below 0.025000 m"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.607,
+          0.26,
+          0.38
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.06
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.0036406883157075742,
+          "goal_clearance_m": 0.11397201540392035,
+          "along_path_clearance_m": -0.06116245567798616,
+          "reasons": [
+            "start clearance 0.003641 m is below 0.025000 m"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.647,
+          0.26,
+          0.38
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.06
+        ],
+        "validity": {
+          "status": "VALID",
+          "valid": true,
+          "start_clearance_m": 0.031239403515056524,
+          "goal_clearance_m": 0.138972979330704,
+          "along_path_clearance_m": -0.028895193219184857,
+          "reasons": []
+        },
+        "start_view_points": 0,
+        "start_view_obstacle_pixels": 0,
+        "model_start_points": {
+          "flange_m": [
+            0.48799997568130493,
+            0.11600001156330109,
+            0.3009999990463257
+          ],
+          "wrist_1_center_m": [
+            0.5731144547462463,
+            0.15740230679512024,
+            0.38329997658729553
+          ],
+          "source": "Newton FK from the loaded URDF model"
+        }
+      }
+    ],
+    "selection": "first deterministic candidate that is valid and unseen from start"
+  },
+  "blind_cases": {
+    "A_no_obstacle": {
+      "attempts": 3,
+      "successes": 3,
+      "planning_median_ms": 58.18251194432378,
+      "minimum_true_clearance_m": -0.028895193219184857,
+      "minimum_along_path_clearance_m": -0.028895193219184857,
+      "path_length_median_rad": 0.9327346086502075,
+      "paths_identical": true,
+      "records": [
+        {
+          "repeat": 0,
+          "success": true,
+          "planning_ms": 58.18251194432378,
+          "true_clearance_m": -0.028895193219184857,
+          "start_clearance_m": 0.031239403515056524,
+          "goal_clearance_m": 0.138972979330704,
+          "along_path_clearance_m": -0.028895193219184857,
+          "path_length_rad": 0.9327346086502075,
+          "failure_status": null
+        },
+        {
+          "repeat": 1,
+          "success": true,
+          "planning_ms": 59.815956046804786,
+          "true_clearance_m": -0.028895193219184857,
+          "start_clearance_m": 0.031239403515056524,
+          "goal_clearance_m": 0.138972979330704,
+          "along_path_clearance_m": -0.028895193219184857,
+          "path_length_rad": 0.9327346086502075,
+          "failure_status": null
+        },
+        {
+          "repeat": 2,
+          "success": true,
+          "planning_ms": 56.46349210292101,
+          "true_clearance_m": -0.028895193219184857,
+          "start_clearance_m": 0.031239403515056524,
+          "goal_clearance_m": 0.138972979330704,
+          "along_path_clearance_m": -0.028895193219184857,
+          "path_length_rad": 0.9327346086502075,
+          "failure_status": null
+        }
+      ]
+    },
+    "C_one_view": {
+      "capture": {
+        "q": [
+          -2.688859224319458,
+          -2.061718463897705,
+          -1.2870012521743774,
+          1.777923345565796,
+          4.71238899230957,
+          -2.688859224319458
+        ],
+        "points": 0,
+        "camera_transform": [
+          0.5939999222755432,
+          0.11600015312433243,
+          0.2449999898672104,
+          4.201704228989911e-08,
+          2.887311900678924e-08,
+          0.7071069478988647,
+          0.707106351852417
+        ],
+        "metadata": {
+          "id": 37,
+          "output": "/tmp/newton-camera-worker-sqtqd6jq/capture_0037.npz",
+          "points": 0,
+          "highest_seen_z_m": null,
+          "capture_ms": 17.144308192655444,
+          "conversion_ms": 13.191190082579851,
+          "obstacle_pixels": 0,
+          "robot_percent": 0.0,
+          "flange_m": [
+            0.48799997568130493,
+            0.11600001156330109,
+            0.3009999990463257
+          ],
+          "wrist_1_center_m": [
+            0.5731144547462463,
+            0.15740230679512024,
+            0.38329997658729553
+          ]
+        }
+      },
+      "fit": null,
+      "final_plan": {
+        "attempts": 3,
+        "successes": 3,
+        "planning_median_ms": 59.662569081410766,
+        "minimum_true_clearance_m": -0.028895193219184857,
+        "minimum_along_path_clearance_m": -0.028895193219184857,
+        "path_length_median_rad": 0.9327346086502075,
+        "paths_identical": true,
+        "records": [
+          {
+            "repeat": 0,
+            "success": true,
+            "planning_ms": 58.510074857622385,
+            "true_clearance_m": -0.028895193219184857,
+            "start_clearance_m": 0.031239403515056524,
+            "goal_clearance_m": 0.138972979330704,
+            "along_path_clearance_m": -0.028895193219184857,
+            "path_length_rad": 0.9327346086502075,
+            "failure_status": null
+          },
+          {
+            "repeat": 1,
+            "success": true,
+            "planning_ms": 59.662569081410766,
+            "true_clearance_m": -0.028895193219184857,
+            "start_clearance_m": 0.031239403515056524,
+            "goal_clearance_m": 0.138972979330704,
+            "along_path_clearance_m": -0.028895193219184857,
+            "path_length_rad": 0.9327346086502075,
+            "failure_status": null
+          },
+          {
+            "repeat": 2,
+            "success": true,
+            "planning_ms": 61.43739097751677,
+            "true_clearance_m": -0.028895193219184857,
+            "start_clearance_m": 0.031239403515056524,
+            "goal_clearance_m": 0.138972979330704,
+            "along_path_clearance_m": -0.028895193219184857,
+            "path_length_rad": 0.9327346086502075,
+            "failure_status": null
+          }
+        ]
+      }
+    }
+  },
+  "look_while_moving": {
+    "main": {
+      "top_0.18_m": {
+        "cycles": 12,
+        "cycles_without_plan": 0,
+        "minimum_true_clearance_m": 0.020387732448082542,
+        "goal_reached": false,
+        "true_collision": false,
+        "first_seen_cycle": 1,
+        "clearance_when_first_seen_m": 0.03384373073700975,
+        "capture_median_ms": 30.31650895718485,
+        "planning_median_ms": 67.93674838263541,
+        "whole_cycle_cold_ms": 113.03513497114182,
+        "whole_cycle_warm_median_ms": 102.55444701761007,
+        "whole_cycle_without_box": {
+          "cycles": 0,
+          "median_ms": null,
+          "p95_ms": null
+        },
+        "whole_cycle_with_box": {
+          "cycles": 12,
+          "median_ms": 103.75359852332622,
+          "p95_ms": 114.34200851945207
+        },
+        "planner_reuse": "one warmed planner; camera_obstacle pose and CuboidData dimensions updated in-place each cycle",
+        "final_stop_reason": "MAX_CYCLES_REACHED",
+        "advance_joint_length_rad": 0.05
+      },
+      "top_0.22_m": {
+        "cycles": 3,
+        "cycles_without_plan": 1,
+        "minimum_true_clearance_m": 0.0018189270975722607,
+        "goal_reached": false,
+        "true_collision": false,
+        "first_seen_cycle": 1,
+        "clearance_when_first_seen_m": 0.02983356732130052,
+        "capture_median_ms": 38.856107043102384,
+        "planning_median_ms": 67.33339093625546,
+        "whole_cycle_cold_ms": 110.14006892219186,
+        "whole_cycle_warm_median_ms": 109.26250601187348,
+        "whole_cycle_without_box": {
+          "cycles": 0,
+          "median_ms": null,
+          "p95_ms": null
+        },
+        "whole_cycle_with_box": {
+          "cycles": 3,
+          "median_ms": 110.14006892219186,
+          "p95_ms": 110.58182497508824
+        },
+        "planner_reuse": "one warmed planner; camera_obstacle pose and CuboidData dimensions updated in-place each cycle",
+        "final_stop_reason": "FITTED_BOX_COVERS_CURRENT_STATE",
+        "advance_joint_length_rad": 0.05
+      },
+      "top_0.26_m": {
+        "cycles": 2,
+        "cycles_without_plan": 0,
+        "minimum_true_clearance_m": -0.0008597849011421077,
+        "goal_reached": false,
+        "true_collision": true,
+        "first_seen_cycle": 1,
+        "clearance_when_first_seen_m": 0.02983356732130052,
+        "capture_median_ms": 57.37295385915786,
+        "planning_median_ms": 66.64901843760163,
+        "whole_cycle_cold_ms": 129.67342580668628,
+        "whole_cycle_warm_median_ms": 129.5748909469694,
+        "whole_cycle_without_box": {
+          "cycles": 0,
+          "median_ms": null,
+          "p95_ms": null
+        },
+        "whole_cycle_with_box": {
+          "cycles": 2,
+          "median_ms": 129.62415837682784,
+          "p95_ms": 129.66849906370044
+        },
+        "planner_reuse": "one warmed planner; camera_obstacle pose and CuboidData dimensions updated in-place each cycle",
+        "final_stop_reason": "TRUE_COLLISION",
+        "advance_joint_length_rad": 0.05
+      }
+    },
+    "blind": {
+      "cycles": 2,
+      "cycles_without_plan": 0,
+      "minimum_true_clearance_m": -0.0074592581969581614,
+      "goal_reached": false,
+      "true_collision": true,
+      "first_seen_cycle": null,
+      "clearance_when_first_seen_m": null,
+      "capture_median_ms": 20.567836007103324,
+      "planning_median_ms": 65.29409356880933,
+      "whole_cycle_cold_ms": 91.98057488538325,
+      "whole_cycle_warm_median_ms": 85.17172420397401,
+      "whole_cycle_without_box": {
+        "cycles": 2,
+        "median_ms": 88.57614954467863,
+        "p95_ms": 91.64013235131279
+      },
+      "whole_cycle_with_box": {
+        "cycles": 0,
+        "median_ms": null,
+        "p95_ms": null
+      },
+      "planner_reuse": "one warmed planner; camera_obstacle pose and CuboidData dimensions updated in-place each cycle",
+      "final_stop_reason": "TRUE_COLLISION",
+      "advance_joint_length_rad": 0.05
+    },
+    "main_cycles": {
+      "top_0.18_m": [
+        {
+          "cycle": 1,
+          "capture": {
+            "q": [
+              -2.688859224319458,
+              -2.061718463897705,
+              -1.2870012521743774,
+              1.777923345565796,
+              4.71238899230957,
+              -2.688859224319458
+            ],
+            "points": 240,
+            "camera_transform": [
+              0.5939999222755432,
+              0.11600015312433243,
+              0.2449999898672104,
+              4.201704228989911e-08,
+              2.887311900678924e-08,
+              0.7071069478988647,
+              0.707106351852417
+            ],
+            "metadata": {
+              "id": 20,
+              "output": "/tmp/newton-camera-worker-sqtqd6jq/capture_0020.npz",
+              "points": 240,
+              "highest_seen_z_m": 0.12538345158100128,
+              "capture_ms": 39.270679000765085,
+              "conversion_ms": 32.82466297969222,
+              "obstacle_pixels": 47037,
+              "robot_percent": 0.0,
+              "flange_m": [
+                0.48799997568130493,
+                0.11600001156330109,
+                0.3009999990463257
+              ],
+              "wrist_1_center_m": [
+                0.5731144547462463,
+                0.15740230679512024,
+                0.38329997658729553
+              ]
+            }
+          },
+          "fit": {
+            "center_m": [
+              0.5260826945304871,
+              0.2607000842690468,
+              0.07269172579050064
+            ],
+            "dims_m": [
+              0.15183475494384768,
+              0.08540023744106295,
+              0.14538345158100127
+            ],
+            "highest_seen_z_m": 0.12538345158100128,
+            "fitted_top_z_m": 0.14538345158100127,
+            "points": 240,
+            "z_padding_m": 0.02
+          },
+          "plan_ms": 68.22393694892526,
+          "whole_cycle_ms": 113.03513497114182,
+          "planner_failure_status": null,
+          "current_to_fit_clearance_m": 0.04080871743770029,
+          "goal_to_fit_clearance_m": 0.02752626080243884,
+          "stop_reason": null,
+          "executed_states": 9,
+          "minimum_true_clearance_m": 0.0203878163504492
+        },
+        {
+          "cycle": 2,
+          "capture": {
+            "q": [
+              -2.6575822830200195,
+              -2.0770416259765625,
+              -1.2434051036834717,
+              1.765930414199829,
+              4.7114667892456055,
+              -2.661921739578247
+            ],
+            "points": 310,
+            "camera_transform": [
+              0.5990121364593506,
+              0.13647615909576416,
+              0.2527330219745636,
+              -0.001993154175579548,
+              -0.00790554191917181,
+              0.7086186408996582,
+              0.7055444717407227
+            ],
+            "metadata": {
+              "id": 21,
+              "output": "/tmp/newton-camera-worker-sqtqd6jq/capture_0021.npz",
+              "points": 310,
+              "highest_seen_z_m": 0.15540362894535065,
+              "capture_ms": 40.47347093001008,
+              "conversion_ms": 36.95616917684674,
+              "obstacle_pixels": 53640,
+              "robot_percent": 0.0,
+              "flange_m": [
+                0.49224066734313965,
+                0.1355515867471695,
+                0.307239830493927
+              ],
+              "wrist_1_center_m": [
+                0.5748571157455444,
+                0.1788988709449768,
+                0.3910697102546692
+              ]
+            }
+          },
+          "fit": {
+            "center_m": [
+              0.5260826945304871,
+              0.26070042699575424,
+              0.08770181447267532
+            ],
+            "dims_m": [
+              0.15183475494384768,
+              0.08540092289447787,
+              0.17540362894535064
+            ],
+            "highest_seen_z_m": 0.15540362894535065,
+            "fitted_top_z_m": 0.17540362894535064,
+            "points": 550,
+            "z_padding_m": 0.02
+          },
+          "plan_ms": 69.39943390898407,
+          "whole_cycle_ms": 114.44256990216672,
+          "planner_failure_status": null,
+          "current_to_fit_clearance_m": 0.010218896023369277,
+          "goal_to_fit_clearance_m": 0.02412975266575812,
+          "stop_reason": null,
+          "executed_states": 9,
+          "minimum_true_clearance_m": 0.020387732448082542
+        },
+        {
+          "cycle": 3,
+          "capture": {
+            "q": [
+              -2.6432337760925293,
+              -2.0670056343078613,
+              -1.1921045780181885,
+              1.7495951652526855,
+              4.715733528137207,
+              -2.636461019515991
+            ],
+            "points": 370,
+            "camera_transform": [
+              0.6025795340538025,
+              0.144718199968338,
+              0.27892690896987915,
+              -0.01017854642122984,
+              -0.028943775221705437,
+              0.7043402194976807,
+              0.7091990113258362
+            ],
+            "metadata": {
+              "id": 22,
+              "output": "/tmp/newton-camera-worker-sqtqd6jq/capture_0022.npz",
+              "points": 370,
+              "highest_seen_z_m": 0.17999999225139618,
+              "capture_ms": 40.35536223091185,
+              "conversion_ms": 36.81586007587612,
+              "obstacle_pixels": 53422,
+              "robot_percent": 0.0,
+              "flange_m": [
+                0.4936423599720001,
+                0.14404922723770142,
+                0.32896924018859863
+              ],
+              "wrist_1_center_m": [
+                0.5720650553703308,
+                0.18703815340995789,
+                0.41691094636917114
+              ]
+            }
+          },
+          "fit": {
+            "center_m": [
+              0.5260826945304871,
+              0.26076895743608475,
+              0.09999999612569808
+            ],
+            "dims_m": [
+              0.15183475494384768,
+              0.08553798377513888,
+              0.19999999225139617
+            ],
+            "highest_seen_z_m": 0.17999999225139618,
+            "fitted_top_z_m": 0.19999999225139617,
+            "points": 920,
+            "z_padding_m": 0.02
+          },
+          "plan_ms": 68.89710202813148,
+          "whole_cycle_ms": 114.25973102450371,
+          "planner_failure_status": null,
+          "current_to_fit_clearance_m": 0.0014421432417054576,
+          "goal_to_fit_clearance_m": 0.02399269178509711,
+          "stop_reason": null,
+          "executed_states": 9,
+          "minimum_true_clearance_m": 0.024188099248303792
+        },
+        {
+          "cycle": 4,
+          "capture": {
+            "q": [
+              -2.644669532775879,
+              -2.0541770458221436,
+              -1.1506677865982056,
+              1.7289408445358276,
+              4.725861072540283,
+              -2.613363265991211
+            ],
+            "points": 395,
+            "camera_transform": [
+              0.6048942804336548,
+              0.14098627865314484,
+              0.3034297227859497,
+              -0.019258767366409302,
+              -0.043860193341970444,
+              0.694923996925354,
+              0.717485785484314
+            ],
+            "metadata": {
+              "id": 23,
+              "output": "/tmp/newton-camera-worker-sqtqd6jq/capture_0023.npz",
+              "points": 395,
+              "highest_seen_z_m": 0.18000000715255737,
+              "capture_ms": 37.86847600713372,
+              "conversion_ms": 34.18219508603215,
+              "obstacle_pixels": 47984,
+              "robot_percent": 0.0,
+              "flange_m": [
+                0.49434706568717957,
+                0.14266259968280792,
+                0.34978169202804565
+              ],
+              "wrist_1_center_m": [
+                0.5697924494743347,
+                0.18483895063400269,
+                0.4406720995903015
+              ]
+            }
+          },
+          "fit": {
+            "center_m": [
+              0.5260826945304871,
+              0.2611880227923393,
+              0.10000000357627868
+            ],
+            "dims_m": [
+              0.15183475494384768,
+              0.08637611448764804,
+              0.20000000715255736
+            ],
+            "highest_seen_z_m": 0.18000000715255737,
+            "fitted_top_z_m": 0.20000000715255736,
+            "points": 1315,
+            "z_padding_m": 0.02
+          },
+          "plan_ms": 67.67802592366934,
+          "whole_cycle_ms": 110.36268714815378,
+          "planner_failure_status": null,
+          "current_to_fit_clearance_m": 0.011395673743994278,
+          "goal_to_fit_clearance_m": 0.023154561072587954,
+          "stop_reason": null,
+          "executed_states": 9,
+          "minimum_true_clearance_m": 0.03270218022184683
+        },
+        {
+          "cycle": 5,
+          "capture": {
+            "q": [
+              -2.6209940910339355,
+              -2.050171136856079,
+              -1.1043834686279297,
+              1.7186094522476196,
+              4.726134300231934,
+              -2.591097831726074
+            ],
+            "points": 414,
+            "camera_transform": [
+              0.6054581999778748,
+              0.15522322058677673,
+              0.324314683675766,
+              -0.023302767425775528,
+              -0.06358543038368225,
+              0.6945273280143738,
+              0.7162721157073975
+            ],
+            "metadata": {
+              "id": 24,
+              "output": "/tmp/newton-camera-worker-sqtqd6jq/capture_0024.npz",
+              "points": 414,
+              "highest_seen_z_m": 0.18000000715255737,
+              "capture_ms": 35.45589395798743,
+              "conversion_ms": 30.83389694802463,
+              "obstacle_pixels": 42951,
+              "robot_percent": 0.0,
+              "flange_m": [
+                0.4933949112892151,
+                0.15576933324337006,
+                0.3669002056121826
+              ],
+              "wrist_1_center_m": [
+                0.5645998120307922,
+                0.19789913296699524,
+                0.46117037534713745
+              ]
+            }
+          },
+          "fit": {
+            "center_m": [
+              0.5260826945304871,
+              0.2616548165678978,
+              0.10000000357627868
+            ],
+            "dims_m": [
+              0.15183475494384768,
+              0.08730970203876498,
+              0.20000000715255736
+            ],
+            "highest_seen_z_m": 0.18000000715255737,
+            "fitted_top_z_m": 0.20000000715255736,
+            "points": 1729,
+            "z_padding_m": 0.02
+          },
+          "plan_ms": 67.69249401986599,
+          "whole_cycle_ms": 107.80044202692807,
+          "planner_failure_status": null,
+          "current_to_fit_clearance_m": 0.010903014687125717,
+          "goal_to_fit_clearance_m": 0.02222097352147101,
+          "stop_reason": null,
+          "executed_states": 9,
+          "minimum_true_clearance_m": 0.03483291150551188
+        },
+        {
+          "cycle": 6,
+          "capture": {
+            "q": [
+              -2.586601495742798,
+              -2.061245918273926,
+              -1.066306233406067,
+              1.7129300832748413,
+              4.722271919250488,
+              -2.570524215698242
+            ],
+            "points": 411,
+            "camera_transform": [
+              0.6055201888084412,
+              0.17797288298606873,
+              0.33266615867614746,
+              -0.02200869470834732,
+              -0.07499963045120239,
+              0.6989794969558716,
+              0.7108575701713562
+            ],
+            "metadata": {
+              "id": 25,
+              "output": "/tmp/newton-camera-worker-sqtqd6jq/capture_0025.npz",
+              "points": 411,
+              "highest_seen_z_m": 0.18000000715255737,
+              "capture_ms": 30.6364968419075,
+              "conversion_ms": 27.167706983163953,
+              "obstacle_pixels": 35640,
+              "robot_percent": 0.0,
+              "flange_m": [
+                0.4928385019302368,
+                0.17617373168468475,
+                0.37355145812034607
+              ],
+              "wrist_1_center_m": [
+                0.56099534034729,
+                0.21938756108283997,
+                0.46956774592399597
+              ]
+            }
+          },
+          "fit": {
+            "center_m": [
+              0.5260826945304871,
+              0.2616548165678978,
+              0.10000000357627868
+            ],
+            "dims_m": [
+              0.15183475494384768,
+              0.08730970203876498,
+              0.20000000715255736
+            ],
+            "highest_seen_z_m": 0.18000000715255737,
+            "fitted_top_z_m": 0.20000000715255736,
+            "points": 2140,
+            "z_padding_m": 0.02
+          },
+          "plan_ms": 67.29007000103593,
+          "whole_cycle_ms": 102.55444701761007,
+          "planner_failure_status": null,
+          "current_to_fit_clearance_m": 0.017561349570751186,
+          "goal_to_fit_clearance_m": 0.02222097352147101,
+          "stop_reason": null,
+          "executed_states": 9,
+          "minimum_true_clearance_m": 0.03756129711866382
+        },
+        {
+          "cycle": 7,
+          "capture": {
+            "q": [
+              -2.555027484893799,
+              -2.072603464126587,
+              -1.031477928161621,
+              1.7075902223587036,
+              4.7188005447387695,
+              -2.5513105392456055
+            ],
+            "points": 403,
+            "camera_transform": [
+              0.6047916412353516,
+              0.19898007810115814,
+              0.3395017385482788,
+              -0.02016618475317955,
+              -0.08473372459411621,
+              0.7029114961624146,
+              0.7059239745140076
+            ],
+            "metadata": {
+              "id": 26,
+              "output": "/tmp/newton-camera-worker-sqtqd6jq/capture_0026.npz",
+              "points": 403,
+              "highest_seen_z_m": 0.18000003695487976,
+              "capture_ms": 28.087440179660916,
+              "conversion_ms": 24.343367898836732,
+              "obstacle_pixels": 30151,
+              "robot_percent": 0.0,
+              "flange_m": [
+                0.4916720986366272,
+                0.1950715184211731,
+                0.3790072798728943
+              ],
+              "wrist_1_center_m": [
+                0.5571277141571045,
+                0.23920640349388123,
+                0.4764731228351593
+              ]
+            }
+          },
+          "fit": {
+            "center_m": [
+              0.5260826945304871,
+              0.2616548165678978,
+              0.10000001847743988
+            ],
+            "dims_m": [
+              0.15183475494384768,
+              0.08730970203876498,
+              0.20000003695487975
+            ],
+            "highest_seen_z_m": 0.18000003695487976,
+            "fitted_top_z_m": 0.20000003695487975,
+            "points": 2543,
+            "z_padding_m": 0.02
+          },
+          "plan_ms": 68.39776900596917,
+          "whole_cycle_ms": 101.23825399205089,
+          "planner_failure_status": null,
+          "current_to_fit_clearance_m": 0.024167228043079372,
+          "goal_to_fit_clearance_m": 0.02222097352147101,
+          "stop_reason": null,
+          "executed_states": 10,
+          "minimum_true_clearance_m": 0.04416725009679798
+        },
+        {
+          "cycle": 8,
+          "capture": {
+            "q": [
+              -2.515277862548828,
+              -2.0889530181884766,
+              -0.9878193736076355,
+              1.7005882263183594,
+              4.714542388916016,
+              -2.52653169631958
+            ],
+            "points": 315,
+            "camera_transform": [
+              0.602905809879303,
+              0.22561374306678772,
+              0.34665727615356445,
+              -0.016986936330795288,
+              -0.09566196799278259,
+              0.7076368927955627,
+              0.6998643279075623
+            ],
+            "metadata": {
+              "id": 27,
+              "output": "/tmp/newton-camera-worker-sqtqd6jq/capture_0027.npz",
+              "points": 315,
+              "highest_seen_z_m": 0.18000002205371857,
+              "capture_ms": 26.124079944565892,
+              "conversion_ms": 22.05033414065838,
+              "obstacle_pixels": 24376,
+              "robot_percent": 0.0,
+              "flange_m": [
+                0.4894126057624817,
+                0.2191433310508728,
+                0.3847285211086273
+              ],
+              "wrist_1_center_m": [
+                0.5516511797904968,
+                0.2643907964229584,
+                0.483778715133667
+              ]
+            }
+          },
+          "fit": {
+            "center_m": [
+              0.5260826945304871,
+              0.26174142211675644,
+              0.10000001847743988
+            ],
+            "dims_m": [
+              0.15183475494384768,
+              0.08748291313648227,
+              0.20000003695487975
+            ],
+            "highest_seen_z_m": 0.18000003695487976,
+            "fitted_top_z_m": 0.20000003695487975,
+            "points": 2858,
+            "z_padding_m": 0.02
+          },
+          "plan_ms": 68.10854095965624,
+          "whole_cycle_ms": 99.17530789971352,
+          "planner_failure_status": null,
+          "current_to_fit_clearance_m": 0.0312973740696907,
+          "goal_to_fit_clearance_m": 0.022047762423753725,
+          "stop_reason": null,
+          "executed_states": 10,
+          "minimum_true_clearance_m": 0.048245520501394586
+        },
+        {
+          "cycle": 9,
+          "capture": {
+            "q": [
+              -2.4800240993499756,
+              -2.1056182384490967,
+              -0.9495242834091187,
+              1.6941115856170654,
+              4.710928916931152,
+              -2.504070281982422
+            ],
+            "points": 213,
+            "camera_transform": [
+              0.600380539894104,
+              0.24942944943904877,
+              0.35134896636009216,
+              -0.013459506444633007,
+              -0.1038242056965828,
+              0.7116783261299133,
+              0.694660484790802
+            ],
+            "metadata": {
+              "id": 28,
+              "output": "/tmp/newton-camera-worker-sqtqd6jq/capture_0028.npz",
+              "points": 213,
+              "highest_seen_z_m": 0.18000000715255737,
+              "capture_ms": 22.99202303402126,
+              "conversion_ms": 19.21267411671579,
+              "obstacle_pixels": 23114,
+              "robot_percent": 0.0,
+              "flange_m": [
+                0.4867188036441803,
+                0.24078752100467682,
+                0.3884746730327606
+              ],
+              "wrist_1_center_m": [
+                0.5463153719902039,
+                0.2870383858680725,
+                0.48867958784103394
+              ]
+            }
+          },
+          "fit": {
+            "center_m": [
+              0.5260826945304871,
+              0.26230012625455856,
+              0.10000001847743988
+            ],
+            "dims_m": [
+              0.15183475494384768,
+              0.08860032141208651,
+              0.20000003695487975
+            ],
+            "highest_seen_z_m": 0.18000003695487976,
+            "fitted_top_z_m": 0.20000003695487975,
+            "points": 3071,
+            "z_padding_m": 0.02
+          },
+          "plan_ms": 67.22628581337631,
+          "whole_cycle_ms": 94.88772414624691,
+          "planner_failure_status": null,
+          "current_to_fit_clearance_m": 0.025056476428972754,
+          "goal_to_fit_clearance_m": 0.020930354148149477,
+          "stop_reason": null,
+          "executed_states": 10,
+          "minimum_true_clearance_m": 0.046306557400974994
+        },
+        {
+          "cycle": 10,
+          "capture": {
+            "q": [
+              -2.448756217956543,
+              -2.122501850128174,
+              -0.9158217906951904,
+              1.6882200241088867,
+              4.7078166007995605,
+              -2.483588218688965
+            ],
+            "points": 218,
+            "camera_transform": [
+              0.5975695252418518,
+              0.27077046036720276,
+              0.35394424200057983,
+              -0.009828094393014908,
+              -0.10970637947320938,
+              0.7151122093200684,
+              0.6902769207954407
+            ],
+            "metadata": {
+              "id": 29,
+              "output": "/tmp/newton-camera-worker-sqtqd6jq/capture_0029.npz",
+              "points": 218,
+              "highest_seen_z_m": 0.18000002205371857,
+              "capture_ms": 24.21417087316513,
+              "conversion_ms": 19.987858831882477,
+              "obstacle_pixels": 23641,
+              "robot_percent": 0.0,
+              "flange_m": [
+                0.48388081789016724,
+                0.2603093683719635,
+                0.3905153274536133
+              ],
+              "wrist_1_center_m": [
+                0.5413200855255127,
+                0.30750155448913574,
+                0.49153780937194824
+              ]
+            }
+          },
+          "fit": {
+            "center_m": [
+              0.5260826945304871,
+              0.26230012625455856,
+              0.10000001847743988
+            ],
+            "dims_m": [
+              0.15183475494384768,
+              0.08860032141208651,
+              0.20000003695487975
+            ],
+            "highest_seen_z_m": 0.18000003695487976,
+            "fitted_top_z_m": 0.20000003695487975,
+            "points": 3289,
+            "z_padding_m": 0.02
+          },
+          "plan_ms": 67.69440392963588,
+          "whole_cycle_ms": 96.53433389030397,
+          "planner_failure_status": null,
+          "current_to_fit_clearance_m": 0.026390566043555733,
+          "goal_to_fit_clearance_m": 0.020930354148149477,
+          "stop_reason": null,
+          "executed_states": 11,
+          "minimum_true_clearance_m": 0.04636910062283281
+        },
+        {
+          "cycle": 11,
+          "capture": {
+            "q": [
+              -2.4131922721862793,
+              -2.1451947689056396,
+              -0.8777145147323608,
+              1.680873155593872,
+              4.704573631286621,
+              -2.4590985774993896
+            ],
+            "points": 324,
+            "camera_transform": [
+              0.5938986539840698,
+              0.2953742742538452,
+              0.35438668727874756,
+              -0.005245408043265343,
+              -0.11407545953989029,
+              0.7187268733978271,
+              0.6858504414558411
+            ],
+            "metadata": {
+              "id": 30,
+              "output": "/tmp/newton-camera-worker-sqtqd6jq/capture_0030.npz",
+              "points": 324,
+              "highest_seen_z_m": 0.18000002205371857,
+              "capture_ms": 26.143605122342706,
+              "conversion_ms": 22.358828922733665,
+              "obstacle_pixels": 25386,
+              "robot_percent": 0.0,
+              "flange_m": [
+                0.4803374111652374,
+                0.28307607769966125,
+                0.3907817602157593
+              ],
+              "wrist_1_center_m": [
+                0.5356303453445435,
+                0.33153772354125977,
+                0.49239906668663025
+              ]
+            }
+          },
+          "fit": {
+            "center_m": [
+              0.5260826945304871,
+              0.26299998909235,
+              0.10000001847743988
+            ],
+            "dims_m": [
+              0.15183475494384768,
+              0.0900000470876694,
+              0.20000003695487975
+            ],
+            "highest_seen_z_m": 0.18000003695487976,
+            "fitted_top_z_m": 0.20000003695487975,
+            "points": 3613,
+            "z_padding_m": 0.02
+          },
+          "plan_ms": 67.76495580561459,
+          "whole_cycle_ms": 98.56876009143889,
+          "planner_failure_status": null,
+          "current_to_fit_clearance_m": 0.02636906366795301,
+          "goal_to_fit_clearance_m": 0.01953062847256659,
+          "stop_reason": null,
+          "executed_states": 11,
+          "minimum_true_clearance_m": 0.0439139107987285
+        },
+        {
+          "cycle": 12,
+          "capture": {
+            "q": [
+              -2.3831262588500977,
+              -2.1681246757507324,
+              -0.8462061285972595,
+              1.674309253692627,
+              4.7020039558410645,
+              -2.4374241828918457
+            ],
+            "points": 440,
+            "camera_transform": [
+              0.5905104875564575,
+              0.316609263420105,
+              0.3518594801425934,
+              -0.0010728745255619287,
+              -0.1152404323220253,
+              0.72161465883255,
+              0.6826351284980774
+            ],
+            "metadata": {
+              "id": 31,
+              "output": "/tmp/newton-camera-worker-sqtqd6jq/capture_0031.npz",
+              "points": 440,
+              "highest_seen_z_m": 0.18000002205371857,
+              "capture_ms": 29.9965210724622,
+              "conversion_ms": 26.044325903058052,
+              "obstacle_pixels": 31900,
+              "robot_percent": 0.0,
+              "flange_m": [
+                0.4772081673145294,
+                0.3029829263687134,
+                0.38858693838119507
+              ],
+              "wrist_1_center_m": [
+                0.5310163497924805,
+                0.3527907729148865,
+                0.49035027623176575
+              ]
+            }
+          },
+          "fit": {
+            "center_m": [
+              0.5260826945304871,
+              0.2630000039935112,
+              0.10000001847743988
+            ],
+            "dims_m": [
+              0.15183475494384768,
+              0.09000007688999179,
+              0.20000003695487975
+            ],
+            "highest_seen_z_m": 0.18000003695487976,
+            "fitted_top_z_m": 0.20000003695487975,
+            "points": 4053,
+            "z_padding_m": 0.02
+          },
+          "plan_ms": 70.08730201050639,
+          "whole_cycle_ms": 104.95275002904236,
+          "planner_failure_status": null,
+          "current_to_fit_clearance_m": 0.0239138738438487,
+          "goal_to_fit_clearance_m": 0.019530598670244204,
+          "stop_reason": "MAX_CYCLES_REACHED",
+          "executed_states": 12,
+          "minimum_true_clearance_m": 0.03825051943929315
+        }
+      ],
+      "top_0.22_m": [
+        {
+          "cycle": 1,
+          "capture": {
+            "q": [
+              -2.688859224319458,
+              -2.061718463897705,
+              -1.2870012521743774,
+              1.777923345565796,
+              4.71238899230957,
+              -2.688859224319458
+            ],
+            "points": 240,
+            "camera_transform": [
+              0.5939999222755432,
+              0.11600015312433243,
+              0.2449999898672104,
+              4.201704228989911e-08,
+              2.887311900678924e-08,
+              0.7071069478988647,
+              0.707106351852417
+            ],
+            "metadata": {
+              "id": 32,
+              "output": "/tmp/newton-camera-worker-sqtqd6jq/capture_0032.npz",
+              "points": 240,
+              "highest_seen_z_m": 0.12538345158100128,
+              "capture_ms": 35.8698358759284,
+              "conversion_ms": 32.14628295972943,
+              "obstacle_pixels": 47037,
+              "robot_percent": 0.0,
+              "flange_m": [
+                0.48799997568130493,
+                0.11600001156330109,
+                0.3009999990463257
+              ],
+              "wrist_1_center_m": [
+                0.5731144547462463,
+                0.15740230679512024,
+                0.38329997658729553
+              ]
+            }
+          },
+          "fit": {
+            "center_m": [
+              0.5260826945304871,
+              0.2607000842690468,
+              0.07269172579050064
+            ],
+            "dims_m": [
+              0.15183475494384768,
+              0.08540023744106295,
+              0.14538345158100127
+            ],
+            "highest_seen_z_m": 0.12538345158100128,
+            "fitted_top_z_m": 0.14538345158100127,
+            "points": 240,
+            "z_padding_m": 0.02
+          },
+          "plan_ms": 68.65277606993914,
+          "whole_cycle_ms": 110.14006892219186,
+          "planner_failure_status": null,
+          "current_to_fit_clearance_m": 0.04080871743770029,
+          "goal_to_fit_clearance_m": 0.02752626080243884,
+          "stop_reason": null,
+          "executed_states": 9,
+          "minimum_true_clearance_m": 0.009442386209964765
+        },
+        {
+          "cycle": 2,
+          "capture": {
+            "q": [
+              -2.6575822830200195,
+              -2.0770416259765625,
+              -1.2434051036834717,
+              1.765930414199829,
+              4.7114667892456055,
+              -2.661921739578247
+            ],
+            "points": 310,
+            "camera_transform": [
+              0.5990121364593506,
+              0.13647615909576416,
+              0.2527330219745636,
+              -0.001993154175579548,
+              -0.00790554191917181,
+              0.7086186408996582,
+              0.7055444717407227
+            ],
+            "metadata": {
+              "id": 33,
+              "output": "/tmp/newton-camera-worker-sqtqd6jq/capture_0033.npz",
+              "points": 310,
+              "highest_seen_z_m": 0.15540362894535065,
+              "capture_ms": 38.856107043102384,
+              "conversion_ms": 35.24884209036827,
+              "obstacle_pixels": 53640,
+              "robot_percent": 0.0,
+              "flange_m": [
+                0.49224066734313965,
+                0.1355515867471695,
+                0.307239830493927
+              ],
+              "wrist_1_center_m": [
+                0.5748571157455444,
+                0.1788988709449768,
+                0.3910697102546692
+              ]
+            }
+          },
+          "fit": {
+            "center_m": [
+              0.5260826945304871,
+              0.26070042699575424,
+              0.08770181447267532
+            ],
+            "dims_m": [
+              0.15183475494384768,
+              0.08540092289447787,
+              0.17540362894535064
+            ],
+            "highest_seen_z_m": 0.15540362894535065,
+            "fitted_top_z_m": 0.17540362894535064,
+            "points": 550,
+            "z_padding_m": 0.02
+          },
+          "plan_ms": 67.33339093625546,
+          "whole_cycle_ms": 110.63090898096561,
+          "planner_failure_status": null,
+          "current_to_fit_clearance_m": 0.010218896023369277,
+          "goal_to_fit_clearance_m": 0.02412975266575812,
+          "stop_reason": null,
+          "executed_states": 9,
+          "minimum_true_clearance_m": 0.0018189270975722607
+        },
+        {
+          "cycle": 3,
+          "capture": {
+            "q": [
+              -2.6432337760925293,
+              -2.0670056343078613,
+              -1.1921045780181885,
+              1.7495951652526855,
+              4.715733528137207,
+              -2.636461019515991
+            ],
+            "points": 374,
+            "camera_transform": [
+              0.6025795340538025,
+              0.144718199968338,
+              0.27892690896987915,
+              -0.01017854642122984,
+              -0.028943775221705437,
+              0.7043402194976807,
+              0.7091990113258362
+            ],
+            "metadata": {
+              "id": 34,
+              "output": "/tmp/newton-camera-worker-sqtqd6jq/capture_0034.npz",
+              "points": 374,
+              "highest_seen_z_m": 0.19212394952774048,
+              "capture_ms": 39.79200101457536,
+              "conversion_ms": 35.2892039809376,
+              "obstacle_pixels": 53422,
+              "robot_percent": 0.0,
+              "flange_m": [
+                0.4936423599720001,
+                0.14404922723770142,
+                0.32896924018859863
+              ],
+              "wrist_1_center_m": [
+                0.5720650553703308,
+                0.18703815340995789,
+                0.41691094636917114
+              ]
+            }
+          },
+          "fit": {
+            "center_m": [
+              0.5260826945304871,
+              0.26076895743608475,
+              0.10606197476387023
+            ],
+            "dims_m": [
+              0.15183475494384768,
+              0.08553798377513888,
+              0.21212394952774047
+            ],
+            "highest_seen_z_m": 0.19212394952774048,
+            "fitted_top_z_m": 0.21212394952774047,
+            "points": 924,
+            "z_padding_m": 0.02
+          },
+          "plan_ms": 64.16063196957111,
+          "whole_cycle_ms": 107.89410304278135,
+          "planner_failure_status": "TRAJOPT_FAILED",
+          "current_to_fit_clearance_m": -0.005299592239632915,
+          "goal_to_fit_clearance_m": 0.02399269178509711,
+          "stop_reason": "FITTED_BOX_COVERS_CURRENT_STATE",
+          "executed_states": 0,
+          "minimum_true_clearance_m": null
+        }
+      ],
+      "top_0.26_m": [
+        {
+          "cycle": 1,
+          "capture": {
+            "q": [
+              -2.688859224319458,
+              -2.061718463897705,
+              -1.2870012521743774,
+              1.777923345565796,
+              4.71238899230957,
+              -2.688859224319458
+            ],
+            "points": 240,
+            "camera_transform": [
+              0.5939999222755432,
+              0.11600015312433243,
+              0.2449999898672104,
+              4.201704228989911e-08,
+              2.887311900678924e-08,
+              0.7071069478988647,
+              0.707106351852417
+            ],
+            "metadata": {
+              "id": 35,
+              "output": "/tmp/newton-camera-worker-sqtqd6jq/capture_0035.npz",
+              "points": 240,
+              "highest_seen_z_m": 0.12538345158100128,
+              "capture_ms": 56.13497085869312,
+              "conversion_ms": 51.36979790404439,
+              "obstacle_pixels": 47037,
+              "robot_percent": 0.0,
+              "flange_m": [
+                0.48799997568130493,
+                0.11600001156330109,
+                0.3009999990463257
+              ],
+              "wrist_1_center_m": [
+                0.5731144547462463,
+                0.15740230679512024,
+                0.38329997658729553
+              ]
+            }
+          },
+          "fit": {
+            "center_m": [
+              0.5260826945304871,
+              0.2607000842690468,
+              0.07269172579050064
+            ],
+            "dims_m": [
+              0.15183475494384768,
+              0.08540023744106295,
+              0.14538345158100127
+            ],
+            "highest_seen_z_m": 0.12538345158100128,
+            "fitted_top_z_m": 0.14538345158100127,
+            "points": 240,
+            "z_padding_m": 0.02
+          },
+          "plan_ms": 67.50193703919649,
+          "whole_cycle_ms": 129.67342580668628,
+          "planner_failure_status": null,
+          "current_to_fit_clearance_m": 0.04080871743770029,
+          "goal_to_fit_clearance_m": 0.02752626080243884,
+          "stop_reason": null,
+          "executed_states": 9,
+          "minimum_true_clearance_m": 0.009442386209964765
+        },
+        {
+          "cycle": 2,
+          "capture": {
+            "q": [
+              -2.6575822830200195,
+              -2.0770416259765625,
+              -1.2434051036834717,
+              1.765930414199829,
+              4.7114667892456055,
+              -2.661921739578247
+            ],
+            "points": 310,
+            "camera_transform": [
+              0.5990121364593506,
+              0.13647615909576416,
+              0.2527330219745636,
+              -0.001993154175579548,
+              -0.00790554191917181,
+              0.7086186408996582,
+              0.7055444717407227
+            ],
+            "metadata": {
+              "id": 36,
+              "output": "/tmp/newton-camera-worker-sqtqd6jq/capture_0036.npz",
+              "points": 310,
+              "highest_seen_z_m": 0.15540362894535065,
+              "capture_ms": 58.6109368596226,
+              "conversion_ms": 54.67627593316138,
+              "obstacle_pixels": 53640,
+              "robot_percent": 0.0,
+              "flange_m": [
+                0.49224066734313965,
+                0.1355515867471695,
+                0.307239830493927
+              ],
+              "wrist_1_center_m": [
+                0.5748571157455444,
+                0.1788988709449768,
+                0.3910697102546692
+              ]
+            }
+          },
+          "fit": {
+            "center_m": [
+              0.5260826945304871,
+              0.26070042699575424,
+              0.08770181447267532
+            ],
+            "dims_m": [
+              0.15183475494384768,
+              0.08540092289447787,
+              0.17540362894535064
+            ],
+            "highest_seen_z_m": 0.15540362894535065,
+            "fitted_top_z_m": 0.17540362894535064,
+            "points": 550,
+            "z_padding_m": 0.02
+          },
+          "plan_ms": 65.79609983600676,
+          "whole_cycle_ms": 129.5748909469694,
+          "planner_failure_status": null,
+          "current_to_fit_clearance_m": 0.010218896023369277,
+          "goal_to_fit_clearance_m": 0.02412975266575812,
+          "stop_reason": "TRUE_COLLISION",
+          "executed_states": 9,
+          "minimum_true_clearance_m": -0.0008597849011421077
+        }
+      ]
+    },
+    "blind_cycles": [
+      {
+        "cycle": 1,
+        "capture": {
+          "q": [
+            -2.688859224319458,
+            -2.061718463897705,
+            -1.2870012521743774,
+            1.777923345565796,
+            4.71238899230957,
+            -2.688859224319458
+          ],
+          "points": 0,
+          "camera_transform": [
+            0.5939999222755432,
+            0.11600015312433243,
+            0.2449999898672104,
+            4.201704228989911e-08,
+            2.887311900678924e-08,
+            0.7071069478988647,
+            0.707106351852417
+          ],
+          "metadata": {
+            "id": 38,
+            "output": "/tmp/newton-camera-worker-sqtqd6jq/capture_0038.npz",
+            "points": 0,
+            "highest_seen_z_m": null,
+            "capture_ms": 23.49963807500899,
+            "conversion_ms": 13.313115108758211,
+            "obstacle_pixels": 0,
+            "robot_percent": 0.0,
+            "flange_m": [
+              0.48799997568130493,
+              0.11600001156330109,
+              0.3009999990463257
+            ],
+            "wrist_1_center_m": [
+              0.5731144547462463,
+              0.15740230679512024,
+              0.38329997658729553
+            ]
+          }
+        },
+        "fit": null,
+        "plan_ms": 65.86727011017501,
+        "whole_cycle_ms": 91.98057488538325,
+        "planner_failure_status": null,
+        "current_to_fit_clearance_m": null,
+        "goal_to_fit_clearance_m": null,
+        "stop_reason": null,
+        "executed_states": 9,
+        "minimum_true_clearance_m": 0.010830317820541745
+      },
+      {
+        "cycle": 2,
+        "capture": {
+          "q": [
+            -2.662153959274292,
+            -2.0870344638824463,
+            -1.2505695819854736,
+            1.7664721012115479,
+            4.71238899230957,
+            -2.662153959274292
+          ],
+          "points": 0,
+          "camera_transform": [
+            0.5998227596282959,
+            0.13371744751930237,
+            0.24408000707626343,
+            5.064640208729543e-05,
+            0.00016006732766982168,
+            0.7071070075035095,
+            0.7071065306663513
+          ],
+          "metadata": {
+            "id": 39,
+            "output": "/tmp/newton-camera-worker-sqtqd6jq/capture_0039.npz",
+            "points": 0,
+            "highest_seen_z_m": null,
+            "capture_ms": 17.63603393919766,
+            "conversion_ms": 12.731085997074842,
+            "obstacle_pixels": 0,
+            "robot_percent": 0.0,
+            "flange_m": [
+              0.49383947253227234,
+              0.13372604548931122,
+              0.3001115918159485
+            ],
+            "wrist_1_center_m": [
+              0.5778425931930542,
+              0.17739906907081604,
+              0.38237982988357544
+            ]
+          }
+        },
+        "fit": null,
+        "plan_ms": 64.72091702744365,
+        "whole_cycle_ms": 85.17172420397401,
+        "planner_failure_status": null,
+        "current_to_fit_clearance_m": null,
+        "goal_to_fit_clearance_m": null,
+        "stop_reason": "TRUE_COLLISION",
+        "executed_states": 9,
+        "minimum_true_clearance_m": -0.0074592581969581614
+      }
+    ]
+  },
+  "overview_pose": {
+    "cartesian_offset_from_start_m": [
+      0.0,
+      0.0,
+      0.2
+    ],
+    "standard_high_scan_offsets_m": [
+      [
+        0.0,
+        0.0,
+        0.2
+      ],
+      [
+        0.12,
+        0.0,
+        0.2
+      ],
+      [
+        -0.12,
+        0.0,
+        0.2
+      ]
+    ],
+    "selection": "fixed Cartesian offsets from the recorded start FK: raise world +Z while holding the already downward optical orientation, then fixed +/-X at height; chosen without wall coordinates"
+  },
+  "known_limits": [
+    "all perceived points fit into one cuboid, so separate obstacles merge",
+    "all points at z <= 0.012 m are deleted, including a cable",
+    "robot pixels use simulator shape indices unavailable to a real camera"
+  ],
+  "valid_main_tops_m": [
+    0.18,
+    0.22,
+    0.26
+  ],
+  "schema": 3,
+  "date": "2026-11-06",
+  "repeats": 3,
+  "planner_truth_rule": "truth used only by case B and offline scoring, never C/D/E input",
+  "worker_exchange": "persistent Newton subprocess, JSON pipe plus temporary NPZ captures",
+  "curobo_version": {
+    "python": "0.8.0.post1.dev43",
+    "checkout": "v0.8.0-43-g78fd485"
+  },
+  "playback_root_cause": {
+    "cause": "clearance_series returned shape [N,1]; playback formatted the one-element ndarray with +.4f, raising TypeError inside an uncaught daemon thread",
+    "reproduced_exception": "TypeError: unsupported format string passed to numpy.ndarray.__format__",
+    "fix": "clearance_series now returns shape [N], formatting casts float, and the worker reports exceptions to stderr and the Playback error GUI field"
+  },
+  "playback_verification": {
+    "registered_callback_cases": [
+      {
+        "case": "B god view wall top 0.18",
+        "callback_thread": "viser-callback-B god view",
+        "callback_non_main": true,
+        "worker_thread": "playback-B god view wall top 0.18",
+        "states_commanded": 2,
+        "robot_joint_state_changed": true,
+        "frustum_changed": true,
+        "error": null
+      },
+      {
+        "case": "padding 0_mm wall top 0.18",
+        "callback_thread": "viser-callback-padding",
+        "callback_non_main": true,
+        "worker_thread": "playback-padding 0_mm wall top 0.18",
+        "states_commanded": 2,
+        "robot_joint_state_changed": true,
+        "frustum_changed": true,
+        "error": null
+      },
+      {
+        "case": "standard wall top 0.18",
+        "callback_thread": "viser-callback-standard",
+        "callback_non_main": true,
+        "worker_thread": "playback-standard wall top 0.18",
+        "states_commanded": 2,
+        "robot_joint_state_changed": true,
+        "frustum_changed": true,
+        "error": null
+      },
+      {
+        "case": "overview wall top 0.18",
+        "callback_thread": "viser-callback-overview",
+        "callback_non_main": true,
+        "worker_thread": "playback-overview wall top 0.18",
+        "states_commanded": 2,
+        "robot_joint_state_changed": true,
+        "frustum_changed": true,
+        "error": null
+      },
+      {
+        "case": "E main wall top 0.18",
+        "callback_thread": "viser-callback-E main",
+        "callback_non_main": true,
+        "worker_thread": "playback-E main wall top 0.18",
+        "states_commanded": 24,
+        "robot_joint_state_changed": true,
+        "frustum_changed": true,
+        "error": null
+      },
+      {
+        "case": "C blind one-view",
+        "callback_thread": "viser-callback-C blind",
+        "callback_non_main": true,
+        "worker_thread": "playback-C blind one-view",
+        "states_commanded": 2,
+        "robot_joint_state_changed": true,
+        "frustum_changed": true,
+        "error": null
+      },
+      {
+        "case": "E blind spot",
+        "callback_thread": "viser-callback-E blind",
+        "callback_non_main": true,
+        "worker_thread": "playback-E blind spot",
+        "states_commanded": 4,
+        "robot_joint_state_changed": true,
+        "frustum_changed": true,
+        "error": null
+      },
+      {
+        "case": "NO OBSTACLE BASELINE (expected truth collision)",
+        "callback_thread": "viser-callback-NO OBSTACLE BASELINE",
+        "callback_non_main": true,
+        "worker_thread": "playback-NO OBSTACLE BASELINE (expected truth collision)",
+        "states_commanded": 2,
+        "robot_joint_state_changed": true,
+        "frustum_changed": true,
+        "error": null
+      }
+    ],
+    "all_passed": true,
+    "mount_config_path": "config/sim_camera_mount.yaml",
+    "invalid_cases_no_path": true,
+    "default_case": "B god view wall top 0.18"
+  }
+}
