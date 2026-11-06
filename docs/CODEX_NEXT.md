@@ -15,38 +15,37 @@ No pending task
 Leave the deleted 05_c2_tall_wall_refused.png and the untracked curobo/ untouched. Stage files by
 explicit path only. No git clean/reset/restore/stash/add -A.
 
-## Task: adjustable camera mount in Viser (branch `experiment/newton-link-depth-camera`, time box 45 min)
+## Task: cuRobo avoids a static obstacle using only the simulated camera (branch `experiment/newton-link-depth-camera`, time box 90 min)
 
-The real D435 sits to the upper left of the gripper, not at the current placeholder. You cannot see the robot, so
-do not guess the true values: give the user controls to match it by eye. Same rules as before: no install, no
-sudo, no ROS, no cuRobo, no real robot, do not record media, do not stop processes you did not start.
-Edit scripts/newton_sim_depth_cloud_viser.py.
+Rules: no install, no sudo, no ROS, no real robot, no Newton physics, do not record media, do not stop processes
+you did not start. Leave `curobo/` and `~/isaac_ros_ws` untouched. No nvblox, no cuMotion. Decided already.
+Time and moving obstacles are out of scope here. New script(s) under scripts/, report in new docs/SIM_CAMERA_CUROBO.md.
 
-1. New file config/sim_camera_mount.yaml with `parent_link: ur/tool0`, `left_m`, `up_m`, `forward_m`, `tilt_deg`,
-   and `status: unmeasured_initial_guess`. Initial guess: left 0.05, up 0.08, forward 0.03, tilt 15. The script
-   reads it; no mount value stays hard-coded.
-2. Define the axes from the loaded model and state them in the report:
-   - forward: flange toward fingertips (confirm the tool0 axis from the model)
-   - left/right: the finger opening axis, measured from the finger links
-   - up: perpendicular to both; left and up as seen when looking from flange toward fingertips
-   `forward_m` is measured from the flange face. `tilt_deg` turns the optical axis from parallel-to-forward toward
-   the gripper centre line; 0 means parallel. Image up stays on the `up` side.
-3. Viser: add a "Camera mount" folder with 4 sliders (left and up -0.20 to 0.20 m, forward -0.10 to 0.20 m, tilt
-   -60 to 60 deg). Moving one recaptures and updates camera, depth, cloud and readouts. Add a "Save mount" button
-   that writes the yaml, keeps the file format, and sets `status: matched_by_eye`. Draw labelled LEFT, UP and
-   FORWARD arrows at the gripper, with a checkbox to hide them, so the directions cannot be misread.
-   Also read out the current mount values and the robot point percentage.
-4. Accuracy: run the existing accuracy table and negative control at the initial guess and at one other mount, 3
-   arm poses each. Same targets. Report robot point percentage and the nearest hit link at each mount.
-5. Correct the record in docs/SIM_CAMERA_CHECK.md:
-   - Mark the first half (benchmark section) as having rendered no target objects, so its 0.2277/0.2610 ms and
-     its depth values do not describe the stated scene.
-   - The report blames eval_fk. Test whether `q[6:] = 0.0` in the old script is the real cause, because it also
-     zeroes free-joint coordinates of the objects. State what the test showed. Say what a moving obstacle must do to
-     avoid this.
-   Do not change the old benchmark's measured numbers.
+1. Mount: set config/sim_camera_mount.yaml to left 0, up -0.106, forward 0.056, tilt 0, status matched_by_eye (the
+   file may already hold this locally). The user compared it with the real camera: neither view shows the gripper.
+   Rerun the accuracy table and negative control at this mount and report them with the robot point percentage.
+2. Environments: Newton runs in ~/newton_ws/.venv-cpu, cuRobo in ~/curobo_ros_env (see
+   scripts/run_curobo_v2_viser.sh). Check whether one can import the other. If not, use two processes with a simple
+   file exchange. Do not install anything to merge them.
+3. Input format: read the cuRobo 0.8 source and pick the simplest supported way to turn world points into
+   obstacles (for example voxels or cuboids). Say what you chose, why, and what you rejected.
+4. Pipeline: Newton depth, world cloud, remove robot pixels with the shape index, deal with the ground explicitly
+   (say how, and why the floor does not block every plan), convert, give to cuRobo. Start from the start pose and
+   cable pre-grasp in docs/experiments/curobo-v2/prototype/curobo_dodge_demo.py. Choose one static obstacle that
+   blocks the direct route and state why it does.
+5. Compare the same start and goal in four cases, several seeds or repeats each:
+   - A no obstacle in the planner (the path must truly collide with the obstacle, otherwise the scene proves nothing)
+   - B god view: the true obstacle given directly
+   - C camera, one view from the start pose
+   - D camera, a short scan of 3 or more arm poses, clouds merged
+   Score every path against the TRUE obstacle, never the perceived one: success, minimum true clearance, path length.
+   Also report perceived-to-true surface error and timing medians for conversion and planning, measured separately.
+6. Blind spot test: put the obstacle where the start-pose view cannot see it and run case C. Report what happens,
+   even if the arm hits it. This is an expected limit, not a failure to hide. Do not add a fix.
+7. Viser on 127.0.0.1:8084: robot, true obstacle (with hide checkbox), perceived obstacles, camera frustum, the
+   planned path, a case selector A/B/C/D plus blind spot, and playback of the arm along the path. Show true clearance
+   as text. The user must be able to see each case without rerunning the script.
 
-Append an "Adjustable mount" section to docs/SIM_CAMERA_CHECK.md, including what the user should do and the
-exact one-line run command. Slider and button callbacks must actually be exercised by the check, not just the
-capture path; say how you did it. Stop every process you started. Commit by path, push, reply in 5 lines with the
-hash and the run command.
+If a step blocks you for over 20 minutes, stop, report the exact error and your read of the cause, and commit what
+works. Include a plain "what you should see" list and the exact one-line run command in the report. Stop every process
+you started. Commit by path, push, reply in 5 lines with the hash and the run command.
