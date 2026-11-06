@@ -15,37 +15,33 @@ No pending task
 Leave the deleted 05_c2_tall_wall_refused.png and the untracked curobo/ untouched. Stage files by
 explicit path only. No git clean/reset/restore/stash/add -A.
 
-## Task: camera on the correct side, then actually run the skipped cases (branch `experiment/newton-link-depth-camera`, time box 90 min)
+## Task: real-time look-while-moving with no scan (branch `experiment/newton-link-depth-camera`, time box 90 min)
 
-Review of 6a37031. Playback fix and in-place planner update are accepted. Two problems remain. Same rules as the last task:
-no install, no sudo, no real robot, no Newton physics, no ROS, no nvblox, no cuMotion, no media. Planner input never uses truth
-except case B. Do not change config/jazzy_fem_initial_positions.yaml, config/obstacles.yaml, or anything the FEM grasp uses.
+Direction change from the user: the goal is real-time cuRobo planning from the camera, not a scan before each move. Scans were only a
+check that the chain works, and that result stands. Static obstacles only in this task. Same rules: no install, no sudo, no real robot, no
+Newton physics, no ROS, no nvblox, no cuMotion, no media. Planner input never uses truth. Do not change
+config/jazzy_fem_initial_positions.yaml, config/obstacles.yaml, the mount yaml, the URDF, or anything the FEM grasp uses.
 
-Problem 1, all main cases were skipped: goal clearance 29.833 mm failed Claude's 30 mm rule by 0.167 mm. That number was
-arbitrary. Use 25 mm from now on, in one named constant.
+1. Loop only: the only motion is the loop of capture, merge, fit, update, replan, advance. No scan, no separate overview move. Keep one
+   warmed planner. Set the cycle cap to 80, so a stop is never just the cap.
+2. Raised start: use the camera-front start raised 0.20 m in world Z (the old overview pose, same tool orientation) as the start. Same goal.
+   Solve it with wrist_3 close to the flipped value. Report joints, camera position, and how much of the wall the first frame sees.
+3. Wrist limit: for this experiment only, limit wrist_3 in the planner to the start value +/- pi. Find the supported cuRobo 0.8 way and say what it
+   was. If there is none, reject paths that break the limit and report it.
+4. Unknown is not free: if non-floor, non-robot points touch the image border, the object's extent past that border is unknown. Extend the box
+   in that direction: upward to the current camera height, sideways by a fixed margin you state. Shrink it back once a later frame shows the
+   edge inside the image. Use camera data only. Report for each cycle whether extension was active.
+5. Speed: state one simple rule that reduces the advance per cycle when the current state is close to the fitted box. Do not tune it per scene.
+6. Scenes: wall tops 0.22, 0.26, 0.30 m at the same XY, with the 25 mm validity check using the raised start, including that the no-obstacle path
+   collides. If it flies over the wall, that scene is INVALID_SCENE; report it, and then try taller walls only up to where the goal stays valid.
+7. Report per scene: reached goal, cycles, final stop reason, min true clearance, whole-cycle median and p95. Also: joint travel per joint, max wrist_3
+   change from start, tool path length over straight-line distance, and the same numbers for the no-obstacle path. Save planner failure status.
+8. Blind test: a wall standing on the floor that blocks the route and is unseen in the first frame. If none exists at this camera height, try only a
+   short search, report that, and do not use a floating block. Report first seen cycle, clearance then, stop reason, and goal reached.
+9. Viewer on 127.0.0.1:8084: only these cases plus NO OBSTACLE BASELINE. Default to the first valid E case. Colour the box differently when extension is
+   active, and show the current cycle and stop reason as text. Keep the live frustum, points, clearance and Playback error field.
 
-Problem 2, the camera is on the wrong side. The mount in tool0 is unchanged, but wrist_3 differs by about 180 deg between the poses.
-Claude's FK: BASE_ARM, where the user matched the mount, gives camera minus flange about (+0.106, 0, -0.056) m, away from the base.
-START_ARM gives about (-0.106, 0, -0.056) m, toward the base. The user says the camera belongs in front (away from the base).
-
-1. Confirm those two offsets from the loaded model and put them in the report. Do not edit the mount yaml.
-2. For this experiment only, rotate both start and goal 180 deg about the tool Z axis (wrist_3 by pi, staying inside joint limits).
-   Use a clearly named constant in this script. Check that the gripper is symmetric enough for this, and report the flange and tool
-   positions before and after. Report the new camera world position at start and at goal.
-3. Recompute the scene validity with the new start and goal at 25 mm. Main wall tops 0.18, 0.22, 0.26 m at the same XY. If one is
-   invalid, report it and shift only if none is valid.
-4. Run everything that was skipped: padding 0 and 20 mm, overview, standard scan, B god view, and E main, on every valid scene. Report
-   start, goal and along-path clearance separately, and planner failure status on each failed plan.
-5. Blind wall: repeat the search with the new camera. It must be valid, block the route, and be unseen from the start. Run case A, one-view
-   C and E. Report first seen cycle, clearance then, final stop reason, and goal reached.
-6. E timing: report whole-cycle median and p95 separately for cycles with an obstacle box and without one. The 82 ms in the last
-   report came from cycles with no box.
-7. The report says "cuRobo 1.5.1" while the checkout was v0.8.0-43. Check which is right and correct it.
-8. Viewer: an invalid case must not play the no-obstacle path, because it looks like the planner went through the wall. Show the text status
-   and no path. Default to the first valid case. Show the camera world position as text. Add a "no obstacle baseline" case with an explicit
-   name, so the collision the avoidance prevents is still visible.
-
-If a step blocks you for over 20 minutes, stop, report the exact error and your read of it, and commit what works. Save raw results
-to docs/experiments/sim-camera-curobo/results/ under a new name, keep older ones as history. Append a "Fourth pass" section to
-docs/SIM_CAMERA_CUROBO.md with a plain "what you should see" list and the exact one-line run command. Stop every process you started.
-Commit by path, push, reply in 5 lines with the hash and the run command.
+Older results stay as history. Do not rerun them. If a step blocks you for over 20 minutes, stop, report the exact error and your read of it, and commit
+what works. Save raw results to docs/experiments/sim-camera-curobo/results/fifth_pass.*. Append a "Fifth pass" section to docs/SIM_CAMERA_CUROBO.md with a
+plain "what you should see" list and the exact one-line run command. Stop every process you started. Commit by path, push, reply in 5 lines with the hash
+and the run command.
