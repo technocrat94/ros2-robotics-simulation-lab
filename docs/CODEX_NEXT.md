@@ -15,43 +15,37 @@ No pending task
 Leave the deleted 05_c2_tall_wall_refused.png and the untracked curobo/ untouched. Stage files by
 explicit path only. No git clean/reset/restore/stash/add -A.
 
-## Task: valid scenes, working playback, explained stops (branch `experiment/newton-link-depth-camera`, time box 90 min)
+## Task: camera on the correct side, then actually run the skipped cases (branch `experiment/newton-link-depth-camera`, time box 90 min)
 
-The user saw the wall overlap the UR5 start pose in Viser, and "Play selected case" does nothing. Same rules as the last
-task: no install, no sudo, no real robot, no Newton physics, no ROS, no nvblox, no cuMotion, no media. Planner input never
-uses truth except case B. Edit scripts/curobo_camera_second_pass.py and related scripts.
+Review of 6a37031. Playback fix and in-place planner update are accepted. Two problems remain. Same rules as the last task:
+no install, no sudo, no real robot, no Newton physics, no ROS, no nvblox, no cuMotion, no media. Planner input never uses truth
+except case B. Do not change config/jazzy_fem_initial_positions.yaml, config/obstacles.yaml, or anything the FEM grasp uses.
 
-Review of 1a9963c. Claude's hand FK of the start pose: flange (0.488, 0.116, 0.301), wrist_1 centre (0.525, 0.256, 0.383),
-directly above the wall footprint. Confirm these from the model:
-- A 0.40 m wall contains the wrist_1 axis, so the start is already in collision. That row is an invalid scene, not a
-  perception limit. The -60.71 mm is the start state, not the raise.
-- `+29.29 mm` at the 0.31 m wall equals the start-state clearance, so it says nothing about how well the path dodges.
-- The camera is at about z = 0.245 at the start, below the 0.31 m top, which is why the start view misses it.
-- The blind wall spans x 0.407-0.567, y 0.365-0.415, z up to 0.30. The goal tool position (0.487, 0.410, 0.263) is inside it,
-  so no path exists. The blind A, C and E results are invalid.
+Problem 1, all main cases were skipped: goal clearance 29.833 mm failed Claude's 30 mm rule by 0.167 mm. That number was
+arbitrary. Use 25 mm from now on, in one named constant.
 
-1. Playback: find the real cause. Reproduce by invoking the registered click callback for each case type, on the same
-   non-main thread as the viewer, and check that the robot joint state and frustum actually change. Catch thread exceptions and
-   show them in a GUI text field plus stderr. Report the cause. Add this check to the verification run.
-2. Scene validity: before any case runs, compute true clearance (all collision spheres) of the start and goal states.
-   Require at least 30 mm at both, and require that the no-obstacle path truly collides. Otherwise label it `INVALID_SCENE` in
-   the JSON and Viser, and exclude it from pass/fail. Do not count it as a perception failure.
-3. New scenes: main wall tops 0.18, 0.22, 0.26 m at the same XY. Blind wall: new position that blocks the route, is unseen
-   from the start and passes the validity check. If a height is invalid, report it. If none is valid, shift the wall in Y and
-   state it. The 0.25/0.31/0.40 rows stay in the report as history, with 0.40 and the old blind results marked invalid.
-4. Clearance reporting: report start, goal and along-path clearance separately, so the start pose cannot hide the path result.
-5. Stop reasons: save the planner's failure status for every failed plan in the JSON, including the padding sweep. Add the
-   clearance of the current state to the fitted box at each E cycle. State whether stops were caused by the box covering the
-   current state or goal. Do not guess; show the values.
-6. Planner reuse in E: keep one planner and update the obstacle in place, as curobo_dodge_demo.py does. If box size cannot be
-   updated in place, say so and use the cheapest supported way. Time the whole cycle: capture, fit, update, plan, with cold
-   start reported apart.
-7. Rerun padding 0/20 mm, overview, E main, E blind on valid scenes. Report whether E reaches the goal. If it stops, report it; do
-   not add a fix for reaching it.
-8. Viewer: frustum must read config/sim_camera_mount.yaml instead of the hard-coded values in camera_pose_for_q. Show the
-   INVALID_SCENE label and any no-plan reason as text.
+Problem 2, the camera is on the wrong side. The mount in tool0 is unchanged, but wrist_3 differs by about 180 deg between the poses.
+Claude's FK: BASE_ARM, where the user matched the mount, gives camera minus flange about (+0.106, 0, -0.056) m, away from the base.
+START_ARM gives about (-0.106, 0, -0.056) m, toward the base. The user says the camera belongs in front (away from the base).
+
+1. Confirm those two offsets from the loaded model and put them in the report. Do not edit the mount yaml.
+2. For this experiment only, rotate both start and goal 180 deg about the tool Z axis (wrist_3 by pi, staying inside joint limits).
+   Use a clearly named constant in this script. Check that the gripper is symmetric enough for this, and report the flange and tool
+   positions before and after. Report the new camera world position at start and at goal.
+3. Recompute the scene validity with the new start and goal at 25 mm. Main wall tops 0.18, 0.22, 0.26 m at the same XY. If one is
+   invalid, report it and shift only if none is valid.
+4. Run everything that was skipped: padding 0 and 20 mm, overview, standard scan, B god view, and E main, on every valid scene. Report
+   start, goal and along-path clearance separately, and planner failure status on each failed plan.
+5. Blind wall: repeat the search with the new camera. It must be valid, block the route, and be unseen from the start. Run case A, one-view
+   C and E. Report first seen cycle, clearance then, final stop reason, and goal reached.
+6. E timing: report whole-cycle median and p95 separately for cycles with an obstacle box and without one. The 82 ms in the last
+   report came from cycles with no box.
+7. The report says "cuRobo 1.5.1" while the checkout was v0.8.0-43. Check which is right and correct it.
+8. Viewer: an invalid case must not play the no-obstacle path, because it looks like the planner went through the wall. Show the text status
+   and no path. Default to the first valid case. Show the camera world position as text. Add a "no obstacle baseline" case with an explicit
+   name, so the collision the avoidance prevents is still visible.
 
 If a step blocks you for over 20 minutes, stop, report the exact error and your read of it, and commit what works. Save raw results
-to docs/experiments/sim-camera-curobo/results/ under a new name, keep second_pass.* as history. Append a "Third pass" section to
-docs/SIM_CAMERA_CUROBO.md with a plain "what you should see" list and the exact one-line run command. Stop every process you
-started. Commit by path, push, reply in 5 lines with the hash and the run command.
+to docs/experiments/sim-camera-curobo/results/ under a new name, keep older ones as history. Append a "Fourth pass" section to
+docs/SIM_CAMERA_CUROBO.md with a plain "what you should see" list and the exact one-line run command. Stop every process you started.
+Commit by path, push, reply in 5 lines with the hash and the run command.
