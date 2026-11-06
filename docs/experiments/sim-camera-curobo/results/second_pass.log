@@ -1,0 +1,7 @@
+SIM_CAMERA_CUROBO_SECOND_PASS
+padding_cases=5
+height_cases=3
+overview_cases=3
+main_E={"advance_joint_length_rad": 0.05, "capture_median_ms": 86.1401129513979, "clearance_when_first_seen_m": 0.02928659558296204, "cycles": 3, "cycles_without_plan": 1, "first_seen_cycle": 1, "goal_reached": false, "minimum_true_clearance_m": 0.004027628332376493, "planning_median_ms": 1469.135905150324, "true_collision": false}
+blind_E={"advance_joint_length_rad": 0.05, "capture_median_ms": 34.111401066184044, "clearance_when_first_seen_m": 0.06306027168659185, "cycles": 7, "cycles_without_plan": 1, "first_seen_cycle": 3, "goal_reached": false, "minimum_true_clearance_m": 0.031958800554275496, "planning_median_ms": 61.092138988897204, "true_collision": false}
+newton_worker_lines=40

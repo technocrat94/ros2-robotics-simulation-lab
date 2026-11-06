@@ -1,0 +1,1315 @@
+{
+  "padding_sweep": {
+    "0_mm": {
+      "z_padding_m": 0.0,
+      "fit": {
+        "center_m": [
+          0.48699676990509033,
+          0.26299020648002625,
+          0.1611159830354154
+        ],
+        "dims_m": [
+          0.22999372959136966,
+          0.08998057126998904,
+          0.29776803869754076
+        ],
+        "highest_seen_z_m": 0.3100000023841858,
+        "fitted_top_z_m": 0.3100000023841858,
+        "points": 2476,
+        "z_padding_m": 0.0
+      },
+      "scan": {
+        "capture_count": 4,
+        "capture_points": [
+          229,
+          831,
+          1006,
+          410
+        ],
+        "capture_ms": [
+          98.03131897933781,
+          90.5376358423382,
+          136.55375503003597,
+          35.061161033809185
+        ],
+        "highest_seen_z_m": 0.3100000023841858,
+        "scan_collision": false,
+        "scan_no_plan": false,
+        "scan_min_clearance_m": 0.02494440320134164,
+        "returned_to_start": true
+      },
+      "final_plan": {
+        "attempts": 3,
+        "successes": 3,
+        "planning_median_ms": 63.2260269485414,
+        "minimum_true_clearance_m": 0.019471032025730597,
+        "path_length_median_rad": 1.2982759475708008,
+        "paths_identical": true,
+        "records": [
+          {
+            "repeat": 0,
+            "success": true,
+            "planning_ms": 1278.8863531313837,
+            "true_clearance_m": 0.01956083901452199,
+            "path_length_rad": 1.2982826232910156
+          },
+          {
+            "repeat": 1,
+            "success": true,
+            "planning_ms": 63.2260269485414,
+            "true_clearance_m": 0.019471032025730597,
+            "path_length_rad": 1.2982759475708008
+          },
+          {
+            "repeat": 2,
+            "success": true,
+            "planning_ms": 62.92435387149453,
+            "true_clearance_m": 0.019471032025730597,
+            "path_length_rad": 1.2982759475708008
+          }
+        ]
+      },
+      "case_pass": true
+    },
+    "20_mm": {
+      "z_padding_m": 0.02,
+      "fit": {
+        "center_m": [
+          0.48699676990509033,
+          0.26299020648002625,
+          0.1650000011920929
+        ],
+        "dims_m": [
+          0.22999372959136966,
+          0.08998057126998904,
+          0.3300000023841858
+        ],
+        "highest_seen_z_m": 0.3100000023841858,
+        "fitted_top_z_m": 0.3300000023841858,
+        "points": 2476,
+        "z_padding_m": 0.02
+      },
+      "scan": {
+        "capture_count": 4,
+        "capture_points": [
+          229,
+          831,
+          1006,
+          410
+        ],
+        "capture_ms": [
+          98.03131897933781,
+          90.5376358423382,
+          136.55375503003597,
+          35.061161033809185
+        ],
+        "highest_seen_z_m": 0.3100000023841858,
+        "scan_collision": false,
+        "scan_no_plan": false,
+        "scan_min_clearance_m": 0.02494440320134164,
+        "returned_to_start": true
+      },
+      "final_plan": {
+        "attempts": 3,
+        "successes": 3,
+        "planning_median_ms": 63.67216003127396,
+        "minimum_true_clearance_m": 0.02928659558296204,
+        "path_length_median_rad": 1.351468563079834,
+        "paths_identical": false,
+        "records": [
+          {
+            "repeat": 0,
+            "success": true,
+            "planning_ms": 1295.9313499741256,
+            "true_clearance_m": 0.02928659558296204,
+            "path_length_rad": 1.351513385772705
+          },
+          {
+            "repeat": 1,
+            "success": true,
+            "planning_ms": 62.29828204959631,
+            "true_clearance_m": 0.02928659558296204,
+            "path_length_rad": 1.351468563079834
+          },
+          {
+            "repeat": 2,
+            "success": true,
+            "planning_ms": 63.67216003127396,
+            "true_clearance_m": 0.02928659558296204,
+            "path_length_rad": 1.351468563079834
+          }
+        ]
+      },
+      "case_pass": true
+    },
+    "50_mm": {
+      "z_padding_m": 0.05,
+      "fit": {
+        "center_m": [
+          0.48699676990509033,
+          0.26299020648002625,
+          0.1800000011920929
+        ],
+        "dims_m": [
+          0.22999372959136966,
+          0.08998057126998904,
+          0.3600000023841858
+        ],
+        "highest_seen_z_m": 0.3100000023841858,
+        "fitted_top_z_m": 0.3600000023841858,
+        "points": 2476,
+        "z_padding_m": 0.05
+      },
+      "scan": {
+        "capture_count": 4,
+        "capture_points": [
+          229,
+          831,
+          1006,
+          410
+        ],
+        "capture_ms": [
+          98.03131897933781,
+          90.5376358423382,
+          136.55375503003597,
+          35.061161033809185
+        ],
+        "highest_seen_z_m": 0.3100000023841858,
+        "scan_collision": false,
+        "scan_no_plan": false,
+        "scan_min_clearance_m": 0.02494440320134164,
+        "returned_to_start": true
+      },
+      "final_plan": {
+        "attempts": 3,
+        "successes": 0,
+        "planning_median_ms": 61.44265201874077,
+        "minimum_true_clearance_m": null,
+        "path_length_median_rad": null,
+        "paths_identical": false,
+        "records": [
+          {
+            "repeat": 0,
+            "success": false,
+            "planning_ms": 1336.1911580432206,
+            "true_clearance_m": null,
+            "path_length_rad": null
+          },
+          {
+            "repeat": 1,
+            "success": false,
+            "planning_ms": 61.44265201874077,
+            "true_clearance_m": null,
+            "path_length_rad": null
+          },
+          {
+            "repeat": 2,
+            "success": false,
+            "planning_ms": 60.65208395011723,
+            "true_clearance_m": null,
+            "path_length_rad": null
+          }
+        ]
+      },
+      "case_pass": false
+    },
+    "80_mm": {
+      "z_padding_m": 0.08,
+      "fit": {
+        "center_m": [
+          0.48699676990509033,
+          0.26299020648002625,
+          0.1950000011920929
+        ],
+        "dims_m": [
+          0.22999372959136966,
+          0.08998057126998904,
+          0.3900000023841858
+        ],
+        "highest_seen_z_m": 0.3100000023841858,
+        "fitted_top_z_m": 0.3900000023841858,
+        "points": 2476,
+        "z_padding_m": 0.08
+      },
+      "scan": {
+        "capture_count": 4,
+        "capture_points": [
+          229,
+          831,
+          1006,
+          410
+        ],
+        "capture_ms": [
+          98.03131897933781,
+          90.5376358423382,
+          136.55375503003597,
+          35.061161033809185
+        ],
+        "highest_seen_z_m": 0.3100000023841858,
+        "scan_collision": false,
+        "scan_no_plan": false,
+        "scan_min_clearance_m": 0.02494440320134164,
+        "returned_to_start": true
+      },
+      "final_plan": {
+        "attempts": 3,
+        "successes": 0,
+        "planning_median_ms": 61.26937200315297,
+        "minimum_true_clearance_m": null,
+        "path_length_median_rad": null,
+        "paths_identical": false,
+        "records": [
+          {
+            "repeat": 0,
+            "success": false,
+            "planning_ms": 1338.6269309557974,
+            "true_clearance_m": null,
+            "path_length_rad": null
+          },
+          {
+            "repeat": 1,
+            "success": false,
+            "planning_ms": 61.1900060903281,
+            "true_clearance_m": null,
+            "path_length_rad": null
+          },
+          {
+            "repeat": 2,
+            "success": false,
+            "planning_ms": 61.26937200315297,
+            "true_clearance_m": null,
+            "path_length_rad": null
+          }
+        ]
+      },
+      "case_pass": false
+    },
+    "130_mm": {
+      "z_padding_m": 0.13,
+      "fit": {
+        "center_m": [
+          0.48699676990509033,
+          0.26299020648002625,
+          0.2200000011920929
+        ],
+        "dims_m": [
+          0.22999372959136966,
+          0.08998057126998904,
+          0.4400000023841858
+        ],
+        "highest_seen_z_m": 0.3100000023841858,
+        "fitted_top_z_m": 0.4400000023841858,
+        "points": 2476,
+        "z_padding_m": 0.13
+      },
+      "scan": {
+        "capture_count": 4,
+        "capture_points": [
+          229,
+          831,
+          1006,
+          410
+        ],
+        "capture_ms": [
+          98.03131897933781,
+          90.5376358423382,
+          136.55375503003597,
+          35.061161033809185
+        ],
+        "highest_seen_z_m": 0.3100000023841858,
+        "scan_collision": false,
+        "scan_no_plan": false,
+        "scan_min_clearance_m": 0.02494440320134164,
+        "returned_to_start": true
+      },
+      "final_plan": {
+        "attempts": 3,
+        "successes": 0,
+        "planning_median_ms": 61.5373719483614,
+        "minimum_true_clearance_m": null,
+        "path_length_median_rad": null,
+        "paths_identical": false,
+        "records": [
+          {
+            "repeat": 0,
+            "success": false,
+            "planning_ms": 1314.670307096094,
+            "true_clearance_m": null,
+            "path_length_rad": null
+          },
+          {
+            "repeat": 1,
+            "success": false,
+            "planning_ms": 61.5373719483614,
+            "true_clearance_m": null,
+            "path_length_rad": null
+          },
+          {
+            "repeat": 2,
+            "success": false,
+            "planning_ms": 60.46902108937502,
+            "true_clearance_m": null,
+            "path_length_rad": null
+          }
+        ]
+      },
+      "case_pass": false
+    }
+  },
+  "height_sweep": {
+    "top_0.25_m": {
+      "true_top_z_m": 0.25,
+      "fit": {
+        "center_m": [
+          0.48699676990509033,
+          0.26299020648002625,
+          0.1350000149011612
+        ],
+        "dims_m": [
+          0.22999372959136966,
+          0.08998057126998904,
+          0.2700000298023224
+        ],
+        "highest_seen_z_m": 0.2500000298023224,
+        "fitted_top_z_m": 0.2700000298023224,
+        "points": 2425,
+        "z_padding_m": 0.02
+      },
+      "scan": {
+        "capture_count": 4,
+        "capture_points": [
+          229,
+          806,
+          980,
+          410
+        ],
+        "capture_ms": [
+          110.61957897618413,
+          90.15507693402469,
+          109.6364778932184,
+          35.06770916283131
+        ],
+        "highest_seen_z_m": 0.2500000298023224,
+        "scan_collision": false,
+        "scan_no_plan": false,
+        "scan_min_clearance_m": 0.026436656815618194,
+        "returned_to_start": true
+      },
+      "final_plan": {
+        "attempts": 3,
+        "successes": 3,
+        "planning_median_ms": 61.425625113770366,
+        "minimum_true_clearance_m": 0.029833172976970662,
+        "path_length_median_rad": 1.1938331127166748,
+        "paths_identical": false,
+        "records": [
+          {
+            "repeat": 0,
+            "success": true,
+            "planning_ms": 1385.0645320490003,
+            "true_clearance_m": 0.029833172976970662,
+            "path_length_rad": 1.1945486068725586
+          },
+          {
+            "repeat": 1,
+            "success": true,
+            "planning_ms": 61.425625113770366,
+            "true_clearance_m": 0.029833172976970662,
+            "path_length_rad": 1.1938331127166748
+          },
+          {
+            "repeat": 2,
+            "success": true,
+            "planning_ms": 59.79285296052694,
+            "true_clearance_m": 0.029833172976970662,
+            "path_length_rad": 1.1938331127166748
+          }
+        ]
+      },
+      "top_seen": true,
+      "case_pass": true
+    },
+    "top_0.31_m": {
+      "true_top_z_m": 0.31,
+      "fit": {
+        "center_m": [
+          0.48699676990509033,
+          0.26299020648002625,
+          0.1650000011920929
+        ],
+        "dims_m": [
+          0.22999372959136966,
+          0.08998057126998904,
+          0.3300000023841858
+        ],
+        "highest_seen_z_m": 0.3100000023841858,
+        "fitted_top_z_m": 0.3300000023841858,
+        "points": 2476,
+        "z_padding_m": 0.02
+      },
+      "scan": {
+        "capture_count": 4,
+        "capture_points": [
+          229,
+          831,
+          1006,
+          410
+        ],
+        "capture_ms": [
+          98.03131897933781,
+          90.5376358423382,
+          136.55375503003597,
+          35.061161033809185
+        ],
+        "highest_seen_z_m": 0.3100000023841858,
+        "scan_collision": false,
+        "scan_no_plan": false,
+        "scan_min_clearance_m": 0.02494440320134164,
+        "returned_to_start": true
+      },
+      "final_plan": {
+        "attempts": 3,
+        "successes": 3,
+        "planning_median_ms": 61.15137389861047,
+        "minimum_true_clearance_m": 0.02928659558296204,
+        "path_length_median_rad": 1.351468563079834,
+        "paths_identical": false,
+        "records": [
+          {
+            "repeat": 0,
+            "success": true,
+            "planning_ms": 1385.6328420806676,
+            "true_clearance_m": 0.02928659558296204,
+            "path_length_rad": 1.351513385772705
+          },
+          {
+            "repeat": 1,
+            "success": true,
+            "planning_ms": 59.521122835576534,
+            "true_clearance_m": 0.02928659558296204,
+            "path_length_rad": 1.351468563079834
+          },
+          {
+            "repeat": 2,
+            "success": true,
+            "planning_ms": 61.15137389861047,
+            "true_clearance_m": 0.02928659558296204,
+            "path_length_rad": 1.351468563079834
+          }
+        ]
+      },
+      "top_seen": true,
+      "case_pass": true
+    },
+    "top_0.40_m": {
+      "true_top_z_m": 0.4,
+      "fit": {
+        "center_m": [
+          0.4480407238006592,
+          0.262952521443367,
+          0.07269167363643646
+        ],
+        "dims_m": [
+          0.15208163738250735,
+          0.08990514159202578,
+          0.14538334727287291
+        ],
+        "highest_seen_z_m": 0.12538334727287292,
+        "fitted_top_z_m": 0.14538334727287291,
+        "points": 229,
+        "z_padding_m": 0.02
+      },
+      "scan": {
+        "capture_count": 1,
+        "capture_points": [
+          229
+        ],
+        "capture_ms": [
+          96.68271895498037
+        ],
+        "highest_seen_z_m": 0.12538334727287292,
+        "scan_collision": true,
+        "scan_no_plan": false,
+        "scan_min_clearance_m": -0.060713404417037986,
+        "returned_to_start": false
+      },
+      "final_plan": {
+        "attempts": 3,
+        "successes": 3,
+        "planning_median_ms": 61.00982986390591,
+        "minimum_true_clearance_m": -0.07392580714821814,
+        "path_length_median_rad": 0.9512947201728821,
+        "paths_identical": true,
+        "records": [
+          {
+            "repeat": 0,
+            "success": true,
+            "planning_ms": 60.83373702131212,
+            "true_clearance_m": -0.07392580714821814,
+            "path_length_rad": 0.9512947201728821
+          },
+          {
+            "repeat": 1,
+            "success": true,
+            "planning_ms": 61.61941401660442,
+            "true_clearance_m": -0.07392580714821814,
+            "path_length_rad": 0.9512947201728821
+          },
+          {
+            "repeat": 2,
+            "success": true,
+            "planning_ms": 61.00982986390591,
+            "true_clearance_m": -0.07392580714821814,
+            "path_length_rad": 0.9512947201728821
+          }
+        ]
+      },
+      "top_seen": false,
+      "case_pass": false
+    }
+  },
+  "overview_height_sweep": {
+    "top_0.25_m": {
+      "true_top_z_m": 0.25,
+      "fit": {
+        "center_m": [
+          0.486934632062912,
+          0.2629576325416565,
+          0.1350000149011612
+        ],
+        "dims_m": [
+          0.22986945390701297,
+          0.08991536378860476,
+          0.2700000298023224
+        ],
+        "highest_seen_z_m": 0.2500000298023224,
+        "fitted_top_z_m": 0.2700000298023224,
+        "points": 1035,
+        "z_padding_m": 0.02
+      },
+      "scan": {
+        "capture_count": 2,
+        "capture_points": [
+          229,
+          806
+        ],
+        "capture_ms": [
+          69.3086248356849,
+          90.27085802517831
+        ],
+        "highest_seen_z_m": 0.2500000298023224,
+        "scan_collision": false,
+        "scan_no_plan": false,
+        "scan_min_clearance_m": 0.02993718279242328,
+        "returned_to_start": true
+      },
+      "final_plan": {
+        "attempts": 3,
+        "successes": 3,
+        "planning_median_ms": 62.91308184154332,
+        "minimum_true_clearance_m": 0.029833172976970662,
+        "path_length_median_rad": 1.194598913192749,
+        "paths_identical": false,
+        "records": [
+          {
+            "repeat": 0,
+            "success": true,
+            "planning_ms": 1345.4278390854597,
+            "true_clearance_m": 0.029833172976970662,
+            "path_length_rad": 1.1944975852966309
+          },
+          {
+            "repeat": 1,
+            "success": true,
+            "planning_ms": 62.91308184154332,
+            "true_clearance_m": 0.029833172976970662,
+            "path_length_rad": 1.194598913192749
+          },
+          {
+            "repeat": 2,
+            "success": true,
+            "planning_ms": 60.42972789146006,
+            "true_clearance_m": 0.029833172976970662,
+            "path_length_rad": 1.194598913192749
+          }
+        ]
+      },
+      "top_seen": true,
+      "case_pass": true
+    },
+    "top_0.31_m": {
+      "true_top_z_m": 0.31,
+      "fit": {
+        "center_m": [
+          0.486934632062912,
+          0.2629576325416565,
+          0.1650000011920929
+        ],
+        "dims_m": [
+          0.22986945390701297,
+          0.08991536378860476,
+          0.3300000023841858
+        ],
+        "highest_seen_z_m": 0.3100000023841858,
+        "fitted_top_z_m": 0.3300000023841858,
+        "points": 1060,
+        "z_padding_m": 0.02
+      },
+      "scan": {
+        "capture_count": 2,
+        "capture_points": [
+          229,
+          831
+        ],
+        "capture_ms": [
+          68.92404006794095,
+          88.9817769639194
+        ],
+        "highest_seen_z_m": 0.3100000023841858,
+        "scan_collision": false,
+        "scan_no_plan": false,
+        "scan_min_clearance_m": 0.02842924836277963,
+        "returned_to_start": true
+      },
+      "final_plan": {
+        "attempts": 3,
+        "successes": 3,
+        "planning_median_ms": 61.50296702980995,
+        "minimum_true_clearance_m": 0.02928659558296204,
+        "path_length_median_rad": 1.3516404628753662,
+        "paths_identical": false,
+        "records": [
+          {
+            "repeat": 0,
+            "success": true,
+            "planning_ms": 1430.7991389650851,
+            "true_clearance_m": 0.02928659558296204,
+            "path_length_rad": 1.351393699645996
+          },
+          {
+            "repeat": 1,
+            "success": true,
+            "planning_ms": 61.50296702980995,
+            "true_clearance_m": 0.02928659558296204,
+            "path_length_rad": 1.3516404628753662
+          },
+          {
+            "repeat": 2,
+            "success": true,
+            "planning_ms": 60.773716075345874,
+            "true_clearance_m": 0.02928659558296204,
+            "path_length_rad": 1.3516404628753662
+          }
+        ]
+      },
+      "top_seen": true,
+      "case_pass": true
+    },
+    "top_0.40_m": {
+      "true_top_z_m": 0.4,
+      "fit": {
+        "center_m": [
+          0.4480407238006592,
+          0.262952521443367,
+          0.07269167363643646
+        ],
+        "dims_m": [
+          0.15208163738250735,
+          0.08990514159202578,
+          0.14538334727287291
+        ],
+        "highest_seen_z_m": 0.12538334727287292,
+        "fitted_top_z_m": 0.14538334727287291,
+        "points": 229,
+        "z_padding_m": 0.02
+      },
+      "scan": {
+        "capture_count": 1,
+        "capture_points": [
+          229
+        ],
+        "capture_ms": [
+          67.43232998996973
+        ],
+        "highest_seen_z_m": 0.12538334727287292,
+        "scan_collision": true,
+        "scan_no_plan": false,
+        "scan_min_clearance_m": -0.060713404417037986,
+        "returned_to_start": false
+      },
+      "final_plan": {
+        "attempts": 3,
+        "successes": 3,
+        "planning_median_ms": 63.822364900261164,
+        "minimum_true_clearance_m": -0.07392580714821814,
+        "path_length_median_rad": 0.9512947201728821,
+        "paths_identical": true,
+        "records": [
+          {
+            "repeat": 0,
+            "success": true,
+            "planning_ms": 63.822364900261164,
+            "true_clearance_m": -0.07392580714821814,
+            "path_length_rad": 0.9512947201728821
+          },
+          {
+            "repeat": 1,
+            "success": true,
+            "planning_ms": 63.08761704713106,
+            "true_clearance_m": -0.07392580714821814,
+            "path_length_rad": 0.9512947201728821
+          },
+          {
+            "repeat": 2,
+            "success": true,
+            "planning_ms": 63.972723903134465,
+            "true_clearance_m": -0.07392580714821814,
+            "path_length_rad": 0.9512947201728821
+          }
+        ]
+      },
+      "top_seen": false,
+      "case_pass": false
+    }
+  },
+  "look_while_moving": {
+    "main": {
+      "cycles": 3,
+      "cycles_without_plan": 1,
+      "minimum_true_clearance_m": 0.004027628332376493,
+      "goal_reached": false,
+      "true_collision": false,
+      "first_seen_cycle": 1,
+      "clearance_when_first_seen_m": 0.02928659558296204,
+      "capture_median_ms": 86.1401129513979,
+      "planning_median_ms": 1469.135905150324,
+      "advance_joint_length_rad": 0.05
+    },
+    "blind": {
+      "cycles": 7,
+      "cycles_without_plan": 1,
+      "minimum_true_clearance_m": 0.031958800554275496,
+      "goal_reached": false,
+      "true_collision": false,
+      "first_seen_cycle": 3,
+      "clearance_when_first_seen_m": 0.06306027168659185,
+      "capture_median_ms": 34.111401066184044,
+      "planning_median_ms": 61.092138988897204,
+      "advance_joint_length_rad": 0.05
+    },
+    "main_cycles": [
+      {
+        "cycle": 1,
+        "capture": {
+          "q": [
+            -2.688859224319458,
+            -2.061718463897705,
+            -1.2870012521743774,
+            1.777923345565796,
+            4.71238899230957,
+            -5.830451965332031
+          ],
+          "points": 229,
+          "camera_transform": [
+            0.38200002908706665,
+            0.1159999668598175,
+            0.24500000476837158,
+            4.8189331636194765e-08,
+            4.818928900363062e-08,
+            0.7071062922477722,
+            -0.70710688829422
+          ],
+          "metadata": {
+            "id": 15,
+            "output": "/tmp/newton-camera-worker-59fbpb41/capture_0015.npz",
+            "points": 229,
+            "highest_seen_z_m": 0.12538334727287292,
+            "capture_ms": 72.62347685173154,
+            "conversion_ms": 64.5278999581933,
+            "obstacle_pixels": 47891,
+            "robot_percent": 0.0
+          }
+        },
+        "fit": {
+          "center_m": [
+            0.4480407238006592,
+            0.262952521443367,
+            0.07269167363643646
+          ],
+          "dims_m": [
+            0.15208163738250735,
+            0.08990514159202578,
+            0.14538334727287291
+          ],
+          "highest_seen_z_m": 0.12538334727287292,
+          "fitted_top_z_m": 0.14538334727287291,
+          "points": 229,
+          "z_padding_m": 0.02
+        },
+        "plan_ms": 62.10955488495529,
+        "executed_states": 9,
+        "minimum_true_clearance_m": 0.014002167612314237
+      },
+      {
+        "cycle": 2,
+        "capture": {
+          "q": [
+            -2.6573781967163086,
+            -2.076735496520996,
+            -1.2431246042251587,
+            1.7660071849822998,
+            4.711371421813965,
+            -5.803483486175537
+          ],
+          "points": 247,
+          "camera_transform": [
+            0.3870195746421814,
+            0.1356704980134964,
+            0.24993208050727844,
+            -0.008236507885158062,
+            0.002045950386673212,
+            0.7054805755615234,
+            -0.7086780667304993
+          ],
+          "metadata": {
+            "id": 16,
+            "output": "/tmp/newton-camera-worker-59fbpb41/capture_0016.npz",
+            "points": 247,
+            "highest_seen_z_m": 0.1531987190246582,
+            "capture_ms": 86.1401129513979,
+            "conversion_ms": 82.7978658489883,
+            "obstacle_pixels": 62224,
+            "robot_percent": 0.0
+          }
+        },
+        "fit": {
+          "center_m": [
+            0.45422372221946716,
+            0.262952521443367,
+            0.0865993595123291
+          ],
+          "dims_m": [
+            0.16444763422012332,
+            0.08990514159202578,
+            0.1731987190246582
+          ],
+          "highest_seen_z_m": 0.1531987190246582,
+          "fitted_top_z_m": 0.1731987190246582,
+          "points": 476,
+          "z_padding_m": 0.02
+        },
+        "plan_ms": 1469.135905150324,
+        "executed_states": 9,
+        "minimum_true_clearance_m": 0.004027628332376493
+      },
+      {
+        "cycle": 3,
+        "capture": {
+          "q": [
+            -2.643550157546997,
+            -2.067103385925293,
+            -1.192259669303894,
+            1.749587059020996,
+            4.715773582458496,
+            -5.778024673461914
+          ],
+          "points": 342,
+          "camera_transform": [
+            0.3909457325935364,
+            0.1461976319551468,
+            0.26714888215065,
+            -0.02881140261888504,
+            0.010165448300540447,
+            0.7093237042427063,
+            -0.7042204141616821
+          ],
+          "metadata": {
+            "id": 17,
+            "output": "/tmp/newton-camera-worker-59fbpb41/capture_0017.npz",
+            "points": 342,
+            "highest_seen_z_m": 0.1853652000427246,
+            "capture_ms": 95.80534906126559,
+            "conversion_ms": 92.79700298793614,
+            "obstacle_pixels": 81364,
+            "robot_percent": 0.0
+          }
+        },
+        "fit": {
+          "center_m": [
+            0.4696987271308899,
+            0.262952521443367,
+            0.1026826000213623
+          ],
+          "dims_m": [
+            0.19539764404296878,
+            0.08990514159202578,
+            0.2053652000427246
+          ],
+          "highest_seen_z_m": 0.1853652000427246,
+          "fitted_top_z_m": 0.2053652000427246,
+          "points": 818,
+          "z_padding_m": 0.02
+        },
+        "plan_ms": 1576.0585740208626,
+        "executed_states": 0,
+        "minimum_true_clearance_m": null
+      }
+    ],
+    "blind_cycles": [
+      {
+        "cycle": 1,
+        "capture": {
+          "q": [
+            -2.688859224319458,
+            -2.061718463897705,
+            -1.2870012521743774,
+            1.777923345565796,
+            4.71238899230957,
+            -5.830451965332031
+          ],
+          "points": 0,
+          "camera_transform": [
+            0.38200002908706665,
+            0.1159999668598175,
+            0.24500000476837158,
+            4.8189331636194765e-08,
+            4.818928900363062e-08,
+            0.7071062922477722,
+            -0.70710688829422
+          ],
+          "metadata": {
+            "id": 18,
+            "output": "/tmp/newton-camera-worker-59fbpb41/capture_0018.npz",
+            "points": 0,
+            "highest_seen_z_m": null,
+            "capture_ms": 43.42833999544382,
+            "conversion_ms": 11.616800911724567,
+            "obstacle_pixels": 0,
+            "robot_percent": 0.0
+          }
+        },
+        "fit": null,
+        "plan_ms": 54.67822100035846,
+        "executed_states": 9,
+        "minimum_true_clearance_m": 0.07596125206104411
+      },
+      {
+        "cycle": 2,
+        "capture": {
+          "q": [
+            -2.6621549129486084,
+            -2.087031364440918,
+            -1.250570297241211,
+            1.7664703130722046,
+            4.71238899230957,
+            -5.803747653961182
+          ],
+          "points": 0,
+          "camera_transform": [
+            0.38782212138175964,
+            0.1337164044380188,
+            0.24414470791816711,
+            0.0001596992224222049,
+            -5.0407183152856305e-05,
+            0.7071064114570618,
+            -0.7071071267127991
+          ],
+          "metadata": {
+            "id": 19,
+            "output": "/tmp/newton-camera-worker-59fbpb41/capture_0019.npz",
+            "points": 0,
+            "highest_seen_z_m": null,
+            "capture_ms": 13.277547899633646,
+            "conversion_ms": 10.35723090171814,
+            "obstacle_pixels": 0,
+            "robot_percent": 0.0
+          }
+        },
+        "fit": null,
+        "plan_ms": 57.33334203250706,
+        "executed_states": 9,
+        "minimum_true_clearance_m": 0.06306027168659185
+      },
+      {
+        "cycle": 3,
+        "capture": {
+          "q": [
+            -2.637195110321045,
+            -2.1106905937194824,
+            -1.216508150100708,
+            1.7557774782180786,
+            4.71238899230957,
+            -5.778790473937988
+          ],
+          "points": 15,
+          "camera_transform": [
+            0.3925773501396179,
+            0.15055100619792938,
+            0.24313874542713165,
+            0.00030030656489543617,
+            -8.664683264214545e-05,
+            0.7071053981781006,
+            -0.7071079015731812
+          ],
+          "metadata": {
+            "id": 20,
+            "output": "/tmp/newton-camera-worker-59fbpb41/capture_0020.npz",
+            "points": 15,
+            "highest_seen_z_m": 0.023752788081765175,
+            "capture_ms": 15.140366042032838,
+            "conversion_ms": 11.805742047727108,
+            "obstacle_pixels": 1696,
+            "robot_percent": 0.0
+          }
+        },
+        "fit": null,
+        "plan_ms": 58.29576216638088,
+        "executed_states": 9,
+        "minimum_true_clearance_m": 0.05213057366425966
+      },
+      {
+        "cycle": 4,
+        "capture": {
+          "q": [
+            -2.6138670444488525,
+            -2.132805347442627,
+            -1.1846632957458496,
+            1.7457956075668335,
+            4.71238899230957,
+            -5.755457878112793
+          ],
+          "points": 48,
+          "camera_transform": [
+            0.3964109420776367,
+            0.1665007323026657,
+            0.2420191913843155,
+            0.0004239265981595963,
+            -0.0001116808271035552,
+            0.7071071267127991,
+            -0.707106351852417
+          ],
+          "metadata": {
+            "id": 21,
+            "output": "/tmp/newton-camera-worker-59fbpb41/capture_0021.npz",
+            "points": 48,
+            "highest_seen_z_m": 0.038892555981874466,
+            "capture_ms": 22.27582409977913,
+            "conversion_ms": 19.16327513754368,
+            "obstacle_pixels": 7940,
+            "robot_percent": 0.0
+          }
+        },
+        "fit": {
+          "center_m": [
+            0.4619064927101135,
+            0.3716060370206833,
+            0.03129387740045786
+          ],
+          "dims_m": [
+            0.1398129749298096,
+            0.043212174177169826,
+            0.05519735716283322
+          ],
+          "highest_seen_z_m": 0.038892555981874466,
+          "fitted_top_z_m": 0.05889255598187447,
+          "points": 63,
+          "z_padding_m": 0.02
+        },
+        "plan_ms": 61.52780796401203,
+        "executed_states": 10,
+        "minimum_true_clearance_m": 0.0404685437176798
+      },
+      {
+        "cycle": 5,
+        "capture": {
+          "q": [
+            -2.58366060256958,
+            -2.1614315509796143,
+            -1.1434040069580078,
+            1.732937216758728,
+            4.71238899230957,
+            -5.725251197814941
+          ],
+          "points": 94,
+          "camera_transform": [
+            0.40048983693122864,
+            0.18742531538009644,
+            0.24031394720077515,
+            0.0005368773709051311,
+            -0.00012413821241352707,
+            0.7071071267127991,
+            -0.7071061730384827
+          ],
+          "metadata": {
+            "id": 22,
+            "output": "/tmp/newton-camera-worker-59fbpb41/capture_0022.npz",
+            "points": 94,
+            "highest_seen_z_m": 0.05854896828532219,
+            "capture_ms": 34.111401066184044,
+            "conversion_ms": 31.081977067515254,
+            "obstacle_pixels": 16924,
+            "robot_percent": 0.0
+          }
+        },
+        "fit": {
+          "center_m": [
+            0.4635023921728134,
+            0.38141508400440216,
+            0.041110518388450146
+          ],
+          "dims_m": [
+            0.14300483345985415,
+            0.06283032774925235,
+            0.0748768997937441
+          ],
+          "highest_seen_z_m": 0.05854896828532219,
+          "fitted_top_z_m": 0.0785489682853222,
+          "points": 157,
+          "z_padding_m": 0.02
+        },
+        "plan_ms": 61.092138988897204,
+        "executed_states": 10,
+        "minimum_true_clearance_m": 0.03340157142708382
+      },
+      {
+        "cycle": 6,
+        "capture": {
+          "q": [
+            -2.5561625957489014,
+            -2.1874921321868896,
+            -1.1058344841003418,
+            1.7212461233139038,
+            4.71238899230957,
+            -5.697749137878418
+          ],
+          "points": 121,
+          "camera_transform": [
+            0.40331393480300903,
+            0.20669619739055634,
+            0.23851698637008667,
+            0.0006292943726293743,
+            -0.00012744632840622216,
+            0.7071084380149841,
+            -0.7071046233177185
+          ],
+          "metadata": {
+            "id": 23,
+            "output": "/tmp/newton-camera-worker-59fbpb41/capture_0023.npz",
+            "points": 121,
+            "highest_seen_z_m": 0.07643793523311615,
+            "capture_ms": 41.64110706187785,
+            "conversion_ms": 38.269834127277136,
+            "obstacle_pixels": 25520,
+            "robot_percent": 0.0
+          }
+        },
+        "fit": {
+          "center_m": [
+            0.4644327461719513,
+            0.38287097215652466,
+            0.04999106377363205
+          ],
+          "dims_m": [
+            0.14486560106277468,
+            0.06574210405349734,
+            0.09289374291896821
+          ],
+          "highest_seen_z_m": 0.07643793523311615,
+          "fitted_top_z_m": 0.09643793523311615,
+          "points": 278,
+          "z_padding_m": 0.02
+        },
+        "plan_ms": 61.83354603126645,
+        "executed_states": 10,
+        "minimum_true_clearance_m": 0.031958800554275496
+      },
+      {
+        "cycle": 7,
+        "capture": {
+          "q": [
+            -2.5300183296203613,
+            -2.2097747325897217,
+            -1.0705089569091797,
+            1.710422396659851,
+            4.7121076583862305,
+            -5.672566890716553
+          ],
+          "points": 151,
+          "camera_transform": [
+            0.4048464596271515,
+            0.22487106919288635,
+            0.2376289963722229,
+            -0.00048483561840839684,
+            -5.7365832617506385e-05,
+            0.7067683935165405,
+            -0.7074449062347412
+          ],
+          "metadata": {
+            "id": 24,
+            "output": "/tmp/newton-camera-worker-59fbpb41/capture_0024.npz",
+            "points": 151,
+            "highest_seen_z_m": 0.0947108268737793,
+            "capture_ms": 55.38303591310978,
+            "conversion_ms": 51.978511037305,
+            "obstacle_pixels": 34419,
+            "robot_percent": 0.0
+          }
+        },
+        "fit": {
+          "center_m": [
+            0.46520304679870605,
+            0.38978111743927,
+            0.05898558907210827
+          ],
+          "dims_m": [
+            0.1464062023162842,
+            0.07956239461898806,
+            0.11145047560334206
+          ],
+          "highest_seen_z_m": 0.0947108268737793,
+          "fitted_top_z_m": 0.1147108268737793,
+          "points": 429,
+          "z_padding_m": 0.02
+        },
+        "plan_ms": 78.84606486186385,
+        "executed_states": 0,
+        "minimum_true_clearance_m": null
+      }
+    ]
+  },
+  "overview_pose": {
+    "cartesian_offset_from_start_m": [
+      0.0,
+      0.0,
+      0.2
+    ],
+    "standard_high_scan_offsets_m": [
+      [
+        0.0,
+        0.0,
+        0.2
+      ],
+      [
+        0.12,
+        0.0,
+        0.2
+      ],
+      [
+        -0.12,
+        0.0,
+        0.2
+      ]
+    ],
+    "selection": "fixed Cartesian offsets from the recorded start FK: raise world +Z while holding the already downward optical orientation, then fixed +/-X at height; chosen without wall coordinates"
+  },
+  "known_limits": [
+    "all perceived points fit into one cuboid, so separate obstacles merge",
+    "all points at z <= 0.012 m are deleted, including a cable",
+    "robot pixels use simulator shape indices unavailable to a real camera"
+  ],
+  "schema": 1,
+  "date": "2026-11-06",
+  "repeats": 3,
+  "planner_truth_rule": "truth used only by case B and offline scoring, never C/D/E input",
+  "worker_exchange": "persistent Newton subprocess, JSON pipe plus temporary NPZ captures"
+}

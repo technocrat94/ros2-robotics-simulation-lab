@@ -4,6 +4,14 @@ Check date: 2026-11-06 (Asia/Taipei)
 
 ## Verdict
 
+> **Second-pass correction:** the original D verdict below is not accepted as
+> camera evidence. Case C's highest observed point was only `z=0.1254 m` and
+> D's was only `z=0.1842 m` on a wall whose true top was `z=0.3100 m`. D's
+> fitted top of `z=0.3142 m` depended on `130 mm` of Z padding, landing about
+> `4 mm` above truth without ever seeing the top. Its old measurements remain
+> below as history; the padding-free and look-while-moving rerun is in
+> **Second pass**.
+
 The existing Newton 1.5.1 camera and cuRobo 0.8 source checkout can form an
 offline, camera-only static-obstacle planning pipeline without ROS, Newton
 physics, nvblox, cuMotion, installation, or a real robot. A single start view
@@ -163,3 +171,140 @@ cd ~/ur5_ws/src/ur5_moveit_demo && scripts/run_sim_camera_curobo.sh
 
 Use Ctrl-C in that terminal to stop the viewer; the launcher then removes its
 temporary exchange file.
+
+## Second pass
+
+Check date: 2026-11-06 (Asia/Taipei)
+
+The second pass removes the fixed `130 mm` crutch and uses a persistent Newton
+worker controlled by the cuRobo process over JSON lines. Each capture is passed
+through a temporary NPZ and immediately deleted. Truth geometry is available
+only to case B and offline scoring; C, D, and E construct planner cuboids solely
+from observed points. Raw results and the compact run log are in
+[`docs/experiments/sim-camera-curobo/results/`](experiments/sim-camera-curobo/results/).
+
+### Planned observation motion
+
+The old four views had been teleported. In this pass every observation move is
+planned and every interpolated state is scored against truth. The overview is
+chosen without wall coordinates: start from the recorded tool pose, retain its
+already downward-looking orientation, translate `+0.20 m` in world Z, then for
+the full scan observe at fixed `+0.12 m` and `-0.12 m` world-X offsets at that
+height. The arm plans back to the recorded start before the final cable
+pre-grasp plan.
+
+For wall tops `0.25` and `0.31 m`, all overview/full-scan motions were clear and
+returned to start. On the `0.40 m` wall, the first attempted raise crossed truth
+with `-60.71 mm` clearance, so the scan stopped after the start capture. That
+case is a scan failure even though cuRobo, unaware of the missing wall height,
+still returned a final path.
+
+### Padding sweep at the 0.31 m wall
+
+The new high scan truly sees the top: maximum observed `z=0.310000 m`. The same
+2,476 observed points and safe scan path (`+24.94 mm` minimum true clearance)
+are used for every row. No setting was tuned after seeing the outcome.
+
+| Z padding | Highest seen | Fitted top | Final plans | Min final true clearance | Whole case |
+| ---: | ---: | ---: | ---: | ---: | --- |
+| 0 mm | 0.310 m | 0.310 m | 3/3 | +19.47 mm | pass |
+| 20 mm | 0.310 m | 0.330 m | 3/3 | +29.29 mm | pass |
+| 50 mm | 0.310 m | 0.360 m | 0/3 | no plan | fail/hold |
+| 80 mm | 0.310 m | 0.390 m | 0/3 | no plan | fail/hold |
+| 130 mm | 0.310 m | 0.440 m | 0/3 | no plan | fail/hold |
+
+The larger paddings are not safer here: their single fitted box covers a start
+or goal state, so cuRobo reports `Start or End state in collision`. This is why
+the second-pass default is fixed at `20 mm`, not selected per scene.
+
+### Fixed 20 mm padding across wall heights
+
+The full scan and the overview-only scan were run independently. “Scan min”
+includes the planned move out and return; a negative value fails the entire
+case. “Top seen” allows one `8 mm` downsample voxel of tolerance.
+
+| Scan | True top | Highest seen | Fitted top | Top seen? | Scan min | Final plans | Final min | Result |
+| --- | ---: | ---: | ---: | --- | ---: | ---: | ---: | --- |
+| Full | 0.25 m | 0.250 m | 0.270 m | yes | +26.44 mm | 3/3 | +29.83 mm | pass |
+| Full | 0.31 m | 0.310 m | 0.330 m | yes | +24.94 mm | 3/3 | +29.29 mm | pass |
+| Full | 0.40 m | 0.125 m | 0.145 m | no | -60.71 mm | 3/3 | -73.93 mm | fail |
+| Overview | 0.25 m | 0.250 m | 0.270 m | yes | +29.94 mm | 3/3 | +29.83 mm | pass |
+| Overview | 0.31 m | 0.310 m | 0.330 m | yes | +28.43 mm | 3/3 | +29.29 mm | pass |
+| Overview | 0.40 m | 0.125 m | 0.145 m | no | -60.71 mm | 3/3 | -73.93 mm | fail |
+
+For the two reachable heights, the fixed overview alone sees the actual top;
+the extra lateral views add surface coverage but are not needed to establish
+height. The `0.40 m` result is intentionally not repaired: the arm collides on
+the way to the overview before it can take that image.
+
+### Case E: look while moving
+
+E repeats: capture at the current joint state, merge all observations, refit
+with fixed `20 mm` Z padding, replan from that state, then execute at most
+`0.05 rad` cumulative joint-space path length. Every executed state is scored
+against truth. It stops at the goal, on true collision, or on no plan; on no
+plan it holds the current state.
+
+| Scene | Cycles | No-plan cycles | First seen | Clearance when first seen | Min executed clearance | Goal? | Outcome | Median capture | Median plan |
+| --- | ---: | ---: | ---: | ---: | ---: | --- | --- | ---: | ---: |
+| Main 0.31 m wall | 3 | 1 | cycle 1 | +29.29 mm | +4.03 mm | no | held on no plan, no hit | 86.14 ms | 1,469.14 ms |
+| Existing blind wall | 7 | 1 | cycle 3 | +63.06 mm | +31.96 mm | no | held on no plan, no hit | 34.11 ms | 61.09 ms |
+
+For the main wall, E safely executed two `0.05 rad` portions. Its accumulated
+highest seen Z increased from `0.1254` to `0.1532 m`; at cycle 3 it saw
+`0.1854 m`, but the resulting partial cuboid left no plan, so it held with
+`+4.03 mm` minimum executed clearance. It did not reach the goal.
+
+The blind wall produced exactly zero points in cycles 1 and 2. It was first
+visible in cycle 3 as 15 points while the arm remained `63.06 mm` from truth;
+the minimum-point threshold delayed a planner cuboid until cycle 4. E continued
+safely through cycle 6, then the grown partial box produced no plan in cycle 7.
+It held at `+31.96 mm` minimum executed clearance, did not hit the wall, and did
+not reach the goal. No truth-based blind-spot fix was added.
+
+Capture time includes Newton rendering, same-frame copies, back-projection,
+robot/ground removal, and downsampling. Plan time is separate. Main E's median
+is high because two replanners paid fresh lazy CUDA costs; the raw per-cycle
+times are retained in JSON.
+
+### Seeded repeats
+
+The three seeds did not provide meaningful route diversity. With 0 mm padding,
+all three paths were identical within `1e-5 rad` path length. At 20 mm and the
+passing height cases, the first post-warmup path differed only slightly while
+repeats 2 and 3 were identical. The 50/80/130 mm cases consistently returned
+no path, and the 0.40 m final paths were identical unsafe paths.
+
+### Viser and what you should see
+
+The second-pass viewer requires `127.0.0.1:8084` and refuses to silently move
+to another port. It precomputes padding, height, overview, E, and E-blind cases,
+so they can be selected without rerunning. You should see:
+
+- the robot, red true obstacle, yellow perceived points, and cyan fitted box;
+- a yellow line at highest observed Z and a magenta line at padded fitted top;
+- one capture frustum at every observation pose;
+- a live frustum following the robot during playback;
+- selectable padding, wall-height, overview, E, and blind-E cases;
+- E point clouds and fitted boxes growing cycle by cycle during playback;
+- live signed true clearance and a true-obstacle visibility checkbox.
+
+Known limits are deliberately unchanged: all perceived points become one box,
+so separate obstacles merge; all `z <= 0.012 m` points are deleted, including a
+cable; and robot removal uses the simulator shape index, which a real camera
+does not provide.
+
+Exact one-line command:
+
+```bash
+cd ~/ur5_ws/src/ur5_moveit_demo && scripts/run_sim_camera_curobo_second_pass.sh
+```
+
+The validated headless run wrote only a 37 KiB JSON and 773-byte log, with no
+NPZ committed. During the Viser control smoke test, an unrelated pre-existing
+`python` process (PID 837788) owned `127.0.0.1:8084`; it was not stopped. Viser
+therefore exercised the complete UI on its automatic fallback `8085` and
+stopped cleanly. The final code now checks the actual bound port and refuses
+that silent fallback, so it will use exactly 8084 or report that the required
+port is busy. All Newton workers started by this check stopped. No media was
+recorded.
