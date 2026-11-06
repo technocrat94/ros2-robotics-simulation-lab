@@ -204,7 +204,20 @@ class StaticObstacleCamera:
         robot = shape_ids < self.robot_shape_count
         # The floor is intentionally not a planner obstacle. Remove it geometrically
         # after robot pixels, so it cannot become a floor-sized blocking cuboid.
-        perceived = world[(~robot) & (world[:, 2] > 0.012)]
+        environment = (~robot) & (world[:, 2] > 0.012)
+        valid_rows, valid_cols = np.nonzero(valid)
+        environment_rows = valid_rows[environment]
+        environment_cols = valid_cols[environment]
+        border_masks = {
+            "top": environment_rows == 0,
+            "bottom": environment_rows == HEIGHT - 1,
+            "left": environment_cols == 0,
+            "right": environment_cols == WIDTH - 1,
+        }
+        border_pixel_counts = {
+            name: int(np.count_nonzero(mask)) for name, mask in border_masks.items()
+        }
+        perceived = world[environment]
         perceived = voxel_downsample(perceived)
         conversion_ms = (time.perf_counter() - started) * 1000.0
         return {
@@ -214,6 +227,10 @@ class StaticObstacleCamera:
             "valid_points": int(valid.sum()),
             "robot_percent": 100.0 * float(robot.sum()) / max(int(valid.sum()), 1),
             "obstacle_pixels": int(np.sum(shape_ids == self.obstacle_shape)),
+            "border_touches": {
+                name: count > 0 for name, count in border_pixel_counts.items()
+            },
+            "border_pixel_counts": border_pixel_counts,
             "flange_m": body_q[labels.index("ur/flange"), :3].tolist(),
             "wrist_1_center_m": body_q[labels.index("ur/wrist_1_link"), :3].tolist(),
         }

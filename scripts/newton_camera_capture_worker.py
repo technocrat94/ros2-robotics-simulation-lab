@@ -69,6 +69,8 @@ def main() -> None:
             "capture_ms": capture_ms,
             "conversion_ms": capture["conversion_ms"],
             "obstacle_pixels": capture["obstacle_pixels"],
+            "border_touches": capture["border_touches"],
+            "border_pixel_counts": capture["border_pixel_counts"],
             "robot_percent": capture["robot_percent"],
             "flange_m": capture["flange_m"],
             "wrist_1_center_m": capture["wrist_1_center_m"],

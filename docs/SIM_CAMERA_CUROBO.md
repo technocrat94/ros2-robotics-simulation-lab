@@ -520,3 +520,112 @@ cd ~/ur5_ws/src/ur5_moveit_demo && scripts/run_sim_camera_curobo_second_pass.sh
 
 The validated run stopped its Newton worker and Viser server. No ROS, Newton
 physics, nvblox, cuMotion, real robot, install, or media path was used.
+
+## Fifth pass: real-time look while moving, with no scan
+
+Check date: 2026-11-06 (Asia/Taipei)
+
+This pass removes the scan and overview moves. Each experiment motion is only
+the repeated `capture -> merge -> fit -> update -> replan -> advance` loop,
+using one warmed planner and an 80-cycle cap. The cap was not the stop reason
+in any case. The fixed speed rule advances at most `0.020 rad` when the current
+state is within `0.050 m` of the fitted box and `0.050 rad` otherwise; it is
+identical for every scene.
+
+The camera-front start was raised by `0.20 m` in world Z with the same tool
+orientation. Its solved joints are `[-2.688859, -2.095384, -0.718405,
+1.242993, 4.712389, -2.688859] rad`, its tool is at `[0.488000, 0.116000,
+0.501000] m`, and its camera is at `[0.594000, 0.116000, 0.445000] m`.
+`wrist_3_joint` stayed exactly at the flipped seed (`0.000000 rad` change).
+
+The supported cuRobo 0.8 wrist-limit method used here is to load the existing
+YAML into `RobotCfg`, change the in-memory `KinematicsParams.joint_limits.position`
+tensor before `MotionPlannerCfg.create`, and give that same `RobotCfg` to IK,
+TrajOpt, and PRM. The effective wrist-3 range is `[-5.830452, +0.452733] rad`,
+the raised start plus/minus pi. No source robot configuration was changed.
+
+Unknown image-border extent is conservative and camera-only. A top-border
+touch extends the fitted box to the current camera height, a bottom touch to
+the floor, and a left/right touch by a fixed `0.100 m` in the corresponding
+camera-image direction. The extension is recomputed from the latest frame, so
+it shrinks when that frame shows the edge. Fit padding remains `0.015 m` in X/Y
+and `0.020 m` in Z. The raw cycle records contain the active flag and direction
+for every cycle. Extension was active in cycles 1--11 and 13 for both 0.22 and
+0.26 m, inactive in cycle 12, and active in cycle 1 for 0.30 m.
+
+### Raised-start validity and first view
+
+All requested walls pass the `25 mm` endpoint check and collide with the
+no-obstacle path, so no taller fallback was needed.
+
+| Wall top | Start clearance | Goal clearance | Baseline interior | First-frame points | Seen vertical fraction | Border touch |
+| ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| 0.22 m | +137.295 mm | +34.531 mm | -34.233 mm | 761 | 98.157% | top |
+| 0.26 m | +103.503 mm | +34.531 mm | -46.567 mm | 833 | 98.452% | top |
+| 0.30 m | +75.095 mm | +34.531 mm | -46.567 mm | 853 | 98.665% | top, right |
+
+The first-frame observed Z ranges were `0.013870--0.220000 m`,
+`0.013870--0.260000 m`, and `0.013870--0.300000 m`, respectively.
+
+### Loop results
+
+| Wall top | Goal | Cycles | Final stop | Min truth clearance | Median / p95 whole cycle | Planner failure |
+| ---: | --- | ---: | --- | ---: | ---: | --- |
+| 0.22 m | no | 13 | `FITTED_BOX_COVERS_CURRENT_STATE` | +137.295 mm | 108.17 / 774.16 ms | `TRAJOPT_FAILED` |
+| 0.26 m | no | 13 | `FITTED_BOX_COVERS_CURRENT_STATE` | +103.503 mm | 113.10 / 378.66 ms | `TRAJOPT_FAILED` |
+| 0.30 m | no | 1 | `NO_RESULT_IK_OR_GRAPH_FAILED` | +75.095 mm | 767.95 / 767.95 ms | `NO_RESULT_IK_OR_GRAPH_FAILED` |
+
+All walls were first seen in cycle 1, at clearances `+137.295`, `+103.503`,
+and `+75.095 mm`. No executed E path collided with truth. The measured result
+is nevertheless not successful goal-reaching: the conservative fitted extent
+eventually covered the current state for the lower two walls, while the first
+plan failed for the tallest wall.
+
+| Case | pan | lift | elbow | wrist 1 | wrist 2 | wrist 3 | Max wrist-3 delta | Tool path / straight line |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| E, 0.22 m | 0.141142 | 0.290931 | 0.129250 | 0.105933 | 0.035513 | 0.093307 | 0.093302 | 0.229507 / 0.170718 m (1.3444x) |
+| E, 0.26 m | 0.151511 | 0.294923 | 0.111163 | 0.112243 | 0.035261 | 0.095360 | 0.095356 | 0.229692 / 0.173383 m (1.3248x) |
+| E, 0.30 m | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 / 0 m (n/a) |
+| No-obstacle baseline | 0.419341 | 0.363572 | 0.005257 | 0.358316 | 0 | 0.419341 | 0.419340 | 0.384134 / 0.378260 m (1.0155x) |
+
+Joint travel and wrist delta are in radians. The baseline has 41 states and no
+planner failure; the E rows have 96, 97, and 1 states, respectively.
+
+The short blind search checked 27 deterministic floor-standing walls. Every
+candidate stood on the floor. None was simultaneously endpoint-valid,
+route-blocking, and unseen in the raised first frame: valid route blockers had
+413 or 484 first-frame points. Therefore no floating block and no blind E run
+were created; first-seen cycle, clearance then, stop reason, and goal result
+are all n/a for this search outcome.
+
+Raw measurements are in
+[`fifth_pass.json`](experiments/sim-camera-curobo/results/fifth_pass.json) and
+the compact console record is in
+[`fifth_pass.log`](experiments/sim-camera-curobo/results/fifth_pass.log).
+
+### Viewer and what you should see
+
+The normal viewer binds only to `127.0.0.1:8084`. Its selector contains the E
+wall cases and **NO OBSTACLE BASELINE** only, and defaults to the first valid
+case, `E wall top 0.22`. The callback smoke test moved the robot and frustum
+for both moving E cases and the baseline without a playback error.
+
+What you should see:
+
+- the raised camera-front start, live frustum, and current camera points;
+- `E wall top 0.22` selected initially;
+- the ordinary fitted box in cyan and an unknown-extended box in orange;
+- current cycle, stop reason, and truth clearance in the scene text;
+- E at 0.22 and 0.26 m moving safely before their conservative-box stops;
+- E at 0.30 m reporting its first-cycle planner failure without moving;
+- **NO OBSTACLE BASELINE** following its direct 41-state path;
+- an empty Playback error field during successful playback.
+
+Exact one-line command:
+
+```bash
+cd ~/ur5_ws/src/ur5_moveit_demo && scripts/run_sim_camera_curobo_fifth_pass.sh
+```
+
+The validated run stopped its Newton worker and Viser server. No ROS, Newton
+physics, nvblox, cuMotion, real robot, install, or media path was used.

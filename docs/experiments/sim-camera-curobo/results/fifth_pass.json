@@ -1,0 +1,4564 @@
+{
+  "schema": 4,
+  "date": "2026-11-06",
+  "mode": "capture-merge-fit-update-replan-advance loop only; no scan or overview motion",
+  "planner_truth_rule": "truth is used only for scene validity and offline scoring",
+  "raised_start": {
+    "method": "the one warmed, wrist-constrained loop planner solves from the camera-front seed to world +0.20 m Z with the same tool orientation; the solved state is used directly as loop start and that solve is not executed as experiment motion",
+    "joints_rad": [
+      -2.688859224319458,
+      -2.095384120941162,
+      -0.7184052467346191,
+      1.2429931163787842,
+      4.71238899230957,
+      -2.688859224319458
+    ],
+    "wrist_3_seed_rad": -2.688859224319458,
+    "wrist_3_solved_rad": -2.688859224319458,
+    "wrist_3_delta_from_seed_rad": 0.0,
+    "tool_world_m": [
+      0.48799973726272583,
+      0.11599983274936676,
+      0.500999927520752
+    ],
+    "camera_world_m": [
+      0.5939997365506117,
+      0.11599982815012032,
+      0.444999944807788
+    ]
+  },
+  "wrist_3_limit": {
+    "method": "load existing YAML into cuRobo RobotCfg, modify the in-memory JointLimits.position tensor before MotionPlannerCfg.create; IK, TrajOpt, and PRM receive the same RobotCfg",
+    "joint": "wrist_3_joint",
+    "start_rad": -2.688859224319458,
+    "requested_start_plus_minus_pi_rad": [
+      -5.830451877909251,
+      0.4527334292703351
+    ],
+    "original_model_limits_rad": [
+      -6.2831854820251465,
+      6.2831854820251465
+    ],
+    "effective_planner_limits_rad": [
+      -5.830451877909251,
+      0.4527334292703351
+    ],
+    "source_files_modified": false,
+    "solved_start_matches_limit_center": true
+  },
+  "speed_rule": "advance 0.020 rad when current-to-fit clearance is below 0.050 m; otherwise advance 0.050 rad",
+  "unknown_extent_rule": {
+    "top_border": "extend fitted top to current camera world Z",
+    "left_or_right_border": "extend in the camera-image horizontal direction by 0.100 m",
+    "bottom_border": "extend fitted bottom to the floor at world Z=0",
+    "shrink_rule": "extensions use only the current frame flags and disappear once the edge is inside"
+  },
+  "cycle_cap": 80,
+  "baseline_no_obstacle": {
+    "states": 41,
+    "motion": {
+      "states": 41,
+      "joint_travel_rad": {
+        "shoulder_pan_joint": 0.4193406105041504,
+        "shoulder_lift_joint": 0.3635718822479248,
+        "elbow_joint": 0.005256593227386475,
+        "wrist_1_joint": 0.35831570625305176,
+        "wrist_2_joint": 0.0,
+        "wrist_3_joint": 0.4193406105041504
+      },
+      "max_wrist_3_change_from_start_rad": 0.4193401336669922,
+      "tool_path_length_m": 0.38413381576538086,
+      "endpoint_straight_line_distance_m": 0.37826037406921387,
+      "tool_path_over_straight_line": 1.0155275098815724,
+      "start_tool_m": [
+        0.48799973726272583,
+        0.11599983274936676,
+        0.5009998679161072
+      ],
+      "end_tool_m": [
+        0.4869998097419739,
+        0.4099997580051422,
+        0.262999951839447
+      ],
+      "planner_failure_status": null
+    }
+  },
+  "scenes": {
+    "top_0.22_m": {
+      "true_top_z_m": 0.22,
+      "source": "mandated",
+      "validity": {
+        "status": "VALID",
+        "valid": true,
+        "start_clearance_m": 0.13729534447058772,
+        "goal_clearance_m": 0.03453064110875129,
+        "along_path_clearance_m": -0.03423330027610062,
+        "reasons": []
+      },
+      "baseline_minimum_true_clearance_m": -0.03423330027610062,
+      "loop": {
+        "goal_reached": false,
+        "cycles": 13,
+        "cycle_cap": 80,
+        "final_stop_reason": "FITTED_BOX_COVERS_CURRENT_STATE",
+        "planner_failure_status": "TRAJOPT_FAILED",
+        "true_collision": false,
+        "minimum_true_clearance_m": 0.13729534447058772,
+        "whole_cycle_median_ms": 108.1682238727808,
+        "whole_cycle_p95_ms": 774.156996188683,
+        "first_seen_cycle": 1,
+        "clearance_when_first_seen_m": 0.1372953971014037,
+        "extension_active_cycles": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          13
+        ],
+        "motion": {
+          "states": 96,
+          "joint_travel_rad": {
+            "shoulder_pan_joint": 0.1411423683166504,
+            "shoulder_lift_joint": 0.29093074798583984,
+            "elbow_joint": 0.12925010919570923,
+            "wrist_1_joint": 0.10593307018280029,
+            "wrist_2_joint": 0.03551292419433594,
+            "wrist_3_joint": 0.0933072566986084
+          },
+          "max_wrist_3_change_from_start_rad": 0.09330153465270996,
+          "tool_path_length_m": 0.22950749099254608,
+          "endpoint_straight_line_distance_m": 0.17071840167045593,
+          "tool_path_over_straight_line": 1.3443629318623362,
+          "start_tool_m": [
+            0.48799973726272583,
+            0.11599983274936676,
+            0.500999927520752
+          ],
+          "end_tool_m": [
+            0.3725742995738983,
+            0.12203650176525116,
+            0.6266394853591919
+          ]
+        }
+      },
+      "first_frame": {
+        "points": 761,
+        "lowest_seen_z_m": 0.013870082795619965,
+        "highest_seen_z_m": 0.2200000286102295,
+        "true_vertical_fraction_seen": 0.9815710343065717,
+        "obstacle_pixels": 51555,
+        "border_touches": {
+          "top": true,
+          "bottom": false,
+          "left": false,
+          "right": false
+        }
+      },
+      "cycles": [
+        {
+          "cycle": 1,
+          "q": [
+            -2.688859224319458,
+            -2.095384120941162,
+            -0.7184052467346191,
+            1.2429931163787842,
+            4.71238899230957,
+            -2.688859224319458
+          ],
+          "capture": {
+            "q": [
+              -2.688859224319458,
+              -2.095384120941162,
+              -0.7184052467346191,
+              1.2429931163787842,
+              4.71238899230957,
+              -2.688859224319458
+            ],
+            "points": 761,
+            "camera_transform": [
+              0.5939996838569641,
+              0.11599995940923691,
+              0.4449998736381531,
+              4.2017056500753824e-08,
+              2.887311012500504e-08,
+              0.7071070075035095,
+              0.7071065306663513
+            ],
+            "metadata": {
+              "id": 1,
+              "output": "/tmp/newton-camera-fifth-tatxjbj2/capture_0001.npz",
+              "points": 761,
+              "highest_seen_z_m": 0.2200000286102295,
+              "capture_ms": 95.67439882084727,
+              "conversion_ms": 51.670635817572474,
+              "obstacle_pixels": 51555,
+              "border_touches": {
+                "top": true,
+                "bottom": false,
+                "left": false,
+                "right": false
+              },
+              "border_pixel_counts": {
+                "top": 206,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "robot_percent": 0.0,
+              "flange_m": [
+                0.48799967765808105,
+                0.11599987745285034,
+                0.5009998679161072
+              ],
+              "wrist_1_center_m": [
+                0.5731141567230225,
+                0.1574021875858307,
+                0.5832998752593994
+              ]
+            }
+          },
+          "accumulated_points": 761,
+          "fit": {
+            "center_m": [
+              0.4870349168777466,
+              0.2607770040631294,
+              0.22249993681907654
+            ],
+            "dims_m": [
+              0.2299301910400391,
+              0.08555407702922824,
+              0.4449998736381531
+            ],
+            "highest_seen_z_m": 0.2200000286102295,
+            "fitted_top_z_m": 0.4449998736381531,
+            "points": 761,
+            "padding_xy_m": 0.015,
+            "padding_z_m": 0.02,
+            "unknown_extension": {
+              "active": true,
+              "directions": [
+                "top"
+              ],
+              "border_touches": {
+                "top": true,
+                "bottom": false,
+                "left": false,
+                "right": false
+              },
+              "border_pixel_counts": {
+                "top": 206,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "upward_limit_m": 0.4449998736381531,
+              "side_margin_m": 0.1,
+              "bottom_limit_m": 0.0
+            }
+          },
+          "extension": {
+            "active": true,
+            "directions": [
+              "top"
+            ],
+            "border_touches": {
+              "top": true,
+              "bottom": false,
+              "left": false,
+              "right": false
+            },
+            "border_pixel_counts": {
+              "top": 206,
+              "bottom": 0,
+              "left": 0,
+              "right": 0
+            },
+            "upward_limit_m": 0.4449998736381531,
+            "side_margin_m": 0.1,
+            "bottom_limit_m": 0.0
+          },
+          "plan_ms": 66.0103028640151,
+          "whole_cycle_ms": 1752.2494159638882,
+          "planner_failure_status": null,
+          "current_to_fit_clearance_m": 0.014833681881427752,
+          "advance_rule": "0.020 rad when current-to-fit clearance is below 0.050 m; otherwise 0.050 rad",
+          "advance_joint_length_rad": 0.02,
+          "executed_states": 9,
+          "minimum_true_clearance_m": 0.13729534447058772,
+          "stop_reason": null
+        },
+        {
+          "cycle": 2,
+          "q": [
+            -2.6825411319732666,
+            -2.0738213062286377,
+            -0.6983771324157715,
+            1.2515923976898193,
+            4.714753150939941,
+            -2.6828298568725586
+          ],
+          "capture": {
+            "q": [
+              -2.6825411319732666,
+              -2.0738213062286377,
+              -0.6983771324157715,
+              1.2515923976898193,
+              4.714753150939941,
+              -2.6828298568725586
+            ],
+            "points": 730,
+            "camera_transform": [
+              0.5874666571617126,
+              0.11588489264249802,
+              0.46514052152633667,
+              -0.00916693452745676,
+              -0.023387877270579338,
+              0.7069648504257202,
+              0.7068021893501282
+            ],
+            "metadata": {
+              "id": 2,
+              "output": "/tmp/newton-camera-fifth-tatxjbj2/capture_0002.npz",
+              "points": 730,
+              "highest_seen_z_m": 0.2200000137090683,
+              "capture_ms": 46.64961900562048,
+              "conversion_ms": 43.43416797928512,
+              "obstacle_pixels": 43807,
+              "border_touches": {
+                "top": true,
+                "bottom": false,
+                "left": false,
+                "right": false
+              },
+              "border_pixel_counts": {
+                "top": 188,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "robot_percent": 0.0,
+              "flange_m": [
+                0.4790017902851105,
+                0.11478336900472641,
+                0.5161909461021423
+              ],
+              "wrist_1_center_m": [
+                0.5599584579467773,
+                0.15501469373703003,
+                0.6031355857849121
+              ]
+            }
+          },
+          "accumulated_points": 1491,
+          "fit": {
+            "center_m": [
+              0.48703494668006897,
+              0.26078012585639954,
+              0.23257026076316833
+            ],
+            "dims_m": [
+              0.22993025064468386,
+              0.08556035041809085,
+              0.46514052152633667
+            ],
+            "highest_seen_z_m": 0.2200000286102295,
+            "fitted_top_z_m": 0.46514052152633667,
+            "points": 1491,
+            "padding_xy_m": 0.015,
+            "padding_z_m": 0.02,
+            "unknown_extension": {
+              "active": true,
+              "directions": [
+                "top"
+              ],
+              "border_touches": {
+                "top": true,
+                "bottom": false,
+                "left": false,
+                "right": false
+              },
+              "border_pixel_counts": {
+                "top": 188,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "upward_limit_m": 0.46514052152633667,
+              "side_margin_m": 0.1,
+              "bottom_limit_m": 0.0
+            }
+          },
+          "extension": {
+            "active": true,
+            "directions": [
+              "top"
+            ],
+            "border_touches": {
+              "top": true,
+              "bottom": false,
+              "left": false,
+              "right": false
+            },
+            "border_pixel_counts": {
+              "top": 188,
+              "bottom": 0,
+              "left": 0,
+              "right": 0
+            },
+            "upward_limit_m": 0.46514052152633667,
+            "side_margin_m": 0.1,
+            "bottom_limit_m": 0.0
+          },
+          "plan_ms": 69.03551099821925,
+          "whole_cycle_ms": 122.09538300521672,
+          "planner_failure_status": null,
+          "current_to_fit_clearance_m": 0.014031924903392778,
+          "advance_rule": "0.020 rad when current-to-fit clearance is below 0.050 m; otherwise 0.050 rad",
+          "advance_joint_length_rad": 0.02,
+          "executed_states": 9,
+          "minimum_true_clearance_m": 0.1511058888772327,
+          "stop_reason": null
+        },
+        {
+          "cycle": 3,
+          "q": [
+            -2.6765365600585938,
+            -2.051912784576416,
+            -0.6775635480880737,
+            1.2615028619766235,
+            4.716949462890625,
+            -2.6770029067993164
+          ],
+          "capture": {
+            "q": [
+              -2.6765365600585938,
+              -2.051912784576416,
+              -0.6775635480880737,
+              1.2615028619766235,
+              4.716949462890625,
+              -2.6770029067993164
+            ],
+            "points": 722,
+            "camera_transform": [
+              0.5803303718566895,
+              0.11522578448057175,
+              0.48568713665008545,
+              -0.018354400992393494,
+              -0.0480530820786953,
+              0.7062526941299438,
+              0.706088662147522
+            ],
+            "metadata": {
+              "id": 3,
+              "output": "/tmp/newton-camera-fifth-tatxjbj2/capture_0003.npz",
+              "points": 722,
+              "highest_seen_z_m": 0.2200000137090683,
+              "capture_ms": 42.25684399716556,
+              "conversion_ms": 39.445693138986826,
+              "obstacle_pixels": 37627,
+              "border_touches": {
+                "top": true,
+                "bottom": false,
+                "left": false,
+                "right": false
+              },
+              "border_pixel_counts": {
+                "top": 175,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "robot_percent": 0.0,
+              "flange_m": [
+                0.469545841217041,
+                0.11306076496839523,
+                0.5314485430717468
+              ],
+              "wrist_1_center_m": [
+                0.5459783673286438,
+                0.15183159708976746,
+                0.623028039932251
+              ]
+            }
+          },
+          "accumulated_points": 2213,
+          "fit": {
+            "center_m": [
+              0.48700205981731415,
+              0.26078715920448303,
+              0.24284356832504272
+            ],
+            "dims_m": [
+              0.2299960243701935,
+              0.08557441711425784,
+              0.48568713665008545
+            ],
+            "highest_seen_z_m": 0.2200000286102295,
+            "fitted_top_z_m": 0.48568713665008545,
+            "points": 2213,
+            "padding_xy_m": 0.015,
+            "padding_z_m": 0.02,
+            "unknown_extension": {
+              "active": true,
+              "directions": [
+                "top"
+              ],
+              "border_touches": {
+                "top": true,
+                "bottom": false,
+                "left": false,
+                "right": false
+              },
+              "border_pixel_counts": {
+                "top": 175,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "upward_limit_m": 0.48568713665008545,
+              "side_margin_m": 0.1,
+              "bottom_limit_m": 0.0
+            }
+          },
+          "extension": {
+            "active": true,
+            "directions": [
+              "top"
+            ],
+            "border_touches": {
+              "top": true,
+              "bottom": false,
+              "left": false,
+              "right": false
+            },
+            "border_pixel_counts": {
+              "top": 175,
+              "bottom": 0,
+              "left": 0,
+              "right": 0
+            },
+            "upward_limit_m": 0.48568713665008545,
+            "side_margin_m": 0.1,
+            "bottom_limit_m": 0.0
+          },
+          "plan_ms": 67.33039091341197,
+          "whole_cycle_ms": 115.98009010776877,
+          "planner_failure_status": null,
+          "current_to_fit_clearance_m": 0.013592534363269793,
+          "advance_rule": "0.020 rad when current-to-fit clearance is below 0.050 m; otherwise 0.050 rad",
+          "advance_joint_length_rad": 0.02,
+          "executed_states": 9,
+          "minimum_true_clearance_m": 0.16597036694074843,
+          "stop_reason": null
+        },
+        {
+          "cycle": 4,
+          "q": [
+            -2.67142915725708,
+            -2.030754566192627,
+            -0.6557092666625977,
+            1.2720524072647095,
+            4.71796989440918,
+            -2.6716299057006836
+          ],
+          "capture": {
+            "q": [
+              -2.67142915725708,
+              -2.030754566192627,
+              -0.6557092666625977,
+              1.2720524072647095,
+              4.71796989440918,
+              -2.6716299057006836
+            ],
+            "points": 710,
+            "camera_transform": [
+              0.5728675723075867,
+              0.11397044360637665,
+              0.5060461163520813,
+              -0.026870213449001312,
+              -0.07339820265769958,
+              0.7048603296279907,
+              0.7050266265869141
+            ],
+            "metadata": {
+              "id": 4,
+              "output": "/tmp/newton-camera-fifth-tatxjbj2/capture_0004.npz",
+              "points": 710,
+              "highest_seen_z_m": 0.2200000286102295,
+              "capture_ms": 38.822276052087545,
+              "conversion_ms": 36.034018034115434,
+              "obstacle_pixels": 32518,
+              "border_touches": {
+                "top": true,
+                "bottom": false,
+                "left": false,
+                "right": false
+              },
+              "border_pixel_counts": {
+                "top": 167,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "robot_percent": 0.0,
+              "flange_m": [
+                0.46001628041267395,
+                0.11081718653440475,
+                0.5463777780532837
+              ],
+              "wrist_1_center_m": [
+                0.531731367111206,
+                0.14777596294879913,
+                0.6424137949943542
+              ]
+            }
+          },
+          "accumulated_points": 2923,
+          "fit": {
+            "center_m": [
+              0.48700205981731415,
+              0.2608412206172943,
+              0.25302305817604065
+            ],
+            "dims_m": [
+              0.2299960243701935,
+              0.0856825399398804,
+              0.5060461163520813
+            ],
+            "highest_seen_z_m": 0.2200000286102295,
+            "fitted_top_z_m": 0.5060461163520813,
+            "points": 2923,
+            "padding_xy_m": 0.015,
+            "padding_z_m": 0.02,
+            "unknown_extension": {
+              "active": true,
+              "directions": [
+                "top"
+              ],
+              "border_touches": {
+                "top": true,
+                "bottom": false,
+                "left": false,
+                "right": false
+              },
+              "border_pixel_counts": {
+                "top": 167,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "upward_limit_m": 0.5060461163520813,
+              "side_margin_m": 0.1,
+              "bottom_limit_m": 0.0
+            }
+          },
+          "extension": {
+            "active": true,
+            "directions": [
+              "top"
+            ],
+            "border_touches": {
+              "top": true,
+              "bottom": false,
+              "left": false,
+              "right": false
+            },
+            "border_pixel_counts": {
+              "top": 167,
+              "bottom": 0,
+              "left": 0,
+              "right": 0
+            },
+            "upward_limit_m": 0.5060461163520813,
+            "side_margin_m": 0.1,
+            "bottom_limit_m": 0.0
+          },
+          "plan_ms": 70.902164792642,
+          "whole_cycle_ms": 116.31807102821767,
+          "planner_failure_status": null,
+          "current_to_fit_clearance_m": 0.01353392809629439,
+          "advance_rule": "0.020 rad when current-to-fit clearance is below 0.050 m; otherwise 0.050 rad",
+          "advance_joint_length_rad": 0.02,
+          "executed_states": 8,
+          "minimum_true_clearance_m": 0.18144356516474774,
+          "stop_reason": null
+        },
+        {
+          "cycle": 5,
+          "q": [
+            -2.667609930038452,
+            -2.017557144165039,
+            -0.6428671479225159,
+            1.278891682624817,
+            4.719151496887207,
+            -2.668766736984253
+          ],
+          "capture": {
+            "q": [
+              -2.667609930038452,
+              -2.017557144165039,
+              -0.6428671479225159,
+              1.278891682624817,
+              4.719151496887207,
+              -2.668766736984253
+            ],
+            "points": 701,
+            "camera_transform": [
+              0.5678868293762207,
+              0.11334074288606644,
+              0.5184258222579956,
+              -0.032208021730184555,
+              -0.08889517188072205,
+              0.7041204571723938,
+              0.7037574648857117
+            ],
+            "metadata": {
+              "id": 5,
+              "output": "/tmp/newton-camera-fifth-tatxjbj2/capture_0005.npz",
+              "points": 701,
+              "highest_seen_z_m": 0.2199999988079071,
+              "capture_ms": 35.907170036807656,
+              "conversion_ms": 33.138646045699716,
+              "obstacle_pixels": 29806,
+              "border_touches": {
+                "top": true,
+                "bottom": false,
+                "left": false,
+                "right": false
+              },
+              "border_pixel_counts": {
+                "top": 161,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "robot_percent": 0.0,
+              "flange_m": [
+                0.453894704580307,
+                0.10954250395298004,
+                0.5553495287895203
+              ],
+              "wrist_1_center_m": [
+                0.522576093673706,
+                0.14540064334869385,
+                0.6539851427078247
+              ]
+            }
+          },
+          "accumulated_points": 3624,
+          "fit": {
+            "center_m": [
+              0.48700205981731415,
+              0.2608412206172943,
+              0.2592129111289978
+            ],
+            "dims_m": [
+              0.2299960243701935,
+              0.0856825399398804,
+              0.5184258222579956
+            ],
+            "highest_seen_z_m": 0.2200000286102295,
+            "fitted_top_z_m": 0.5184258222579956,
+            "points": 3624,
+            "padding_xy_m": 0.015,
+            "padding_z_m": 0.02,
+            "unknown_extension": {
+              "active": true,
+              "directions": [
+                "top"
+              ],
+              "border_touches": {
+                "top": true,
+                "bottom": false,
+                "left": false,
+                "right": false
+              },
+              "border_pixel_counts": {
+                "top": 161,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "upward_limit_m": 0.5184258222579956,
+              "side_margin_m": 0.1,
+              "bottom_limit_m": 0.0
+            }
+          },
+          "extension": {
+            "active": true,
+            "directions": [
+              "top"
+            ],
+            "border_touches": {
+              "top": true,
+              "bottom": false,
+              "left": false,
+              "right": false
+            },
+            "border_pixel_counts": {
+              "top": 161,
+              "bottom": 0,
+              "left": 0,
+              "right": 0
+            },
+            "upward_limit_m": 0.5184258222579956,
+            "side_margin_m": 0.1,
+            "bottom_limit_m": 0.0
+          },
+          "plan_ms": 68.52896185591817,
+          "whole_cycle_ms": 111.05422186665237,
+          "planner_failure_status": null,
+          "current_to_fit_clearance_m": 0.013437711298465715,
+          "advance_rule": "0.020 rad when current-to-fit clearance is below 0.050 m; otherwise 0.050 rad",
+          "advance_joint_length_rad": 0.02,
+          "executed_states": 9,
+          "minimum_true_clearance_m": 0.19104943979831376,
+          "stop_reason": null
+        },
+        {
+          "cycle": 6,
+          "q": [
+            -2.656202793121338,
+            -1.9891762733459473,
+            -0.6299348473548889,
+            1.275625467300415,
+            4.715415000915527,
+            -2.6582412719726562
+          ],
+          "capture": {
+            "q": [
+              -2.656202793121338,
+              -1.9891762733459473,
+              -0.6299348473548889,
+              1.275625467300415,
+              4.715415000915527,
+              -2.6582412719726562
+            ],
+            "points": 731,
+            "camera_transform": [
+              0.554336428642273,
+              0.11282842606306076,
+              0.5384721755981445,
+              -0.03506207466125488,
+              -0.1078650951385498,
+              0.7031385898590088,
+              0.7019485235214233
+            ],
+            "metadata": {
+              "id": 6,
+              "output": "/tmp/newton-camera-fifth-tatxjbj2/capture_0006.npz",
+              "points": 731,
+              "highest_seen_z_m": 0.2200000137090683,
+              "capture_ms": 33.47545396536589,
+              "conversion_ms": 30.671070097014308,
+              "obstacle_pixels": 27583,
+              "border_touches": {
+                "top": true,
+                "bottom": false,
+                "left": false,
+                "right": false
+              },
+              "border_pixel_counts": {
+                "top": 148,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "robot_percent": 0.0,
+              "flange_m": [
+                0.4392606019973755,
+                0.10801611840724945,
+                0.5717347264289856
+              ],
+              "wrist_1_center_m": [
+                0.5043035745620728,
+                0.14260661602020264,
+                0.6732474565505981
+              ]
+            }
+          },
+          "accumulated_points": 4355,
+          "fit": {
+            "center_m": [
+              0.48700205981731415,
+              0.26088847219944,
+              0.26923608779907227
+            ],
+            "dims_m": [
+              0.2299960243701935,
+              0.08577704310417178,
+              0.5384721755981445
+            ],
+            "highest_seen_z_m": 0.2200000286102295,
+            "fitted_top_z_m": 0.5384721755981445,
+            "points": 4355,
+            "padding_xy_m": 0.015,
+            "padding_z_m": 0.02,
+            "unknown_extension": {
+              "active": true,
+              "directions": [
+                "top"
+              ],
+              "border_touches": {
+                "top": true,
+                "bottom": false,
+                "left": false,
+                "right": false
+              },
+              "border_pixel_counts": {
+                "top": 148,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "upward_limit_m": 0.5384721755981445,
+              "side_margin_m": 0.1,
+              "bottom_limit_m": 0.0
+            }
+          },
+          "extension": {
+            "active": true,
+            "directions": [
+              "top"
+            ],
+            "border_touches": {
+              "top": true,
+              "bottom": false,
+              "left": false,
+              "right": false
+            },
+            "border_pixel_counts": {
+              "top": 148,
+              "bottom": 0,
+              "left": 0,
+              "right": 0
+            },
+            "upward_limit_m": 0.5384721755981445,
+            "side_margin_m": 0.1,
+            "bottom_limit_m": 0.0
+          },
+          "plan_ms": 67.62723322026432,
+          "whole_cycle_ms": 107.63860098086298,
+          "planner_failure_status": null,
+          "current_to_fit_clearance_m": 0.012821265161037432,
+          "advance_rule": "0.020 rad when current-to-fit clearance is below 0.050 m; otherwise 0.050 rad",
+          "advance_joint_length_rad": 0.02,
+          "executed_states": 9,
+          "minimum_true_clearance_m": 0.20822271622424995,
+          "stop_reason": null
+        },
+        {
+          "cycle": 7,
+          "q": [
+            -2.644113302230835,
+            -1.9611024856567383,
+            -0.6163740158081055,
+            1.2732781171798706,
+            4.711569309234619,
+            -2.64853572845459
+          ],
+          "capture": {
+            "q": [
+              -2.644113302230835,
+              -1.9611024856567383,
+              -0.6163740158081055,
+              1.2732781171798706,
+              4.711569309234619,
+              -2.64853572845459
+            ],
+            "points": 757,
+            "camera_transform": [
+              0.5403202772140503,
+              0.11224416643381119,
+              0.5581299066543579,
+              -0.03763184696435928,
+              -0.12746626138687134,
+              0.7024204730987549,
+              0.6992435455322266
+            ],
+            "metadata": {
+              "id": 7,
+              "output": "/tmp/newton-camera-fifth-tatxjbj2/capture_0007.npz",
+              "points": 757,
+              "highest_seen_z_m": 0.2200000286102295,
+              "capture_ms": 32.30524808168411,
+              "conversion_ms": 29.572359984740615,
+              "obstacle_pixels": 25512,
+              "border_touches": {
+                "top": true,
+                "bottom": false,
+                "left": false,
+                "right": false
+              },
+              "border_pixel_counts": {
+                "top": 136,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "robot_percent": 0.0,
+              "flange_m": [
+                0.42426756024360657,
+                0.10626350343227386,
+                0.5875916481018066
+              ],
+              "wrist_1_center_m": [
+                0.4854847192764282,
+                0.1394297480583191,
+                0.6919198632240295
+              ]
+            }
+          },
+          "accumulated_points": 5112,
+          "fit": {
+            "center_m": [
+              0.48700205981731415,
+              0.2609187513589859,
+              0.27906495332717896
+            ],
+            "dims_m": [
+              0.2299960243701935,
+              0.08583760142326358,
+              0.5581299066543579
+            ],
+            "highest_seen_z_m": 0.2200000286102295,
+            "fitted_top_z_m": 0.5581299066543579,
+            "points": 5112,
+            "padding_xy_m": 0.015,
+            "padding_z_m": 0.02,
+            "unknown_extension": {
+              "active": true,
+              "directions": [
+                "top"
+              ],
+              "border_touches": {
+                "top": true,
+                "bottom": false,
+                "left": false,
+                "right": false
+              },
+              "border_pixel_counts": {
+                "top": 136,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "upward_limit_m": 0.5581299066543579,
+              "side_margin_m": 0.1,
+              "bottom_limit_m": 0.0
+            }
+          },
+          "extension": {
+            "active": true,
+            "directions": [
+              "top"
+            ],
+            "border_touches": {
+              "top": true,
+              "bottom": false,
+              "left": false,
+              "right": false
+            },
+            "border_pixel_counts": {
+              "top": 136,
+              "bottom": 0,
+              "left": 0,
+              "right": 0
+            },
+            "upward_limit_m": 0.5581299066543579,
+            "side_margin_m": 0.1,
+            "bottom_limit_m": 0.0
+          },
+          "plan_ms": 70.73697913438082,
+          "whole_cycle_ms": 110.02097208984196,
+          "planner_failure_status": null,
+          "current_to_fit_clearance_m": 0.012341820299625383,
+          "advance_rule": "0.020 rad when current-to-fit clearance is below 0.050 m; otherwise 0.050 rad",
+          "advance_joint_length_rad": 0.02,
+          "executed_states": 9,
+          "minimum_true_clearance_m": 0.22541483242053872,
+          "stop_reason": null
+        },
+        {
+          "cycle": 8,
+          "q": [
+            -2.632275104522705,
+            -1.9356176853179932,
+            -0.6080498099327087,
+            1.2663944959640503,
+            4.709466934204102,
+            -2.641732931137085
+          ],
+          "capture": {
+            "q": [
+              -2.632275104522705,
+              -1.9356176853179932,
+              -0.6080498099327087,
+              1.2663944959640503,
+              4.709466934204102,
+              -2.641732931137085
+            ],
+            "points": 790,
+            "camera_transform": [
+              0.526849627494812,
+              0.11147990822792053,
+              0.5740025639533997,
+              -0.0391380600631237,
+              -0.140907883644104,
+              0.7029550075531006,
+              0.6960366368293762
+            ],
+            "metadata": {
+              "id": 8,
+              "output": "/tmp/newton-camera-fifth-tatxjbj2/capture_0008.npz",
+              "points": 790,
+              "highest_seen_z_m": 0.22000007331371307,
+              "capture_ms": 31.541873002424836,
+              "conversion_ms": 28.810981893911958,
+              "obstacle_pixels": 24488,
+              "border_touches": {
+                "top": true,
+                "bottom": false,
+                "left": false,
+                "right": false
+              },
+              "border_pixel_counts": {
+                "top": 125,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "robot_percent": 0.0,
+              "flange_m": [
+                0.41022488474845886,
+                0.1043534129858017,
+                0.6008330583572388
+              ],
+              "wrist_1_center_m": [
+                0.4686553478240967,
+                0.13670922815799713,
+                0.7069975137710571
+              ]
+            }
+          },
+          "accumulated_points": 5902,
+          "fit": {
+            "center_m": [
+              0.48700205981731415,
+              0.2609287053346634,
+              0.28700128197669983
+            ],
+            "dims_m": [
+              0.2299960243701935,
+              0.08585750937461856,
+              0.5740025639533997
+            ],
+            "highest_seen_z_m": 0.22000007331371307,
+            "fitted_top_z_m": 0.5740025639533997,
+            "points": 5902,
+            "padding_xy_m": 0.015,
+            "padding_z_m": 0.02,
+            "unknown_extension": {
+              "active": true,
+              "directions": [
+                "top"
+              ],
+              "border_touches": {
+                "top": true,
+                "bottom": false,
+                "left": false,
+                "right": false
+              },
+              "border_pixel_counts": {
+                "top": 125,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "upward_limit_m": 0.5740025639533997,
+              "side_margin_m": 0.1,
+              "bottom_limit_m": 0.0
+            }
+          },
+          "extension": {
+            "active": true,
+            "directions": [
+              "top"
+            ],
+            "border_touches": {
+              "top": true,
+              "bottom": false,
+              "left": false,
+              "right": false
+            },
+            "border_pixel_counts": {
+              "top": 125,
+              "bottom": 0,
+              "left": 0,
+              "right": 0
+            },
+            "upward_limit_m": 0.5740025639533997,
+            "side_margin_m": 0.1,
+            "bottom_limit_m": 0.0
+          },
+          "plan_ms": 68.43785615637898,
+          "whole_cycle_ms": 106.66232299990952,
+          "planner_failure_status": null,
+          "current_to_fit_clearance_m": 0.012679421007633196,
+          "advance_rule": "0.020 rad when current-to-fit clearance is below 0.050 m; otherwise 0.050 rad",
+          "advance_joint_length_rad": 0.02,
+          "executed_states": 9,
+          "minimum_true_clearance_m": 0.2398677369142735,
+          "stop_reason": null
+        },
+        {
+          "cycle": 9,
+          "q": [
+            -2.6214118003845215,
+            -1.9091817140579224,
+            -0.605178713798523,
+            1.2568310499191284,
+            4.7058587074279785,
+            -2.6354832649230957
+          ],
+          "capture": {
+            "q": [
+              -2.6214118003845215,
+              -1.9091817140579224,
+              -0.605178713798523,
+              1.2568310499191284,
+              4.7058587074279785,
+              -2.6354832649230957
+            ],
+            "points": 828,
+            "camera_transform": [
+              0.5128174424171448,
+              0.10977751761674881,
+              0.5877889394760132,
+              -0.03884062170982361,
+              -0.15111449360847473,
+              0.7037012577056885,
+              0.6931524872779846
+            ],
+            "metadata": {
+              "id": 9,
+              "output": "/tmp/newton-camera-fifth-tatxjbj2/capture_0009.npz",
+              "points": 828,
+              "highest_seen_z_m": 0.2200000286102295,
+              "capture_ms": 31.696696067228913,
+              "conversion_ms": 28.95958488807082,
+              "obstacle_pixels": 24045,
+              "border_touches": {
+                "top": true,
+                "bottom": false,
+                "left": false,
+                "right": false
+              },
+              "border_pixel_counts": {
+                "top": 111,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "robot_percent": 0.0,
+              "flange_m": [
+                0.39586132764816284,
+                0.10158155858516693,
+                0.6128108501434326
+              ],
+              "wrist_1_center_m": [
+                0.4522548317909241,
+                0.13326451182365417,
+                0.7202719449996948
+              ]
+            }
+          },
+          "accumulated_points": 6730,
+          "fit": {
+            "center_m": [
+              0.48700205981731415,
+              0.26093509793281555,
+              0.2938944697380066
+            ],
+            "dims_m": [
+              0.2299960243701935,
+              0.08587029457092288,
+              0.5877889394760132
+            ],
+            "highest_seen_z_m": 0.22000007331371307,
+            "fitted_top_z_m": 0.5877889394760132,
+            "points": 6730,
+            "padding_xy_m": 0.015,
+            "padding_z_m": 0.02,
+            "unknown_extension": {
+              "active": true,
+              "directions": [
+                "top"
+              ],
+              "border_touches": {
+                "top": true,
+                "bottom": false,
+                "left": false,
+                "right": false
+              },
+              "border_pixel_counts": {
+                "top": 111,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "upward_limit_m": 0.5877889394760132,
+              "side_margin_m": 0.1,
+              "bottom_limit_m": 0.0
+            }
+          },
+          "extension": {
+            "active": true,
+            "directions": [
+              "top"
+            ],
+            "border_touches": {
+              "top": true,
+              "bottom": false,
+              "left": false,
+              "right": false
+            },
+            "border_pixel_counts": {
+              "top": 111,
+              "bottom": 0,
+              "left": 0,
+              "right": 0
+            },
+            "upward_limit_m": 0.5877889394760132,
+            "side_margin_m": 0.1,
+            "bottom_limit_m": 0.0
+          },
+          "plan_ms": 69.22720815055072,
+          "whole_cycle_ms": 108.1682238727808,
+          "planner_failure_status": null,
+          "current_to_fit_clearance_m": 0.014076941311359392,
+          "advance_rule": "0.020 rad when current-to-fit clearance is below 0.050 m; otherwise 0.050 rad",
+          "advance_joint_length_rad": 0.02,
+          "executed_states": 9,
+          "minimum_true_clearance_m": 0.2531155619465495,
+          "stop_reason": null
+        },
+        {
+          "cycle": 10,
+          "q": [
+            -2.608637809753418,
+            -1.8846298456192017,
+            -0.5996760129928589,
+            1.2493269443511963,
+            4.700761795043945,
+            -2.6291425228118896
+          ],
+          "capture": {
+            "q": [
+              -2.608637809753418,
+              -1.8846298456192017,
+              -0.5996760129928589,
+              1.2493269443511963,
+              4.700761795043945,
+              -2.6291425228118896
+            ],
+            "points": 852,
+            "camera_transform": [
+              0.4990885555744171,
+              0.10921229422092438,
+              0.6011711955070496,
+              -0.03786291554570198,
+              -0.16287314891815186,
+              0.7049413919448853,
+              0.689272403717041
+            ],
+            "metadata": {
+              "id": 10,
+              "output": "/tmp/newton-camera-fifth-tatxjbj2/capture_0010.npz",
+              "points": 852,
+              "highest_seen_z_m": 0.22000004351139069,
+              "capture_ms": 30.65515193156898,
+              "conversion_ms": 27.893736958503723,
+              "obstacle_pixels": 23297,
+              "border_touches": {
+                "top": true,
+                "bottom": false,
+                "left": false,
+                "right": false
+              },
+              "border_pixel_counts": {
+                "top": 97,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "robot_percent": 0.0,
+              "flange_m": [
+                0.3818228840827942,
+                0.09962016344070435,
+                0.6241657733917236
+              ],
+              "wrist_1_center_m": [
+                0.4359200596809387,
+                0.1304207444190979,
+                0.7330543994903564
+              ]
+            }
+          },
+          "accumulated_points": 7582,
+          "fit": {
+            "center_m": [
+              0.48700089752674103,
+              0.2609792798757553,
+              0.3005855977535248
+            ],
+            "dims_m": [
+              0.22999834895133975,
+              0.0859586584568024,
+              0.6011711955070496
+            ],
+            "highest_seen_z_m": 0.22000007331371307,
+            "fitted_top_z_m": 0.6011711955070496,
+            "points": 7582,
+            "padding_xy_m": 0.015,
+            "padding_z_m": 0.02,
+            "unknown_extension": {
+              "active": true,
+              "directions": [
+                "top"
+              ],
+              "border_touches": {
+                "top": true,
+                "bottom": false,
+                "left": false,
+                "right": false
+              },
+              "border_pixel_counts": {
+                "top": 97,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "upward_limit_m": 0.6011711955070496,
+              "side_margin_m": 0.1,
+              "bottom_limit_m": 0.0
+            }
+          },
+          "extension": {
+            "active": true,
+            "directions": [
+              "top"
+            ],
+            "border_touches": {
+              "top": true,
+              "bottom": false,
+              "left": false,
+              "right": false
+            },
+            "border_pixel_counts": {
+              "top": 97,
+              "bottom": 0,
+              "left": 0,
+              "right": 0
+            },
+            "upward_limit_m": 0.6011711955070496,
+            "side_margin_m": 0.1,
+            "bottom_limit_m": 0.0
+          },
+          "plan_ms": 67.74989189580083,
+          "whole_cycle_ms": 105.57833616621792,
+          "planner_failure_status": null,
+          "current_to_fit_clearance_m": 0.014381625354289995,
+          "advance_rule": "0.020 rad when current-to-fit clearance is below 0.050 m; otherwise 0.050 rad",
+          "advance_joint_length_rad": 0.02,
+          "executed_states": 9,
+          "minimum_true_clearance_m": 0.26580701253293604,
+          "stop_reason": null
+        },
+        {
+          "cycle": 11,
+          "q": [
+            -2.5945916175842285,
+            -1.8629153966903687,
+            -0.5977600812911987,
+            1.241029143333435,
+            4.697216033935547,
+            -2.62332820892334
+          ],
+          "capture": {
+            "q": [
+              -2.5945916175842285,
+              -1.8629153966903687,
+              -0.5977600812911987,
+              1.241029143333435,
+              4.697216033935547,
+              -2.62332820892334
+            ],
+            "points": 877,
+            "camera_transform": [
+              0.4866282641887665,
+              0.10953675210475922,
+              0.6116001605987549,
+              -0.036449410021305084,
+              -0.17098701000213623,
+              0.7070707082748413,
+              0.6851902604103088
+            ],
+            "metadata": {
+              "id": 11,
+              "output": "/tmp/newton-camera-fifth-tatxjbj2/capture_0011.npz",
+              "points": 877,
+              "highest_seen_z_m": 0.2199999988079071,
+              "capture_ms": 31.356390099972486,
+              "conversion_ms": 28.61604280769825,
+              "obstacle_pixels": 22819,
+              "border_touches": {
+                "top": true,
+                "bottom": false,
+                "left": false,
+                "right": false
+              },
+              "border_pixel_counts": {
+                "top": 79,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "robot_percent": 0.0,
+              "flange_m": [
+                0.3692319393157959,
+                0.09852225333452225,
+                0.633251428604126
+              ],
+              "wrist_1_center_m": [
+                0.4216119647026062,
+                0.12895897030830383,
+                0.7430778741836548
+              ]
+            }
+          },
+          "accumulated_points": 8459,
+          "fit": {
+            "center_m": [
+              0.48700089752674103,
+              0.2609824687242508,
+              0.30580008029937744
+            ],
+            "dims_m": [
+              0.22999834895133975,
+              0.08596503615379336,
+              0.6116001605987549
+            ],
+            "highest_seen_z_m": 0.22000007331371307,
+            "fitted_top_z_m": 0.6116001605987549,
+            "points": 8459,
+            "padding_xy_m": 0.015,
+            "padding_z_m": 0.02,
+            "unknown_extension": {
+              "active": true,
+              "directions": [
+                "top"
+              ],
+              "border_touches": {
+                "top": true,
+                "bottom": false,
+                "left": false,
+                "right": false
+              },
+              "border_pixel_counts": {
+                "top": 79,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "upward_limit_m": 0.6116001605987549,
+              "side_margin_m": 0.1,
+              "bottom_limit_m": 0.0
+            }
+          },
+          "extension": {
+            "active": true,
+            "directions": [
+              "top"
+            ],
+            "border_touches": {
+              "top": true,
+              "bottom": false,
+              "left": false,
+              "right": false
+            },
+            "border_pixel_counts": {
+              "top": 79,
+              "bottom": 0,
+              "left": 0,
+              "right": 0
+            },
+            "upward_limit_m": 0.6116001605987549,
+            "side_margin_m": 0.1,
+            "bottom_limit_m": 0.0
+          },
+          "plan_ms": 68.39914503507316,
+          "whole_cycle_ms": 107.11498302407563,
+          "planner_failure_status": null,
+          "current_to_fit_clearance_m": 0.014217772185802446,
+          "advance_rule": "0.020 rad when current-to-fit clearance is below 0.050 m; otherwise 0.050 rad",
+          "advance_joint_length_rad": 0.02,
+          "executed_states": 9,
+          "minimum_true_clearance_m": 0.275765149188279,
+          "stop_reason": null
+        },
+        {
+          "cycle": 12,
+          "q": [
+            -2.5768814086914062,
+            -1.8416579961776733,
+            -0.5925242304801941,
+            1.2345032691955566,
+            4.691256523132324,
+            -2.6178154945373535
+          ],
+          "capture": {
+            "q": [
+              -2.5768814086914062,
+              -1.8416579961776733,
+              -0.5925242304801941,
+              1.2345032691955566,
+              4.691256523132324,
+              -2.6178154945373535
+            ],
+            "points": 882,
+            "camera_transform": [
+              0.4735676646232605,
+              0.11152272671461105,
+              0.6226369142532349,
+              -0.03397541865706444,
+              -0.18162697553634644,
+              0.7103561162948608,
+              0.6791550517082214
+            ],
+            "metadata": {
+              "id": 12,
+              "output": "/tmp/newton-camera-fifth-tatxjbj2/capture_0012.npz",
+              "points": 882,
+              "highest_seen_z_m": 0.22000004351139069,
+              "capture_ms": 30.018691904842854,
+              "conversion_ms": 26.45801706239581,
+              "obstacle_pixels": 21369,
+              "border_touches": {
+                "top": false,
+                "bottom": false,
+                "left": false,
+                "right": false
+              },
+              "border_pixel_counts": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "robot_percent": 0.0,
+              "flange_m": [
+                0.3560795783996582,
+                0.09843571484088898,
+                0.6425688862800598
+              ],
+              "wrist_1_center_m": [
+                0.4063149690628052,
+                0.12820275127887726,
+                0.7535744905471802
+              ]
+            }
+          },
+          "accumulated_points": 9341,
+          "fit": {
+            "center_m": [
+              0.48700089752674103,
+              0.2609945684671402,
+              0.12000003665685653
+            ],
+            "dims_m": [
+              0.22999834895133975,
+              0.08598923563957217,
+              0.24000007331371306
+            ],
+            "highest_seen_z_m": 0.22000007331371307,
+            "fitted_top_z_m": 0.24000007331371306,
+            "points": 9341,
+            "padding_xy_m": 0.015,
+            "padding_z_m": 0.02,
+            "unknown_extension": {
+              "active": false,
+              "directions": [],
+              "border_touches": {
+                "top": false,
+                "bottom": false,
+                "left": false,
+                "right": false
+              },
+              "border_pixel_counts": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "upward_limit_m": 0.6226369142532349,
+              "side_margin_m": 0.1,
+              "bottom_limit_m": 0.0
+            }
+          },
+          "extension": {
+            "active": false,
+            "directions": [],
+            "border_touches": {
+              "top": false,
+              "bottom": false,
+              "left": false,
+              "right": false
+            },
+            "border_pixel_counts": {
+              "top": 0,
+              "bottom": 0,
+              "left": 0,
+              "right": 0
+            },
+            "upward_limit_m": 0.6226369142532349,
+            "side_margin_m": 0.1,
+            "bottom_limit_m": 0.0
+          },
+          "plan_ms": 67.41999485529959,
+          "whole_cycle_ms": 104.64641894213855,
+          "planner_failure_status": null,
+          "current_to_fit_clearance_m": 0.2638015284850098,
+          "advance_rule": "0.020 rad when current-to-fit clearance is below 0.050 m; otherwise 0.050 rad",
+          "advance_joint_length_rad": 0.05,
+          "executed_states": 9,
+          "minimum_true_clearance_m": 0.2658700448162956,
+          "stop_reason": null
+        },
+        {
+          "cycle": 13,
+          "q": [
+            -2.547722101211548,
+            -1.8788602352142334,
+            -0.5958922505378723,
+            1.260146975517273,
+            4.690406799316406,
+            -2.595557689666748
+          ],
+          "capture": {
+            "q": [
+              -2.547722101211548,
+              -1.8788602352142334,
+              -0.5958922505378723,
+              1.260146975517273,
+              4.690406799316406,
+              -2.595557689666748
+            ],
+            "points": 874,
+            "camera_transform": [
+              0.4895743131637573,
+              0.13611531257629395,
+              0.6046213507652283,
+              -0.027303509414196014,
+              -0.17536188662052155,
+              0.7136674523353577,
+              0.6776294112205505
+            ],
+            "metadata": {
+              "id": 13,
+              "output": "/tmp/newton-camera-fifth-tatxjbj2/capture_0013.npz",
+              "points": 874,
+              "highest_seen_z_m": 0.22000004351139069,
+              "capture_ms": 29.82735284604132,
+              "conversion_ms": 27.01174491085112,
+              "obstacle_pixels": 22063,
+              "border_touches": {
+                "top": true,
+                "bottom": false,
+                "left": false,
+                "right": false
+              },
+              "border_pixel_counts": {
+                "top": 82,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "robot_percent": 0.0,
+              "flange_m": [
+                0.3725743293762207,
+                0.12203656136989594,
+                0.6266394853591919
+              ],
+              "wrist_1_center_m": [
+                0.42332783341407776,
+                0.15412139892578125,
+                0.736760139465332
+              ]
+            }
+          },
+          "accumulated_points": 10215,
+          "fit": {
+            "center_m": [
+              0.48700089752674103,
+              0.2610010504722595,
+              0.30231067538261414
+            ],
+            "dims_m": [
+              0.22999834895133975,
+              0.08600219964981082,
+              0.6046213507652283
+            ],
+            "highest_seen_z_m": 0.22000007331371307,
+            "fitted_top_z_m": 0.6046213507652283,
+            "points": 10215,
+            "padding_xy_m": 0.015,
+            "padding_z_m": 0.02,
+            "unknown_extension": {
+              "active": true,
+              "directions": [
+                "top"
+              ],
+              "border_touches": {
+                "top": true,
+                "bottom": false,
+                "left": false,
+                "right": false
+              },
+              "border_pixel_counts": {
+                "top": 82,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "upward_limit_m": 0.6046213507652283,
+              "side_margin_m": 0.1,
+              "bottom_limit_m": 0.0
+            }
+          },
+          "extension": {
+            "active": true,
+            "directions": [
+              "top"
+            ],
+            "border_touches": {
+              "top": true,
+              "bottom": false,
+              "left": false,
+              "right": false
+            },
+            "border_pixel_counts": {
+              "top": 82,
+              "bottom": 0,
+              "left": 0,
+              "right": 0
+            },
+            "upward_limit_m": 0.6046213507652283,
+            "side_margin_m": 0.1,
+            "bottom_limit_m": 0.0
+          },
+          "plan_ms": 66.34379108436406,
+          "whole_cycle_ms": 100.83546722307801,
+          "planner_failure_status": "TRAJOPT_FAILED",
+          "current_to_fit_clearance_m": -0.011120356023311628,
+          "advance_rule": "0.020 rad when current-to-fit clearance is below 0.050 m; otherwise 0.050 rad",
+          "advance_joint_length_rad": 0.02,
+          "executed_states": 0,
+          "minimum_true_clearance_m": null,
+          "stop_reason": "FITTED_BOX_COVERS_CURRENT_STATE"
+        }
+      ]
+    },
+    "top_0.26_m": {
+      "true_top_z_m": 0.26,
+      "source": "mandated",
+      "validity": {
+        "status": "VALID",
+        "valid": true,
+        "start_clearance_m": 0.10350268579250288,
+        "goal_clearance_m": 0.03453064110875129,
+        "along_path_clearance_m": -0.04656716716289519,
+        "reasons": []
+      },
+      "baseline_minimum_true_clearance_m": -0.04656716716289519,
+      "loop": {
+        "goal_reached": false,
+        "cycles": 13,
+        "cycle_cap": 80,
+        "final_stop_reason": "FITTED_BOX_COVERS_CURRENT_STATE",
+        "planner_failure_status": "TRAJOPT_FAILED",
+        "true_collision": false,
+        "minimum_true_clearance_m": 0.10350268579250288,
+        "whole_cycle_median_ms": 113.10037900693715,
+        "whole_cycle_p95_ms": 378.65649997256605,
+        "first_seen_cycle": 1,
+        "clearance_when_first_seen_m": 0.10350273320962408,
+        "extension_active_cycles": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          13
+        ],
+        "motion": {
+          "states": 97,
+          "joint_travel_rad": {
+            "shoulder_pan_joint": 0.15151119232177734,
+            "shoulder_lift_joint": 0.29492318630218506,
+            "elbow_joint": 0.11116313934326172,
+            "wrist_1_joint": 0.11224257946014404,
+            "wrist_2_joint": 0.03526115417480469,
+            "wrist_3_joint": 0.09536004066467285
+          },
+          "max_wrist_3_change_from_start_rad": 0.09535622596740723,
+          "tool_path_length_m": 0.22969220578670502,
+          "endpoint_straight_line_distance_m": 0.17338261008262634,
+          "tool_path_over_straight_line": 1.324770723414788,
+          "start_tool_m": [
+            0.48799973726272583,
+            0.11599983274936676,
+            0.500999927520752
+          ],
+          "end_tool_m": [
+            0.3688499927520752,
+            0.12469717115163803,
+            0.626655101776123
+          ]
+        }
+      },
+      "first_frame": {
+        "points": 833,
+        "lowest_seen_z_m": 0.013870082795619965,
+        "highest_seen_z_m": 0.2600000202655792,
+        "true_vertical_fraction_seen": 0.9845196688175202,
+        "obstacle_pixels": 67984,
+        "border_touches": {
+          "top": true,
+          "bottom": false,
+          "left": false,
+          "right": false
+        }
+      },
+      "cycles": [
+        {
+          "cycle": 1,
+          "q": [
+            -2.688859224319458,
+            -2.095384120941162,
+            -0.7184052467346191,
+            1.2429931163787842,
+            4.71238899230957,
+            -2.688859224319458
+          ],
+          "capture": {
+            "q": [
+              -2.688859224319458,
+              -2.095384120941162,
+              -0.7184052467346191,
+              1.2429931163787842,
+              4.71238899230957,
+              -2.688859224319458
+            ],
+            "points": 833,
+            "camera_transform": [
+              0.5939996838569641,
+              0.11599995940923691,
+              0.4449998736381531,
+              4.2017056500753824e-08,
+              2.887311012500504e-08,
+              0.7071070075035095,
+              0.7071065306663513
+            ],
+            "metadata": {
+              "id": 14,
+              "output": "/tmp/newton-camera-fifth-tatxjbj2/capture_0014.npz",
+              "points": 833,
+              "highest_seen_z_m": 0.2600000202655792,
+              "capture_ms": 94.41824606619775,
+              "conversion_ms": 62.5168988481164,
+              "obstacle_pixels": 67984,
+              "border_touches": {
+                "top": true,
+                "bottom": false,
+                "left": false,
+                "right": false
+              },
+              "border_pixel_counts": {
+                "top": 279,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "robot_percent": 0.0,
+              "flange_m": [
+                0.48799967765808105,
+                0.11599987745285034,
+                0.5009998679161072
+              ],
+              "wrist_1_center_m": [
+                0.5731141567230225,
+                0.1574021875858307,
+                0.5832998752593994
+              ]
+            }
+          },
+          "accumulated_points": 833,
+          "fit": {
+            "center_m": [
+              0.4870349168777466,
+              0.2607770040631294,
+              0.22249993681907654
+            ],
+            "dims_m": [
+              0.2299301910400391,
+              0.08555407702922824,
+              0.4449998736381531
+            ],
+            "highest_seen_z_m": 0.2600000202655792,
+            "fitted_top_z_m": 0.4449998736381531,
+            "points": 833,
+            "padding_xy_m": 0.015,
+            "padding_z_m": 0.02,
+            "unknown_extension": {
+              "active": true,
+              "directions": [
+                "top"
+              ],
+              "border_touches": {
+                "top": true,
+                "bottom": false,
+                "left": false,
+                "right": false
+              },
+              "border_pixel_counts": {
+                "top": 279,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "upward_limit_m": 0.4449998736381531,
+              "side_margin_m": 0.1,
+              "bottom_limit_m": 0.0
+            }
+          },
+          "extension": {
+            "active": true,
+            "directions": [
+              "top"
+            ],
+            "border_touches": {
+              "top": true,
+              "bottom": false,
+              "left": false,
+              "right": false
+            },
+            "border_pixel_counts": {
+              "top": 279,
+              "bottom": 0,
+              "left": 0,
+              "right": 0
+            },
+            "upward_limit_m": 0.4449998736381531,
+            "side_margin_m": 0.1,
+            "bottom_limit_m": 0.0
+          },
+          "plan_ms": 64.16858197189867,
+          "whole_cycle_ms": 751.8727991264313,
+          "planner_failure_status": null,
+          "current_to_fit_clearance_m": 0.014833681881427752,
+          "advance_rule": "0.020 rad when current-to-fit clearance is below 0.050 m; otherwise 0.050 rad",
+          "advance_joint_length_rad": 0.02,
+          "executed_states": 9,
+          "minimum_true_clearance_m": 0.10350268579250288,
+          "stop_reason": null
+        },
+        {
+          "cycle": 2,
+          "q": [
+            -2.6829187870025635,
+            -2.073455333709717,
+            -0.6981649398803711,
+            1.2517404556274414,
+            4.713760852813721,
+            -2.6827409267425537
+          ],
+          "capture": {
+            "q": [
+              -2.6829187870025635,
+              -2.073455333709717,
+              -0.6981649398803711,
+              1.2517404556274414,
+              4.713760852813721,
+              -2.6827409267425537
+            ],
+            "points": 792,
+            "camera_transform": [
+              0.587346076965332,
+              0.11572536081075668,
+              0.46538540720939636,
+              -0.008817055262625217,
+              -0.023889539763331413,
+              0.706802487373352,
+              0.7069523930549622
+            ],
+            "metadata": {
+              "id": 15,
+              "output": "/tmp/newton-camera-fifth-tatxjbj2/capture_0015.npz",
+              "points": 792,
+              "highest_seen_z_m": 0.2600000500679016,
+              "capture_ms": 57.974145049229264,
+              "conversion_ms": 54.65780314989388,
+              "obstacle_pixels": 56788,
+              "border_touches": {
+                "top": true,
+                "bottom": false,
+                "left": false,
+                "right": false
+              },
+              "border_pixel_counts": {
+                "top": 248,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "robot_percent": 0.0,
+              "flange_m": [
+                0.4788699448108673,
+                0.11460705101490021,
+                0.5164116621017456
+              ],
+              "wrist_1_center_m": [
+                0.5598213076591492,
+                0.15470662713050842,
+                0.6034220457077026
+              ]
+            }
+          },
+          "accumulated_points": 1625,
+          "fit": {
+            "center_m": [
+              0.4870349168777466,
+              0.2607770040631294,
+              0.23269270360469818
+            ],
+            "dims_m": [
+              0.2299301910400391,
+              0.08555407702922824,
+              0.46538540720939636
+            ],
+            "highest_seen_z_m": 0.2600000500679016,
+            "fitted_top_z_m": 0.46538540720939636,
+            "points": 1625,
+            "padding_xy_m": 0.015,
+            "padding_z_m": 0.02,
+            "unknown_extension": {
+              "active": true,
+              "directions": [
+                "top"
+              ],
+              "border_touches": {
+                "top": true,
+                "bottom": false,
+                "left": false,
+                "right": false
+              },
+              "border_pixel_counts": {
+                "top": 248,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "upward_limit_m": 0.46538540720939636,
+              "side_margin_m": 0.1,
+              "bottom_limit_m": 0.0
+            }
+          },
+          "extension": {
+            "active": true,
+            "directions": [
+              "top"
+            ],
+            "border_touches": {
+              "top": true,
+              "bottom": false,
+              "left": false,
+              "right": false
+            },
+            "border_pixel_counts": {
+              "top": 248,
+              "bottom": 0,
+              "left": 0,
+              "right": 0
+            },
+            "upward_limit_m": 0.46538540720939636,
+            "side_margin_m": 0.1,
+            "bottom_limit_m": 0.0
+          },
+          "plan_ms": 65.43635996058583,
+          "whole_cycle_ms": 129.8456338699907,
+          "planner_failure_status": null,
+          "current_to_fit_clearance_m": 0.014088847339153276,
+          "advance_rule": "0.020 rad when current-to-fit clearance is below 0.050 m; otherwise 0.050 rad",
+          "advance_joint_length_rad": 0.02,
+          "executed_states": 9,
+          "minimum_true_clearance_m": 0.11612315084828279,
+          "stop_reason": null
+        },
+        {
+          "cycle": 3,
+          "q": [
+            -2.676999568939209,
+            -2.0516648292541504,
+            -0.6775227785110474,
+            1.2617703676223755,
+            4.715679168701172,
+            -2.676833391189575
+          ],
+          "capture": {
+            "q": [
+              -2.676999568939209,
+              -2.0516648292541504,
+              -0.6775227785110474,
+              1.2617703676223755,
+              4.715679168701172,
+              -2.676833391189575
+            ],
+            "points": 786,
+            "camera_transform": [
+              0.5802549123764038,
+              0.1150708869099617,
+              0.4857860505580902,
+              -0.017847076058387756,
+              -0.048513855785131454,
+              0.7060426473617554,
+              0.7062798142433167
+            ],
+            "metadata": {
+              "id": 16,
+              "output": "/tmp/newton-camera-fifth-tatxjbj2/capture_0016.npz",
+              "points": 786,
+              "highest_seen_z_m": 0.2600000500679016,
+              "capture_ms": 50.68720201961696,
+              "conversion_ms": 47.629645094275475,
+              "obstacle_pixels": 48259,
+              "border_touches": {
+                "top": true,
+                "bottom": false,
+                "left": false,
+                "right": false
+              },
+              "border_pixel_counts": {
+                "top": 225,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "robot_percent": 0.0,
+              "flange_m": [
+                0.46947285532951355,
+                0.11289748549461365,
+                0.5315529108047485
+              ],
+              "wrist_1_center_m": [
+                0.5459245443344116,
+                0.1515166312456131,
+                0.6231804490089417
+              ]
+            }
+          },
+          "accumulated_points": 2411,
+          "fit": {
+            "center_m": [
+              0.4870349168777466,
+              0.2607770040631294,
+              0.2428930252790451
+            ],
+            "dims_m": [
+              0.2299301910400391,
+              0.08555407702922824,
+              0.4857860505580902
+            ],
+            "highest_seen_z_m": 0.2600000500679016,
+            "fitted_top_z_m": 0.4857860505580902,
+            "points": 2411,
+            "padding_xy_m": 0.015,
+            "padding_z_m": 0.02,
+            "unknown_extension": {
+              "active": true,
+              "directions": [
+                "top"
+              ],
+              "border_touches": {
+                "top": true,
+                "bottom": false,
+                "left": false,
+                "right": false
+              },
+              "border_pixel_counts": {
+                "top": 225,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "upward_limit_m": 0.4857860505580902,
+              "side_margin_m": 0.1,
+              "bottom_limit_m": 0.0
+            }
+          },
+          "extension": {
+            "active": true,
+            "directions": [
+              "top"
+            ],
+            "border_touches": {
+              "top": true,
+              "bottom": false,
+              "left": false,
+              "right": false
+            },
+            "border_pixel_counts": {
+              "top": 225,
+              "bottom": 0,
+              "left": 0,
+              "right": 0
+            },
+            "upward_limit_m": 0.4857860505580902,
+            "side_margin_m": 0.1,
+            "bottom_limit_m": 0.0
+          },
+          "plan_ms": 67.2870131675154,
+          "whole_cycle_ms": 124.41515503451228,
+          "planner_failure_status": null,
+          "current_to_fit_clearance_m": 0.01362373739480971,
+          "advance_rule": "0.020 rad when current-to-fit clearance is below 0.050 m; otherwise 0.050 rad",
+          "advance_joint_length_rad": 0.02,
+          "executed_states": 9,
+          "minimum_true_clearance_m": 0.12983895226922945,
+          "stop_reason": null
+        },
+        {
+          "cycle": 4,
+          "q": [
+            -2.6715667247772217,
+            -2.030155897140503,
+            -0.6570104360580444,
+            1.2718088626861572,
+            4.716585636138916,
+            -2.6706323623657227
+          ],
+          "capture": {
+            "q": [
+              -2.6715667247772217,
+              -2.030155897140503,
+              -0.6570104360580444,
+              1.2718088626861572,
+              4.716585636138916,
+              -2.6706323623657227
+            ],
+            "points": 778,
+            "camera_transform": [
+              0.5725960731506348,
+              0.11385440826416016,
+              0.5058175325393677,
+              -0.026036538183689117,
+              -0.07317507266998291,
+              0.7045263051986694,
+              0.705414891242981
+            ],
+            "metadata": {
+              "id": 17,
+              "output": "/tmp/newton-camera-fifth-tatxjbj2/capture_0017.npz",
+              "points": 778,
+              "highest_seen_z_m": 0.25999999046325684,
+              "capture_ms": 45.606514904648066,
+              "conversion_ms": 42.27811493910849,
+              "obstacle_pixels": 41465,
+              "border_touches": {
+                "top": true,
+                "bottom": false,
+                "left": false,
+                "right": false
+              },
+              "border_pixel_counts": {
+                "top": 208,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "robot_percent": 0.0,
+              "flange_m": [
+                0.4598037302494049,
+                0.1107659637928009,
+                0.546318769454956
+              ],
+              "wrist_1_center_m": [
+                0.5316563844680786,
+                0.14765438437461853,
+                0.6422789096832275
+              ]
+            }
+          },
+          "accumulated_points": 3189,
+          "fit": {
+            "center_m": [
+              0.4870349168777466,
+              0.26080114394426346,
+              0.25290876626968384
+            ],
+            "dims_m": [
+              0.2299301910400391,
+              0.0856023567914963,
+              0.5058175325393677
+            ],
+            "highest_seen_z_m": 0.2600000500679016,
+            "fitted_top_z_m": 0.5058175325393677,
+            "points": 3189,
+            "padding_xy_m": 0.015,
+            "padding_z_m": 0.02,
+            "unknown_extension": {
+              "active": true,
+              "directions": [
+                "top"
+              ],
+              "border_touches": {
+                "top": true,
+                "bottom": false,
+                "left": false,
+                "right": false
+              },
+              "border_pixel_counts": {
+                "top": 208,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "upward_limit_m": 0.5058175325393677,
+              "side_margin_m": 0.1,
+              "bottom_limit_m": 0.0
+            }
+          },
+          "extension": {
+            "active": true,
+            "directions": [
+              "top"
+            ],
+            "border_touches": {
+              "top": true,
+              "bottom": false,
+              "left": false,
+              "right": false
+            },
+            "border_pixel_counts": {
+              "top": 208,
+              "bottom": 0,
+              "left": 0,
+              "right": 0
+            },
+            "upward_limit_m": 0.5058175325393677,
+            "side_margin_m": 0.1,
+            "bottom_limit_m": 0.0
+          },
+          "plan_ms": 68.43667989596725,
+          "whole_cycle_ms": 121.29636015743017,
+          "planner_failure_status": null,
+          "current_to_fit_clearance_m": 0.013507955372333513,
+          "advance_rule": "0.020 rad when current-to-fit clearance is below 0.050 m; otherwise 0.050 rad",
+          "advance_joint_length_rad": 0.02,
+          "executed_states": 9,
+          "minimum_true_clearance_m": 0.14434895976654444,
+          "stop_reason": null
+        },
+        {
+          "cycle": 5,
+          "q": [
+            -2.664402484893799,
+            -2.005218029022217,
+            -0.639461874961853,
+            1.2764172554016113,
+            4.7140398025512695,
+            -2.6618475914001465
+          ],
+          "capture": {
+            "q": [
+              -2.664402484893799,
+              -2.005218029022217,
+              -0.639461874961853,
+              1.2764172554016113,
+              4.7140398025512695,
+              -2.6618475914001465
+            ],
+            "points": 789,
+            "camera_transform": [
+              0.5620526671409607,
+              0.11239553987979889,
+              0.5261555314064026,
+              -0.0313265323638916,
+              -0.09612110257148743,
+              0.7025259733200073,
+              0.704440712928772
+            ],
+            "metadata": {
+              "id": 18,
+              "output": "/tmp/newton-camera-fifth-tatxjbj2/capture_0018.npz",
+              "points": 789,
+              "highest_seen_z_m": 0.25999999046325684,
+              "capture_ms": 41.18407191708684,
+              "conversion_ms": 38.11686090193689,
+              "obstacle_pixels": 36712,
+              "border_touches": {
+                "top": true,
+                "bottom": false,
+                "left": false,
+                "right": false
+              },
+              "border_pixel_counts": {
+                "top": 193,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "robot_percent": 0.0,
+              "flange_m": [
+                0.44772621989250183,
+                0.10846492648124695,
+                0.5620166063308716
+              ],
+              "wrist_1_center_m": [
+                0.5153164863586426,
+                0.14356502890586853,
+                0.661673367023468
+              ]
+            }
+          },
+          "accumulated_points": 3978,
+          "fit": {
+            "center_m": [
+              0.4870349168777466,
+              0.2608321085572243,
+              0.2630777657032013
+            ],
+            "dims_m": [
+              0.2299301910400391,
+              0.08566428601741793,
+              0.5261555314064026
+            ],
+            "highest_seen_z_m": 0.2600000500679016,
+            "fitted_top_z_m": 0.5261555314064026,
+            "points": 3978,
+            "padding_xy_m": 0.015,
+            "padding_z_m": 0.02,
+            "unknown_extension": {
+              "active": true,
+              "directions": [
+                "top"
+              ],
+              "border_touches": {
+                "top": true,
+                "bottom": false,
+                "left": false,
+                "right": false
+              },
+              "border_pixel_counts": {
+                "top": 193,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "upward_limit_m": 0.5261555314064026,
+              "side_margin_m": 0.1,
+              "bottom_limit_m": 0.0
+            }
+          },
+          "extension": {
+            "active": true,
+            "directions": [
+              "top"
+            ],
+            "border_touches": {
+              "top": true,
+              "bottom": false,
+              "left": false,
+              "right": false
+            },
+            "border_pixel_counts": {
+              "top": 193,
+              "bottom": 0,
+              "left": 0,
+              "right": 0
+            },
+            "upward_limit_m": 0.5261555314064026,
+            "side_margin_m": 0.1,
+            "bottom_limit_m": 0.0
+          },
+          "plan_ms": 68.98880400694907,
+          "whole_cycle_ms": 116.76855105906725,
+          "planner_failure_status": null,
+          "current_to_fit_clearance_m": 0.013460063040256487,
+          "advance_rule": "0.020 rad when current-to-fit clearance is below 0.050 m; otherwise 0.050 rad",
+          "advance_joint_length_rad": 0.02,
+          "executed_states": 9,
+          "minimum_true_clearance_m": 0.16044907145959478,
+          "stop_reason": null
+        },
+        {
+          "cycle": 6,
+          "q": [
+            -2.653175115585327,
+            -1.9778249263763428,
+            -0.6264723539352417,
+            1.2740123271942139,
+            4.710400581359863,
+            -2.6520979404449463
+          ],
+          "capture": {
+            "q": [
+              -2.653175115585327,
+              -1.9778249263763428,
+              -0.6264723539352417,
+              1.2740123271942139,
+              4.710400581359863,
+              -2.6520979404449463
+            ],
+            "points": 826,
+            "camera_transform": [
+              0.5488009452819824,
+              0.11188101768493652,
+              0.5455195903778076,
+              -0.03410037234425545,
+              -0.11502155661582947,
+              0.7017061710357666,
+              0.7022931575775146
+            ],
+            "metadata": {
+              "id": 19,
+              "output": "/tmp/newton-camera-fifth-tatxjbj2/capture_0019.npz",
+              "points": 826,
+              "highest_seen_z_m": 0.2600000202655792,
+              "capture_ms": 38.967033848166466,
+              "conversion_ms": 35.992862889543176,
+              "obstacle_pixels": 33794,
+              "border_touches": {
+                "top": true,
+                "bottom": false,
+                "left": false,
+                "right": false
+              },
+              "border_pixel_counts": {
+                "top": 175,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "robot_percent": 0.0,
+              "flange_m": [
+                0.433430939912796,
+                0.10689004510641098,
+                0.5777197480201721
+              ],
+              "wrist_1_center_m": [
+                0.49737346172332764,
+                0.14068105816841125,
+                0.6801962852478027
+              ]
+            }
+          },
+          "accumulated_points": 4804,
+          "fit": {
+            "center_m": [
+              0.4870349168777466,
+              0.2608321085572243,
+              0.2727597951889038
+            ],
+            "dims_m": [
+              0.2299301910400391,
+              0.08566428601741793,
+              0.5455195903778076
+            ],
+            "highest_seen_z_m": 0.2600000500679016,
+            "fitted_top_z_m": 0.5455195903778076,
+            "points": 4804,
+            "padding_xy_m": 0.015,
+            "padding_z_m": 0.02,
+            "unknown_extension": {
+              "active": true,
+              "directions": [
+                "top"
+              ],
+              "border_touches": {
+                "top": true,
+                "bottom": false,
+                "left": false,
+                "right": false
+              },
+              "border_pixel_counts": {
+                "top": 175,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "upward_limit_m": 0.5455195903778076,
+              "side_margin_m": 0.1,
+              "bottom_limit_m": 0.0
+            }
+          },
+          "extension": {
+            "active": true,
+            "directions": [
+              "top"
+            ],
+            "border_touches": {
+              "top": true,
+              "bottom": false,
+              "left": false,
+              "right": false
+            },
+            "border_pixel_counts": {
+              "top": 175,
+              "bottom": 0,
+              "left": 0,
+              "right": 0
+            },
+            "upward_limit_m": 0.5455195903778076,
+            "side_margin_m": 0.1,
+            "bottom_limit_m": 0.0
+          },
+          "plan_ms": 67.47963395901024,
+          "whole_cycle_ms": 113.10037900693715,
+          "planner_failure_status": null,
+          "current_to_fit_clearance_m": 0.01291110426187514,
+          "advance_rule": "0.020 rad when current-to-fit clearance is below 0.050 m; otherwise 0.050 rad",
+          "advance_joint_length_rad": 0.02,
+          "executed_states": 9,
+          "minimum_true_clearance_m": 0.17666799844170752,
+          "stop_reason": null
+        },
+        {
+          "cycle": 7,
+          "q": [
+            -2.641420841217041,
+            -1.9499205350875854,
+            -0.6224421262741089,
+            1.2651708126068115,
+            4.706952095031738,
+            -2.645425319671631
+          ],
+          "capture": {
+            "q": [
+              -2.641420841217041,
+              -1.9499205350875854,
+              -0.6224421262741089,
+              1.2651708126068115,
+              4.706952095031738,
+              -2.645425319671631
+            ],
+            "points": 876,
+            "camera_transform": [
+              0.5346071720123291,
+              0.11114020645618439,
+              0.5612368583679199,
+              -0.0346464142203331,
+              -0.12679988145828247,
+              0.702625572681427,
+              0.6993128061294556
+            ],
+            "metadata": {
+              "id": 20,
+              "output": "/tmp/newton-camera-fifth-tatxjbj2/capture_0020.npz",
+              "points": 876,
+              "highest_seen_z_m": 0.2600000202655792,
+              "capture_ms": 38.25727081857622,
+              "conversion_ms": 34.435722045600414,
+              "obstacle_pixels": 32785,
+              "border_touches": {
+                "top": true,
+                "bottom": false,
+                "left": false,
+                "right": false
+              },
+              "border_pixel_counts": {
+                "top": 158,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "robot_percent": 0.0,
+              "flange_m": [
+                0.41871345043182373,
+                0.1049601286649704,
+                0.5912774801254272
+              ],
+              "wrist_1_center_m": [
+                0.48029738664627075,
+                0.13810741901397705,
+                0.6953956484794617
+              ]
+            }
+          },
+          "accumulated_points": 5680,
+          "fit": {
+            "center_m": [
+              0.4870031327009201,
+              0.2608830854296684,
+              0.28061842918395996
+            ],
+            "dims_m": [
+              0.22999375939369204,
+              0.08576623976230624,
+              0.5612368583679199
+            ],
+            "highest_seen_z_m": 0.2600000500679016,
+            "fitted_top_z_m": 0.5612368583679199,
+            "points": 5680,
+            "padding_xy_m": 0.015,
+            "padding_z_m": 0.02,
+            "unknown_extension": {
+              "active": true,
+              "directions": [
+                "top"
+              ],
+              "border_touches": {
+                "top": true,
+                "bottom": false,
+                "left": false,
+                "right": false
+              },
+              "border_pixel_counts": {
+                "top": 158,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "upward_limit_m": 0.5612368583679199,
+              "side_margin_m": 0.1,
+              "bottom_limit_m": 0.0
+            }
+          },
+          "extension": {
+            "active": true,
+            "directions": [
+              "top"
+            ],
+            "border_touches": {
+              "top": true,
+              "bottom": false,
+              "left": false,
+              "right": false
+            },
+            "border_pixel_counts": {
+              "top": 158,
+              "bottom": 0,
+              "left": 0,
+              "right": 0
+            },
+            "upward_limit_m": 0.5612368583679199,
+            "side_margin_m": 0.1,
+            "bottom_limit_m": 0.0
+          },
+          "plan_ms": 66.6938980575651,
+          "whole_cycle_ms": 111.63387889973819,
+          "planner_failure_status": null,
+          "current_to_fit_clearance_m": 0.013342597186565386,
+          "advance_rule": "0.020 rad when current-to-fit clearance is below 0.050 m; otherwise 0.050 rad",
+          "advance_joint_length_rad": 0.02,
+          "executed_states": 9,
+          "minimum_true_clearance_m": 0.19085397271115204,
+          "stop_reason": null
+        },
+        {
+          "cycle": 8,
+          "q": [
+            -2.630561113357544,
+            -1.923048496246338,
+            -0.617362380027771,
+            1.2562588453292847,
+            4.703075885772705,
+            -2.638408660888672
+          ],
+          "capture": {
+            "q": [
+              -2.630561113357544,
+              -1.923048496246338,
+              -0.617362380027771,
+              1.2562588453292847,
+              4.703075885772705,
+              -2.638408660888672
+            ],
+            "points": 922,
+            "camera_transform": [
+              0.5205227136611938,
+              0.10960409790277481,
+              0.5763129591941833,
+              -0.03480590507388115,
+              -0.13860121369361877,
+              0.7030583620071411,
+              0.6966253519058228
+            ],
+            "metadata": {
+              "id": 21,
+              "output": "/tmp/newton-camera-fifth-tatxjbj2/capture_0021.npz",
+              "points": 922,
+              "highest_seen_z_m": 0.2600000202655792,
+              "capture_ms": 37.544565042480826,
+              "conversion_ms": 34.520453074947,
+              "obstacle_pixels": 31659,
+              "border_touches": {
+                "top": true,
+                "bottom": false,
+                "left": false,
+                "right": false
+              },
+              "border_pixel_counts": {
+                "top": 141,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "robot_percent": 0.0,
+              "flange_m": [
+                0.40415993332862854,
+                0.10235930234193802,
+                0.6042271256446838
+              ],
+              "wrist_1_center_m": [
+                0.4634284973144531,
+                0.1347132921218872,
+                0.7099266052246094
+              ]
+            }
+          },
+          "accumulated_points": 6602,
+          "fit": {
+            "center_m": [
+              0.4870028793811798,
+              0.2608830854296684,
+              0.2881564795970917
+            ],
+            "dims_m": [
+              0.22999426603317263,
+              0.08576623976230624,
+              0.5763129591941833
+            ],
+            "highest_seen_z_m": 0.2600000500679016,
+            "fitted_top_z_m": 0.5763129591941833,
+            "points": 6602,
+            "padding_xy_m": 0.015,
+            "padding_z_m": 0.02,
+            "unknown_extension": {
+              "active": true,
+              "directions": [
+                "top"
+              ],
+              "border_touches": {
+                "top": true,
+                "bottom": false,
+                "left": false,
+                "right": false
+              },
+              "border_pixel_counts": {
+                "top": 141,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "upward_limit_m": 0.5763129591941833,
+              "side_margin_m": 0.1,
+              "bottom_limit_m": 0.0
+            }
+          },
+          "extension": {
+            "active": true,
+            "directions": [
+              "top"
+            ],
+            "border_touches": {
+              "top": true,
+              "bottom": false,
+              "left": false,
+              "right": false
+            },
+            "border_pixel_counts": {
+              "top": 141,
+              "bottom": 0,
+              "left": 0,
+              "right": 0
+            },
+            "upward_limit_m": 0.5763129591941833,
+            "side_margin_m": 0.1,
+            "bottom_limit_m": 0.0
+          },
+          "plan_ms": 67.16238684020936,
+          "whole_cycle_ms": 112.33257898129523,
+          "planner_failure_status": null,
+          "current_to_fit_clearance_m": 0.01442106872797011,
+          "advance_rule": "0.020 rad when current-to-fit clearance is below 0.050 m; otherwise 0.050 rad",
+          "advance_joint_length_rad": 0.02,
+          "executed_states": 9,
+          "minimum_true_clearance_m": 0.20485632182571975,
+          "stop_reason": null
+        },
+        {
+          "cycle": 9,
+          "q": [
+            -2.618800640106201,
+            -1.8979265689849854,
+            -0.6149623990058899,
+            1.2473366260528564,
+            4.699344158172607,
+            -2.6324703693389893
+          ],
+          "capture": {
+            "q": [
+              -2.618800640106201,
+              -1.8979265689849854,
+              -0.6149623990058899,
+              1.2473366260528564,
+              4.699344158172607,
+              -2.6324703693389893
+            ],
+            "points": 961,
+            "camera_transform": [
+              0.5070415139198303,
+              0.10867524147033691,
+              0.5891337990760803,
+              -0.03425454720854759,
+              -0.14825770258903503,
+              0.704329252243042,
+              0.6933732628822327
+            ],
+            "metadata": {
+              "id": 22,
+              "output": "/tmp/newton-camera-fifth-tatxjbj2/capture_0022.npz",
+              "points": 961,
+              "highest_seen_z_m": 0.2600000202655792,
+              "capture_ms": 37.13878197595477,
+              "conversion_ms": 34.09852203913033,
+              "obstacle_pixels": 30852,
+              "border_touches": {
+                "top": true,
+                "bottom": false,
+                "left": false,
+                "right": false
+              },
+              "border_pixel_counts": {
+                "top": 123,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "robot_percent": 0.0,
+              "flange_m": [
+                0.39036962389945984,
+                0.10022240877151489,
+                0.6153678297996521
+              ],
+              "wrist_1_center_m": [
+                0.44769442081451416,
+                0.13201822340488434,
+                0.7223014831542969
+              ]
+            }
+          },
+          "accumulated_points": 7563,
+          "fit": {
+            "center_m": [
+              0.48700082302093506,
+              0.260917991399765,
+              0.29456689953804016
+            ],
+            "dims_m": [
+              0.22999837875366214,
+              0.0858360815048218,
+              0.5891337990760803
+            ],
+            "highest_seen_z_m": 0.2600000500679016,
+            "fitted_top_z_m": 0.5891337990760803,
+            "points": 7563,
+            "padding_xy_m": 0.015,
+            "padding_z_m": 0.02,
+            "unknown_extension": {
+              "active": true,
+              "directions": [
+                "top"
+              ],
+              "border_touches": {
+                "top": true,
+                "bottom": false,
+                "left": false,
+                "right": false
+              },
+              "border_pixel_counts": {
+                "top": 123,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "upward_limit_m": 0.5891337990760803,
+              "side_margin_m": 0.1,
+              "bottom_limit_m": 0.0
+            }
+          },
+          "extension": {
+            "active": true,
+            "directions": [
+              "top"
+            ],
+            "border_touches": {
+              "top": true,
+              "bottom": false,
+              "left": false,
+              "right": false
+            },
+            "border_pixel_counts": {
+              "top": 123,
+              "bottom": 0,
+              "left": 0,
+              "right": 0
+            },
+            "upward_limit_m": 0.5891337990760803,
+            "side_margin_m": 0.1,
+            "bottom_limit_m": 0.0
+          },
+          "plan_ms": 69.33435285463929,
+          "whole_cycle_ms": 113.94017492420971,
+          "planner_failure_status": null,
+          "current_to_fit_clearance_m": 0.015211649835109697,
+          "advance_rule": "0.020 rad when current-to-fit clearance is below 0.050 m; otherwise 0.050 rad",
+          "advance_joint_length_rad": 0.02,
+          "executed_states": 9,
+          "minimum_true_clearance_m": 0.21691572897024178,
+          "stop_reason": null
+        },
+        {
+          "cycle": 10,
+          "q": [
+            -2.6060538291931152,
+            -1.8754569292068481,
+            -0.6131376028060913,
+            1.239311933517456,
+            4.695671558380127,
+            -2.6267075538635254
+          ],
+          "capture": {
+            "q": [
+              -2.6060538291931152,
+              -1.8754569292068481,
+              -0.6131376028060913,
+              1.239311933517456,
+              4.695671558380127,
+              -2.6267075538635254
+            ],
+            "points": 990,
+            "camera_transform": [
+              0.494586706161499,
+              0.10856015235185623,
+              0.6001279354095459,
+              -0.033204007893800735,
+              -0.15679502487182617,
+              0.7060720920562744,
+              0.6897643804550171
+            ],
+            "metadata": {
+              "id": 23,
+              "output": "/tmp/newton-camera-fifth-tatxjbj2/capture_0023.npz",
+              "points": 990,
+              "highest_seen_z_m": 0.2600000202655792,
+              "capture_ms": 36.35115409269929,
+              "conversion_ms": 33.19541900418699,
+              "obstacle_pixels": 30104,
+              "border_touches": {
+                "top": true,
+                "bottom": false,
+                "left": false,
+                "right": false
+              },
+              "border_pixel_counts": {
+                "top": 105,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "robot_percent": 0.0,
+              "flange_m": [
+                0.3777027130126953,
+                0.09880214184522629,
+                0.6249253153800964
+              ],
+              "wrist_1_center_m": [
+                0.4332694113254547,
+                0.1301746666431427,
+                0.7329068779945374
+              ]
+            }
+          },
+          "accumulated_points": 8553,
+          "fit": {
+            "center_m": [
+              0.48700082302093506,
+              0.26100562512874603,
+              0.30006396770477295
+            ],
+            "dims_m": [
+              0.22999837875366214,
+              0.08601134896278384,
+              0.6001279354095459
+            ],
+            "highest_seen_z_m": 0.2600000500679016,
+            "fitted_top_z_m": 0.6001279354095459,
+            "points": 8553,
+            "padding_xy_m": 0.015,
+            "padding_z_m": 0.02,
+            "unknown_extension": {
+              "active": true,
+              "directions": [
+                "top"
+              ],
+              "border_touches": {
+                "top": true,
+                "bottom": false,
+                "left": false,
+                "right": false
+              },
+              "border_pixel_counts": {
+                "top": 105,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "upward_limit_m": 0.6001279354095459,
+              "side_margin_m": 0.1,
+              "bottom_limit_m": 0.0
+            }
+          },
+          "extension": {
+            "active": true,
+            "directions": [
+              "top"
+            ],
+            "border_touches": {
+              "top": true,
+              "bottom": false,
+              "left": false,
+              "right": false
+            },
+            "border_pixel_counts": {
+              "top": 105,
+              "bottom": 0,
+              "left": 0,
+              "right": 0
+            },
+            "upward_limit_m": 0.6001279354095459,
+            "side_margin_m": 0.1,
+            "bottom_limit_m": 0.0
+          },
+          "plan_ms": 68.33231216296554,
+          "whole_cycle_ms": 112.02183086425066,
+          "planner_failure_status": null,
+          "current_to_fit_clearance_m": 0.01536401420831679,
+          "advance_rule": "0.020 rad when current-to-fit clearance is below 0.050 m; otherwise 0.050 rad",
+          "advance_joint_length_rad": 0.02,
+          "executed_states": 9,
+          "minimum_true_clearance_m": 0.22723321676943517,
+          "stop_reason": null
+        },
+        {
+          "cycle": 11,
+          "q": [
+            -2.5907111167907715,
+            -1.8545676469802856,
+            -0.6107296943664551,
+            1.2320969104766846,
+            4.691679954528809,
+            -2.6210813522338867
+          ],
+          "capture": {
+            "q": [
+              -2.5907111167907715,
+              -1.8545676469802856,
+              -0.6107296943664551,
+              1.2320969104766846,
+              4.691679954528809,
+              -2.6210813522338867
+            ],
+            "points": 1009,
+            "camera_transform": [
+              0.4824378490447998,
+              0.10977530479431152,
+              0.6102883815765381,
+              -0.03162189573049545,
+              -0.1653009057044983,
+              0.7087345719337463,
+              0.6851065754890442
+            ],
+            "metadata": {
+              "id": 24,
+              "output": "/tmp/newton-camera-fifth-tatxjbj2/capture_0024.npz",
+              "points": 1009,
+              "highest_seen_z_m": 0.2600000202655792,
+              "capture_ms": 37.08493011072278,
+              "conversion_ms": 33.05830084718764,
+              "obstacle_pixels": 29149,
+              "border_touches": {
+                "top": true,
+                "bottom": false,
+                "left": false,
+                "right": false
+              },
+              "border_pixel_counts": {
+                "top": 83,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "robot_percent": 0.0,
+              "flange_m": [
+                0.3654136061668396,
+                0.09837983548641205,
+                0.6336864829063416
+              ],
+              "wrist_1_center_m": [
+                0.4191794693470001,
+                0.1294090747833252,
+                0.7426742911338806
+              ]
+            }
+          },
+          "accumulated_points": 9562,
+          "fit": {
+            "center_m": [
+              0.48700082302093506,
+              0.26100562512874603,
+              0.30514419078826904
+            ],
+            "dims_m": [
+              0.22999837875366214,
+              0.08601134896278384,
+              0.6102883815765381
+            ],
+            "highest_seen_z_m": 0.2600000500679016,
+            "fitted_top_z_m": 0.6102883815765381,
+            "points": 9562,
+            "padding_xy_m": 0.015,
+            "padding_z_m": 0.02,
+            "unknown_extension": {
+              "active": true,
+              "directions": [
+                "top"
+              ],
+              "border_touches": {
+                "top": true,
+                "bottom": false,
+                "left": false,
+                "right": false
+              },
+              "border_pixel_counts": {
+                "top": 83,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "upward_limit_m": 0.6102883815765381,
+              "side_margin_m": 0.1,
+              "bottom_limit_m": 0.0
+            }
+          },
+          "extension": {
+            "active": true,
+            "directions": [
+              "top"
+            ],
+            "border_touches": {
+              "top": true,
+              "bottom": false,
+              "left": false,
+              "right": false
+            },
+            "border_pixel_counts": {
+              "top": 83,
+              "bottom": 0,
+              "left": 0,
+              "right": 0
+            },
+            "upward_limit_m": 0.6102883815765381,
+            "side_margin_m": 0.1,
+            "bottom_limit_m": 0.0
+          },
+          "plan_ms": 66.86123018153012,
+          "whole_cycle_ms": 111.27505614422262,
+          "planner_failure_status": null,
+          "current_to_fit_clearance_m": 0.014442541301250444,
+          "advance_rule": "0.020 rad when current-to-fit clearance is below 0.050 m; otherwise 0.050 rad",
+          "advance_joint_length_rad": 0.02,
+          "executed_states": 9,
+          "minimum_true_clearance_m": 0.23658697935685877,
+          "stop_reason": null
+        },
+        {
+          "cycle": 12,
+          "q": [
+            -2.573289394378662,
+            -1.8364057540893555,
+            -0.6087779998779297,
+            1.2257658243179321,
+            4.687923908233643,
+            -2.6155333518981934
+          ],
+          "capture": {
+            "q": [
+              -2.573289394378662,
+              -1.8364057540893555,
+              -0.6087779998779297,
+              1.2257658243179321,
+              4.687923908233643,
+              -2.6155333518981934
+            ],
+            "points": 1011,
+            "camera_transform": [
+              0.471328467130661,
+              0.11235418915748596,
+              0.6188110113143921,
+              -0.02953769825398922,
+              -0.1726800501346588,
+              0.712197482585907,
+              0.6797672510147095
+            ],
+            "metadata": {
+              "id": 25,
+              "output": "/tmp/newton-camera-fifth-tatxjbj2/capture_0025.npz",
+              "points": 1011,
+              "highest_seen_z_m": 0.2600000500679016,
+              "capture_ms": 35.58982885442674,
+              "conversion_ms": 32.58302598260343,
+              "obstacle_pixels": 27248,
+              "border_touches": {
+                "top": false,
+                "bottom": false,
+                "left": false,
+                "right": false
+              },
+              "border_pixel_counts": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "robot_percent": 0.0,
+              "flange_m": [
+                0.35427162051200867,
+                0.09911219775676727,
+                0.6410446763038635
+              ],
+              "wrist_1_center_m": [
+                0.4063861668109894,
+                0.13000264763832092,
+                0.7508707642555237
+              ]
+            }
+          },
+          "accumulated_points": 10573,
+          "fit": {
+            "center_m": [
+              0.48700082302093506,
+              0.26100561767816544,
+              0.14000002503395081
+            ],
+            "dims_m": [
+              0.22999837875366214,
+              0.08601136386394503,
+              0.28000005006790163
+            ],
+            "highest_seen_z_m": 0.2600000500679016,
+            "fitted_top_z_m": 0.28000005006790163,
+            "points": 10573,
+            "padding_xy_m": 0.015,
+            "padding_z_m": 0.02,
+            "unknown_extension": {
+              "active": false,
+              "directions": [],
+              "border_touches": {
+                "top": false,
+                "bottom": false,
+                "left": false,
+                "right": false
+              },
+              "border_pixel_counts": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "upward_limit_m": 0.6188110113143921,
+              "side_margin_m": 0.1,
+              "bottom_limit_m": 0.0
+            }
+          },
+          "extension": {
+            "active": false,
+            "directions": [],
+            "border_touches": {
+              "top": false,
+              "bottom": false,
+              "left": false,
+              "right": false
+            },
+            "border_pixel_counts": {
+              "top": 0,
+              "bottom": 0,
+              "left": 0,
+              "right": 0
+            },
+            "upward_limit_m": 0.6188110113143921,
+            "side_margin_m": 0.1,
+            "bottom_limit_m": 0.0
+          },
+          "plan_ms": 67.94732995331287,
+          "whole_cycle_ms": 112.31950717046857,
+          "planner_failure_status": null,
+          "current_to_fit_clearance_m": 0.22162978187477056,
+          "advance_rule": "0.020 rad when current-to-fit clearance is below 0.050 m; otherwise 0.050 rad",
+          "advance_joint_length_rad": 0.05,
+          "executed_states": 9,
+          "minimum_true_clearance_m": 0.225280114199093,
+          "stop_reason": null
+        },
+        {
+          "cycle": 13,
+          "q": [
+            -2.5373528003692627,
+            -1.872348427772522,
+            -0.6072430610656738,
+            1.2539311647415161,
+            4.685528755187988,
+            -2.593502998352051
+          ],
+          "capture": {
+            "q": [
+              -2.5373528003692627,
+              -1.872348427772522,
+              -0.6072430610656738,
+              1.2539311647415161,
+              4.685528755187988,
+              -2.593502998352051
+            ],
+            "points": 1004,
+            "camera_transform": [
+              0.48542535305023193,
+              0.13991424441337585,
+              0.603190004825592,
+              -0.022721655666828156,
+              -0.17070068418979645,
+              0.7174042463302612,
+              0.6750380396842957
+            ],
+            "metadata": {
+              "id": 26,
+              "output": "/tmp/newton-camera-fifth-tatxjbj2/capture_0026.npz",
+              "points": 1004,
+              "highest_seen_z_m": 0.2600000202655792,
+              "capture_ms": 35.93783499673009,
+              "conversion_ms": 32.93944406323135,
+              "obstacle_pixels": 27825,
+              "border_touches": {
+                "top": true,
+                "bottom": false,
+                "left": false,
+                "right": false
+              },
+              "border_pixel_counts": {
+                "top": 91,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "robot_percent": 0.0,
+              "flange_m": [
+                0.3688499331474304,
+                0.12469720840454102,
+                0.6266551613807678
+              ],
+              "wrist_1_center_m": [
+                0.4204975962638855,
+                0.15766775608062744,
+                0.7360963821411133
+              ]
+            }
+          },
+          "accumulated_points": 11577,
+          "fit": {
+            "center_m": [
+              0.48700082302093506,
+              0.26100561767816544,
+              0.301595002412796
+            ],
+            "dims_m": [
+              0.22999837875366214,
+              0.08601136386394503,
+              0.603190004825592
+            ],
+            "highest_seen_z_m": 0.2600000500679016,
+            "fitted_top_z_m": 0.603190004825592,
+            "points": 11577,
+            "padding_xy_m": 0.015,
+            "padding_z_m": 0.02,
+            "unknown_extension": {
+              "active": true,
+              "directions": [
+                "top"
+              ],
+              "border_touches": {
+                "top": true,
+                "bottom": false,
+                "left": false,
+                "right": false
+              },
+              "border_pixel_counts": {
+                "top": 91,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "upward_limit_m": 0.603190004825592,
+              "side_margin_m": 0.1,
+              "bottom_limit_m": 0.0
+            }
+          },
+          "extension": {
+            "active": true,
+            "directions": [
+              "top"
+            ],
+            "border_touches": {
+              "top": true,
+              "bottom": false,
+              "left": false,
+              "right": false
+            },
+            "border_pixel_counts": {
+              "top": 91,
+              "bottom": 0,
+              "left": 0,
+              "right": 0
+            },
+            "upward_limit_m": 0.603190004825592,
+            "side_margin_m": 0.1,
+            "bottom_limit_m": 0.0
+          },
+          "plan_ms": 65.17952890135348,
+          "whole_cycle_ms": 105.7656689081341,
+          "planner_failure_status": "TRAJOPT_FAILED",
+          "current_to_fit_clearance_m": -0.013831845819950117,
+          "advance_rule": "0.020 rad when current-to-fit clearance is below 0.050 m; otherwise 0.050 rad",
+          "advance_joint_length_rad": 0.02,
+          "executed_states": 0,
+          "minimum_true_clearance_m": null,
+          "stop_reason": "FITTED_BOX_COVERS_CURRENT_STATE"
+        }
+      ]
+    },
+    "top_0.30_m": {
+      "true_top_z_m": 0.3,
+      "source": "mandated",
+      "validity": {
+        "status": "VALID",
+        "valid": true,
+        "start_clearance_m": 0.0750948052087122,
+        "goal_clearance_m": 0.03453064110875129,
+        "along_path_clearance_m": -0.04656716716289519,
+        "reasons": []
+      },
+      "baseline_minimum_true_clearance_m": -0.04656716716289519,
+      "loop": {
+        "goal_reached": false,
+        "cycles": 1,
+        "cycle_cap": 80,
+        "final_stop_reason": "NO_RESULT_IK_OR_GRAPH_FAILED",
+        "planner_failure_status": "NO_RESULT_IK_OR_GRAPH_FAILED",
+        "true_collision": false,
+        "minimum_true_clearance_m": 0.07509484080728183,
+        "whole_cycle_median_ms": 767.9544319398701,
+        "whole_cycle_p95_ms": 767.9544319398701,
+        "first_seen_cycle": 1,
+        "clearance_when_first_seen_m": 0.07509484080728183,
+        "extension_active_cycles": [
+          1
+        ],
+        "motion": {
+          "states": 1,
+          "joint_travel_rad": {
+            "shoulder_pan_joint": 0.0,
+            "shoulder_lift_joint": 0.0,
+            "elbow_joint": 0.0,
+            "wrist_1_joint": 0.0,
+            "wrist_2_joint": 0.0,
+            "wrist_3_joint": 0.0
+          },
+          "max_wrist_3_change_from_start_rad": 0.0,
+          "tool_path_length_m": 0.0,
+          "endpoint_straight_line_distance_m": 0.0,
+          "tool_path_over_straight_line": null,
+          "start_tool_m": [
+            0.48799973726272583,
+            0.11599983274936676,
+            0.500999927520752
+          ],
+          "end_tool_m": [
+            0.48799973726272583,
+            0.11599983274936676,
+            0.500999927520752
+          ]
+        }
+      },
+      "first_frame": {
+        "points": 853,
+        "lowest_seen_z_m": 0.013870082795619965,
+        "highest_seen_z_m": 0.30000001192092896,
+        "true_vertical_fraction_seen": 0.9866548869116554,
+        "obstacle_pixels": 70217,
+        "border_touches": {
+          "top": true,
+          "bottom": false,
+          "left": false,
+          "right": true
+        }
+      },
+      "cycles": [
+        {
+          "cycle": 1,
+          "q": [
+            -2.688859224319458,
+            -2.095384120941162,
+            -0.7184052467346191,
+            1.2429931163787842,
+            4.71238899230957,
+            -2.688859224319458
+          ],
+          "capture": {
+            "q": [
+              -2.688859224319458,
+              -2.095384120941162,
+              -0.7184052467346191,
+              1.2429931163787842,
+              4.71238899230957,
+              -2.688859224319458
+            ],
+            "points": 853,
+            "camera_transform": [
+              0.5939996838569641,
+              0.11599995940923691,
+              0.4449998736381531,
+              4.2017056500753824e-08,
+              2.887311012500504e-08,
+              0.7071070075035095,
+              0.7071065306663513
+            ],
+            "metadata": {
+              "id": 27,
+              "output": "/tmp/newton-camera-fifth-tatxjbj2/capture_0027.npz",
+              "points": 853,
+              "highest_seen_z_m": 0.30000001192092896,
+              "capture_ms": 76.8354688771069,
+              "conversion_ms": 44.825220946222544,
+              "obstacle_pixels": 70217,
+              "border_touches": {
+                "top": true,
+                "bottom": false,
+                "left": false,
+                "right": true
+              },
+              "border_pixel_counts": {
+                "top": 289,
+                "bottom": 0,
+                "left": 0,
+                "right": 223
+              },
+              "robot_percent": 0.0,
+              "flange_m": [
+                0.48799967765808105,
+                0.11599987745285034,
+                0.5009998679161072
+              ],
+              "wrist_1_center_m": [
+                0.5731141567230225,
+                0.1574021875858307,
+                0.5832998752593994
+              ]
+            }
+          },
+          "accumulated_points": 853,
+          "fit": {
+            "center_m": [
+              0.4870348751545002,
+              0.31077700406311204,
+              0.22249993681907654
+            ],
+            "dims_m": [
+              0.2299302744865318,
+              0.1855540770291934,
+              0.4449998736381531
+            ],
+            "highest_seen_z_m": 0.30000001192092896,
+            "fitted_top_z_m": 0.4449998736381531,
+            "points": 853,
+            "padding_xy_m": 0.015,
+            "padding_z_m": 0.02,
+            "unknown_extension": {
+              "active": true,
+              "directions": [
+                "top",
+                "right"
+              ],
+              "border_touches": {
+                "top": true,
+                "bottom": false,
+                "left": false,
+                "right": true
+              },
+              "border_pixel_counts": {
+                "top": 289,
+                "bottom": 0,
+                "left": 0,
+                "right": 223
+              },
+              "upward_limit_m": 0.4449998736381531,
+              "side_margin_m": 0.1,
+              "bottom_limit_m": 0.0
+            }
+          },
+          "extension": {
+            "active": true,
+            "directions": [
+              "top",
+              "right"
+            ],
+            "border_touches": {
+              "top": true,
+              "bottom": false,
+              "left": false,
+              "right": true
+            },
+            "border_pixel_counts": {
+              "top": 289,
+              "bottom": 0,
+              "left": 0,
+              "right": 223
+            },
+            "upward_limit_m": 0.4449998736381531,
+            "side_margin_m": 0.1,
+            "bottom_limit_m": 0.0
+          },
+          "plan_ms": 85.67788102664053,
+          "whole_cycle_ms": 767.9544319398701,
+          "planner_failure_status": "NO_RESULT_IK_OR_GRAPH_FAILED",
+          "current_to_fit_clearance_m": 0.01483368188142778,
+          "advance_rule": "0.020 rad when current-to-fit clearance is below 0.050 m; otherwise 0.050 rad",
+          "advance_joint_length_rad": 0.02,
+          "executed_states": 0,
+          "minimum_true_clearance_m": null,
+          "stop_reason": "NO_RESULT_IK_OR_GRAPH_FAILED"
+        }
+      ]
+    }
+  },
+  "blind_search": {
+    "candidate_count": 27,
+    "attempts": [
+      {
+        "center_m": [
+          0.647,
+          0.34,
+          0.15
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.3
+        ],
+        "standing_on_floor": true,
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.19759805199725677,
+          "goal_clearance_m": 0.0956450613427472,
+          "along_path_clearance_m": 0.06339887869783868,
+          "reasons": [
+            "no-obstacle path does not collide (along-path 0.063399 m)"
+          ]
+        },
+        "first_frame_points": null
+      },
+      {
+        "center_m": [
+          0.567,
+          0.34,
+          0.15
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.3
+        ],
+        "standing_on_floor": true,
+        "validity": {
+          "status": "VALID",
+          "valid": true,
+          "start_clearance_m": 0.15873382406777314,
+          "goal_clearance_m": 0.027372763713093995,
+          "along_path_clearance_m": -0.016138363186973367,
+          "reasons": []
+        },
+        "first_frame_points": 413,
+        "first_frame_obstacle_pixels": 17343
+      },
+      {
+        "center_m": [
+          0.727,
+          0.34,
+          0.15
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.3
+        ],
+        "standing_on_floor": true,
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.2549255831190262,
+          "goal_clearance_m": 0.15679307142883234,
+          "along_path_clearance_m": 0.1222632626926817,
+          "reasons": [
+            "no-obstacle path does not collide (along-path 0.122263 m)"
+          ]
+        },
+        "first_frame_points": null
+      },
+      {
+        "center_m": [
+          0.647,
+          0.38,
+          0.15
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.3
+        ],
+        "standing_on_floor": true,
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.22462054522150793,
+          "goal_clearance_m": 0.07275225758456229,
+          "along_path_clearance_m": 0.06135168997434513,
+          "reasons": [
+            "no-obstacle path does not collide (along-path 0.061352 m)"
+          ]
+        },
+        "first_frame_points": null
+      },
+      {
+        "center_m": [
+          0.567,
+          0.38,
+          0.15
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.3
+        ],
+        "standing_on_floor": true,
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.190851180520611,
+          "goal_clearance_m": 0.009313947188224918,
+          "along_path_clearance_m": -0.008777665604011713,
+          "reasons": [
+            "goal clearance 0.009314 m is below 0.025000 m"
+          ]
+        },
+        "first_frame_points": null
+      },
+      {
+        "center_m": [
+          0.727,
+          0.38,
+          0.15
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.3
+        ],
+        "standing_on_floor": true,
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.2768169185129192,
+          "goal_clearance_m": 0.1343785347845831,
+          "along_path_clearance_m": 0.11063769416029956,
+          "reasons": [
+            "no-obstacle path does not collide (along-path 0.110638 m)"
+          ]
+        },
+        "first_frame_points": null
+      },
+      {
+        "center_m": [
+          0.647,
+          0.3,
+          0.15
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.3
+        ],
+        "standing_on_floor": true,
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.17300319031428624,
+          "goal_clearance_m": 0.11519164034359886,
+          "along_path_clearance_m": 0.062451625815749284,
+          "reasons": [
+            "no-obstacle path does not collide (along-path 0.062452 m)"
+          ]
+        },
+        "first_frame_points": null
+      },
+      {
+        "center_m": [
+          0.567,
+          0.3,
+          0.15
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.3
+        ],
+        "standing_on_floor": true,
+        "validity": {
+          "status": "VALID",
+          "valid": true,
+          "start_clearance_m": 0.12703759332301476,
+          "goal_clearance_m": 0.04272509974412644,
+          "along_path_clearance_m": -0.016695123965669204,
+          "reasons": []
+        },
+        "first_frame_points": 484,
+        "first_frame_obstacle_pixels": 23675
+      },
+      {
+        "center_m": [
+          0.727,
+          0.3,
+          0.15
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.3
+        ],
+        "standing_on_floor": true,
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.23596152403984166,
+          "goal_clearance_m": 0.18147887690188005,
+          "along_path_clearance_m": 0.1369871987580829,
+          "reasons": [
+            "no-obstacle path does not collide (along-path 0.136987 m)"
+          ]
+        },
+        "first_frame_points": null
+      },
+      {
+        "center_m": [
+          0.647,
+          0.34,
+          0.19
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.38
+        ],
+        "standing_on_floor": true,
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.17404442949392704,
+          "goal_clearance_m": 0.09174424753596483,
+          "along_path_clearance_m": 0.01973202583081117,
+          "reasons": [
+            "no-obstacle path does not collide (along-path 0.019732 m)"
+          ]
+        },
+        "first_frame_points": null
+      },
+      {
+        "center_m": [
+          0.567,
+          0.34,
+          0.19
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.38
+        ],
+        "standing_on_floor": true,
+        "validity": {
+          "status": "VALID",
+          "valid": true,
+          "start_clearance_m": 0.12907574978158662,
+          "goal_clearance_m": 0.025178855579793463,
+          "along_path_clearance_m": -0.01830365993085426,
+          "reasons": []
+        },
+        "first_frame_points": 413,
+        "first_frame_obstacle_pixels": 17343
+      },
+      {
+        "center_m": [
+          0.727,
+          0.34,
+          0.19
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.38
+        ],
+        "standing_on_floor": true,
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.23058880298105827,
+          "goal_clearance_m": 0.15167667708966168,
+          "along_path_clearance_m": 0.07440541105957857,
+          "reasons": [
+            "no-obstacle path does not collide (along-path 0.074405 m)"
+          ]
+        },
+        "first_frame_points": null
+      },
+      {
+        "center_m": [
+          0.647,
+          0.38,
+          0.19
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.38
+        ],
+        "standing_on_floor": true,
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.20327146834639387,
+          "goal_clearance_m": 0.0638983021580697,
+          "along_path_clearance_m": 0.0024923543797334483,
+          "reasons": [
+            "no-obstacle path does not collide (along-path 0.002492 m)"
+          ]
+        },
+        "first_frame_points": null
+      },
+      {
+        "center_m": [
+          0.567,
+          0.38,
+          0.19
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.38
+        ],
+        "standing_on_floor": true,
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.16643714620327726,
+          "goal_clearance_m": 0.0027024168233018148,
+          "along_path_clearance_m": -0.02681749822659611,
+          "reasons": [
+            "goal clearance 0.002702 m is below 0.025000 m"
+          ]
+        },
+        "first_frame_points": null
+      },
+      {
+        "center_m": [
+          0.727,
+          0.38,
+          0.19
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.38
+        ],
+        "standing_on_floor": true,
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.2450041815199071,
+          "goal_clearance_m": 0.1285137693453493,
+          "along_path_clearance_m": 0.06969208601313583,
+          "reasons": [
+            "no-obstacle path does not collide (along-path 0.069692 m)"
+          ]
+        },
+        "first_frame_points": null
+      },
+      {
+        "center_m": [
+          0.647,
+          0.3,
+          0.19
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.38
+        ],
+        "standing_on_floor": true,
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.14843119107433864,
+          "goal_clearance_m": 0.11176213404037569,
+          "along_path_clearance_m": 0.037028377047004235,
+          "reasons": [
+            "no-obstacle path does not collide (along-path 0.037028 m)"
+          ]
+        },
+        "first_frame_points": null
+      },
+      {
+        "center_m": [
+          0.567,
+          0.3,
+          0.19
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.38
+        ],
+        "standing_on_floor": true,
+        "validity": {
+          "status": "VALID",
+          "valid": true,
+          "start_clearance_m": 0.09356222725039448,
+          "goal_clearance_m": 0.04272509974412644,
+          "along_path_clearance_m": -0.019810673367438164,
+          "reasons": []
+        },
+        "first_frame_points": 484,
+        "first_frame_obstacle_pixels": 23675
+      },
+      {
+        "center_m": [
+          0.727,
+          0.3,
+          0.19
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.38
+        ],
+        "standing_on_floor": true,
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.21097283151237078,
+          "goal_clearance_m": 0.17692154160915952,
+          "along_path_clearance_m": 0.08472539384790315,
+          "reasons": [
+            "no-obstacle path does not collide (along-path 0.084725 m)"
+          ]
+        },
+        "first_frame_points": null
+      },
+      {
+        "center_m": [
+          0.647,
+          0.34,
+          0.11
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.22
+        ],
+        "standing_on_floor": true,
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.23318535913172359,
+          "goal_clearance_m": 0.09724842013003035,
+          "along_path_clearance_m": 0.07988752377221553,
+          "reasons": [
+            "no-obstacle path does not collide (along-path 0.079888 m)"
+          ]
+        },
+        "first_frame_points": null
+      },
+      {
+        "center_m": [
+          0.567,
+          0.34,
+          0.11
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.22
+        ],
+        "standing_on_floor": true,
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.2001591490363091,
+          "goal_clearance_m": 0.027372763713093995,
+          "along_path_clearance_m": 0.008005486669271283,
+          "reasons": [
+            "no-obstacle path does not collide (along-path 0.008005 m)"
+          ]
+        },
+        "first_frame_points": null
+      },
+      {
+        "center_m": [
+          0.727,
+          0.34,
+          0.11
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.22
+        ],
+        "standing_on_floor": true,
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.2846408498053245,
+          "goal_clearance_m": 0.17411176749116872,
+          "along_path_clearance_m": 0.15651101979868903,
+          "reasons": [
+            "no-obstacle path does not collide (along-path 0.156511 m)"
+          ]
+        },
+        "first_frame_points": null
+      },
+      {
+        "center_m": [
+          0.647,
+          0.38,
+          0.11
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.22
+        ],
+        "standing_on_floor": true,
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.2605262522894766,
+          "goal_clearance_m": 0.08885492847174631,
+          "along_path_clearance_m": 0.07966377102039315,
+          "reasons": [
+            "no-obstacle path does not collide (along-path 0.079664 m)"
+          ]
+        },
+        "first_frame_points": null
+      },
+      {
+        "center_m": [
+          0.567,
+          0.38,
+          0.11
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.22
+        ],
+        "standing_on_floor": true,
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.23123087447453794,
+          "goal_clearance_m": 0.009313947188224918,
+          "along_path_clearance_m": 0.004067271044570837,
+          "reasons": [
+            "goal clearance 0.009314 m is below 0.025000 m",
+            "no-obstacle path does not collide (along-path 0.004067 m)"
+          ]
+        },
+        "first_frame_points": null
+      },
+      {
+        "center_m": [
+          0.727,
+          0.38,
+          0.11
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.22
+        ],
+        "standing_on_floor": true,
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.3076189499618787,
+          "goal_clearance_m": 0.168736366036777,
+          "along_path_clearance_m": 0.15678504451075684,
+          "reasons": [
+            "no-obstacle path does not collide (along-path 0.156785 m)"
+          ]
+        },
+        "first_frame_points": null
+      },
+      {
+        "center_m": [
+          0.647,
+          0.3,
+          0.11
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.22
+        ],
+        "standing_on_floor": true,
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.20971160944530415,
+          "goal_clearance_m": 0.11538141251782338,
+          "along_path_clearance_m": 0.08417972899206716,
+          "reasons": [
+            "no-obstacle path does not collide (along-path 0.084180 m)"
+          ]
+        },
+        "first_frame_points": null
+      },
+      {
+        "center_m": [
+          0.567,
+          0.3,
+          0.11
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.22
+        ],
+        "standing_on_floor": true,
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.17254584164138875,
+          "goal_clearance_m": 0.04272509974412644,
+          "along_path_clearance_m": 0.006834353131711473,
+          "reasons": [
+            "no-obstacle path does not collide (along-path 0.006834 m)"
+          ]
+        },
+        "first_frame_points": null
+      },
+      {
+        "center_m": [
+          0.727,
+          0.3,
+          0.11
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.22
+        ],
+        "standing_on_floor": true,
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.26554309963533856,
+          "goal_clearance_m": 0.18633457832801506,
+          "along_path_clearance_m": 0.1577159856651679,
+          "reasons": [
+            "no-obstacle path does not collide (along-path 0.157716 m)"
+          ]
+        },
+        "first_frame_points": null
+      }
+    ],
+    "selected": null,
+    "result": null,
+    "conclusion": "No standing floor wall in the short deterministic search was both valid, route-blocking, and unseen from the raised first frame; no floating block used."
+  },
+  "curobo_version": {
+    "python": "0.8.0.post1.dev43",
+    "checkout": "v0.8.0-43-g78fd485"
+  },
+  "playback_verification": {
+    "registered_callback_cases": [
+      {
+        "case": "E wall top 0.22",
+        "callback_non_main": true,
+        "states_commanded": 24,
+        "robot_joint_state_changed": true,
+        "frustum_changed": true,
+        "error": null
+      },
+      {
+        "case": "E wall top 0.26",
+        "callback_non_main": true,
+        "states_commanded": 24,
+        "robot_joint_state_changed": true,
+        "frustum_changed": true,
+        "error": null
+      },
+      {
+        "case": "NO OBSTACLE BASELINE",
+        "callback_non_main": true,
+        "states_commanded": 2,
+        "robot_joint_state_changed": true,
+        "frustum_changed": true,
+        "error": null
+      }
+    ],
+    "all_passed": true,
+    "default_case": "E wall top 0.22",
+    "only_e_and_baseline": true
+  },
+  "newton_worker_lines": 47
+}
