@@ -186,6 +186,8 @@ class StaticObstacleCamera:
         depth = self.depth.numpy()[0, 0].copy()
         shape_index = self.shape_index.numpy()[0, 0].copy()
         camera_transform = self.camera_transforms.numpy()[0, 0].copy()
+        body_q = self.state.body_q.numpy()
+        labels = self.model.body_label
 
         started = time.perf_counter()
         valid = np.isfinite(depth) & (depth > 0.0)
@@ -212,6 +214,8 @@ class StaticObstacleCamera:
             "valid_points": int(valid.sum()),
             "robot_percent": 100.0 * float(robot.sum()) / max(int(valid.sum()), 1),
             "obstacle_pixels": int(np.sum(shape_ids == self.obstacle_shape)),
+            "flange_m": body_q[labels.index("ur/flange"), :3].tolist(),
+            "wrist_1_center_m": body_q[labels.index("ur/wrist_1_link"), :3].tolist(),
         }
 
 

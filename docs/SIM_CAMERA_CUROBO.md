@@ -308,3 +308,103 @@ stopped cleanly. The final code now checks the actual bound port and refuses
 that silent fallback, so it will use exactly 8084 or report that the required
 port is busy. All Newton workers started by this check stopped. No media was
 recorded.
+
+## Third pass: valid scenes, playback, and explained stops
+
+Check date: 2026-11-06 (Asia/Taipei)
+
+This pass applies the requested validity gate before running a case: every
+collision sphere must have at least `30 mm` true clearance at both endpoints,
+and the no-obstacle trajectory must penetrate truth. Invalid cases remain in
+the JSON and viewer as `INVALID_SCENE`, but are excluded from pass/fail.
+Start, goal, and interior along-path clearances are separate fields in
+[`third_pass.json`](experiments/sim-camera-curobo/results/third_pass.json).
+
+The loaded model puts `tool0` at `[0.4880, 0.1160, 0.3010] m`. Newton FK from
+the same loaded URDF puts the `wrist_1_link` origin at
+`[0.5731, 0.1574, 0.3833] m`; this differs in X/Y from the reviewer's hand
+estimate `[0.525, 0.256, 0.383] m`, while agreeing in Z. Clearance decisions
+use every cuRobo collision sphere, not either link-origin estimate.
+
+### Scene-validity results
+
+All three mandated new main walls use the original XY footprint. All three
+are invalid by the literal endpoint threshold: their goal clearance is
+`29.833 mm`, just `0.167 mm` below `30 mm`. They do block the route, but that
+does not override the endpoint rule.
+
+| Main top | Start | Goal | Interior no-obstacle path | Status |
+| ---: | ---: | ---: | ---: | --- |
+| 0.18 m | +38.436 mm | +29.833 mm | -40.614 mm | INVALID_SCENE |
+| 0.22 m | +34.531 mm | +29.833 mm | -46.673 mm | INVALID_SCENE |
+| 0.26 m | +34.531 mm | +29.833 mm | -64.353 mm | INVALID_SCENE |
+
+Consequently the 0/20 mm padding sweep, overview planning, and E-main run are
+marked skipped; running them would violate the instruction to use valid
+scenes. The historical 0.25/0.31/0.40 rows above remain unchanged as second-
+pass measurements, not third-pass passes. Under the new strict endpoint gate,
+the old main footprint also has only about `29.83 mm` goal clearance; the
+0.40 m case is additionally invalid because its start is already in collision
+(`-60.71 mm`). The old blind wall is invalid because it contains the goal.
+
+The deterministic blind-wall search therefore shifted Y, as requested, and
+also narrowed/offset X to avoid the endpoint while still intersecting a robot
+link on the route. The selected cuboid is centered at
+`[0.567, 0.320, 0.130] m`, dimensions `[0.050, 0.040, 0.240] m`. It has
+`+96.860 mm` start clearance, `+35.963 mm` goal clearance, and the baseline
+path penetrates it by `15.690 mm`. The start render contains exactly zero
+obstacle pixels and zero perceived points.
+
+### E reuse, timing, and stop reason
+
+E owns one warmed planner. Its preallocated `camera_obstacle` pose is updated
+through the collision checker and its dimensions through cuRobo 1.5.1's
+`CuboidData.update_dims`; the graph buffer is reset without rebuilding or
+rewarming the planner. Whole-cycle time covers capture, conversion, merge,
+fit, in-place scene update, and plan. In the validated playback run the first
+cycle was `77.41 ms`, subsequent cycles had an `82.45 ms` median, capture had
+a `15.62 ms` median, and planning had a `64.46 ms` median.
+
+Blind E reached neither the obstacle nor a fitted-box planner stop early: it
+saw zero points in every cycle, so no fitted box existed and the per-cycle
+current/goal-to-fit clearances are correctly `null`. It followed the
+no-obstacle replans and collided with truth in cycle 9 at `-9.746 mm`.
+`final_stop_reason` is `TRUE_COLLISION`; `goal_reached` is false. Thus no stop
+was caused by a fitted box covering the current state or goal.
+
+### Playback cause and verification
+
+The no-op playback was an uncaught background-thread exception.
+`clearance_series()` returned shape `[N, 1]`; formatting
+`clearances[index]` with `+.4f` raised
+`TypeError: unsupported format string passed to numpy.ndarray.__format__`.
+The function now returns one scalar per joint state, playback explicitly casts
+the displayed value, and every worker exception is printed to stderr and
+shown in a **Playback error** GUI field.
+
+The Viser smoke test invoked the registered click callback for padding,
+standard scan, overview, E-main, E-blind, and explicit invalid-scene case
+types from non-main callback threads. Every callback changed both the commanded
+robot joints and the live frustum, and no callback raised. The live frustum now
+reads [`config/sim_camera_mount.yaml`](../config/sim_camera_mount.yaml) rather
+than embedding its mount pose. The verification used port 8085; the normal
+command below still requires the requested `127.0.0.1:8084`.
+
+What you should see:
+
+- invalid main-wall cases clearly labelled `INVALID_SCENE`, with the reason in
+  the **Case status / no-plan reason** field;
+- the valid, narrow blind wall in red and no yellow perceived points;
+- a live white camera frustum that follows the arm using the YAML mount;
+- E-blind playback advancing the robot until the measured truth collision;
+- live signed clearance plus a visible **Playback error** field that remains
+  `none` on a successful playback.
+
+Exact one-line command:
+
+```bash
+cd ~/ur5_ws/src/ur5_moveit_demo && scripts/run_sim_camera_curobo_second_pass.sh
+```
+
+The run stopped its Newton worker and Viser server. No ROS, Newton physics,
+nvblox, cuMotion, real robot, install, or media path was used.

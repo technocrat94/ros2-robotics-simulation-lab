@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Second-pass camera planning: honest padding sweeps and look-while-moving."""
+"""Third-pass camera planning: valid scenes, playback checks, and explained stops."""
 
 from __future__ import annotations
 
@@ -14,6 +14,7 @@ import sys
 import tempfile
 import threading
 import time
+import traceback
 from typing import Any
 
 import numpy as np
@@ -36,16 +37,28 @@ START_ARM = np.array(
 )
 MAIN_CENTER_XY = (0.487, 0.263)
 MAIN_DIMS_XY = (0.200, 0.060)
-WALL_TOPS_M = (0.25, 0.31, 0.40)
+WALL_TOPS_M = (0.18, 0.22, 0.26)
 WALL_BOTTOM_M = 0.01
-BLIND_CENTER = np.array((0.487, 0.390, 0.160), dtype=np.float64)
-BLIND_DIMS = np.array((0.160, 0.050, 0.280), dtype=np.float64)
-PADDINGS_M = (0.0, 0.02, 0.05, 0.08, 0.13)
+# Fixed deterministic search grid.  Narrow boxes offset in X can intersect a
+# robot-link sphere on the route without covering the tool goal.  Y is searched
+# explicitly because the requested fallback permits shifting the old blind wall.
+BLIND_CANDIDATES = tuple(
+    (
+        np.array((x, y, 0.130), dtype=np.float64),
+        np.array((0.050, 0.040, 0.240), dtype=np.float64),
+    )
+    for y in (0.38, 0.36, 0.34, 0.32, 0.30, 0.28, 0.26)
+    for x in (0.247, 0.287, 0.327, 0.367, 0.407, 0.447, 0.487,
+              0.527, 0.567, 0.607, 0.647, 0.687, 0.727)
+)
+PADDINGS_M = (0.0, 0.02)
 FIT_PADDING_XY_M = 0.015
 MIN_POINTS = 40
 E_ADVANCE_RAD = 0.05
 E_MAX_CYCLES = 12
 GOAL_TOLERANCE_M = 0.006
+VALID_ENDPOINT_CLEARANCE_M = 0.030
+MOUNT_CONFIG = REPO / "config/sim_camera_mount.yaml"
 
 
 def wall_geometry(top_m: float) -> tuple[np.ndarray, np.ndarray]:
@@ -107,6 +120,18 @@ def active_trajectory(result: Any) -> torch.Tensor | None:
     return trajectory.position.reshape(-1, len(preflight.ARM_JOINT_NAMES))
 
 
+def failure_status(result: Any) -> str | None:
+    """Return a stable failure label for every unsuccessful planner call."""
+    if active_trajectory(result) is not None:
+        return None
+    if result is None:
+        return "NO_RESULT_IK_OR_GRAPH_FAILED"
+    success = getattr(result, "success", None)
+    if success is None:
+        return "RESULT_WITHOUT_SUCCESS_FIELD"
+    return "TRAJOPT_FAILED"
+
+
 def fit_cuboid(points: np.ndarray, z_padding_m: float) -> dict[str, Any] | None:
     if len(points) < MIN_POINTS:
         return None
@@ -133,6 +158,37 @@ def planner_for_fit(robot_config: Path, fit: dict[str, Any] | None):
     return preflight.create_pick_planner(robot_config, {"cuboid": cuboids})
 
 
+def reusable_fit_planner(robot_config: Path):
+    """Warm one planner with a cuboid slot that E updates in-place."""
+    placeholder = {
+        "center_m": [0.0, 0.0, -10.0],
+        "dims_m": [0.01, 0.01, 0.01],
+    }
+    planner = planner_for_fit(robot_config, placeholder)
+    planner.scene_collision_checker.enable_obstacle("camera_obstacle", False)
+    return planner
+
+
+def update_fit_in_place(planner: Any, fit: dict[str, Any] | None) -> None:
+    checker = planner.scene_collision_checker
+    if fit is None:
+        checker.enable_obstacle("camera_obstacle", False)
+        return
+    checker.update_obstacle_pose(
+        "camera_obstacle",
+        Pose.from_list([*fit["center_m"], 1.0, 0.0, 0.0, 0.0]),
+    )
+    if checker.data.cuboids is None:
+        raise RuntimeError("cuRobo cuboid scene data is unavailable")
+    checker.data.cuboids.update_dims(
+        "camera_obstacle",
+        torch.as_tensor(fit["dims_m"], device="cuda", dtype=torch.float32),
+    )
+    checker.enable_obstacle("camera_obstacle", True)
+    if planner.graph_planner is not None:
+        planner.graph_planner.reset_buffer()
+
+
 def clearance_series(
     robot: Kinematics,
     positions: torch.Tensor,
@@ -150,7 +206,45 @@ def clearance_series(
     relative = np.abs(values[..., :3] - center) - 0.5 * dims
     outside = np.linalg.norm(np.maximum(relative, 0.0), axis=-1)
     inside = np.minimum(np.max(relative, axis=-1), 0.0)
-    return np.min(outside + inside - values[..., 3], axis=-1)
+    # Kinematics returns [batch, horizon?, spheres, 4].  Collapse every
+    # non-state dimension so callers always receive scalar clearance per q.
+    signed = outside + inside - values[..., 3]
+    return np.min(signed.reshape(len(positions), -1), axis=1)
+
+
+def state_clearance(
+    robot: Kinematics, q: np.ndarray | torch.Tensor, center: np.ndarray, dims: np.ndarray
+) -> float:
+    value = clearance_series(robot, arm_state(q).position, center, dims)
+    return float(value[0])
+
+
+def scene_validity(
+    robot: Kinematics,
+    baseline_path: torch.Tensor,
+    center: np.ndarray,
+    dims: np.ndarray,
+) -> dict[str, Any]:
+    start = state_clearance(robot, baseline_path[0], center, dims)
+    goal = state_clearance(robot, baseline_path[-1], center, dims)
+    along_values = clearance_series(robot, baseline_path, center, dims)
+    interior = along_values[1:-1] if len(along_values) > 2 else along_values
+    along = float(np.min(interior))
+    reasons: list[str] = []
+    if start < VALID_ENDPOINT_CLEARANCE_M:
+        reasons.append(f"start clearance {start:.6f} m is below 0.030000 m")
+    if goal < VALID_ENDPOINT_CLEARANCE_M:
+        reasons.append(f"goal clearance {goal:.6f} m is below 0.030000 m")
+    if along >= 0.0:
+        reasons.append(f"no-obstacle path does not collide (along-path {along:.6f} m)")
+    return {
+        "status": "VALID" if not reasons else "INVALID_SCENE",
+        "valid": not reasons,
+        "start_clearance_m": start,
+        "goal_clearance_m": goal,
+        "along_path_clearance_m": along,
+        "reasons": reasons,
+    }
 
 
 def joint_path_length(positions: torch.Tensor) -> float:
@@ -178,6 +272,28 @@ class Capture:
     points: np.ndarray
     camera_transform: np.ndarray
     metadata: dict[str, Any]
+
+
+@dataclass(frozen=True)
+class MountConfig:
+    parent_link: str
+    left_m: float
+    up_m: float
+    forward_m: float
+    tilt_deg: float
+
+
+def read_mount_config(path: Path) -> MountConfig:
+    values: dict[str, str] = {}
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if ":" in line and not line.lstrip().startswith("#"):
+            key, value = line.split(":", 1)
+            values[key.strip()] = value.strip()
+    return MountConfig(
+        parent_link=values["parent_link"], left_m=float(values["left_m"]),
+        up_m=float(values["up_m"]), forward_m=float(values["forward_m"]),
+        tilt_deg=float(values["tilt_deg"]),
+    )
 
 
 class NewtonWorker:
@@ -262,6 +378,7 @@ def run_scan(
     scan_min = math.inf
     collision = False
     no_plan = False
+    failure_statuses: list[dict[str, Any]] = []
     target_sequence = (*targets, pose_goal(robot, START_ARM))
     for target_index, target in enumerate(target_sequence):
         merged = np.concatenate([capture.points for capture in captures], axis=0)
@@ -273,6 +390,9 @@ def run_scan(
         torch.cuda.empty_cache()
         if positions is None:
             no_plan = True
+            failure_statuses.append(
+                {"target_index": target_index, "status": failure_status(result)}
+            )
             break
         clearances = clearance_series(robot, positions, center, dims)
         scan_min = min(scan_min, float(np.min(clearances)))
@@ -295,6 +415,7 @@ def run_scan(
         "scan_collision": collision,
         "scan_no_plan": no_plan,
         "scan_min_clearance_m": None if math.isinf(scan_min) else scan_min,
+        "failure_statuses": failure_statuses,
     }
 
 
@@ -323,12 +444,18 @@ def evaluate_final_paths(
             "success": positions is not None,
             "planning_ms": elapsed_ms,
             "true_clearance_m": None,
+            "start_clearance_m": state_clearance(robot, START_ARM, center, dims),
+            "goal_clearance_m": None,
+            "along_path_clearance_m": None,
             "path_length_rad": None,
+            "failure_status": failure_status(result),
         }
         if positions is not None:
-            record["true_clearance_m"] = float(
-                np.min(clearance_series(robot, positions, center, dims))
-            )
+            values = clearance_series(robot, positions, center, dims)
+            interior = values[1:-1] if len(values) > 2 else values
+            record["true_clearance_m"] = float(np.min(values))
+            record["goal_clearance_m"] = float(values[-1])
+            record["along_path_clearance_m"] = float(np.min(interior))
             record["path_length_rad"] = joint_path_length(positions)
             if display_path is None:
                 display_path = positions.detach().clone()
@@ -344,6 +471,11 @@ def evaluate_final_paths(
         ),
         "minimum_true_clearance_m": (
             float(min(record["true_clearance_m"] for record in successes))
+            if successes
+            else None
+        ),
+        "minimum_along_path_clearance_m": (
+            float(min(record["along_path_clearance_m"] for record in successes))
             if successes
             else None
         ),
@@ -383,6 +515,7 @@ def serializable_scan(scan: dict[str, Any]) -> dict[str, Any]:
         "scan_no_plan": scan["scan_no_plan"],
         "scan_min_clearance_m": scan["scan_min_clearance_m"],
         "returned_to_start": scan["returned_to_start"],
+        "failure_statuses": scan["failure_statuses"],
     }
 
 
@@ -401,19 +534,23 @@ def run_look_while_moving(
     center: np.ndarray,
     dims: np.ndarray,
     goal: GoalToolPose,
+    goal_q: torch.Tensor,
 ) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     current = torch.as_tensor(START_ARM, device="cuda", dtype=torch.float32)
     accumulated: list[np.ndarray] = []
     history: list[dict[str, Any]] = []
     capture_ms: list[float] = []
     plan_ms: list[float] = []
+    cycle_ms: list[float] = []
     minimum_clearance = math.inf
     no_plan_cycles = 0
     first_seen_cycle: int | None = None
     first_seen_clearance: float | None = None
     goal_reached = False
     collision = False
+    planner = reusable_fit_planner(robot_config)
     for cycle in range(1, E_MAX_CYCLES + 1):
+        cycle_started = time.perf_counter()
         capture = worker.capture(current.detach().cpu().numpy(), center, dims)
         capture_ms.append(float(capture.metadata["capture_ms"]))
         if len(capture.points):
@@ -430,7 +567,21 @@ def run_look_while_moving(
             else np.empty((0, 3), dtype=np.float32)
         )
         fit = fit_cuboid(points, 0.02)
-        planner = planner_for_fit(robot_config, fit)
+        update_fit_in_place(planner, fit)
+        current_fit_clearance = (
+            None
+            if fit is None
+            else state_clearance(
+                robot, current, np.asarray(fit["center_m"]), np.asarray(fit["dims_m"])
+            )
+        )
+        goal_fit_clearance = (
+            None
+            if fit is None
+            else state_clearance(
+                robot, goal_q, np.asarray(fit["center_m"]), np.asarray(fit["dims_m"])
+            )
+        )
         torch.cuda.synchronize()
         started = time.perf_counter()
         result = planner.plan_pose(goal, arm_state(current))
@@ -438,8 +589,9 @@ def run_look_while_moving(
         elapsed_ms = (time.perf_counter() - started) * 1000.0
         plan_ms.append(elapsed_ms)
         positions = active_trajectory(result)
-        del planner
-        torch.cuda.empty_cache()
+        planner_failure = failure_status(result)
+        whole_cycle_ms = (time.perf_counter() - cycle_started) * 1000.0
+        cycle_ms.append(whole_cycle_ms)
         record: dict[str, Any] = {
             "cycle": cycle,
             "q": current.detach().cpu().numpy(),
@@ -447,11 +599,21 @@ def run_look_while_moving(
             "points": points.copy(),
             "fit": fit,
             "plan_ms": elapsed_ms,
+            "whole_cycle_ms": whole_cycle_ms,
+            "planner_failure_status": planner_failure,
+            "current_to_fit_clearance_m": current_fit_clearance,
+            "goal_to_fit_clearance_m": goal_fit_clearance,
             "executed": None,
             "clearances": None,
         }
         if positions is None:
             no_plan_cycles += 1
+            if current_fit_clearance is not None and current_fit_clearance < 0.0:
+                record["stop_reason"] = "FITTED_BOX_COVERS_CURRENT_STATE"
+            elif goal_fit_clearance is not None and goal_fit_clearance < 0.0:
+                record["stop_reason"] = "FITTED_BOX_COVERS_GOAL_STATE"
+            else:
+                record["stop_reason"] = planner_failure
             history.append(record)
             break
         index = advance_index(positions, E_ADVANCE_RAD)
@@ -464,13 +626,18 @@ def run_look_while_moving(
         current = executed[-1].detach().clone()
         if np.min(clearances) < 0.0:
             collision = True
+            record["stop_reason"] = "TRUE_COLLISION"
             break
         goal_error = float(
             np.linalg.norm(tool_position(robot, current) - tool_position(robot, positions[-1]))
         )
         if index == len(positions) - 1 or goal_error <= GOAL_TOLERANCE_M:
             goal_reached = True
+            record["stop_reason"] = "GOAL_REACHED"
             break
+    cold_cycle_ms = cycle_ms[0] if cycle_ms else None
+    del planner
+    torch.cuda.empty_cache()
     summary = {
         "cycles": len(history),
         "cycles_without_plan": no_plan_cycles,
@@ -483,6 +650,15 @@ def run_look_while_moving(
         "clearance_when_first_seen_m": first_seen_clearance,
         "capture_median_ms": float(statistics.median(capture_ms)),
         "planning_median_ms": float(statistics.median(plan_ms)),
+        "whole_cycle_cold_ms": cold_cycle_ms,
+        "whole_cycle_warm_median_ms": (
+            float(statistics.median(cycle_ms[1:])) if len(cycle_ms) > 1 else None
+        ),
+        "planner_reuse": (
+            "one warmed planner; camera_obstacle pose and CuboidData dimensions "
+            "updated in-place each cycle"
+        ),
+        "final_stop_reason": history[-1].get("stop_reason") if history else None,
         "advance_joint_length_rad": E_ADVANCE_RAD,
     }
     return summary, history
@@ -497,6 +673,104 @@ def compact_capture(capture: Capture) -> dict[str, Any]:
     }
 
 
+def make_baseline_path(
+    robot_config: Path, goal: GoalToolPose
+) -> tuple[torch.Tensor, dict[str, Any]]:
+    planner = planner_for_fit(robot_config, None)
+    torch.manual_seed(1901)
+    result = planner.plan_pose(goal, arm_state(START_ARM))
+    path = active_trajectory(result)
+    status = failure_status(result)
+    del planner
+    torch.cuda.empty_cache()
+    if path is None:
+        raise RuntimeError(f"no-obstacle baseline path failed: {status}")
+    return path.detach().clone(), {
+        "states": int(len(path)),
+        "joint_path_length_rad": joint_path_length(path),
+        "failure_status": status,
+    }
+
+
+def select_blind_scene(
+    worker: NewtonWorker, robot: Kinematics, baseline_path: torch.Tensor
+) -> tuple[np.ndarray, np.ndarray, dict[str, Any], list[dict[str, Any]]]:
+    attempts: list[dict[str, Any]] = []
+    for center, dims in BLIND_CANDIDATES:
+        validity = scene_validity(robot, baseline_path, center, dims)
+        record: dict[str, Any] = {
+            "center_m": center.tolist(),
+            "dims_m": dims.tolist(),
+            "validity": validity,
+            "start_view_points": None,
+        }
+        if validity["valid"]:
+            capture = worker.capture(START_ARM, center, dims)
+            record["start_view_points"] = int(len(capture.points))
+            record["start_view_obstacle_pixels"] = int(
+                capture.metadata.get("obstacle_pixels", len(capture.points))
+            )
+            record["model_start_points"] = {
+                "flange_m": capture.metadata.get("flange_m"),
+                "wrist_1_center_m": capture.metadata.get("wrist_1_center_m"),
+                "source": "Newton FK from the loaded URDF model",
+            }
+            if len(capture.points) == 0:
+                attempts.append(record)
+                return center.copy(), dims.copy(), validity, attempts
+        attempts.append(record)
+    raise RuntimeError(
+        "no blind-wall candidate both passed validity and was unseen from start: "
+        + json.dumps(attempts)
+    )
+
+
+def model_start_points(robot: Kinematics) -> dict[str, Any]:
+    q = arm_state(START_ARM).position
+    tool = robot.get_link_poses(q, [preflight.TOOL_FRAME])
+    result: dict[str, Any] = {
+        "flange_tool0_m": tool.position.detach().cpu().reshape(-1, 3)[0].tolist()
+    }
+    for name in ("ur/wrist_1_link", "wrist_1_link"):
+        try:
+            pose = robot.get_link_poses(q, [name])
+            result["wrist_1_link_name"] = name
+            result["wrist_1_center_m"] = (
+                pose.position.detach().cpu().reshape(-1, 3)[0].tolist()
+            )
+            break
+        except Exception:
+            continue
+    if "wrist_1_center_m" not in result:
+        result["wrist_1_error"] = "link name not present in loaded model"
+    return result
+
+
+def serializable_e_cycles(history: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    return [
+        {
+            "cycle": record["cycle"],
+            "capture": compact_capture(record["capture"]),
+            "fit": record["fit"],
+            "plan_ms": record["plan_ms"],
+            "whole_cycle_ms": record["whole_cycle_ms"],
+            "planner_failure_status": record["planner_failure_status"],
+            "current_to_fit_clearance_m": record["current_to_fit_clearance_m"],
+            "goal_to_fit_clearance_m": record["goal_to_fit_clearance_m"],
+            "stop_reason": record.get("stop_reason"),
+            "executed_states": (
+                0 if record["executed"] is None else int(len(record["executed"]))
+            ),
+            "minimum_true_clearance_m": (
+                None
+                if record["clearances"] is None
+                else float(np.min(record["clearances"]))
+            ),
+        }
+        for record in history
+    ]
+
+
 def build_result_and_visuals(
     worker: NewtonWorker,
     robot: Kinematics,
@@ -504,7 +778,11 @@ def build_result_and_visuals(
     goal: GoalToolPose,
     repeats: int,
 ) -> tuple[dict[str, Any], dict[str, dict[str, Any]]]:
+    baseline_path, baseline = make_baseline_path(robot_config, goal)
+    goal_q = baseline_path[-1]
     results: dict[str, Any] = {
+        "baseline_no_obstacle": baseline,
+        "model_start_points": model_start_points(robot),
         "padding_sweep": {},
         "height_sweep": {},
         "overview_height_sweep": {},
@@ -515,6 +793,25 @@ def build_result_and_visuals(
 
     for top in WALL_TOPS_M:
         center, dims = wall_geometry(top)
+        validity = scene_validity(robot, baseline_path, center, dims)
+        results["height_sweep"][f"top_{top:.2f}_m"] = {
+            "true_top_z_m": top,
+            "validity": validity,
+            "status": validity["status"],
+        }
+        results["overview_height_sweep"][f"top_{top:.2f}_m"] = {
+            "true_top_z_m": top,
+            "validity": validity,
+            "status": validity["status"],
+        }
+        if not validity["valid"]:
+            visuals[f"INVALID_SCENE wall top {top:.2f}"] = {
+                "points": np.empty((0, 3)), "fit": None, "center": center,
+                "dims": dims, "captures": [], "path": baseline_path,
+                "clearance": validity["along_path_clearance_m"],
+                "status": "INVALID_SCENE: " + "; ".join(validity["reasons"]),
+            }
+            continue
         standard = run_scan(
             worker, robot, robot_config, center, dims,
             standard_goals, 0.02,
@@ -526,39 +823,106 @@ def build_result_and_visuals(
         scans[("standard", top)] = standard
         scans[("overview", top)] = overview
 
-    center_31, dims_31 = wall_geometry(0.31)
-    scan_31 = scans[("standard", 0.31)]
-    points_31 = merged_points(scan_31)
+    valid_tops = [top for top in WALL_TOPS_M if ("standard", top) in scans]
+    if not valid_tops:
+        results["padding_sweep_status"] = (
+            "SKIPPED: all mandated same-XY main scenes are INVALID_SCENE"
+        )
+        invalid_visual = dict(next(iter(visuals.values())))
+        invalid_status = "INVALID_SCENE: goal clearance is below the required 30 mm"
+        for label in (
+            "padding INVALID_SCENE", "standard INVALID_SCENE",
+            "overview INVALID_SCENE", "E look INVALID_SCENE",
+        ):
+            visuals[label] = {**invalid_visual, "status": invalid_status}
+        blind_center, blind_dims, blind_validity, blind_attempts = select_blind_scene(
+            worker, robot, baseline_path
+        )
+        results["blind_scene"] = {
+            "center_m": blind_center.tolist(), "dims_m": blind_dims.tolist(),
+            "validity": blind_validity, "selection_attempts": blind_attempts,
+            "selection": "first fixed-Y candidate that is valid and unseen from the start",
+        }
+        results["model_start_points"].update(
+            blind_attempts[-1].get("model_start_points", {})
+        )
+        e_blind, e_blind_history = run_look_while_moving(
+            worker, robot, robot_config, blind_center, blind_dims, goal, goal_q
+        )
+        results["look_while_moving"] = {
+            "main": {
+                "status": "INVALID_SCENE",
+                "reason": "all mandated same-XY main scenes fail the 30 mm goal-clearance rule",
+            },
+            "blind": e_blind,
+            "main_cycles": [],
+            "blind_cycles": serializable_e_cycles(e_blind_history),
+        }
+        points = e_blind_history[-1]["points"] if e_blind_history else np.empty((0, 3))
+        fit = e_blind_history[-1]["fit"] if e_blind_history else None
+        paths = [
+            record["executed"] for record in e_blind_history
+            if record["executed"] is not None
+        ]
+        visuals["E blind spot"] = {
+            "points": points, "fit": fit, "center": blind_center, "dims": blind_dims,
+            "captures": [record["capture"] for record in e_blind_history],
+            "path": concatenate_paths(paths),
+            "clearance": e_blind["minimum_true_clearance_m"],
+            "e_history": e_blind_history,
+            "status": e_blind["final_stop_reason"] or "RUNNING",
+        }
+        results["overview_pose"] = {
+            "status": "SKIPPED: no valid main scene",
+            "cartesian_offset_from_start_m": [0.0, 0.0, 0.20],
+        }
+        results["known_limits"] = [
+            "all perceived points fit into one cuboid, so separate obstacles merge",
+            "all points at z <= 0.012 m are deleted, including a cable",
+            "robot pixels use simulator shape indices unavailable to a real camera",
+        ]
+        return results, visuals
+    reference_top = 0.22 if 0.22 in valid_tops else valid_tops[0]
+    reference_center, reference_dims = wall_geometry(reference_top)
+    reference_validity = scene_validity(
+        robot, baseline_path, reference_center, reference_dims
+    )
+    reference_scan = scans[("standard", reference_top)]
+    reference_points = merged_points(reference_scan)
     for padding in PADDINGS_M:
-        fit = fit_cuboid(points_31, padding)
+        fit = fit_cuboid(reference_points, padding)
         final, path = evaluate_final_paths(
-            robot, robot_config, fit, center_31, dims_31, goal, repeats
+            robot, robot_config, fit, reference_center, reference_dims, goal, repeats
         )
         key = f"{int(round(padding * 1000))}_mm"
         results["padding_sweep"][key] = {
+            "true_top_z_m": reference_top,
             "z_padding_m": padding,
             "fit": fit,
-            "scan": serializable_scan(scan_31),
+            "validity": reference_validity,
+            "scan": serializable_scan(reference_scan),
             "final_plan": final,
             "case_pass": bool(
-                not scan_31["scan_collision"]
-                and not scan_31["scan_no_plan"]
+                not reference_scan["scan_collision"]
+                and not reference_scan["scan_no_plan"]
                 and final["minimum_true_clearance_m"] is not None
                 and final["minimum_true_clearance_m"] >= 0.0
             ),
         }
         visuals[f"padding {key}"] = {
-            "points": points_31,
+            "points": reference_points,
             "fit": fit,
-            "center": center_31,
-            "dims": dims_31,
-            "captures": scan_31["captures"],
-            "path": concatenate_paths([*scan_31["paths"], *([path] if path is not None else [])]),
+            "center": reference_center,
+            "dims": reference_dims,
+            "captures": reference_scan["captures"],
+            "path": concatenate_paths([*reference_scan["paths"], *([path] if path is not None else [])]),
             "clearance": final["minimum_true_clearance_m"],
+            "status": "PASS" if results["padding_sweep"][key]["case_pass"] else "FAIL",
         }
 
-    for top in WALL_TOPS_M:
+    for top in valid_tops:
         center, dims = wall_geometry(top)
+        validity = scene_validity(robot, baseline_path, center, dims)
         for mode, result_key in (
             ("standard", "height_sweep"),
             ("overview", "overview_height_sweep"),
@@ -570,8 +934,10 @@ def build_result_and_visuals(
                 robot, robot_config, fit, center, dims, goal, repeats
             )
             key = f"top_{top:.2f}_m"
-            results[result_key][key] = {
+            results[result_key][key].update({
                 "true_top_z_m": top,
+                "validity": validity,
+                "status": "VALID",
                 "fit": fit,
                 "scan": serializable_scan(scan),
                 "final_plan": final,
@@ -584,7 +950,7 @@ def build_result_and_visuals(
                     and final["minimum_true_clearance_m"] is not None
                     and final["minimum_true_clearance_m"] >= 0.0
                 ),
-            }
+            })
             visuals[f"{mode} wall top {top:.2f}"] = {
                 "points": points,
                 "fit": fit,
@@ -593,13 +959,25 @@ def build_result_and_visuals(
                 "captures": scan["captures"],
                 "path": concatenate_paths([*scan["paths"], *([path] if path is not None else [])]),
                 "clearance": final["minimum_true_clearance_m"],
+                "status": "VALID",
             }
 
+    blind_center, blind_dims, blind_validity, blind_attempts = select_blind_scene(
+        worker, robot, baseline_path
+    )
+    results["blind_scene"] = {
+        "center_m": blind_center.tolist(), "dims_m": blind_dims.tolist(),
+        "validity": blind_validity, "selection_attempts": blind_attempts,
+        "selection": "first fixed-Y candidate that is valid and unseen from the start",
+    }
+    results["model_start_points"].update(
+        blind_attempts[-1].get("model_start_points", {})
+    )
     e_main, e_main_history = run_look_while_moving(
-        worker, robot, robot_config, center_31, dims_31, goal
+        worker, robot, robot_config, reference_center, reference_dims, goal, goal_q
     )
     e_blind, e_blind_history = run_look_while_moving(
-        worker, robot, robot_config, BLIND_CENTER, BLIND_DIMS, goal
+        worker, robot, robot_config, blind_center, blind_dims, goal, goal_q
     )
     results["look_while_moving"] = {
         "main": e_main,
@@ -610,6 +988,11 @@ def build_result_and_visuals(
                 "capture": compact_capture(record["capture"]),
                 "fit": record["fit"],
                 "plan_ms": record["plan_ms"],
+                "whole_cycle_ms": record["whole_cycle_ms"],
+                "planner_failure_status": record["planner_failure_status"],
+                "current_to_fit_clearance_m": record["current_to_fit_clearance_m"],
+                "goal_to_fit_clearance_m": record["goal_to_fit_clearance_m"],
+                "stop_reason": record.get("stop_reason"),
                 "executed_states": (
                     0 if record["executed"] is None else int(len(record["executed"]))
                 ),
@@ -625,6 +1008,11 @@ def build_result_and_visuals(
                 "capture": compact_capture(record["capture"]),
                 "fit": record["fit"],
                 "plan_ms": record["plan_ms"],
+                "whole_cycle_ms": record["whole_cycle_ms"],
+                "planner_failure_status": record["planner_failure_status"],
+                "current_to_fit_clearance_m": record["current_to_fit_clearance_m"],
+                "goal_to_fit_clearance_m": record["goal_to_fit_clearance_m"],
+                "stop_reason": record.get("stop_reason"),
                 "executed_states": (
                     0 if record["executed"] is None else int(len(record["executed"]))
                 ),
@@ -636,8 +1024,8 @@ def build_result_and_visuals(
         ],
     }
     for name, center, dims, history, summary in (
-        ("E look while moving", center_31, dims_31, e_main_history, e_main),
-        ("E blind spot", BLIND_CENTER, BLIND_DIMS, e_blind_history, e_blind),
+        ("E look while moving", reference_center, reference_dims, e_main_history, e_main),
+        ("E blind spot", blind_center, blind_dims, e_blind_history, e_blind),
     ):
         points = history[-1]["points"] if history else np.empty((0, 3))
         fit = history[-1]["fit"] if history else None
@@ -651,6 +1039,7 @@ def build_result_and_visuals(
             "path": concatenate_paths(paths),
             "clearance": summary["minimum_true_clearance_m"],
             "e_history": history,
+            "status": summary["final_stop_reason"] or "RUNNING",
         }
     results["overview_pose"] = {
         "cartesian_offset_from_start_m": [0.0, 0.0, 0.20],
@@ -704,13 +1093,32 @@ def wxyz_matrix(quaternion: np.ndarray) -> np.ndarray:
     )
 
 
-def camera_pose_for_q(robot: Kinematics, q: torch.Tensor) -> tuple[np.ndarray, np.ndarray]:
+def camera_pose_for_q(
+    robot: Kinematics, q: torch.Tensor, mount: MountConfig
+) -> tuple[np.ndarray, np.ndarray]:
     pose = robot.compute_kinematics(arm_state(q)).tool_poses[preflight.TOOL_FRAME]
     position = pose.position.detach().cpu().reshape(-1, 3)[0].numpy()
     quaternion = pose.quaternion.detach().cpu().reshape(-1, 4)[0].numpy()
     rotation = wxyz_matrix(quaternion)
-    camera_position = position + rotation @ np.array((0.0, -0.106, 0.056))
-    camera_rotation = rotation @ np.diag((-1.0, 1.0, -1.0))
+    if mount.parent_link.split("/")[-1] != preflight.TOOL_FRAME.split("/")[-1]:
+        raise ValueError(
+            f"camera mount parent {mount.parent_link!r} is not {preflight.TOOL_FRAME!r}"
+        )
+    local_position = np.array((mount.left_m, mount.up_m, mount.forward_m))
+    camera_position = position + rotation @ local_position
+    forward = np.array((0.0, 0.0, 1.0))
+    up = np.array((0.0, 1.0, 0.0))
+    transverse = np.array((mount.left_m, mount.up_m, 0.0))
+    toward_center = -up if np.linalg.norm(transverse) <= 1.0e-9 else -transverse / np.linalg.norm(transverse)
+    tilt = math.radians(mount.tilt_deg)
+    optical = math.cos(tilt) * forward + math.sin(tilt) * toward_center
+    optical /= np.linalg.norm(optical)
+    image_up = up - np.dot(up, optical) * optical
+    image_up /= np.linalg.norm(image_up)
+    camera_z = -optical
+    camera_x = np.cross(image_up, camera_z)
+    camera_x /= np.linalg.norm(camera_x)
+    camera_rotation = rotation @ np.column_stack((camera_x, image_up, camera_z))
     # Viser camera frustum adds OpenCV's pi-X conversion.
     viser_rotation = camera_rotation @ np.diag((1.0, -1.0, -1.0))
     return camera_position, matrix_to_wxyz(viser_rotation)
@@ -727,7 +1135,8 @@ def start_viewer(
     robot: Kinematics,
     visuals: dict[str, dict[str, Any]],
     port: int,
-) -> ViserVisualizer:
+) -> tuple[ViserVisualizer, Any]:
+    mount = read_mount_config(MOUNT_CONFIG)
     viewer = ViserVisualizer(
         content_path=ContentPath(robot_config_file=str(robot_config)),
         connect_ip="127.0.0.1",
@@ -770,7 +1179,9 @@ def start_viewer(
     padded_line = server.scene.add_line_segments(
         "/heights/padded_top", points=np.zeros((1, 2, 3)), colors=(255, 60, 220), line_width=5.0,
     )
-    camera_position, camera_wxyz = camera_pose_for_q(robot, torch.as_tensor(START_ARM, device="cuda"))
+    camera_position, camera_wxyz = camera_pose_for_q(
+        robot, torch.as_tensor(START_ARM, device="cuda"), mount
+    )
     live_frustum = server.scene.add_camera_frustum(
         "/camera/live", fov=math.radians(58.0), aspect=848 / 480, scale=0.13,
         color=(255, 255, 255), position=tuple(camera_position), wxyz=tuple(camera_wxyz),
@@ -794,7 +1205,12 @@ def start_viewer(
     show_true = server.gui.add_checkbox("Show true obstacle", initial_value=True)
     clearance_text = server.gui.add_text("True clearance", "", disabled=True)
     height_text = server.gui.add_text("Seen / padded top", "", disabled=True)
+    status_text = server.gui.add_text("Case status / no-plan reason", "", disabled=True)
+    playback_error_text = server.gui.add_text("Playback error", "none", disabled=True)
     play = server.gui.add_button("Play selected case")
+    playback_done = threading.Event()
+    playback_record: dict[str, Any] = {}
+    verification_mode = threading.Event()
 
     def apply_case(_event: Any = None) -> None:
         name = selector.value
@@ -820,6 +1236,7 @@ def start_viewer(
         path.points = segments(tool_points(robot, case["path"]))
         value = case["clearance"]
         clearance_text.value = "not measured" if value is None else f"{value:+.4f} m"
+        status_text.value = case.get("status", "VALID")
         for case_key, handles in capture_frustums.items():
             for handle in handles:
                 handle.visible = case_key == name
@@ -827,49 +1244,124 @@ def start_viewer(
     def playback(_event: Any) -> None:
         name = selector.value
         case = visuals[name]
+        callback_thread = threading.current_thread()
+        playback_done.clear()
+        playback_error_text.value = "none"
 
         def worker_thread() -> None:
-            e_history = case.get("e_history")
-            if e_history:
-                for record in e_history:
-                    cloud.points = record["points"] if len(record["points"]) else np.zeros((1, 3))
-                    fit = record["fit"]
-                    if fit is not None:
-                        perceived.visible = True
-                        perceived.dimensions = tuple(fit["dims_m"])
-                        perceived.position = tuple(fit["center_m"])
-                    executed = record["executed"]
-                    if executed is None:
-                        continue
-                    for index, q in enumerate(executed):
+            commanded: list[np.ndarray] = []
+            frustums: list[np.ndarray] = []
+            try:
+                e_history = case.get("e_history")
+                sequences: list[tuple[torch.Tensor, np.ndarray | None]] = []
+                if e_history:
+                    for record in e_history:
+                        cloud.points = record["points"] if len(record["points"]) else np.zeros((1, 3))
+                        fit = record["fit"]
+                        if fit is not None:
+                            perceived.visible = True
+                            perceived.dimensions = tuple(fit["dims_m"])
+                            perceived.position = tuple(fit["center_m"])
+                        if record["executed"] is not None:
+                            sequences.append((record["executed"], record["clearances"]))
+                else:
+                    sequences.append((
+                        case["path"],
+                        clearance_series(robot, case["path"], case["center"], case["dims"]),
+                    ))
+                for positions, clearances in sequences:
+                    iterable = positions
+                    if verification_mode.is_set() and len(positions) > 2:
+                        iterable = positions[torch.as_tensor([0, len(positions) - 1], device=positions.device)]
+                        clearance_indices = (0, len(positions) - 1)
+                    else:
+                        clearance_indices = range(len(positions))
+                    for q, clearance_index in zip(iterable, clearance_indices):
                         viewer.set_joint_state(arm_state(q).squeeze(0))
-                        position, wxyz = camera_pose_for_q(robot, q)
+                        position, wxyz = camera_pose_for_q(robot, q, mount)
                         live_frustum.position = tuple(position)
                         live_frustum.wxyz = tuple(wxyz)
-                        if record["clearances"] is not None:
-                            clearance_text.value = f"{record['clearances'][index]:+.4f} m"
-                        time.sleep(0.025)
-            else:
-                clearances = clearance_series(robot, case["path"], case["center"], case["dims"])
-                for index, q in enumerate(case["path"]):
-                    viewer.set_joint_state(arm_state(q).squeeze(0))
-                    position, wxyz = camera_pose_for_q(robot, q)
-                    live_frustum.position = tuple(position)
-                    live_frustum.wxyz = tuple(wxyz)
-                    clearance_text.value = f"{clearances[index]:+.4f} m"
-                    time.sleep(0.025)
+                        commanded.append(q.detach().cpu().numpy().copy())
+                        frustums.append(np.asarray(position).copy())
+                        if clearances is not None:
+                            clearance_text.value = f"{float(clearances[clearance_index]):+.4f} m"
+                        if not verification_mode.is_set():
+                            time.sleep(0.025)
+                playback_record.clear()
+                playback_record.update({
+                    "case": name,
+                    "callback_thread": callback_thread.name,
+                    "callback_non_main": callback_thread is not threading.main_thread(),
+                    "worker_thread": threading.current_thread().name,
+                    "states_commanded": len(commanded),
+                    "robot_joint_state_changed": bool(
+                        len(commanded) > 1 and not np.allclose(commanded[0], commanded[-1])
+                    ),
+                    "frustum_changed": bool(
+                        len(frustums) > 1 and not np.allclose(frustums[0], frustums[-1])
+                    ),
+                    "error": None,
+                })
+            except Exception as exc:
+                message = f"{type(exc).__name__}: {exc}"
+                playback_error_text.value = message
+                traceback.print_exc(file=sys.stderr)
+                playback_record.clear()
+                playback_record.update({
+                    "case": name, "callback_thread": callback_thread.name,
+                    "callback_non_main": callback_thread is not threading.main_thread(),
+                    "worker_thread": threading.current_thread().name,
+                    "states_commanded": len(commanded), "robot_joint_state_changed": False,
+                    "frustum_changed": False, "error": message,
+                })
+            finally:
+                playback_done.set()
 
-        threading.Thread(target=worker_thread, daemon=True).start()
+        threading.Thread(target=worker_thread, name=f"playback-{name}", daemon=True).start()
 
     selector.on_update(apply_case)
     show_true.on_update(apply_case)
     play.on_click(playback)
     apply_case()
     print(
-        f"SIM_CAMERA_CUROBO_SECOND_PASS_VISER http://127.0.0.1:{actual_port}",
+        f"SIM_CAMERA_CUROBO_THIRD_PASS_VISER http://127.0.0.1:{actual_port}",
         flush=True,
     )
-    return viewer
+
+    def verify_callbacks() -> dict[str, Any]:
+        prefixes = ("padding ", "standard ", "overview ", "E look", "E blind", "INVALID_SCENE")
+        records: list[dict[str, Any]] = []
+        verification_mode.set()
+        try:
+            for prefix in prefixes:
+                name = next((key for key in visuals if key.startswith(prefix)), None)
+                if name is None:
+                    continue
+                selector.value = name
+                callback = threading.Thread(
+                    target=playback, args=(None,), name=f"viser-callback-{prefix.strip()}"
+                )
+                callback.start()
+                callback.join(timeout=5.0)
+                if not playback_done.wait(timeout=20.0):
+                    records.append({"case": name, "error": "playback timed out"})
+                else:
+                    records.append(dict(playback_record))
+        finally:
+            verification_mode.clear()
+        return {
+            "registered_callback_cases": records,
+            "all_passed": bool(records) and all(
+                record.get("callback_non_main")
+                and record.get("robot_joint_state_changed")
+                and record.get("frustum_changed")
+                and record.get("error") is None
+                for record in records
+            ),
+            "mount_config_path": str(MOUNT_CONFIG.relative_to(REPO)),
+        }
+
+    return viewer, verify_callbacks
 
 
 def main() -> int:
@@ -893,7 +1385,12 @@ def main() -> int:
     args = parser.parse_args()
     if args.repeats < 3:
         parser.error("--repeats must be at least 3")
-    robot = Kinematics(KinematicsCfg.from_robot_yaml_file(str(args.robot_config)))
+    robot = Kinematics(
+        KinematicsCfg.from_robot_yaml_file(
+            str(args.robot_config),
+            tool_frames=[preflight.TOOL_FRAME, "wrist_1_link"],
+        )
+    )
     _, _, object_center = preflight.load_scene(REPO, "step_c_cable_no_wall")
     goal_position, goal_quaternion = preflight.pregrasp_target(object_center)
     goal_pose = Pose.from_list([*goal_position.tolist(), *goal_quaternion.tolist()])
@@ -914,32 +1411,36 @@ def main() -> int:
             worker_log = worker.log
     results.update(
         {
-            "schema": 1,
+            "schema": 2,
             "date": "2026-11-06",
             "repeats": args.repeats,
             "planner_truth_rule": "truth used only by case B and offline scoring, never C/D/E input",
             "worker_exchange": "persistent Newton subprocess, JSON pipe plus temporary NPZ captures",
+            "playback_root_cause": {
+                "cause": (
+                    "clearance_series returned shape [N,1]; playback formatted the one-element "
+                    "ndarray with +.4f, raising TypeError inside an uncaught daemon thread"
+                ),
+                "reproduced_exception": (
+                    "TypeError: unsupported format string passed to numpy.ndarray.__format__"
+                ),
+                "fix": (
+                    "clearance_series now returns shape [N], formatting casts float, and the "
+                    "worker reports exceptions to stderr and the Playback error GUI field"
+                ),
+            },
         }
     )
     args.results_dir.mkdir(parents=True, exist_ok=True)
-    result_path = args.results_dir / "second_pass.json"
-    log_path = args.results_dir / "second_pass.log"
-    result_path.write_text(json.dumps(results, indent=2) + "\n", encoding="utf-8")
-    log_lines = [
-        "SIM_CAMERA_CUROBO_SECOND_PASS",
-        f"padding_cases={len(results['padding_sweep'])}",
-        f"height_cases={len(results['height_sweep'])}",
-        f"overview_cases={len(results['overview_height_sweep'])}",
-        "main_E=" + json.dumps(results["look_while_moving"]["main"], sort_keys=True),
-        "blind_E=" + json.dumps(results["look_while_moving"]["blind"], sort_keys=True),
-        f"newton_worker_lines={len(worker_log)}",
-    ]
-    log_path.write_text("\n".join(log_lines) + "\n", encoding="utf-8")
-    print("SIM_CAMERA_CUROBO_SECOND_PASS_RESULT " + json.dumps(results, sort_keys=True), flush=True)
+    result_path = args.results_dir / "third_pass.json"
+    log_path = args.results_dir / "third_pass.log"
     viewer = None
     try:
         if not args.headless:
-            viewer = start_viewer(args.robot_config, robot, visuals, args.port)
+            viewer, verify_callbacks = start_viewer(
+                args.robot_config, robot, visuals, args.port
+            )
+            results["playback_verification"] = verify_callbacks()
             started = time.monotonic()
             while args.duration <= 0.0 or time.monotonic() - started < args.duration:
                 time.sleep(0.25)
@@ -948,6 +1449,19 @@ def main() -> int:
     finally:
         if viewer is not None:
             viewer._server.stop()
+    result_path.write_text(json.dumps(results, indent=2) + "\n", encoding="utf-8")
+    log_lines = [
+        "SIM_CAMERA_CUROBO_THIRD_PASS",
+        f"padding_cases={len(results['padding_sweep'])}",
+        f"height_cases={len(results['height_sweep'])}",
+        f"overview_cases={len(results['overview_height_sweep'])}",
+        "main_E=" + json.dumps(results["look_while_moving"]["main"], sort_keys=True),
+        "blind_E=" + json.dumps(results["look_while_moving"]["blind"], sort_keys=True),
+        "playback=" + json.dumps(results.get("playback_verification"), sort_keys=True),
+        f"newton_worker_lines={len(worker_log)}",
+    ]
+    log_path.write_text("\n".join(log_lines) + "\n", encoding="utf-8")
+    print("SIM_CAMERA_CUROBO_THIRD_PASS_RESULT " + json.dumps(results, sort_keys=True), flush=True)
     return 0
 
 

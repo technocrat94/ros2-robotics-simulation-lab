@@ -1,0 +1,1840 @@
+{
+  "baseline_no_obstacle": {
+    "states": 41,
+    "joint_path_length_rad": 0.9327357411384583,
+    "failure_status": null
+  },
+  "model_start_points": {
+    "flange_tool0_m": [
+      0.4880000352859497,
+      0.1159999817609787,
+      0.3009999990463257
+    ],
+    "wrist_1_link_name": "wrist_1_link",
+    "wrist_1_center_m": [
+      0.5731144547462463,
+      0.15740230679512024,
+      0.38329997658729553
+    ],
+    "flange_m": [
+      0.48799997568130493,
+      0.11600001156330109,
+      0.3009999990463257
+    ],
+    "source": "Newton FK from the loaded URDF model"
+  },
+  "padding_sweep": {},
+  "height_sweep": {
+    "top_0.18_m": {
+      "true_top_z_m": 0.18,
+      "validity": {
+        "status": "INVALID_SCENE",
+        "valid": false,
+        "start_clearance_m": 0.03843563849300102,
+        "goal_clearance_m": 0.0298333219885826,
+        "along_path_clearance_m": -0.04061413091421126,
+        "reasons": [
+          "goal clearance 0.029833 m is below 0.030000 m"
+        ]
+      },
+      "status": "INVALID_SCENE"
+    },
+    "top_0.22_m": {
+      "true_top_z_m": 0.22,
+      "validity": {
+        "status": "INVALID_SCENE",
+        "valid": false,
+        "start_clearance_m": 0.03453091624379159,
+        "goal_clearance_m": 0.0298333219885826,
+        "along_path_clearance_m": -0.04667341935634614,
+        "reasons": [
+          "goal clearance 0.029833 m is below 0.030000 m"
+        ]
+      },
+      "status": "INVALID_SCENE"
+    },
+    "top_0.26_m": {
+      "true_top_z_m": 0.26,
+      "validity": {
+        "status": "INVALID_SCENE",
+        "valid": false,
+        "start_clearance_m": 0.03453091624379159,
+        "goal_clearance_m": 0.0298333219885826,
+        "along_path_clearance_m": -0.06435301008820535,
+        "reasons": [
+          "goal clearance 0.029833 m is below 0.030000 m"
+        ]
+      },
+      "status": "INVALID_SCENE"
+    }
+  },
+  "overview_height_sweep": {
+    "top_0.18_m": {
+      "true_top_z_m": 0.18,
+      "validity": {
+        "status": "INVALID_SCENE",
+        "valid": false,
+        "start_clearance_m": 0.03843563849300102,
+        "goal_clearance_m": 0.0298333219885826,
+        "along_path_clearance_m": -0.04061413091421126,
+        "reasons": [
+          "goal clearance 0.029833 m is below 0.030000 m"
+        ]
+      },
+      "status": "INVALID_SCENE"
+    },
+    "top_0.22_m": {
+      "true_top_z_m": 0.22,
+      "validity": {
+        "status": "INVALID_SCENE",
+        "valid": false,
+        "start_clearance_m": 0.03453091624379159,
+        "goal_clearance_m": 0.0298333219885826,
+        "along_path_clearance_m": -0.04667341935634614,
+        "reasons": [
+          "goal clearance 0.029833 m is below 0.030000 m"
+        ]
+      },
+      "status": "INVALID_SCENE"
+    },
+    "top_0.26_m": {
+      "true_top_z_m": 0.26,
+      "validity": {
+        "status": "INVALID_SCENE",
+        "valid": false,
+        "start_clearance_m": 0.03453091624379159,
+        "goal_clearance_m": 0.0298333219885826,
+        "along_path_clearance_m": -0.06435301008820535,
+        "reasons": [
+          "goal clearance 0.029833 m is below 0.030000 m"
+        ]
+      },
+      "status": "INVALID_SCENE"
+    }
+  },
+  "padding_sweep_status": "SKIPPED: all mandated same-XY main scenes are INVALID_SCENE",
+  "blind_scene": {
+    "center_m": [
+      0.567,
+      0.32,
+      0.13
+    ],
+    "dims_m": [
+      0.05,
+      0.04,
+      0.24
+    ],
+    "validity": {
+      "status": "VALID",
+      "valid": true,
+      "start_clearance_m": 0.09685957165048739,
+      "goal_clearance_m": 0.035963443647143024,
+      "along_path_clearance_m": -0.015689551264047676,
+      "reasons": []
+    },
+    "selection_attempts": [
+      {
+        "center_m": [
+          0.247,
+          0.38,
+          0.13
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.24
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.23839824463557202,
+          "goal_clearance_m": 0.07235894487425523,
+          "along_path_clearance_m": 0.07235894487425523,
+          "reasons": [
+            "no-obstacle path does not collide (along-path 0.072359 m)"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.287,
+          0.38,
+          0.13
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.24
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.21999161503311787,
+          "goal_clearance_m": 0.06413147828781446,
+          "along_path_clearance_m": 0.06413147828781446,
+          "reasons": [
+            "no-obstacle path does not collide (along-path 0.064131 m)"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.327,
+          0.38,
+          0.13
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.24
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.19424560552360157,
+          "goal_clearance_m": 0.06192735955119133,
+          "along_path_clearance_m": 0.06192735955119133,
+          "reasons": [
+            "no-obstacle path does not collide (along-path 0.061927 m)"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.367,
+          0.38,
+          0.13
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.24
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.16762279448729625,
+          "goal_clearance_m": 0.04913669419028267,
+          "along_path_clearance_m": 0.04913669419028267,
+          "reasons": [
+            "no-obstacle path does not collide (along-path 0.049137 m)"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.407,
+          0.38,
+          0.13
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.24
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.14574911927822934,
+          "goal_clearance_m": 0.009567048763787472,
+          "along_path_clearance_m": 0.009567043884538821,
+          "reasons": [
+            "goal clearance 0.009567 m is below 0.030000 m",
+            "no-obstacle path does not collide (along-path 0.009567 m)"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.447,
+          0.38,
+          0.13
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.24
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.13041761931505447,
+          "goal_clearance_m": -0.028046911788328934,
+          "along_path_clearance_m": -0.028702928715060538,
+          "reasons": [
+            "goal clearance -0.028047 m is below 0.030000 m"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.487,
+          0.38,
+          0.13
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.24
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.12343209962238716,
+          "goal_clearance_m": -0.035825101286172875,
+          "along_path_clearance_m": -0.06134313121438027,
+          "reasons": [
+            "goal clearance -0.035825 m is below 0.030000 m"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.527,
+          0.38,
+          0.13
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.24
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.12313966176270821,
+          "goal_clearance_m": -0.028160406447381145,
+          "along_path_clearance_m": -0.044930416494607925,
+          "reasons": [
+            "goal clearance -0.028160 m is below 0.030000 m"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.567,
+          0.38,
+          0.13
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.24
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.12434188749267719,
+          "goal_clearance_m": 0.009430167443459397,
+          "along_path_clearance_m": -0.007044995021622008,
+          "reasons": [
+            "goal clearance 0.009430 m is below 0.030000 m"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.607,
+          0.38,
+          0.13
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.24
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.1335998270461905,
+          "goal_clearance_m": 0.048998119910917445,
+          "along_path_clearance_m": 0.03199894452401604,
+          "reasons": [
+            "no-obstacle path does not collide (along-path 0.031999 m)"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.647,
+          0.38,
+          0.13
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.24
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.15078160077012737,
+          "goal_clearance_m": 0.08882028946789966,
+          "along_path_clearance_m": 0.0702236503942212,
+          "reasons": [
+            "no-obstacle path does not collide (along-path 0.070224 m)"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.687,
+          0.38,
+          0.13
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.24
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.1740242586673725,
+          "goal_clearance_m": 0.12493471031949174,
+          "along_path_clearance_m": 0.08645423553293283,
+          "reasons": [
+            "no-obstacle path does not collide (along-path 0.086454 m)"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.727,
+          0.38,
+          0.13
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.24
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.2016151352578275,
+          "goal_clearance_m": 0.1530090717957084,
+          "along_path_clearance_m": 0.11011717884272146,
+          "reasons": [
+            "no-obstacle path does not collide (along-path 0.110117 m)"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.247,
+          0.36,
+          0.13
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.24
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.22556470761934838,
+          "goal_clearance_m": 0.0705990112656996,
+          "along_path_clearance_m": 0.0705990112656996,
+          "reasons": [
+            "no-obstacle path does not collide (along-path 0.070599 m)"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.287,
+          0.36,
+          0.13
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.24
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.20801510263454853,
+          "goal_clearance_m": 0.06345819453323177,
+          "along_path_clearance_m": 0.06345819453323177,
+          "reasons": [
+            "no-obstacle path does not collide (along-path 0.063458 m)"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.327,
+          0.36,
+          0.13
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.24
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.1864943339355479,
+          "goal_clearance_m": 0.06223031802168191,
+          "along_path_clearance_m": 0.06223031111500758,
+          "reasons": [
+            "no-obstacle path does not collide (along-path 0.062230 m)"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.367,
+          0.36,
+          0.13
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.24
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.15885821745554046,
+          "goal_clearance_m": 0.05337219223473995,
+          "along_path_clearance_m": 0.05337216563067823,
+          "reasons": [
+            "no-obstacle path does not collide (along-path 0.053372 m)"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.407,
+          0.36,
+          0.13
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.24
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.13592382958806895,
+          "goal_clearance_m": 0.01651908511913397,
+          "along_path_clearance_m": 0.01553055439487816,
+          "reasons": [
+            "goal clearance 0.016519 m is below 0.030000 m",
+            "no-obstacle path does not collide (along-path 0.015531 m)"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.447,
+          0.36,
+          0.13
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.24
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.11967616304334056,
+          "goal_clearance_m": -0.012326822717248803,
+          "along_path_clearance_m": -0.022637714850552867,
+          "reasons": [
+            "goal clearance -0.012327 m is below 0.030000 m"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.487,
+          0.36,
+          0.13
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.24
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.11221191483189549,
+          "goal_clearance_m": -0.031154837310314192,
+          "along_path_clearance_m": -0.0583868409693241,
+          "reasons": [
+            "goal clearance -0.031155 m is below 0.030000 m"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.527,
+          0.36,
+          0.13
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.24
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.11189846986417962,
+          "goal_clearance_m": -0.012388027244837979,
+          "along_path_clearance_m": -0.048933483988046624,
+          "reasons": [
+            "goal clearance -0.012388 m is below 0.030000 m"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.567,
+          0.36,
+          0.13
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.24
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.11318653993250732,
+          "goal_clearance_m": 0.016397326849999533,
+          "along_path_clearance_m": -0.0108476235363488,
+          "reasons": [
+            "goal clearance 0.016397 m is below 0.030000 m"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.607,
+          0.36,
+          0.13
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.24
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.12306274881594575,
+          "goal_clearance_m": 0.05323950074592146,
+          "along_path_clearance_m": 0.028636488668518048,
+          "reasons": [
+            "no-obstacle path does not collide (along-path 0.028636 m)"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.647,
+          0.36,
+          0.13
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.24
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.14122304273603592,
+          "goal_clearance_m": 0.09184645357492915,
+          "along_path_clearance_m": 0.06812596204883467,
+          "reasons": [
+            "no-obstacle path does not collide (along-path 0.068126 m)"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.687,
+          0.36,
+          0.13
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.24
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.16552726194824585,
+          "goal_clearance_m": 0.13107103381694013,
+          "along_path_clearance_m": 0.08676237329239961,
+          "reasons": [
+            "no-obstacle path does not collide (along-path 0.086762 m)"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.727,
+          0.36,
+          0.13
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.24
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.19410360541493812,
+          "goal_clearance_m": 0.1636469100113756,
+          "along_path_clearance_m": 0.11011717884272146,
+          "reasons": [
+            "no-obstacle path does not collide (along-path 0.110117 m)"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.247,
+          0.34,
+          0.13
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.24
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.21366232636982302,
+          "goal_clearance_m": 0.06632892987269601,
+          "along_path_clearance_m": 0.06632892987269601,
+          "reasons": [
+            "no-obstacle path does not collide (along-path 0.066329 m)"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.287,
+          0.34,
+          0.13
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.24
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.19611248684308222,
+          "goal_clearance_m": 0.06345819453323177,
+          "along_path_clearance_m": 0.06345819453323177,
+          "reasons": [
+            "no-obstacle path does not collide (along-path 0.063458 m)"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.327,
+          0.34,
+          0.13
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.24
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.1767181217506118,
+          "goal_clearance_m": 0.06343287974596024,
+          "along_path_clearance_m": 0.06343287974596024,
+          "reasons": [
+            "no-obstacle path does not collide (along-path 0.063433 m)"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.367,
+          0.34,
+          0.13
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.24
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.1511977066052844,
+          "goal_clearance_m": 0.061213902890597416,
+          "along_path_clearance_m": 0.059697200302565756,
+          "reasons": [
+            "no-obstacle path does not collide (along-path 0.059697 m)"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.407,
+          0.34,
+          0.13
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.24
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.12787037786493907,
+          "goal_clearance_m": 0.028326219515471263,
+          "along_path_clearance_m": 0.02124547144275611,
+          "reasons": [
+            "goal clearance 0.028326 m is below 0.030000 m",
+            "no-obstacle path does not collide (along-path 0.021245 m)"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.447,
+          0.34,
+          0.13
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.24
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.1107811688044752,
+          "goal_clearance_m": -0.0037062437534332374,
+          "along_path_clearance_m": -0.017470029661393324,
+          "reasons": [
+            "goal clearance -0.003706 m is below 0.030000 m"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.487,
+          0.34,
+          0.13
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.24
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.1028664154401476,
+          "goal_clearance_m": -0.03716667801141742,
+          "along_path_clearance_m": -0.054135123163461675,
+          "reasons": [
+            "goal clearance -0.037167 m is below 0.030000 m"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.527,
+          0.34,
+          0.13
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.24
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.10253302006880968,
+          "goal_clearance_m": -0.004370216608047463,
+          "along_path_clearance_m": -0.051757540851831416,
+          "reasons": [
+            "goal clearance -0.004370 m is below 0.030000 m"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.567,
+          0.34,
+          0.13
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.24
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.10390251792019972,
+          "goal_clearance_m": 0.02822369398722832,
+          "along_path_clearance_m": -0.01369003404529958,
+          "reasons": [
+            "goal clearance 0.028224 m is below 0.030000 m"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.607,
+          0.34,
+          0.13
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.24
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.11435775065746032,
+          "goal_clearance_m": 0.06109087991028346,
+          "along_path_clearance_m": 0.025912544578804472,
+          "reasons": [
+            "no-obstacle path does not collide (along-path 0.025913 m)"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.647,
+          0.34,
+          0.13
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.24
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.133409921864292,
+          "goal_clearance_m": 0.09761007557646822,
+          "along_path_clearance_m": 0.06579710598573141,
+          "reasons": [
+            "no-obstacle path does not collide (along-path 0.065797 m)"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.687,
+          0.34,
+          0.13
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.24
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.15865202110075355,
+          "goal_clearance_m": 0.13559758260004984,
+          "along_path_clearance_m": 0.08732989116093082,
+          "reasons": [
+            "no-obstacle path does not collide (along-path 0.087330 m)"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.727,
+          0.34,
+          0.13
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.24
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.1839471240789624,
+          "goal_clearance_m": 0.17327253437280923,
+          "along_path_clearance_m": 0.11017326440407868,
+          "reasons": [
+            "no-obstacle path does not collide (along-path 0.110173 m)"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.247,
+          0.32,
+          0.13
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.24
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.20262637437692596,
+          "goal_clearance_m": 0.06195809526018545,
+          "along_path_clearance_m": 0.06195809526018545,
+          "reasons": [
+            "no-obstacle path does not collide (along-path 0.061958 m)"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.287,
+          0.32,
+          0.13
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.24
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.1844310342158062,
+          "goal_clearance_m": 0.06269745335040648,
+          "along_path_clearance_m": 0.06269745335040648,
+          "reasons": [
+            "no-obstacle path does not collide (along-path 0.062697 m)"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.327,
+          0.32,
+          0.13
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.24
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.16296611544829073,
+          "goal_clearance_m": 0.0637547190999734,
+          "along_path_clearance_m": 0.06375471206753876,
+          "reasons": [
+            "no-obstacle path does not collide (along-path 0.063755 m)"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.367,
+          0.32,
+          0.13
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.24
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.13515356133953804,
+          "goal_clearance_m": 0.06738714015650622,
+          "along_path_clearance_m": 0.06497561066684372,
+          "reasons": [
+            "no-obstacle path does not collide (along-path 0.064976 m)"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.407,
+          0.32,
+          0.13
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.24
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.11382823692332514,
+          "goal_clearance_m": 0.03692805629428858,
+          "along_path_clearance_m": 0.026029374097906205,
+          "reasons": [
+            "no-obstacle path does not collide (along-path 0.026029 m)"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.447,
+          0.32,
+          0.13
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.24
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.10252021768022751,
+          "goal_clearance_m": -0.0016000884695813455,
+          "along_path_clearance_m": -0.01317777188932262,
+          "reasons": [
+            "goal clearance -0.001600 m is below 0.030000 m"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.487,
+          0.32,
+          0.13
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.24
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.0957713772910943,
+          "goal_clearance_m": -0.017166678011417396,
+          "along_path_clearance_m": -0.05023840990662574,
+          "reasons": [
+            "goal clearance -0.017167 m is below 0.030000 m"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.527,
+          0.32,
+          0.13
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.24
+        ],
+        "validity": {
+          "status": "INVALID_SCENE",
+          "valid": false,
+          "start_clearance_m": 0.0954210514369673,
+          "goal_clearance_m": -0.004024802496588561,
+          "along_path_clearance_m": -0.05441180649399755,
+          "reasons": [
+            "goal clearance -0.004025 m is below 0.030000 m"
+          ]
+        },
+        "start_view_points": null
+      },
+      {
+        "center_m": [
+          0.567,
+          0.32,
+          0.13
+        ],
+        "dims_m": [
+          0.05,
+          0.04,
+          0.24
+        ],
+        "validity": {
+          "status": "VALID",
+          "valid": true,
+          "start_clearance_m": 0.09685957165048739,
+          "goal_clearance_m": 0.035963443647143024,
+          "along_path_clearance_m": -0.015689551264047676,
+          "reasons": []
+        },
+        "start_view_points": 0,
+        "start_view_obstacle_pixels": 0,
+        "model_start_points": {
+          "flange_m": [
+            0.48799997568130493,
+            0.11600001156330109,
+            0.3009999990463257
+          ],
+          "wrist_1_center_m": [
+            0.5731144547462463,
+            0.15740230679512024,
+            0.38329997658729553
+          ],
+          "source": "Newton FK from the loaded URDF model"
+        }
+      }
+    ],
+    "selection": "first fixed-Y candidate that is valid and unseen from the start"
+  },
+  "look_while_moving": {
+    "main": {
+      "status": "INVALID_SCENE",
+      "reason": "all mandated same-XY main scenes fail the 30 mm goal-clearance rule"
+    },
+    "blind": {
+      "cycles": 9,
+      "cycles_without_plan": 0,
+      "minimum_true_clearance_m": -0.009746224832646783,
+      "goal_reached": false,
+      "true_collision": true,
+      "first_seen_cycle": null,
+      "clearance_when_first_seen_m": null,
+      "capture_median_ms": 15.616592019796371,
+      "planning_median_ms": 64.46478399448097,
+      "whole_cycle_cold_ms": 77.40977802313864,
+      "whole_cycle_warm_median_ms": 82.45493797585368,
+      "planner_reuse": "one warmed planner; camera_obstacle pose and CuboidData dimensions updated in-place each cycle",
+      "final_stop_reason": "TRUE_COLLISION",
+      "advance_joint_length_rad": 0.05
+    },
+    "main_cycles": [],
+    "blind_cycles": [
+      {
+        "cycle": 1,
+        "capture": {
+          "q": [
+            -2.688859224319458,
+            -2.061718463897705,
+            -1.2870012521743774,
+            1.777923345565796,
+            4.71238899230957,
+            -5.830451965332031
+          ],
+          "points": 0,
+          "camera_transform": [
+            0.38200002908706665,
+            0.1159999668598175,
+            0.24500000476837158,
+            4.8189331636194765e-08,
+            4.818928900363062e-08,
+            0.7071062922477722,
+            -0.70710688829422
+          ],
+          "metadata": {
+            "id": 2,
+            "output": "/tmp/newton-camera-worker-nnymhdf7/capture_0002.npz",
+            "points": 0,
+            "highest_seen_z_m": null,
+            "capture_ms": 14.058663044124842,
+            "conversion_ms": 10.793271940201521,
+            "obstacle_pixels": 0,
+            "robot_percent": 0.0,
+            "flange_m": [
+              0.48799997568130493,
+              0.11600001156330109,
+              0.3009999990463257
+            ],
+            "wrist_1_center_m": [
+              0.5731144547462463,
+              0.15740230679512024,
+              0.38329997658729553
+            ]
+          }
+        },
+        "fit": null,
+        "plan_ms": 61.037539038807154,
+        "whole_cycle_ms": 77.40977802313864,
+        "planner_failure_status": null,
+        "current_to_fit_clearance_m": null,
+        "goal_to_fit_clearance_m": null,
+        "stop_reason": null,
+        "executed_states": 9,
+        "minimum_true_clearance_m": 0.09142937014657085
+      },
+      {
+        "cycle": 2,
+        "capture": {
+          "q": [
+            -2.6621549129486084,
+            -2.087031364440918,
+            -1.250570297241211,
+            1.7664703130722046,
+            4.71238899230957,
+            -5.803747653961182
+          ],
+          "points": 0,
+          "camera_transform": [
+            0.38782212138175964,
+            0.1337164044380188,
+            0.24414470791816711,
+            0.0001596992224222049,
+            -5.0407183152856305e-05,
+            0.7071064114570618,
+            -0.7071071267127991
+          ],
+          "metadata": {
+            "id": 3,
+            "output": "/tmp/newton-camera-worker-nnymhdf7/capture_0003.npz",
+            "points": 0,
+            "highest_seen_z_m": null,
+            "capture_ms": 15.616592019796371,
+            "conversion_ms": 11.854380136355758,
+            "obstacle_pixels": 0,
+            "robot_percent": 0.0,
+            "flange_m": [
+              0.49383875727653503,
+              0.13372516632080078,
+              0.3001132011413574
+            ],
+            "wrist_1_center_m": [
+              0.5778418779373169,
+              0.17739808559417725,
+              0.38238152861595154
+            ]
+          }
+        },
+        "fit": null,
+        "plan_ms": 60.31398195773363,
+        "whole_cycle_ms": 78.3275100402534,
+        "planner_failure_status": null,
+        "current_to_fit_clearance_m": null,
+        "goal_to_fit_clearance_m": null,
+        "stop_reason": null,
+        "executed_states": 9,
+        "minimum_true_clearance_m": 0.07789400020225942
+      },
+      {
+        "cycle": 3,
+        "capture": {
+          "q": [
+            -2.637195110321045,
+            -2.1106905937194824,
+            -1.216508150100708,
+            1.7557774782180786,
+            4.71238899230957,
+            -5.778790473937988
+          ],
+          "points": 0,
+          "camera_transform": [
+            0.3925773501396179,
+            0.15055100619792938,
+            0.24313874542713165,
+            0.00030030656489543617,
+            -8.664683264214545e-05,
+            0.7071053981781006,
+            -0.7071079015731812
+          ],
+          "metadata": {
+            "id": 4,
+            "output": "/tmp/newton-camera-worker-nnymhdf7/capture_0004.npz",
+            "points": 0,
+            "highest_seen_z_m": null,
+            "capture_ms": 15.990350162610412,
+            "conversion_ms": 12.681980151683092,
+            "obstacle_pixels": 0,
+            "robot_percent": 0.0,
+            "flange_m": [
+              0.49860793352127075,
+              0.15056826174259186,
+              0.2990807294845581
+            ],
+            "wrist_1_center_m": [
+              0.5815157890319824,
+              0.1963355988264084,
+              0.3813215494155884
+            ]
+          }
+        },
+        "fit": null,
+        "plan_ms": 63.03494400344789,
+        "whole_cycle_ms": 81.13534585572779,
+        "planner_failure_status": null,
+        "current_to_fit_clearance_m": null,
+        "goal_to_fit_clearance_m": null,
+        "stop_reason": null,
+        "executed_states": 9,
+        "minimum_true_clearance_m": 0.06210809087116548
+      },
+      {
+        "cycle": 4,
+        "capture": {
+          "q": [
+            -2.6138670444488525,
+            -2.132805347442627,
+            -1.1846632957458496,
+            1.7457956075668335,
+            4.71238899230957,
+            -5.755457878112793
+          ],
+          "points": 0,
+          "camera_transform": [
+            0.3964109420776367,
+            0.1665007323026657,
+            0.2420191913843155,
+            0.0004239265981595963,
+            -0.0001116808271035552,
+            0.7071071267127991,
+            -0.707106351852417
+          ],
+          "metadata": {
+            "id": 5,
+            "output": "/tmp/newton-camera-worker-nnymhdf7/capture_0005.npz",
+            "points": 0,
+            "highest_seen_z_m": null,
+            "capture_ms": 15.622868202626705,
+            "conversion_ms": 12.534264009445906,
+            "obstacle_pixels": 0,
+            "robot_percent": 0.0,
+            "flange_m": [
+              0.5024533271789551,
+              0.16652533411979675,
+              0.29793888330459595
+            ],
+            "wrist_1_center_m": [
+              0.5842889547348022,
+              0.21422453224658966,
+              0.38015592098236084
+            ]
+          }
+        },
+        "fit": null,
+        "plan_ms": 64.16020193137228,
+        "whole_cycle_ms": 82.14053604751825,
+        "planner_failure_status": null,
+        "current_to_fit_clearance_m": null,
+        "goal_to_fit_clearance_m": null,
+        "stop_reason": null,
+        "executed_states": 10,
+        "minimum_true_clearance_m": 0.04247879968646507
+      },
+      {
+        "cycle": 5,
+        "capture": {
+          "q": [
+            -2.58366060256958,
+            -2.1614315509796143,
+            -1.1434040069580078,
+            1.732937216758728,
+            4.71238899230957,
+            -5.725251197814941
+          ],
+          "points": 0,
+          "camera_transform": [
+            0.40048983693122864,
+            0.18742531538009644,
+            0.24031394720077515,
+            0.0005368773709051311,
+            -0.00012413821241352707,
+            0.7071071267127991,
+            -0.7071061730384827
+          ],
+          "metadata": {
+            "id": 6,
+            "output": "/tmp/newton-camera-worker-nnymhdf7/capture_0006.npz",
+            "points": 0,
+            "highest_seen_z_m": null,
+            "capture_ms": 15.308271162211895,
+            "conversion_ms": 12.252895161509514,
+            "obstacle_pixels": 0,
+            "robot_percent": 0.0,
+            "flange_m": [
+              0.5065421462059021,
+              0.1874578297138214,
+              0.2962148189544678
+            ],
+            "wrist_1_center_m": [
+              0.5869155526161194,
+              0.2376166582107544,
+              0.3784104883670807
+            ]
+          }
+        },
+        "fit": null,
+        "plan_ms": 65.81966881640255,
+        "whole_cycle_ms": 83.24817684479058,
+        "planner_failure_status": null,
+        "current_to_fit_clearance_m": null,
+        "goal_to_fit_clearance_m": null,
+        "stop_reason": null,
+        "executed_states": 10,
+        "minimum_true_clearance_m": 0.0265656963125651
+      },
+      {
+        "cycle": 6,
+        "capture": {
+          "q": [
+            -2.5561625957489014,
+            -2.1874923706054688,
+            -1.1058363914489746,
+            1.7212461233139038,
+            4.71238899230957,
+            -5.69774866104126
+          ],
+          "points": 0,
+          "camera_transform": [
+            0.4033137261867523,
+            0.2066960334777832,
+            0.23851653933525085,
+            0.0006302480469457805,
+            -0.00012764004350174218,
+            0.7071086764335632,
+            -0.7071044445037842
+          ],
+          "metadata": {
+            "id": 7,
+            "output": "/tmp/newton-camera-worker-nnymhdf7/capture_0007.npz",
+            "points": 0,
+            "highest_seen_z_m": null,
+            "capture_ms": 16.22361084446311,
+            "conversion_ms": 12.956550810486078,
+            "obstacle_pixels": 0,
+            "robot_percent": 0.0,
+            "flange_m": [
+              0.509373664855957,
+              0.20673514902591705,
+              0.2944028675556183
+            ],
+            "wrist_1_center_m": [
+              0.5883501768112183,
+              0.25909319519996643,
+              0.3765810430049896
+            ]
+          }
+        },
+        "fit": null,
+        "plan_ms": 66.67218287475407,
+        "whole_cycle_ms": 85.16371389850974,
+        "planner_failure_status": null,
+        "current_to_fit_clearance_m": null,
+        "goal_to_fit_clearance_m": null,
+        "stop_reason": null,
+        "executed_states": 10,
+        "minimum_true_clearance_m": 0.01591306989776497
+      },
+      {
+        "cycle": 7,
+        "capture": {
+          "q": [
+            -2.531120538711548,
+            -2.2112228870391846,
+            -1.0716246366500854,
+            1.7106167078018188,
+            4.71238899230957,
+            -5.672708511352539
+          ],
+          "points": 0,
+          "camera_transform": [
+            0.40513768792152405,
+            0.22439266741275787,
+            0.236678808927536,
+            0.000706303573679179,
+            -0.00012470450019463897,
+            0.7071080207824707,
+            -0.7071050405502319
+          ],
+          "metadata": {
+            "id": 8,
+            "output": "/tmp/newton-camera-worker-nnymhdf7/capture_0008.npz",
+            "points": 0,
+            "highest_seen_z_m": null,
+            "capture_ms": 15.014381846413016,
+            "conversion_ms": 11.824015062302351,
+            "obstacle_pixels": 0,
+            "robot_percent": 0.0,
+            "flange_m": [
+              0.511203408241272,
+              0.22443822026252747,
+              0.29255416989326477
+            ],
+            "wrist_1_center_m": [
+              0.5888541340827942,
+              0.27876436710357666,
+              0.3747183084487915
+            ]
+          }
+        },
+        "fit": null,
+        "plan_ms": 66.22987799346447,
+        "whole_cycle_ms": 83.80668889731169,
+        "planner_failure_status": null,
+        "current_to_fit_clearance_m": null,
+        "goal_to_fit_clearance_m": null,
+        "stop_reason": null,
+        "executed_states": 10,
+        "minimum_true_clearance_m": 0.009231142235372598
+      },
+      {
+        "cycle": 8,
+        "capture": {
+          "q": [
+            -2.508314609527588,
+            -2.23282790184021,
+            -1.040461540222168,
+            1.7009503841400146,
+            4.71238899230957,
+            -5.649900436401367
+          ],
+          "points": 0,
+          "camera_transform": [
+            0.40617355704307556,
+            0.2406052201986313,
+            0.23484475910663605,
+            0.0007623915444128215,
+            -0.00011683670163620263,
+            0.7071086764335632,
+            -0.7071043252944946
+          ],
+          "metadata": {
+            "id": 9,
+            "output": "/tmp/newton-camera-worker-nnymhdf7/capture_0009.npz",
+            "points": 0,
+            "highest_seen_z_m": null,
+            "capture_ms": 15.65704308450222,
+            "conversion_ms": 12.502086814492941,
+            "obstacle_pixels": 0,
+            "robot_percent": 0.0,
+            "flange_m": [
+              0.5122430920600891,
+              0.24065561592578888,
+              0.2907128930091858
+            ],
+            "wrist_1_center_m": [
+              0.5886419415473938,
+              0.29674363136291504,
+              0.37286680936813354
+            ]
+          }
+        },
+        "fit": null,
+        "plan_ms": 64.46478399448097,
+        "whole_cycle_ms": 82.52876484766603,
+        "planner_failure_status": null,
+        "current_to_fit_clearance_m": null,
+        "goal_to_fit_clearance_m": null,
+        "stop_reason": null,
+        "executed_states": 11,
+        "minimum_true_clearance_m": 0.002355430090331047
+      },
+      {
+        "cycle": 9,
+        "capture": {
+          "q": [
+            -2.4809823036193848,
+            -2.25872540473938,
+            -1.0030640363693237,
+            1.6894103288650513,
+            4.71238899230957,
+            -5.622568130493164
+          ],
+          "points": 0,
+          "camera_transform": [
+            0.4066348075866699,
+            0.26012924313545227,
+            0.2324467897415161,
+            0.0007852201233617961,
+            -9.843377483775839e-05,
+            0.7071086168289185,
+            -0.7071042656898499
+          ],
+          "metadata": {
+            "id": 10,
+            "output": "/tmp/newton-camera-worker-nnymhdf7/capture_0010.npz",
+            "points": 0,
+            "highest_seen_z_m": null,
+            "capture_ms": 15.139268012717366,
+            "conversion_ms": 12.050518998876214,
+            "obstacle_pixels": 0,
+            "robot_percent": 0.0,
+            "flange_m": [
+              0.5127046704292297,
+              0.2601828873157501,
+              0.28831425309181213
+            ],
+            "wrist_1_center_m": [
+              0.5875447988510132,
+              0.31833988428115845,
+              0.3704643249511719
+            ]
+          }
+        },
+        "fit": null,
+        "plan_ms": 65.12233894318342,
+        "whole_cycle_ms": 82.38111110404134,
+        "planner_failure_status": null,
+        "current_to_fit_clearance_m": null,
+        "goal_to_fit_clearance_m": null,
+        "stop_reason": "TRUE_COLLISION",
+        "executed_states": 11,
+        "minimum_true_clearance_m": -0.009746224832646783
+      }
+    ]
+  },
+  "overview_pose": {
+    "status": "SKIPPED: no valid main scene",
+    "cartesian_offset_from_start_m": [
+      0.0,
+      0.0,
+      0.2
+    ]
+  },
+  "known_limits": [
+    "all perceived points fit into one cuboid, so separate obstacles merge",
+    "all points at z <= 0.012 m are deleted, including a cable",
+    "robot pixels use simulator shape indices unavailable to a real camera"
+  ],
+  "schema": 2,
+  "date": "2026-11-06",
+  "repeats": 3,
+  "planner_truth_rule": "truth used only by case B and offline scoring, never C/D/E input",
+  "worker_exchange": "persistent Newton subprocess, JSON pipe plus temporary NPZ captures",
+  "playback_root_cause": {
+    "cause": "clearance_series returned shape [N,1]; playback formatted the one-element ndarray with +.4f, raising TypeError inside an uncaught daemon thread",
+    "reproduced_exception": "TypeError: unsupported format string passed to numpy.ndarray.__format__",
+    "fix": "clearance_series now returns shape [N], formatting casts float, and the worker reports exceptions to stderr and the Playback error GUI field"
+  },
+  "playback_verification": {
+    "registered_callback_cases": [
+      {
+        "case": "padding INVALID_SCENE",
+        "callback_thread": "viser-callback-padding",
+        "callback_non_main": true,
+        "worker_thread": "playback-padding INVALID_SCENE",
+        "states_commanded": 2,
+        "robot_joint_state_changed": true,
+        "frustum_changed": true,
+        "error": null
+      },
+      {
+        "case": "standard INVALID_SCENE",
+        "callback_thread": "viser-callback-standard",
+        "callback_non_main": true,
+        "worker_thread": "playback-standard INVALID_SCENE",
+        "states_commanded": 2,
+        "robot_joint_state_changed": true,
+        "frustum_changed": true,
+        "error": null
+      },
+      {
+        "case": "overview INVALID_SCENE",
+        "callback_thread": "viser-callback-overview",
+        "callback_non_main": true,
+        "worker_thread": "playback-overview INVALID_SCENE",
+        "states_commanded": 2,
+        "robot_joint_state_changed": true,
+        "frustum_changed": true,
+        "error": null
+      },
+      {
+        "case": "E look INVALID_SCENE",
+        "callback_thread": "viser-callback-E look",
+        "callback_non_main": true,
+        "worker_thread": "playback-E look INVALID_SCENE",
+        "states_commanded": 2,
+        "robot_joint_state_changed": true,
+        "frustum_changed": true,
+        "error": null
+      },
+      {
+        "case": "E blind spot",
+        "callback_thread": "viser-callback-E blind",
+        "callback_non_main": true,
+        "worker_thread": "playback-E blind spot",
+        "states_commanded": 18,
+        "robot_joint_state_changed": true,
+        "frustum_changed": true,
+        "error": null
+      },
+      {
+        "case": "INVALID_SCENE wall top 0.18",
+        "callback_thread": "viser-callback-INVALID_SCENE",
+        "callback_non_main": true,
+        "worker_thread": "playback-INVALID_SCENE wall top 0.18",
+        "states_commanded": 2,
+        "robot_joint_state_changed": true,
+        "frustum_changed": true,
+        "error": null
+      }
+    ],
+    "all_passed": true,
+    "mount_config_path": "config/sim_camera_mount.yaml"
+  }
+}

@@ -70,6 +70,8 @@ def main() -> None:
             "conversion_ms": capture["conversion_ms"],
             "obstacle_pixels": capture["obstacle_pixels"],
             "robot_percent": capture["robot_percent"],
+            "flange_m": capture["flange_m"],
+            "wrist_1_center_m": capture["wrist_1_center_m"],
         }
         print("NEWTON_CAMERA_WORKER_RESPONSE " + json.dumps(response), flush=True)
 
