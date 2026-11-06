@@ -4,6 +4,12 @@ Check date: 2026-11-06 (Asia/Taipei)
 
 ## Verdict
 
+> **Correction (2026-11-06):** The benchmark in this first section rendered
+> no box, sphere, or cylinder. Its `0.2277` / `0.2610 ms/frame` timings and
+> depth summaries describe robot geometry plus ground only, not the stated
+> target-object scene. The numbers below are retained unchanged as historical
+> measurements and must not be quoted as performance or depth for that scene.
+
 **Yes.** The already-installed Newton 1.5.1 `SensorTiledCamera` rendered a
 640 x 480 depth image on the RTX 3080 from a camera site rigidly attached to
 the UR5 `tool0` link. No package was installed or upgraded.
@@ -190,12 +196,20 @@ simulation check; it is not the real camera mount**.
 ### Scene correction needed for this check
 
 The previous benchmark created the box, sphere, and cylinder as unjointed
-bodies. Calling `eval_fk` did not preserve those bodies at the requested world
-poses, so the earlier camera actually rendered only robot geometry and ground.
+bodies and then assigned `q[6:] = 0.0`. A direct A/B reproduction proved that
+this blanket assignment, rather than `eval_fk` by itself, was the cause: with
+the model's initialized suffix preserved, the three body positions matched
+their requested positions within `1.19e-8 m`; with the suffix zeroed, all three
+became `[0, 0, 0]`, with at least `0.3805 m` position error. The earlier camera
+therefore rendered only robot geometry and ground.
+
 This script retains the exact previous dimensions, centers, colors, and ground,
 but creates the three targets as world-static Newton shapes (`body=-1`). That
 makes both the rendered truth and the analytic surface check correspond to the
-documented scene:
+documented scene. A moving obstacle instead needs its own seven free-joint
+coordinates (XYZ plus a normalized XYZW quaternion) maintained or written each
+frame, followed by FK and shape-BVH refit; it must not zero the entire joint
+suffix.
 
 | Surface | Center (m) | Size |
 | --- | --- | --- |
@@ -328,3 +342,86 @@ cd ~/ur5_ws/src/ur5_moveit_demo && ~/newton_ws/.venv-cpu/bin/python scripts/newt
 The noninteractive verification used the same script with
 `--check-only --timing-frames 120`. It started and stopped its own Viser server;
 no process was left running and no media was recorded.
+
+## Adjustable mount
+
+Check date: 2026-11-06 (Asia/Taipei)
+
+The camera mount is now loaded from
+[`config/sim_camera_mount.yaml`](../config/sim_camera_mount.yaml). Its current
+values are deliberately labelled `unmeasured_initial_guess`: parent
+`ur/tool0`, left `0.050 m`, up `0.080 m`, forward `0.030 m`, and tilt `15 deg`.
+They are controls for matching the real D435 by eye, not measured hardware
+dimensions.
+
+### Model-derived directions and tilt
+
+The directions are measured from the loaded UR5/Robotiq state, rather than
+hard-coded mount axes:
+
+- `FORWARD` is flange to the midpoint of the two fingertips. In the `tool0`
+  frame it measured `[-3.96e-8, -4.82e-9, 1.0]`, confirming tool0 `+Z`.
+- `LEFT` is right fingertip to left fingertip along the finger-opening axis,
+  with its forward component removed. It measured `[1.0, -5.13e-8, 3.96e-8]`,
+  confirming tool0 `+X` as left when looking from flange toward fingertips.
+- `UP = FORWARD x LEFT`. It measured `[5.13e-8, 1.0, 4.82e-9]`, confirming
+  tool0 `+Y` as up in that same view.
+
+`forward_m` starts at the flange face. At zero tilt the optical axis is
+parallel to `FORWARD`; positive `tilt_deg` rotates it toward the gripper centre
+line while projecting image-up so it stays on the measured `UP` side.
+
+### Controls
+
+The Viser **Camera mount** folder has left/up sliders from `-0.20` to `0.20 m`,
+forward from `-0.10` to `0.20 m`, and tilt from `-60` to `60 deg`. Every mount
+or arm-slider change performs one new capture and updates the camera, depth
+panel, world cloud, mount readout, and robot-point percentage. Labelled
+`LEFT`, `UP`, and `FORWARD` arrows originate at the flange and have a visibility
+checkbox. **Save mount** preserves the YAML's field order and formatting,
+writes the slider values, and changes status to `matched_by_eye`.
+
+The noninteractive check changed all four GUI handle values, observed four real
+Viser slider callbacks, serviced the dirty event through the normal recapture
+path, and set the button handle value to invoke its registered click callback.
+It reread `matched_by_eye` from disk, observed exactly one save callback, then
+restored the original YAML byte-for-byte. This tests the callbacks themselves,
+not just the underlying capture and save functions.
+
+### Accuracy at two mount settings
+
+Both mount settings were checked at the same three arm poses. These are overall
+non-robot analytic surface errors; the target remains absolute median `< 1 mm`
+and p95 `< 5 mm`. The negative control deliberately treats ray distance as
+forward depth.
+
+| Mount | Arm pose | Robot points | Correct abs median | Correct abs p95 | Negative abs p95 |
+| --- | --- | ---: | ---: | ---: | ---: |
+| Initial `0.05, 0.08, 0.03, 15 deg` | Baseline | 6.2136% | 0.000015 mm | 0.000046 mm | 160.633 mm |
+| Initial | Shoulder lift +0.15 | 6.2136% | 0.000019 mm | 0.000054 mm | 134.923 mm |
+| Initial | Pan +0.25, elbow -0.15 | 6.2136% | 0.000047 mm | 0.000130 mm | 185.442 mm |
+| Other `0.08, 0.06, 0.06, 25 deg` | Baseline | 12.3769% | 0.000045 mm | 0.000089 mm | 148.289 mm |
+| Other | Shoulder lift +0.15 | 12.3769% | 0.000013 mm | 0.000057 mm | 121.583 mm |
+| Other | Pan +0.25, elbow -0.15 | 12.3769% | 0.000067 mm | 0.000180 mm | 154.422 mm |
+
+All six captures pass the target and both three-pose negative controls detect
+the intended depth-semantics mistake. At the initial mount the nearest baseline
+ray hits `ur/robotiq_85_left_inner_knuckle_link` at `0.094101 m`; at the other
+mount it hits `ur/robotiq_85_left_finger_link` at `0.068403 m`.
+
+### What the user should do
+
+With the real robot stationary and without commanding it from this tool, open
+the local viewer, use the labelled axes to compare the simulated camera with
+the physical D435, adjust the four mount sliders, and click **Save mount** only
+when the placement matches by eye. Exact one-line command:
+
+```bash
+cd ~/ur5_ws/src/ur5_moveit_demo && ~/newton_ws/.venv-cpu/bin/python scripts/newton_sim_depth_cloud_viser.py
+```
+
+The final verification used the same script with
+`--check-only --timing-frames 120`: Newton 1.5.1 on the RTX 3080, all six
+accuracy captures passing, both negative controls passing, callback checks
+passing, and no install, ROS, cuRobo, real-robot command, or media recording.
+The Viser server started by the check was stopped on exit.

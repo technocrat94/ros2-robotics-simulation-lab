@@ -1,0 +1,6 @@
+parent_link: ur/tool0
+left_m: 0.05
+up_m: 0.08
+forward_m: 0.03
+tilt_deg: 15.0
+status: unmeasured_initial_guess
