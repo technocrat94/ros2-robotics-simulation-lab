@@ -15,38 +15,38 @@ No pending task
 Leave the deleted 05_c2_tall_wall_refused.png and the untracked curobo/ untouched. Stage files by
 explicit path only. No git clean/reset/restore/stash/add -A.
 
-## Task: simulated depth to world point cloud, visible in Viser (branch `experiment/newton-link-depth-camera`, time box 60 min)
+## Task: adjustable camera mount in Viser (branch `experiment/newton-link-depth-camera`, time box 45 min)
 
-Build on scripts/newton_link_depth_camera_benchmark.py. Same scene, same rules: no install, no sudo, no ROS,
-no cuRobo, no real robot, GPU `cuda:0`, Python `~/newton_ws/.venv-cpu/bin/python`. Do not record media. Do not
-stop processes you did not start. New script: scripts/newton_sim_depth_cloud_viser.py.
+The real D435 sits to the upper left of the gripper, not at the current placeholder. You cannot see the robot, so
+do not guess the true values: give the user controls to match it by eye. Same rules as before: no install, no
+sudo, no ROS, no cuRobo, no real robot, do not record media, do not stop processes you did not start.
+Edit scripts/newton_sim_depth_cloud_viser.py.
 
-1. Camera: 848x480, vertical FOV 58 deg, using `forward_depth_image` (not `depth_image`). State how
-   `camera_fovs` is interpreted. Keep the current mount and label it a placeholder, not our real mount.
-2. Point cloud: back-project depth with the pinhole model, then transform to world with the camera pose
-   from the same frame. Return time on the same state, so image and pose cannot differ.
-3. Robot pixels: if the sensor has a shape-index output, mark points that hit the robot and count them. If not,
-   say so and use a simple alternative (render without the robot shapes). Explain the 0.183064 m minimum depth
-   seen in both poses of the last report: what does the camera actually hit there?
-4. Accuracy, at 3 or more different arm poses, excluding robot points: signed distance from each point to the
-   nearest true surface (box, sphere, cylinder, ground, computed analytically from the scene values).
-   Report median, p95 and max per surface. Target: median < 1 mm, p95 < 5 mm. If missed, report it; do not tune
-   the test to pass.
-5. Negative control: repeat step 4 once treating `depth_image` as forward depth. The error must clearly rise. If it
-   does not, the test cannot detect this mistake: say so.
-6. Timing, median over 120 or more frames, measured separately: depth render, copy to host, point cloud
-   conversion, Viser update. Also confirm the loaded URDF is a UR5, not a UR5e, by shoulder height
-   (UR5 about 0.0892 m, UR5e about 0.1625 m).
+1. New file config/sim_camera_mount.yaml with `parent_link: ur/tool0`, `left_m`, `up_m`, `forward_m`, `tilt_deg`,
+   and `status: unmeasured_initial_guess`. Initial guess: left 0.05, up 0.08, forward 0.03, tilt 15. The script
+   reads it; no mount value stays hard-coded.
+2. Define the axes from the loaded model and state them in the report:
+   - forward: flange toward fingertips (confirm the tool0 axis from the model)
+   - left/right: the finger opening axis, measured from the finger links
+   - up: perpendicular to both; left and up as seen when looking from flange toward fingertips
+   `forward_m` is measured from the flange face. `tilt_deg` turns the optical axis from parallel-to-forward toward
+   the gripper centre line; 0 means parallel. Image up stays on the `up` side.
+3. Viser: add a "Camera mount" folder with 4 sliders (left and up -0.20 to 0.20 m, forward -0.10 to 0.20 m, tilt
+   -60 to 60 deg). Moving one recaptures and updates camera, depth, cloud and readouts. Add a "Save mount" button
+   that writes the yaml, keeps the file format, and sets `status: matched_by_eye`. Draw labelled LEFT, UP and
+   FORWARD arrows at the gripper, with a checkbox to hide them, so the directions cannot be misread.
+   Also read out the current mount values and the robot point percentage.
+4. Accuracy: run the existing accuracy table and negative control at the initial guess and at one other mount, 3
+   arm poses each. Same targets. Report robot point percentage and the nearest hit link at each mount.
+5. Correct the record in docs/SIM_CAMERA_CHECK.md:
+   - Mark the first half (benchmark section) as having rendered no target objects, so its 0.2277/0.2610 ms and
+     its depth values do not describe the stated scene.
+   - The report blames eval_fk. Test whether `q[6:] = 0.0` in the old script is the real cause, because it also
+     zeroes free-joint coordinates of the objects. State what the test showed. Say what a moving obstacle must do to
+     avoid this.
+   Do not change the old benchmark's measured numbers.
 
-Viser view (bind 127.0.0.1, port 8083, print the URL). The user must be able to see all of this:
-- the robot, and the true objects as solid shapes
-- the camera frustum at its live pose, and the live depth image as a panel
-- the world point cloud on top of the objects, robot points in red, the rest coloured by height
-- 6 joint sliders, so moving the arm moves the camera while the cloud stays on the objects
-- checkboxes to hide the objects, hide the cloud and hide robot points; a text readout of current point count
-  and median error
-Keep it on the current pose when idle; do not spin the GPU at full rate.
-
-Append a "Point cloud and Viser" section to docs/SIM_CAMERA_CHECK.md with the results, including a plain
-"what you should see" list and the exact one-line run command. Stop every process you started; the user will
-open the viewer. Commit by path, push, reply in 5 lines with the hash and the run command.
+Append an "Adjustable mount" section to docs/SIM_CAMERA_CHECK.md, including what the user should do and the
+exact one-line run command. Slider and button callbacks must actually be exercised by the check, not just the
+capture path; say how you did it. Stop every process you started. Commit by path, push, reply in 5 lines with the
+hash and the run command.
