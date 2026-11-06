@@ -166,3 +166,165 @@ figures; no cache was deleted or manually changed.
   behind the gripper, which made the gripper fill the view. Moving the fixed
   mount 18 cm to the side produced a useful scene view; no Newton source or
   environment package was modified.
+
+## Point cloud and Viser
+
+Check date: 2026-11-06 (Asia/Taipei)
+
+### Verdict
+
+The existing Newton 1.5.1 and Viser 1.0.26 environments can turn the simulated
+link-mounted depth image into a world-frame point cloud and display it over the
+robot and analytic scene without installing anything. The reproducible script
+is [`scripts/newton_sim_depth_cloud_viser.py`](../scripts/newton_sim_depth_cloud_viser.py).
+
+This test uses 848 x 480 `forward_depth_image`, not `depth_image`. Newton's
+`camera_fovs` argument is the **vertical field of view in radians**. The
+Newton pinhole kernel uses `tan(vertical_fov / 2)` and multiplies by
+`width / height` for the horizontal extent. Therefore 58 degrees vertical at
+848 x 480 corresponds to 88.8004 degrees horizontal.
+
+The `[0.18, 0.0, -0.08]` m `tool0` mount remains a **placeholder for this
+simulation check; it is not the real camera mount**.
+
+### Scene correction needed for this check
+
+The previous benchmark created the box, sphere, and cylinder as unjointed
+bodies. Calling `eval_fk` did not preserve those bodies at the requested world
+poses, so the earlier camera actually rendered only robot geometry and ground.
+This script retains the exact previous dimensions, centers, colors, and ground,
+but creates the three targets as world-static Newton shapes (`body=-1`). That
+makes both the rendered truth and the analytic surface check correspond to the
+documented scene:
+
+| Surface | Center (m) | Size |
+| --- | --- | --- |
+| Box | `[0.487, 0.109, 0.060]` | half extents `[0.120, 0.100, 0.060]` m |
+| Sphere | `[0.680, 0.050, 0.080]` | radius `0.080` m |
+| Cylinder | `[0.320, 0.180, 0.100]` | radius `0.055` m, half-height `0.100` m, Z axis |
+| Ground | z = `0` | infinite analytic plane |
+
+### Same-frame back-projection and robot pixels
+
+For each capture, the script performs FK, refits the shape BVH, derives the
+camera pose from the `tool0` site, and renders forward depth, ray depth, and
+shape index in one `SensorTiledCamera.update`. It then synchronizes once and
+copies all four values without changing state. The depth and camera transform
+therefore cannot come from different frames.
+
+For pixel center `(px + 0.5, py + 0.5)`, forward depth `d`, vertical half-angle
+`h = tan(58 deg / 2)`, and aspect `a = 848 / 480`, the camera point is:
+
+```text
+x = d * (2 * ((px + 0.5) / 848 - 0.5) * h * a)
+y = d * (-2 * ((py + 0.5) / 480 - 0.5) * h)
+z = -d
+```
+
+The script then applies the camera-to-world transform from that same capture.
+Newton provides `shape_index_image`, so no fallback render is needed. Robot
+shapes are the original URDF shape indices 0 through 53. In every checked pose:
+
+- Valid depth points: 407,040 / 407,040.
+- Robot points: 14,929 (3.6677%), excluded from analytic scene accuracy.
+- Environment points: 392,111.
+- Robot points are displayed red; environment points are colored by world Z.
+
+The `0.183064 m` minimum ray depth in the previous 640 x 480 report was not an
+object or ground hit: it was the camera seeing the Robotiq left finger link.
+At the new 848 x 480 sampling, the nearest ray is `0.176883 m`, at pixel
+`(y=239, x=73)`, shape 34 on `ur/robotiq_85_left_finger_link`. The value changes
+slightly because the two resolutions have different ray centers.
+
+### Analytic accuracy at three arm poses
+
+For every non-robot point, the script evaluates analytic signed distance to
+the axis-aligned box, sphere, Z-axis capped cylinder, and z=0 ground plane,
+then assigns the point to the surface with the smallest absolute distance.
+The table reports signed median and absolute median/p95/max in millimetres.
+
+| Pose | Surface | Count | Signed median | Abs median | Abs p95 | Abs max |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| Baseline | Box | 57,900 | 0.000005 | 0.000012 | 0.000040 | 0.000064 |
+| Baseline | Sphere | 16,804 | 0.000158 | 0.000158 | 0.000326 | 0.000507 |
+| Baseline | Cylinder | 21,735 | -0.000012 | 0.000023 | 0.000092 | 0.000180 |
+| Baseline | Ground | 295,672 | -0.000004 | 0.000022 | 0.000059 | 0.000111 |
+| Shoulder lift +0.15 rad | Box | 84,133 | -0.000010 | 0.000012 | 0.000040 | 0.000062 |
+| Shoulder lift +0.15 rad | Sphere | 16,115 | 0.000048 | 0.000059 | 0.000164 | 0.000299 |
+| Shoulder lift +0.15 rad | Cylinder | 14,929 | 0.000034 | 0.000051 | 0.000143 | 0.000271 |
+| Shoulder lift +0.15 rad | Ground | 276,934 | -0.000027 | 0.000027 | 0.000065 | 0.000111 |
+| Pan +0.25, elbow -0.15 rad | Box | 42,226 | -0.000010 | 0.000018 | 0.000047 | 0.000085 |
+| Pan +0.25, elbow -0.15 rad | Sphere | 13,339 | 0.000097 | 0.000130 | 0.000360 | 0.000628 |
+| Pan +0.25, elbow -0.15 rad | Cylinder | 13,943 | -0.000026 | 0.000027 | 0.000057 | 0.000120 |
+| Pan +0.25, elbow -0.15 rad | Ground | 322,603 | -0.000018 | 0.000026 | 0.000072 | 0.000136 |
+
+All three poses pass the requested median `< 1 mm` and p95 `< 5 mm` target.
+The sub-micrometre residuals are floating-point reconstruction error, not a
+claim about real-camera accuracy.
+
+### Negative control: ray depth incorrectly treated as forward depth
+
+The identical pixels and camera poses were back-projected a second time while
+deliberately treating Newton's ray-hit `depth_image` as forward-axis depth.
+The check clearly detects the mistake:
+
+| Pose | Abs median | Abs p95 | Abs max |
+| --- | ---: | ---: | ---: |
+| Baseline | 58.723 mm | 204.583 mm | 258.095 mm |
+| Shoulder lift +0.15 rad | 42.238 mm | 173.900 mm | 219.013 mm |
+| Pan +0.25, elbow -0.15 rad | 86.820 mm | 237.265 mm | 294.796 mm |
+
+The median p95 rises from `0.000072 mm` with correct forward depth to
+`204.583 mm` in the negative control. This test is therefore sensitive to the
+depth-semantics error it is intended to catch.
+
+### Timing
+
+Each stage was timed separately over 120 frames using `time.perf_counter()`.
+The render sample synchronizes CUDA before stopping its timer. Host-copy timing
+includes forward depth, ray depth, shape index, and camera pose. Point-cloud
+conversion processes all 407,040 pixels. The Viser update sends a stride-3
+display cloud of 45,280 points plus robot state, frustum, depth panel, and text;
+it does not include the preceding render, copy, or conversion.
+
+| Stage | Median | p95 | Range |
+| --- | ---: | ---: | ---: |
+| Depth render: forward + ray + shape index | 0.4761 ms | 0.6437 ms | 0.4628-0.7614 ms |
+| Copy images, shape index, and pose to host | 1.0469 ms | 1.2504 ms | 1.0033-1.3714 ms |
+| Full-resolution world cloud conversion | 10.6852 ms | 11.0831 ms | 10.1955-11.4513 ms |
+| Full Viser update, 45,280 displayed points | 5.9767 ms | 6.3506 ms | 5.6864-28.7526 ms |
+
+These are component timings, not a summed streaming rate. The interactive
+viewer captures only after a slider changes and otherwise waits on an event,
+so it does not spin the GPU while idle.
+
+### UR5 versus UR5e check
+
+The loaded URDF's shoulder-link origin is `0.089159 m` above the base. This
+matches UR5 (`about 0.0892 m`) rather than UR5e (`about 0.1625 m`). The asset
+name contains `ur5`, and the measured kinematic offset confirms it is not a
+UR5e model.
+
+### What you should see
+
+- The UR5 and Robotiq gripper rendered as solid Newton/Viser robot geometry.
+- Solid cyan box, orange sphere, green cylinder, and gray ground truth shapes.
+- A yellow camera frustum at the live placeholder `tool0` camera pose.
+- The live forward-depth image both on the frustum and in the GUI panel.
+- A world-frame point cloud lying on the truth surfaces; environment points
+  vary from blue to yellow with height and robot hits are red.
+- Six joint sliders. Moving one updates the robot, attached camera, depth, and
+  cloud once; the cloud remains aligned to the world objects.
+- Checkboxes for true objects, the full cloud, and robot points.
+- Text readouts for current valid point count and median environment error.
+
+The server binds only to `127.0.0.1:8083` and prints
+`http://127.0.0.1:8083`. Exact one-line viewer command from any shell:
+
+```bash
+cd ~/ur5_ws/src/ur5_moveit_demo && ~/newton_ws/.venv-cpu/bin/python scripts/newton_sim_depth_cloud_viser.py
+```
+
+The noninteractive verification used the same script with
+`--check-only --timing-frames 120`. It started and stopped its own Viser server;
+no process was left running and no media was recorded.
