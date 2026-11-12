@@ -15,7 +15,7 @@ No pending task
 Leave the deleted 05_c2_tall_wall_refused.png and the untracked curobo/ untouched. Stage files by
 explicit path only. No git clean/reset/restore/stash/add -A.
 
-## Task: success rates for tomorrow's report, no new tuning (branch `experiment/newton-link-depth-camera`, time box 75 min)
+## Task: success rates for tomorrow's report, no new tuning (branch `experiment/newton-link-depth-camera`, time box 100 min)
 
 Review of c5bb696: the no-rod tuning procedure and frozen block are accepted. Single runs are not enough: tuned B prediction passed 0.20 m/s with +1.7 mm
 but failed 0.10 m/s, which points to rod phase luck. The user reports to the senior tomorrow and needs rates, not single runs. Change no controller or
@@ -35,6 +35,12 @@ perception setting: use the frozen `mpc_no_rod_dt_0.02_nonterminal_0.3` block, t
 6. Write a one-page Traditional Chinese summary docs/SIM_CAMERA_MOVING_ROD_REPORT.zh-TW.md for the senior: the question, the setup in plain words, the rate
    table, what works, what fails and why, and the limits (ideal velocity plant with no acceleration limit, simulated noise-free camera, one rod, one box,
    simulator shape index for robot pixels, camera sees only in front of and below the gripper). Only state measured numbers.
+
+7. Interactive mode, only after steps 1-6 are saved, so it cannot disturb their timing: add `--interactive` to the tuned MPC script. The user drags the rod
+   with a Viser translation gizmo (like curobo_dodge_demo.py `--mode interactive`), keep the rod vertical, standing on the floor, radius and height unchanged.
+   A dropdown switches the planner input live between B (true rod box) and E (camera only), with the same frozen MPC settings and prediction. Run live in
+   real time at the MPC rate; show truth clearance, the controller, B or E, and camera points, box and depth panel. Live mode never writes results. Smoke test
+   it for at most 30 s, then stop it. Give its exact one-line run command in the report.
 
 If a step blocks you for over 20 minutes, stop, report the exact error and your read of it, and commit what works. Save to
 docs/experiments/sim-camera-curobo/results/moving_rod_rates.*. Stop every process you started. Commit by path, push, reply in 5 lines with the hash and the run
