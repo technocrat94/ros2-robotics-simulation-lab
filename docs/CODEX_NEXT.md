@@ -36,11 +36,16 @@ perception setting: use the frozen `mpc_no_rod_dt_0.02_nonterminal_0.3` block, t
    table, what works, what fails and why, and the limits (ideal velocity plant with no acceleration limit, simulated noise-free camera, one rod, one box,
    simulator shape index for robot pixels, camera sees only in front of and below the gripper). Only state measured numbers.
 
-7. Interactive mode, only after steps 1-6 are saved, so it cannot disturb their timing: add `--interactive` to the tuned MPC script. The user drags the rod
-   with a Viser translation gizmo (like curobo_dodge_demo.py `--mode interactive`), keep the rod vertical, standing on the floor, radius and height unchanged.
-   A dropdown switches the planner input live between B (true rod box) and E (camera only), with the same frozen MPC settings and prediction. Run live in
-   real time at the MPC rate; show truth clearance, the controller, B or E, and camera points, box and depth panel. Live mode never writes results. Smoke test
-   it for at most 30 s, then stop it. Give its exact one-line run command in the report.
+7. Interactive mode, only after steps 1-6 are saved, so it cannot disturb their timing: add `--interactive` to the tuned MPC script.
+   - The user drags the rod with a Viser translation gizmo (like curobo_dodge_demo.py `--mode interactive`). Keep it vertical, standing on the floor,
+     radius and height unchanged.
+   - A dropdown chooses one of three groups: A (no planner obstacle), B (true rod box), E (camera only). Same frozen MPC settings and prediction for B and E.
+   - Choosing a group stops the previous group's control loop and camera worker cleanly: wait until they have exited, reset the arm to the raised start, then
+     start the new group. Only one group runs at a time; never two loops on the GPU. Stop only processes and threads this program started.
+   - Show the running group, its state (starting, running, stopped), truth clearance, collision count since the group started, controller rate, and for E the
+     camera points, box and depth panel.
+   - Live mode runs in real time at the MPC rate and never writes results. Smoke test it for at most 30 s, including at least two group switches, and report that
+     the old loop and worker really stopped each time. Give its exact one-line run command in the report.
 
 If a step blocks you for over 20 minutes, stop, report the exact error and your read of it, and commit what works. Save to
 docs/experiments/sim-camera-curobo/results/moving_rod_rates.*. Stop every process you started. Commit by path, push, reply in 5 lines with the hash and the run
