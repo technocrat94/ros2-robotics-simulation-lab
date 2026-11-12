@@ -15,27 +15,27 @@ No pending task
 Leave the deleted 05_c2_tall_wall_refused.png and the untracked curobo/ untouched. Stage files by
 explicit path only. No git clean/reset/restore/stash/add -A.
 
-## Task: make MPC reach its goal at a normal speed, then retest the rod (branch `experiment/newton-link-depth-camera`, time box 90 min)
+## Task: success rates for tomorrow's report, no new tuning (branch `experiment/newton-link-depth-camera`, time box 75 min)
 
-Review of 0abadef: the MPC adapter, shared clock and no-write viewer are accepted. MPC B never collided, but never reached a target. Claude computed the tool
-path from the saved trace (MPC B current box 0.10 m/s): 37.8 cm from the goal at 0 s, 16.4 cm at 10 s, 1.0 cm at 20 s. It crossed the rod lane above the rod
-(z about 0.43 m) at about 4.5 s. Average tool speed is about 2 cm/s and slows near the goal, so it never enters the 6 mm tolerance. The user confirmed that in the
-viewer the simulated time runs normally while the arm moves slowly. Compute is about 20.8 ms per 25 ms step, so this is controller behaviour, not hardware.
-Same rules as the last task. Do not change library code or the accepted v2 and MPC prototype behaviour; add a new tuned configuration beside them.
+Review of c5bb696: the no-rod tuning procedure and frozen block are accepted. Single runs are not enough: tuned B prediction passed 0.20 m/s with +1.7 mm
+but failed 0.10 m/s, which points to rod phase luck. The user reports to the senior tomorrow and needs rates, not single runs. Change no controller or
+perception setting: use the frozen `mpc_no_rod_dt_0.02_nonterminal_0.3` block, the v2 fair scene and the shared clock exactly. Same rules as before.
 
-1. No-rod reference: with no obstacle, time a start-to-goal reach for (a) the v2 MotionPlanner path at its own timing and (b) the current MPC settings.
-   Report time to enter 6 mm, and the tool distance to goal over time.
-2. Find the cause: read the MPC config actually loaded and list the settings that limit speed or final convergence (for example velocity scaling, goal cost
-   weights, horizon, convergence or terminal terms). Say which one causes the slow final approach, with evidence from step 1.
-3. Tune with no rod only: change as few settings as possible until MPC reaches within 6 mm in no more than twice the v2 reach time and stays within joint
-   velocity limits. Report max joint velocity and max joint acceleration of the result, since the plant has no acceleration limit. Then freeze the settings in
-   one named config block. Never tune against rod results.
-4. Rerun MPC B, current box and prediction, at 0.05, 0.10 and 0.20 m/s, with the frozen settings. Same table as the MPC prototype plus the v2 B rows.
-5. If B survives 0.10 m/s (zero collisions and at least one reach), run camera E at every speed B survived, with the same controller. Also log per frame how far
-   E's box is from the true rod box (missing height, missing width, offset), so partial views can be found. Report the worst frames.
-6. Viewer through the per-user port, the new cases selectable. Must not rewrite tracked files.
+1. Phases: 5 rod initial phases per speed, fixed before running: initial X 0.36, 0.44, 0.52, 0.60, 0.68 m, moving toward decreasing X. Check A collides in
+   each one. Keep phases where A does not collide in the table, but mark them INVALID_SCENE and exclude them from rates.
+2. Cases, 20 simulated seconds each, at 0.05 and 0.10 m/s:
+   - A: no planner obstacle
+   - B: tuned MPC, god view, prediction
+   - E: tuned MPC, camera only, prediction, v2 point memory
+   E is run at both speeds regardless of the old 0.10 gate; the user asked for it, so state that the gate was lifted for this report.
+3. Report per case and speed: success rate (zero collisions and at least one reach, over valid phases), mean reaches, total collision episodes, worst
+   clearance, and max joint speed and acceleration. Also give the per-phase table.
+4. For E, log per frame how far its box is from the true rod box (missing height, missing width, offset), and list the three worst frames with time and phase.
+5. Viewer through the per-user port: the cases above, selectable by speed, phase and case. Must not rewrite tracked files.
+6. Write a one-page Traditional Chinese summary docs/SIM_CAMERA_MOVING_ROD_REPORT.zh-TW.md for the senior: the question, the setup in plain words, the rate
+   table, what works, what fails and why, and the limits (ideal velocity plant with no acceleration limit, simulated noise-free camera, one rod, one box,
+   simulator shape index for robot pixels, camera sees only in front of and below the gripper). Only state measured numbers.
 
 If a step blocks you for over 20 minutes, stop, report the exact error and your read of it, and commit what works. Save to
-docs/experiments/sim-camera-curobo/results/moving_rod_mpc_tuned.*. Append an "MPC tuned" section to docs/SIM_CAMERA_MOVING_ROD.md and a short note in
-docs/SIM_CAMERA_MOVING_ROD.zh-TW.md, each with a plain "what you should see" list and the exact one-line run command. Stop every process you started. Commit
-by path, push, reply in 5 lines with the hash and the run command.
+docs/experiments/sim-camera-curobo/results/moving_rod_rates.*. Stop every process you started. Commit by path, push, reply in 5 lines with the hash and the run
+command.
