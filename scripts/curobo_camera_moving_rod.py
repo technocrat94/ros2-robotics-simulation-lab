@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import copy
 from dataclasses import dataclass
 import json
 import math
@@ -20,7 +21,7 @@ import numpy as np
 import torch
 
 from curobo.kinematics import Kinematics, KinematicsCfg
-from curobo.types import ContentPath, GoalToolPose, JointState
+from curobo.types import ContentPath, GoalToolPose, JointState, Pose
 from curobo.viewer import ViserVisualizer
 
 import curobo_camera_fifth_pass as sixth
@@ -35,6 +36,7 @@ ROD_CENTER_Z_M = 0.5 * ROD_TOP_M
 ROD_Y_M = 0.263
 ROD_X_MIN_M = 0.30
 ROD_X_MAX_M = 0.70
+ROD_START_X_M = 0.60
 ROD_SPEEDS_MPS = (0.05, 0.10, 0.20)
 SIM_DURATION_S = 20.0
 STALE_TTL_S = 1.0
@@ -56,10 +58,15 @@ class MovingRodWorker:
         self.temp_dir = temp_dir
         self.counter = 0
         self.log: list[str] = []
+        self.python = python
+        self.process = None
+
+    def start(self) -> None:
         self.process = subprocess.Popen(
             [
-                str(python),
+                str(self.python),
                 str(REPO / "scripts/newton_camera_moving_rod_worker.py"),
+                "--rod-y", str(ROD_Y_M), "--rod-top", str(ROD_TOP_M),
             ],
             cwd=REPO,
             stdin=subprocess.PIPE,
@@ -87,6 +94,8 @@ class MovingRodWorker:
                 return line[len(prefix) :].strip()
 
     def capture(self, q: np.ndarray | torch.Tensor, rod_x_m: float) -> RodCapture:
+        if self.process is None:
+            self.start()
         self.counter += 1
         output = self.temp_dir / f"moving_rod_{self.counter:05d}.npz"
         request = {
@@ -120,7 +129,7 @@ class MovingRodWorker:
         return RodCapture(capture, preview)
 
     def close(self) -> None:
-        if self.process.poll() is None and self.process.stdin is not None:
+        if self.process is not None and self.process.poll() is None and self.process.stdin is not None:
             self.process.stdin.write(json.dumps({"command": "shutdown"}) + "\n")
             self.process.stdin.flush()
             self.process.wait(timeout=10.0)
@@ -246,7 +255,7 @@ class CaseConfig:
 
     @property
     def start_x_m(self) -> float:
-        return ROD_X_MIN_M if self.blind else ROD_X_MAX_M
+        return ROD_X_MIN_M if self.blind else min(ROD_START_X_M, ROD_X_MAX_M)
 
     @property
     def direction(self) -> float:
@@ -294,6 +303,75 @@ def exact_rod_fit(rod_x_m: float) -> dict[str, Any]:
     }
 
 
+def select_fair_scene(robot, start_q, goal_q, baseline, camera_z):
+    global ROD_Y_M, ROD_TOP_M, ROD_CENTER_Z_M, ROD_X_MIN_M, ROD_X_MAX_M
+    rejected = []
+    camera_position, camera_wxyz = sixth.fourth.camera_pose_for_q(
+        robot, torch.as_tensor(start_q, device="cuda"),
+        sixth.fourth.read_mount_config(MOUNT_CONFIG))
+    # Undo the Viser-only pi-X conversion before testing Newton's -Z view.
+    sensor_rotation = sixth.fourth.wxyz_matrix(camera_wxyz) @ np.diag((1., -1., -1.))
+    sensor_wxyz = sixth.fourth.matrix_to_wxyz(sensor_rotation)
+    camera_transform = np.r_[camera_position, sensor_wxyz[[1, 2, 3, 0]]]
+    candidates = [(0.263, 0.30, 0.70, 0.35)]
+    candidates += [(y, lo, hi, top)
+                   for top in (0.30, 0.25, 0.20, 0.35)
+                   for y in np.arange(0.12, 0.421, 0.025)
+                   for lo, hi in ((0.30, 0.70), (0.35, 0.65), (0.40, 0.60))]
+    for y, lo, hi, top in candidates:
+        ROD_Y_M, ROD_TOP_M, ROD_CENTER_Z_M = float(y), top, top / 2
+        ROD_X_MIN_M, ROD_X_MAX_M = lo, hi
+        xs = np.linspace(lo, hi, int(round((hi-lo)/0.001)) + 1)
+        endpoints = []
+        for q in (start_q, goal_q):
+            q = torch.as_tensor(q, device="cuda", dtype=torch.float32)
+            endpoints.append(float(np.min(rod_clearance_series(
+                robot, q.reshape(1,-1).repeat(len(xs),1), xs))) - 0.0005)
+        # Existence of a baseline intersection is a necessary preflight filter;
+        # actual A runs below additionally validate the timed controller.
+        baseline_min = min(float(np.min(rod_clearance_series(
+            robot, baseline, np.full(len(baseline), x)))) for x in xs[::10])
+        record = dict(y_m=float(y), x_limits_m=[lo, hi], top_m=top,
+                      endpoint_clearance_lower_bounds_m=endpoints,
+                      baseline_min_clearance_m=baseline_min,
+                      required_baseline_penetration_m=0.030)
+        # Conservative visibility filter on a dense enclosing box at the low-X
+        # entry. Actual zero rod pixels are checked with Newton before cases.
+        entry_points = np.array([[lo+dx, y+dy, z]
+            for dx in (-ROD_RADIUS_M, 0, ROD_RADIUS_M)
+            for dy in (-ROD_RADIUS_M, 0, ROD_RADIUS_M)
+            for z in np.linspace(0.012, top, 20)])
+        blind = not np.any(TimedPointCloud._inside_view(entry_points, camera_transform))
+        record["blind_entry_geometric_filter"] = bool(blind)
+        if min(endpoints) >= 0.025 and top < camera_z and baseline_min <= -0.030 and blind:
+            return {"status": "VALID_PREFLIGHT", "chosen": record,
+                    "sweep_spacing_m": 0.001, "lipschitz_allowance_m": 0.0005,
+                    "rejected": rejected}
+        record["status"] = "INVALID_SCENE"
+        rejected.append(record)
+    raise RuntimeError("INVALID_SCENE: no lane meets endpoint and baseline tests: " + json.dumps(rejected))
+
+
+def predicted_fit(fit, velocity, horizon_s):
+    if fit is None:
+        return None
+    result = copy.deepcopy(fit)
+    displacement = np.asarray(velocity) * horizon_s * 2.0
+    result["center_m"] = (np.asarray(fit["center_m"]) + displacement/2).tolist()
+    result["dims_m"] = (np.asarray(fit["dims_m"]) + np.abs(displacement)).tolist()
+    return result
+
+
+def upward_goal(robot, current):
+    pose = robot.compute_kinematics(sixth.arm_state(current)).tool_poses[sixth.preflight.TOOL_FRAME]
+    position = pose.position.detach().cpu().reshape(-1, 3)[0].numpy().copy()
+    position[2] += 0.10
+    quaternion = pose.quaternion.detach().cpu().reshape(-1, 4)[0].numpy()
+    return GoalToolPose.from_poses(
+        {sixth.preflight.TOOL_FRAME: Pose.from_list([*position.tolist(), *quaternion.tolist()])},
+        ordered_tool_frames=[sixth.preflight.TOOL_FRAME], num_goalset=1)
+
+
 def run_case(
     config: CaseConfig,
     worker: MovingRodWorker,
@@ -311,6 +389,12 @@ def run_case(
     current = torch.as_tensor(start_q, device="cuda", dtype=torch.float32)
     start_tensor = current.detach().clone()
     cloud = TimedPointCloud()
+    previous_observation = None
+    expected_compute_s = 0.20
+    expected_segment_s = 0.20
+    escape_counts = {"raised_start": 0, "straight_up": 0, "all_failed": 0}
+    collision_samples = {"moving": 0, "holding": 0}
+    collision_episodes_by_phase = {"moving": 0, "holding": 0}
     sim_time_s = 0.0
     target_name = "goal"
     reaches = 0
@@ -325,13 +409,16 @@ def run_case(
     compact_cycles: list[dict[str, Any]] = []
     visuals: list[dict[str, Any]] = []
 
-    def ingest_clearances(values: np.ndarray) -> None:
+    def ingest_clearances(values: np.ndarray, phase="holding") -> None:
         nonlocal collision_active, collision_episodes, minimum_clearance
         for value in np.asarray(values, dtype=float):
             minimum_clearance = min(minimum_clearance, float(value))
             colliding = value < 0.0
+            if colliding:
+                collision_samples[phase] += 1
             if colliding and not collision_active:
                 collision_episodes += 1
+                collision_episodes_by_phase[phase] += 1
             collision_active = colliding
 
     initial_x = rod_x_at(
@@ -372,6 +459,25 @@ def run_case(
             fit, _extension = sixth.fit_with_unknown_extent(
                 points, capture.camera, fixed_unknown_top_m
             )
+        observed_fit = fit
+        velocity = np.zeros(3)
+        if config.mode == "B":
+            dt = 0.001
+            velocity[0] = (rod_x_at(sim_time_s + dt, config.speed_mps,
+                                   config.start_x_m, config.direction) - rod_x_capture)/dt
+        elif config.mode == "E":
+            # Estimate only from fresh-frame boxes, never stale cloud or truth.
+            fresh, _ = sixth.fit_with_unknown_extent(
+                capture.camera.points, capture.camera, fixed_unknown_top_m)
+            if fresh is not None:
+                center = np.asarray(fresh["center_m"])
+                if previous_observation is not None:
+                    old_time, old_center = previous_observation
+                    if sim_time_s > old_time:
+                        velocity = (center-old_center)/(sim_time_s-old_time)
+                previous_observation = (sim_time_s, center)
+        prediction_horizon_s = (expected_compute_s if config.count_compute_time else 0.0) + expected_segment_s
+        fit = predicted_fit(fit, velocity, prediction_horizon_s)
         sixth.fourth.update_fit_in_place(planner, fit)
         current_fit_clearance = (
             None
@@ -409,7 +515,29 @@ def run_case(
         plan_ms = (time.perf_counter() - plan_started) * 1000.0
         positions = sixth.fourth.active_trajectory(plan_result)
         planner_failure = sixth.fourth.failure_status(plan_result)
+        escape = None
+        escape_attempts = []
+        if planner_failure:
+            planner_failures.append(planner_failure)
+        if config.mode != "A" and (positions is None or
+                (current_fit_clearance is not None and current_fit_clearance < 0.030)):
+            positions = None
+            for escape_name, escape_pose in (("raised_start", raised_goal),
+                                              ("straight_up", upward_goal(robot, current))):
+                retreat = planner.plan_pose(escape_pose, sixth.arm_state(current))
+                positions = sixth.fourth.active_trajectory(retreat)
+                escape_attempts.append({"target": escape_name,
+                    "failure": sixth.fourth.failure_status(retreat)})
+                if positions is not None:
+                    escape = escape_name
+                    escape_counts[escape_name] += 1
+                    break
+            if positions is None:
+                escape = "all_failed"
+                escape_counts[escape] += 1
+        torch.cuda.synchronize()
         measured_compute_s = time.perf_counter() - compute_started
+        expected_compute_s = measured_compute_s
         simulated_compute_s = measured_compute_s if config.count_compute_time else 0.0
         simulated_compute_s = min(
             simulated_compute_s, SIM_DURATION_S - sim_time_s
@@ -498,9 +626,12 @@ def run_case(
                             for t in sample_times
                         ]
                     )
-                    ingest_clearances(
-                        rod_clearance_series(robot, executed, rod_x_path)
-                    )
+                    truth = rod_clearance_series(robot, executed, rod_x_path)
+                    changes = torch.max(torch.abs(executed[1:] - executed[:-1]), dim=1).values
+                    moving = np.r_[False, changes.detach().cpu().numpy() > 1.0e-7]
+                    for clearance, is_moving in zip(truth, moving):
+                        ingest_clearances(np.array([clearance]),
+                                          "moving" if is_moving else "holding")
                     current = executed[-1].detach().clone()
                 sim_time_s += execution_duration_s
                 target_error = float(
@@ -509,7 +640,8 @@ def run_case(
                         - sixth.fourth.tool_position(robot, target_q)
                     )
                 )
-                if index == len(positions) - 1 or target_error <= sixth.GOAL_TOLERANCE_M:
+                expected_segment_s = execution_duration_s
+                if escape is None and (index == len(positions) - 1 or target_error <= sixth.GOAL_TOLERANCE_M):
                     reaches += 1
                     reached_this_cycle = True
                     stop_reason = "TARGET_REACHED"
@@ -548,7 +680,13 @@ def run_case(
             "capture_points": int(len(capture.camera.points)),
             "merged_points": int(len(points)),
             "stale_points_used": stale_points,
-            "fit": compact_fit(fit),
+            "fit": compact_fit(observed_fit),
+            "predicted_fit": compact_fit(fit),
+            "velocity_mps": velocity.tolist(),
+            "prediction_horizon_s": prediction_horizon_s,
+            "prediction_multiplier": 2.0,
+            "escape": escape,
+            "escape_attempts": escape_attempts,
             "current_to_fit_clearance_m": current_fit_clearance,
             "target_to_fit_clearance_m": target_fit_clearance,
             "measured_compute_ms": measured_compute_s * 1000.0,
@@ -573,7 +711,9 @@ def run_case(
                 "q_start": q_start,
                 "executed": executed.detach().cpu().numpy(),
                 "points": points[:3000].copy(),
-                "fit": fit,
+                "fit": observed_fit,
+                "predicted_fit": fit,
+                "escape": escape,
                 "depth_preview": capture.depth_preview,
                 "rod_x_at_capture_m": rod_x_capture,
                 "stop_reason": stop_reason,
@@ -597,6 +737,9 @@ def run_case(
         "cycles": len(compact_cycles),
         "reaches": reaches,
         "true_collisions": collision_episodes,
+        "collision_samples_by_phase": collision_samples,
+        "collision_episodes_by_onset_phase": collision_episodes_by_phase,
+        "escapes": escape_counts,
         "minimum_true_clearance_m": minimum_clearance,
         "stopped_with_no_plan_s": stopped_no_plan_s,
         "whole_cycle_median_ms": float(statistics.median(whole_cycle_ms)),
@@ -652,11 +795,15 @@ def start_viewer(
         color=(255, 145, 35),
         opacity=0.42,
     )
+    predicted_box = server.scene.add_box(
+        "/prediction/box", dimensions=(0.01, 0.01, 0.01),
+        color=(80, 150, 255), opacity=0.30)
+    escape_text = server.gui.add_text("Escape", "", disabled=True)
     cloud = server.scene.add_point_cloud(
         "/camera/points",
         points=np.zeros((1, 3)),
-        colors=(255, 215, 45),
-        point_size=0.007,
+        colors=(220, 0, 220),
+        point_size=0.011,
         point_shape="circle",
     )
     camera_position, camera_wxyz = sixth.fourth.camera_pose_for_q(
@@ -717,6 +864,12 @@ def start_viewer(
         )
         points = record["points"]
         cloud.points = points if len(points) else np.zeros((1, 3))
+        predicted = record.get("predicted_fit")
+        predicted_box.visible = predicted is not None
+        if predicted is not None:
+            predicted_box.position = tuple(predicted["center_m"])
+            predicted_box.dimensions = tuple(predicted["dims_m"])
+        escape_text.value = "ESCAPE: " + record["escape"] if record.get("escape") else ""
         fit = record.get("fit")
         fit_box.visible = fit is not None
         if fit is not None:
@@ -895,6 +1048,16 @@ def build_experiment(
         )
     baseline = baseline.detach().clone()
     goal_q = baseline[-1]
+    scene_preflight = select_fair_scene(robot, start_q, goal_q, baseline,
+                                        start_report["camera_world_m"][2])
+    print("MOVING_ROD_SCENE " + json.dumps(scene_preflight), flush=True)
+    worker.start()
+    worker.capture(start_q, ROD_X_MAX_M)  # Warm renderer outside the case clock.
+    entry = worker.capture(start_q, ROD_X_MIN_M)
+    entry_pixels = int(entry.camera.metadata["rod_pixels"])
+    scene_preflight["blind_entry_initial_rod_pixels"] = entry_pixels
+    if entry_pixels:
+        raise RuntimeError(f"INVALID_SCENE: blind entry initially has {entry_pixels} rod pixels")
     raised_goal = sixth.raised_pose_goal(robot)
     fixed_unknown_top_m = (
         float(start_report["camera_world_m"][2])
@@ -903,7 +1066,8 @@ def build_experiment(
     wrist_limits = tuple(wrist_report["effective_planner_limits_rad"])
 
     results: dict[str, Any] = {
-        "schema": 1,
+        "schema": 2,
+        "scene_preflight": scene_preflight,
         "date": "2026-11-12",
         "simulated_duration_per_case_s": SIM_DURATION_S,
         "rod": {
@@ -912,6 +1076,8 @@ def build_experiment(
             "top_m": ROD_TOP_M,
             "y_m": ROD_Y_M,
             "x_limits_m": [ROD_X_MIN_M, ROD_X_MAX_M],
+            "regular_initial_x_m": min(ROD_START_X_M, ROD_X_MAX_M),
+            "blind_initial_x_m": ROD_X_MIN_M,
             "motion": "constant-speed reflected motion; body pose updated each capture",
             "newton_scene_builds": 1,
             "physics_used": False,
@@ -982,6 +1148,10 @@ def build_experiment(
             flush=True,
         )
 
+    results["fastest_speed_b_survives_mps"] = max((
+        v["summary"]["rod_speed_mps"] for n, v in results["cases"].items()
+        if n.startswith("B ") and v["summary"]["true_collisions"] == 0
+        and v["summary"]["reaches"] > 0), default=None)
     surviving_speeds = [
         value["summary"]["rod_speed_mps"]
         for name, value in results["cases"].items()
@@ -1005,6 +1175,8 @@ def build_experiment(
             for case in a_cases
         },
     }
+    results["scene_preflight"]["status"] = ("VALID_SCENE" if
+        results["case_a_scene_evidence"]["all_a_cases_collide"] else "INVALID_SCENE")
     counted = results["cases"]["E camera only 0.10 m/s"]["summary"]
     zero = results["cases"][
         "E camera only 0.10 m/s zero compute latency"
@@ -1025,8 +1197,8 @@ def build_experiment(
 
 def save_results(results: dict[str, Any], worker_lines: int) -> None:
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
-    json_path = RESULTS_DIR / "moving_rod.json"
-    log_path = RESULTS_DIR / "moving_rod.log"
+    json_path = RESULTS_DIR / "moving_rod_v2.json"
+    log_path = RESULTS_DIR / "moving_rod_v2.log"
     json_path.write_text(json.dumps(results, indent=2) + "\n", encoding="utf-8")
     lines = [
         "SIM_CAMERA_MOVING_ROD",
@@ -1038,6 +1210,8 @@ def save_results(results: dict[str, Any], worker_lines: int) -> None:
             },
             sort_keys=True,
         ),
+        "fastest_speed_b_survives_mps="
+        + json.dumps(results["fastest_speed_b_survives_mps"]),
         "fastest_speed_e_survives_mps="
         + json.dumps(results["fastest_speed_e_survives_mps"]),
         "case_a_scene_evidence="

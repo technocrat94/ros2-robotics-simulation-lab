@@ -1,6 +1,6 @@
 # Current Session Handoff
 
-Updated: 2026-10-08
+Updated: 2026-11-12
 
 ## Recovery rule
 
@@ -150,3 +150,58 @@ Operate only inside directories owned by the project user. Inspect process and
 port ownership before stopping anything. Never use broad process or delete
 commands. At session end, update this file, preserve verified evidence, then
 run `codex logout` and `codex login status`.
+
+
+## 2026-11-12 moving rod second run
+
+Machine: school Ubuntu 24.04.4 x86_64, user `aisc216`, installed ROS Jazzy;
+this task is ROS-free CUDA cuRobo planning plus Newton camera rendering,
+without Newton physics. Branch: `experiment/newton-link-depth-camera`.
+Exact source parent after fetch/switch/pull:
+`9cc276ccd2fcf69757b84ceb8e624ba9df57f6c5`. Resolve the delivered implementation commit with
+`git log -1 --format=%H -- scripts/curobo_camera_moving_rod.py` after syncing.
+The initial worktree was dirty; all unrelated result modifications, deleted
+wall image, and untracked `curobo/` have been preserved and excluded from commit.
+
+The final lane is Y=0.245 m, X=0.30–0.70 m, top=0.250 m, radius=0.025 m.
+Regular initial X=0.60 m moves toward decreasing X; blind entry starts at
+0.30 m moving toward increasing X. Endpoint sweep lower bounds are
+104.233/51.458 mm; the renderer confirms zero initial blind-entry rod pixels.
+All A speeds collide in the saved final run. Prediction is shared by B/E;
+retreat tries raised start then 0.10 m up. Viewer adds a blue prediction box,
+ESCAPE status, and larger magenta points. Use free per-user port 30000;
+the occupied 8084 listener was left untouched.
+
+Fastest surviving tested speeds: B=0.05, E=None m/s (None means none survived). These are single measured-timing observations, not guaranteed speed limits.
+
+Evidence: `docs/experiments/sim-camera-curobo/results/moving_rod_v2.json`
+and `.log`; rejected timed configurations are in
+`moving_rod_v2_scene_search.json`. Original `moving_rod.*` is unchanged.
+Geometric crossing alone did not ensure timed A collisions: two initial
+configurations were rejected. Corrected a Viser-to-sensor pi-X frame mismatch;
+the actual renderer caught the invalid blind-entry check. Historical evidence
+is documented in the Second run section of `docs/SIM_CAMERA_MOVING_ROD.md`.
+
+Changed files: moving-rod planner/viewer and renderer worker, new CPU contract
+test, v2 result files, English second-run record, Traditional Chinese note,
+and this handoff. Tests: Python/shell/config CI passed; three CPU tests passed
+(prediction containment, reflected clock, viewer save guard and cleanup);
+full 11-case GPU matrix completed 20 simulated seconds per case;
+three non-main-thread viewer playback callbacks passed. Started renderer,
+planner, viewer, and calibration processes are stopped at task completion.
+
+Remaining limits: velocity estimation from partial boxes, unpredicted rod
+reflections, variable compute latency, and escape plans rejected once the
+current state lies inside an inflated box. This is kinematic sphere/cylinder
+scoring, not contact physics or hardware safety validation. Next single step:
+review the B/E per-cycle divergence and hold-phase collisions before changing
+another controller parameter. Do not alter the accepted physical grasp path.
+
+Resume/view command (does not save tracked evidence):
+
+```bash
+cd ~/ur5_ws/src/ur5_moveit_demo && source scripts/lab_session_env.sh && scripts/run_sim_camera_moving_rod.sh --port "$NEWTON_VIEWER_PORT"
+```
+
+Only `--save-results` rewrites `moving_rod_v2.*`. On leaving Codex, run
+`codex logout`, then `codex login status`, and confirm no account is logged in.

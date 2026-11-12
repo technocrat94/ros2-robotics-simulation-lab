@@ -1,0 +1,263 @@
+{
+  "rejected_timed_lanes": [
+    {
+      "status": "INVALID_SCENE",
+      "reason": "A at 0.20 m/s did not collide; rejected before selecting the final lane",
+      "rod": {
+        "shape": "vertical cylinder",
+        "radius_m": 0.025,
+        "top_m": 0.25,
+        "y_m": 0.21999999999999997,
+        "x_limits_m": [
+          0.3,
+          0.7
+        ],
+        "motion": "constant-speed reflected motion; body pose updated each capture",
+        "newton_scene_builds": 1,
+        "physics_used": false
+      },
+      "endpoint_preflight": {
+        "y_m": 0.21999999999999997,
+        "x_limits_m": [
+          0.3,
+          0.7
+        ],
+        "top_m": 0.25,
+        "endpoint_clearance_lower_bounds_m": [
+          0.09424929185313555,
+          0.035696130860552386
+        ],
+        "baseline_min_clearance_m": -0.02913960028728186,
+        "blind_entry_geometric_filter": true
+      },
+      "A_summaries": {
+        "A no planner obstacle 0.05 m/s": {
+          "mode": "A",
+          "rod_speed_mps": 0.05,
+          "blind_entry": false,
+          "compute_time_counted": true,
+          "simulated_duration_s": 20.0,
+          "cycles": 65,
+          "reaches": 4,
+          "true_collisions": 1,
+          "collision_samples_by_phase": {
+            "moving": 3,
+            "holding": 1
+          },
+          "collision_episodes_by_onset_phase": {
+            "moving": 0,
+            "holding": 1
+          },
+          "escapes": {
+            "raised_start": 0,
+            "straight_up": 0,
+            "all_failed": 0
+          },
+          "minimum_true_clearance_m": -0.0017968235841338224,
+          "stopped_with_no_plan_s": 0.0,
+          "whole_cycle_median_ms": 317.3830638639629,
+          "whole_cycle_p95_ms": 449.43763371556975,
+          "first_seen_sim_time_s": 0.0,
+          "rod_to_arm_distance_when_first_seen_m": 0.20784468265300826,
+          "planner_failure_statuses": [],
+          "arm_motion_during_compute": "none; stop-and-go",
+          "old_point_rule": "replace points inside the current frustum; retain outside-frustum points for at most 1.0 simulated seconds"
+        },
+        "A no planner obstacle 0.10 m/s": {
+          "mode": "A",
+          "rod_speed_mps": 0.1,
+          "blind_entry": false,
+          "compute_time_counted": true,
+          "simulated_duration_s": 20.0,
+          "cycles": 67,
+          "reaches": 5,
+          "true_collisions": 5,
+          "collision_samples_by_phase": {
+            "moving": 49,
+            "holding": 70
+          },
+          "collision_episodes_by_onset_phase": {
+            "moving": 3,
+            "holding": 2
+          },
+          "escapes": {
+            "raised_start": 0,
+            "straight_up": 0,
+            "all_failed": 0
+          },
+          "minimum_true_clearance_m": -0.027827304787933826,
+          "stopped_with_no_plan_s": 0.0,
+          "whole_cycle_median_ms": 312.40355307236314,
+          "whole_cycle_p95_ms": 462.7227104268968,
+          "first_seen_sim_time_s": 0.0,
+          "rod_to_arm_distance_when_first_seen_m": 0.20784468265300826,
+          "planner_failure_statuses": [],
+          "arm_motion_during_compute": "none; stop-and-go",
+          "old_point_rule": "replace points inside the current frustum; retain outside-frustum points for at most 1.0 simulated seconds"
+        },
+        "A no planner obstacle 0.20 m/s": {
+          "mode": "A",
+          "rod_speed_mps": 0.2,
+          "blind_entry": false,
+          "compute_time_counted": true,
+          "simulated_duration_s": 20.0,
+          "cycles": 67,
+          "reaches": 5,
+          "true_collisions": 0,
+          "collision_samples_by_phase": {
+            "moving": 0,
+            "holding": 0
+          },
+          "collision_episodes_by_onset_phase": {
+            "moving": 0,
+            "holding": 0
+          },
+          "escapes": {
+            "raised_start": 0,
+            "straight_up": 0,
+            "all_failed": 0
+          },
+          "minimum_true_clearance_m": 0.01241600671331184,
+          "stopped_with_no_plan_s": 0.0,
+          "whole_cycle_median_ms": 317.1393590979278,
+          "whole_cycle_p95_ms": 470.14931873418385,
+          "first_seen_sim_time_s": 0.0,
+          "rod_to_arm_distance_when_first_seen_m": 0.20784468265300826,
+          "planner_failure_statuses": [],
+          "arm_motion_during_compute": "none; stop-and-go",
+          "old_point_rule": "replace points inside the current frustum; retain outside-frustum points for at most 1.0 simulated seconds"
+        }
+      }
+    },
+    {
+      "status": "INVALID_SCENE",
+      "reason": "A at 0.05 m/s did not collide with initial rod X=0.70 m; adjust initial phase before acceptance",
+      "rod": {
+        "shape": "vertical cylinder",
+        "radius_m": 0.025,
+        "top_m": 0.25,
+        "y_m": 0.24499999999999997,
+        "x_limits_m": [
+          0.3,
+          0.7
+        ],
+        "motion": "constant-speed reflected motion; body pose updated each capture",
+        "newton_scene_builds": 1,
+        "physics_used": false
+      },
+      "endpoint_preflight": {
+        "y_m": 0.24499999999999997,
+        "x_limits_m": [
+          0.3,
+          0.7
+        ],
+        "top_m": 0.25,
+        "endpoint_clearance_lower_bounds_m": [
+          0.10423271544075888,
+          0.05145809476038632
+        ],
+        "baseline_min_clearance_m": -0.03303467789261937,
+        "required_baseline_penetration_m": 0.03,
+        "blind_entry_geometric_filter": true
+      },
+      "A_summaries": {
+        "A no planner obstacle 0.05 m/s": {
+          "mode": "A",
+          "rod_speed_mps": 0.05,
+          "blind_entry": false,
+          "compute_time_counted": true,
+          "simulated_duration_s": 20.0,
+          "cycles": 66,
+          "reaches": 4,
+          "true_collisions": 0,
+          "collision_samples_by_phase": {
+            "moving": 0,
+            "holding": 0
+          },
+          "collision_episodes_by_onset_phase": {
+            "moving": 0,
+            "holding": 0
+          },
+          "escapes": {
+            "raised_start": 0,
+            "straight_up": 0,
+            "all_failed": 0
+          },
+          "minimum_true_clearance_m": 0.0007218330190338906,
+          "stopped_with_no_plan_s": 0.0,
+          "whole_cycle_median_ms": 311.5182440262288,
+          "whole_cycle_p95_ms": 435.06805156357586,
+          "first_seen_sim_time_s": 0.0,
+          "rod_to_arm_distance_when_first_seen_m": 0.21477555080698202,
+          "planner_failure_statuses": [],
+          "arm_motion_during_compute": "none; stop-and-go",
+          "old_point_rule": "replace points inside the current frustum; retain outside-frustum points for at most 1.0 simulated seconds"
+        },
+        "A no planner obstacle 0.10 m/s": {
+          "mode": "A",
+          "rod_speed_mps": 0.1,
+          "blind_entry": false,
+          "compute_time_counted": true,
+          "simulated_duration_s": 20.0,
+          "cycles": 67,
+          "reaches": 5,
+          "true_collisions": 5,
+          "collision_samples_by_phase": {
+            "moving": 29,
+            "holding": 38
+          },
+          "collision_episodes_by_onset_phase": {
+            "moving": 4,
+            "holding": 1
+          },
+          "escapes": {
+            "raised_start": 0,
+            "straight_up": 0,
+            "all_failed": 0
+          },
+          "minimum_true_clearance_m": -0.027477905849863402,
+          "stopped_with_no_plan_s": 0.0,
+          "whole_cycle_median_ms": 313.9196521602571,
+          "whole_cycle_p95_ms": 460.9998972620815,
+          "first_seen_sim_time_s": 0.0,
+          "rod_to_arm_distance_when_first_seen_m": 0.21477555080698202,
+          "planner_failure_statuses": [],
+          "arm_motion_during_compute": "none; stop-and-go",
+          "old_point_rule": "replace points inside the current frustum; retain outside-frustum points for at most 1.0 simulated seconds"
+        },
+        "A no planner obstacle 0.20 m/s": {
+          "mode": "A",
+          "rod_speed_mps": 0.2,
+          "blind_entry": false,
+          "compute_time_counted": true,
+          "simulated_duration_s": 20.0,
+          "cycles": 66,
+          "reaches": 5,
+          "true_collisions": 5,
+          "collision_samples_by_phase": {
+            "moving": 14,
+            "holding": 23
+          },
+          "collision_episodes_by_onset_phase": {
+            "moving": 2,
+            "holding": 3
+          },
+          "escapes": {
+            "raised_start": 0,
+            "straight_up": 0,
+            "all_failed": 0
+          },
+          "minimum_true_clearance_m": -0.012601353881224093,
+          "stopped_with_no_plan_s": 0.0,
+          "whole_cycle_median_ms": 319.02802446857095,
+          "whole_cycle_p95_ms": 471.7705537332222,
+          "first_seen_sim_time_s": 0.0,
+          "rod_to_arm_distance_when_first_seen_m": 0.21477555080698202,
+          "planner_failure_statuses": [],
+          "arm_motion_during_compute": "none; stop-and-go",
+          "old_point_rule": "replace points inside the current frustum; retain outside-frustum points for at most 1.0 simulated seconds"
+        }
+      }
+    }
+  ]
+}

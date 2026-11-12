@@ -209,7 +209,11 @@ def main() -> None:
         / "config/sim_camera_mount.yaml",
     )
     parser.add_argument("--device", default="cuda:0")
+    parser.add_argument("--rod-y", type=float, default=ROD_Y_M)
+    parser.add_argument("--rod-top", type=float, default=ROD_TOP_M)
     args = parser.parse_args()
+    globals().update(ROD_Y_M=args.rod_y, ROD_TOP_M=args.rod_top,
+                     ROD_CENTER_Z_M=args.rod_top / 2)
     mount, _ = camera_common.read_mount_config(args.mount_config)
     scene = MovingRodCamera(args.urdf, mount, args.device)
     print(
