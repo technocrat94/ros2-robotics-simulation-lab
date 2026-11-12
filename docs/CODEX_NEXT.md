@@ -36,7 +36,9 @@ Same rules as the last task. Edit scripts/curobo_camera_moving_rod.py and keep e
    if that also fails, 0.10 m straight up from the current tool. Hold still only if all fail. Count each escape and say which it used.
 4. Rerun A, B, E at 0.05, 0.10, 0.20 m/s, the zero-latency control at 0.10, and the blind entry at 0.10, on the fair scene. Split collisions into "while
    moving" and "while holding". Report the fastest speed B survives and the fastest speed E survives.
-5. Viewer: same as now, plus the predicted box in a separate colour and an ESCAPE label when it is active. Do not rewrite tracked files.
+5. Viewer: same as now, plus the predicted box in a separate colour and an ESCAPE label when it is active. The user cannot tell the camera points
+   from the white background: draw the camera points in a strong colour (for example magenta) and slightly larger, and keep each box colour different from
+   the points. Do not rewrite tracked files.
 
 If a step blocks you for over 20 minutes, stop, report the exact error and your read of it, and commit what works. Keep moving_rod.* as history and save to
 moving_rod_v2.*. Append a "Second run" section to docs/SIM_CAMERA_MOVING_ROD.md with a plain "what you should see" list and the exact one-line run command.
