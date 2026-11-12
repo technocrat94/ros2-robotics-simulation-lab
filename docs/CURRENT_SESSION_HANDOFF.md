@@ -205,3 +205,56 @@ cd ~/ur5_ws/src/ur5_moveit_demo && source scripts/lab_session_env.sh && scripts/
 
 Only `--save-results` rewrites `moving_rod_v2.*`. On leaving Codex, run
 `codex logout`, then `codex login status`, and confirm no account is logged in.
+
+
+## 2026-11-12 MPC prototype
+
+Source parent: `15c5a543c0c7ff26233b619c0f05b57e08974c92`, branch
+`experiment/newton-link-depth-camera`. Same school Ubuntu 24.04.4/Jazzy
+installation and RTX 3080; no ROS or Newton physics was started.
+Local cuRobo checkout: `78fd485fa82d9b9a063fb4985e371814587e666a`.
+Resolve the implementation commit with
+`git log -1 --format=%H -- scripts/curobo_moving_rod_mpc.py` after syncing.
+
+Added independent MPC prototype, isolated-port wrapper, CPU contract tests,
+`moving_rod_mpc.json` / `.log` and viewer verification record. Updated the
+English comparison and Chinese learning note. Accepted v2 source/worker,
+original and v2 artifacts, shared configs and FEM grasp path are unchanged.
+Existing dirty result files, deleted wall image and untracked cuRobo checkout
+remain untouched and unstaged.
+
+Read-only survey found ModelPredictiveControl/MPCSolver. Collision-start setup
+returns finite commands with infeasible status; no recovery guarantee. Six B
+runs completed 20 simulated seconds at about 40 Hz, with and without v2-style
+prediction. All had zero collisions but zero task reaches, so none passed the
+full task and camera E was conditionally skipped. Continuous old-command
+execution was numerically checked in all 4800 compute intervals. Near-rod
+robot/relative clearance rates are recorded. Default Cartesian-only tracking
+and an ideal velocity integrator are not proven equivalent to a hardware plant.
+
+Failed diagnostic: selecting MPC command-window index zero reissued the current
+state boundary and caused essentially no motion. A source/output inspection
+identified this; the final adapter selects the next non-stale velocity, with
+latency indexing. A CPU regression protects this boundary. No cuRobo changes.
+The fallback deceleration branch is disabled by `and False` in the local library.
+
+Tests: four CPU contract tests, project CI, six GPU B cases, sampled-clock
+integration audit, two 0.10 m/s viewer playback callbacks, and evidence-hash
+checks around read-only replay. Port 30000 was occupied by an existing Python
+PID 1244750; it was not stopped. Personal override 30001 was checked free and
+used for the viewer. All probe, experiment, renderer and viewer processes
+started by this task are stopped at completion.
+
+Single next diagnostic: obstacle-free MPC goal reaching with the same executor,
+before attributing zero collisions to better avoidance or tuning the controller.
+Remaining limits include incomplete task progress, ideal velocity commands,
+zero acceleration feedback, local goal tracking, linear rod prediction, and
+sphere/cylinder scoring. Do not call this an accepted shuttle controller.
+
+Read-only resume:
+
+```bash
+cd ~/ur5_ws/src/ur5_moveit_demo && NEWTON_VIEWER_PORT=30001 scripts/run_sim_camera_moving_rod_mpc.sh --replay
+```
+
+Exit Codex, run `codex logout` and `codex login status`, and confirm logged out.

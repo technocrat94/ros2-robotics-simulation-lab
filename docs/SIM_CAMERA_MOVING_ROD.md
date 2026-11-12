@@ -226,3 +226,167 @@ constant-velocity prediction also does not anticipate reflections. Camera
 visibility, box estimation, and planner/controller delay remain distinct
 failure sources. This kinematic experiment does not validate physical contact,
 real depth hardware, or real-robot safety.
+
+
+## MPC prototype
+
+Check date: 2026-11-12 (Asia/Taipei). Source parent:
+`15c5a543c0c7ff26233b619c0f05b57e08974c92`; local cuRobo 0.8 checkout:
+`78fd485fa82d9b9a063fb4985e371814587e666a`. The accepted v2 source,
+worker, evidence and shared configurations are unchanged. No installation,
+ROS, Newton physics, hardware, nvblox, cuMotion, or media artifacts are used.
+
+### Read-only API survey
+
+The public `ModelPredictiveControl` and `ModelPredictiveControlCfg` aliases
+are in `curobo/curobo/model_predictive_control.py`. They expose `MPCSolver`
+and `MPCSolverCfg` in `curobo/curobo/_src/solver/solver_mpc.py` and
+`solver_mpc_cfg.py`. Call `setup(JointState)` once, then
+`update_goal_tool_poses(GoalToolPose, run_ik=False)` for Cartesian tracking.
+`optimize_action_sequence(current_state)` re-optimizes on every call.
+A preallocated `camera_obstacle` cuboid is changed in-place each step using
+`scene_collision_checker.update_obstacle_pose`, `data.cuboids.update_dims`,
+and `enable_obstacle`. This preserves the collision storage used by CUDA graphs.
+
+On `NVIDIA GeForce RTX 3080`, ten warmed solves after two discarded warmups measured median `19.359 ms`, p95 `21.121 ms`, or `51.65 Hz` at the median. These are measured solver wall times, not advertised GPU throughput.
+
+The collision-start probe placed a 50 mm cube over the final collision sphere; signed clearance was `-37.663 mm`. Both setup and optimization returned, with finite velocities and `success=false`. MPC accepts the colliding state; this does **not** establish escape or safety. Unlike MotionPlanner, setup validates tensor shape rather than rejecting a colliding start. In this checkout the automatic infeasibility/deceleration branch in `_solve_impl` is guarded by `and False`, despite the configuration option. No library code was changed. Since usable MPC exists, the conditional no-MPC patch was not applied.
+
+### Controller and shared clock
+
+The scene and endpoints are loaded directly from the accepted v2 evidence:
+Y=0.245 m, X=0.30–0.70 m, radius=0.025 m, top=0.250 m, regular initial
+X=0.60 m moving toward decreasing X. The complete sweep and wrist-3 limit
+are retained. The tool goal and raised start are unchanged; a reach uses v2's
+position tolerance. Targets alternate only after an actual reach.
+
+The plant is an **ideal joint-velocity integrator**, not a rigid-body simulator:
+
+- Optimize from a snapshot of current joints and the held joint velocity.
+- During the measured sensing/box-update/optimization/output-transfer time,
+  integrate the **previous** command, moving the rod on the same clock.
+- At completion, issue a latency-indexed MPC velocity and execute the remainder
+  of the nominal 25 ms control period. If compute overruns, there is no extra
+  free execution period: the new command runs during the next computation.
+- Clamp commands to existing joint-velocity limits and positions to existing
+  joint bounds. Acceleration feedback is zero during each held command;
+  velocity changes are instantaneous. Acceleration, jerk and actuator dynamics
+  are not validated.
+
+Optimization knots are 0.100 s apart with four interpolation samples; the
+nominal command interval is 0.025 s. CUDA graphs remain enabled, with default
+200 warm / 300 cold LBFGS iterations and 30 mm collision activation.
+`action_sequence.dt` is reported as 0.100 s in this checkout, so the adapter
+explicitly uses the configured interpolation interval. The returned four-state
+window starts at the **current-state boundary**, whose velocity is the current
+velocity. The adapter skips that boundary and selects the first non-stale
+future sample, clamped to the last available sample on overrun.
+
+An initial diagnostic incorrectly reissued boundary index zero: all six runs
+had zero reaches and almost no motion. A direct position/velocity inspection
+exposed the boundary semantics. That adapter error was corrected before the
+saved result below; a CPU regression test covers it. The final artifacts store
+capture joints, joints after computation, old/new velocities and counted time.
+All 4800 computation intervals satisfy `q_after_compute = q_capture +
+old_velocity * counted_time` within 1e-6 rad; 4794 intervals show joint motion.
+There were no position-limit clamps in the saved run. Thus zero collisions
+below are not produced by stopping the arm during computation.
+
+B receives only the true current cuboid. Its prediction variant uses the
+unchanged v2 directional stretch: `2 * velocity * (previous measured compute +
+0.025 s)`, initialized with expected compute 0.025 s. The truth rod reflects;
+the linear prediction does not anticipate reflection. Camera E would use the
+same v2 fresh-frame velocity and retained-cloud fit if the B gate passed.
+Truth scoring and B replay image rendering are offline and excluded from the
+control clock, matching v2's exclusion of truth scoring. B does not need camera
+rendering to control; E's camera capture would be included in compute time.
+Goal-switch updates are counted in the following control computation.
+
+### Direct comparison with v2 B
+
+Each row covers 20 simulated seconds. Moving/holding are collision **episodes
+classified by onset phase**. Period timings include compute and execution;
+MPC's solver-only and whole-compute timings are separately recorded in JSON.
+The v2 period columns use its saved `whole_cycle_median_ms` / p95. The algorithms
+and command profiles differ: this is a controller comparison, not a matched
+path/speed ablation.
+
+| Controller | Rod m/s | Reaches | Episodes moving / holding | Min clearance mm | Period median / p95 ms | Rate Hz |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| v2 B prediction + escape | 0.05 | 3 | 0 / 0 | 10.905 | 312.601 / 399.853 | 3.35 |
+| MPC B current box | 0.05 | 0 | 0 / 0 | 45.250 | 25.000 / 25.000 | 40.00 |
+| MPC B + prediction | 0.05 | 0 | 0 / 0 | 46.997 | 25.000 / 25.000 | 40.00 |
+| v2 B prediction + escape | 0.10 | 3 | 0 / 1 | -33.951 | 284.221 / 377.383 | 3.40 |
+| MPC B current box | 0.10 | 0 | 0 / 0 | 6.072 | 25.000 / 25.000 | 40.00 |
+| MPC B + prediction | 0.10 | 0 | 0 / 0 | 13.685 | 25.000 / 25.000 | 40.00 |
+| v2 B prediction + escape | 0.20 | 2 | 0 / 4 | -20.676 | 281.466 / 359.611 | 3.50 |
+| MPC B current box | 0.20 | 0 | 0 / 0 | 4.074 | 25.000 / 25.000 | 40.00 |
+| MPC B + prediction | 0.20 | 0 | 0 / 0 | 13.084 | 25.000 / 25.000 | 40.00 |
+
+All six MPC B runs were collision-free, but **none reached either task target**.
+The prototype therefore does not demonstrate a better shuttle controller.
+Survival retains the v2 requirement of zero collisions **and at least one
+reach**; no MPC B variant passed at 0.10 m/s, so the conditional E run was
+not performed. This configuration shows continuous clearance-preserving motion
+with insufficient task progress. It does not establish whether the remaining
+cause is goal tracking, local avoidance, integration/tuning, or the 20 s horizon.
+An obstacle-free reach control is the next diagnostic before claiming superior
+avoidance or tuning the task further.
+
+For near-rod behavior, compute signed cylinder/sphere clearance at both states
+with the rod fixed at its new location. Their difference / dt measures the
+**robot's** contribution: positive means away, negative means toward. The full
+change, including rod motion, gives relative clearance rate. Count samples when
+either endpoint is within 50 mm; +/-0.1 mm/s is the stationary band.
+
+| MPC B variant | Rod m/s | Away / toward / stationary samples within 50 mm | Mean robot / relative clearance rate m/s |
+| --- | ---: | ---: | ---: |
+| current box | 0.05 | 90 / 0 / 0 | +0.01320 / -0.00005 |
+| prediction | 0.05 | 75 / 0 / 0 | +0.01486 / +0.00007 |
+| current box | 0.10 | 272 / 59 / 2 | +0.00165 / -0.00017 |
+| prediction | 0.10 | 196 / 83 / 4 | +0.00253 / -0.00013 |
+| current box | 0.20 | 319 / 65 / 0 | +0.00269 / +0.00089 |
+| prediction | 0.20 | 116 / 91 / 2 | -0.00208 / +0.00099 |
+
+A positive robot contribution can coexist with decreasing relative clearance
+because the rod also moves. In particular, the prediction variant is not always
+moving away even when it avoids collision. Neither a positive mean nor zero
+collisions alone establishes task success.
+
+### Viewer: what you should see
+
+- Selectable B cases for both prediction choices and all three rod speeds.
+- Controller name and measured achieved step rate, with shared simulated time.
+- Continuous joint-state replay at the saved integration samples, rather than
+  freezing the arm while the controller computes.
+- Red true rod, larger magenta camera points, orange current box, and blue
+  prediction box when prediction is enabled.
+- Camera frustum and depth image refreshed at about 5 Hz from offline captures.
+- Arm motion that preserves clearance but does not complete the shuttle task;
+  the reach count in the evidence is zero.
+- `Playback error: none` after callback verification.
+
+Exact one-line viewer command (reads saved traces and cannot save results):
+
+```bash
+cd ~/ur5_ws/src/ur5_moveit_demo && NEWTON_VIEWER_PORT=30001 scripts/run_sim_camera_moving_rod_mpc.sh --replay
+```
+
+The wrapper sources `lab_session_env.sh`; its default per-user port 30000 was
+already occupied by PID 1244750 and was left untouched. The explicit personal
+override 30001 was checked free before use. The program refuses Viser's silent
+fallback to a different port. Replay and `--save-results` are mutually exclusive.
+Normal runs also do not write evidence unless `--save-results` is explicit.
+Headless regeneration:
+
+```bash
+cd ~/ur5_ws/src/ur5_moveit_demo && scripts/run_sim_camera_moving_rod_mpc.sh --headless --save-results
+```
+
+Raw evidence is `moving_rod_mpc.json` with per-step clocks and sampled traces;
+`moving_rod_mpc.log` contains compact summaries. Viewer verification and
+before/after evidence hashes are in `moving_rod_mpc.viewer.log`. CPU checks
+cover old-command integration, continuity, joint bounds, zero-duration steps,
+MPC boundary indexing, and replay write protection. All project CI checks pass.
+The prototype remains a kinematic experiment, with no physical-contact or
+hardware-safety acceptance.
