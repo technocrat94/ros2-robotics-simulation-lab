@@ -525,6 +525,10 @@ physics, nvblox, cuMotion, real robot, install, or media path was used.
 
 Check date: 2026-11-06 (Asia/Taipei)
 
+The current `run_sim_camera_curobo_fifth_pass.sh` launcher uses the corrected
+camera-border rule. The historical Fifth-pass behavior and numbers below are
+reproducible only from commit `67966b4`.
+
 This pass removes the scan and overview moves. Each experiment motion is only
 the repeated `capture -> merge -> fit -> update -> replan -> advance` loop,
 using one warmed planner and an 80-cycle cap. The cap was not the stop reason
