@@ -15,27 +15,27 @@ No pending task
 Leave the deleted 05_c2_tall_wall_refused.png and the untracked curobo/ untouched. Stage files by
 explicit path only. No git clean/reset/restore/stash/add -A.
 
-## Task: does cuRobo MPC dodge the rod better? (branch `experiment/newton-link-depth-camera`, time box 90 min)
+## Task: make MPC reach its goal at a normal speed, then retest the rod (branch `experiment/newton-link-depth-camera`, time box 90 min)
 
-Review of 2f7fcda: the fair scene, prediction, escape and viewer are accepted. The failure is the controller. In B and E the predicted box covers the current
-arm state, every plan is refused (start in collision, TRAJOPT_FAILED), the arm freezes and the rod drives through it (B 0.10 cycles 41-45, E 0.10 cycles
-25-29). Stop-and-go plus whole-path replanning cannot push away continuously. Same rules as before: no install, no sudo, no real robot, no Newton physics,
-no ROS, no nvblox, no cuMotion, no media. Do not change the accepted moving-rod v2 script behaviour, the FEM grasp path or shared configs. Use
-scripts/lab_session_env.sh and its per-user port; do not stop processes you did not start.
+Review of 0abadef: the MPC adapter, shared clock and no-write viewer are accepted. MPC B never collided, but never reached a target. Claude computed the tool
+path from the saved trace (MPC B current box 0.10 m/s): 37.8 cm from the goal at 0 s, 16.4 cm at 10 s, 1.0 cm at 20 s. It crossed the rod lane above the rod
+(z about 0.43 m) at about 4.5 s. Average tool speed is about 2 cm/s and slows near the goal, so it never enters the 6 mm tolerance. The user confirmed that in the
+viewer the simulated time runs normally while the arm moves slowly. Compute is about 20.8 ms per 25 ms step, so this is controller behaviour, not hardware.
+Same rules as the last task. Do not change library code or the accepted v2 and MPC prototype behaviour; add a new tuned configuration beside them.
 
-1. Survey, read only: in the project's cuRobo 0.8 checkout (`curobo/`), find the MPC (model predictive control) API. Report the class and file, how it gets a
-   goal, how obstacles are updated each step, its step rate on this GPU, and whether it can start from a state that is already in collision. If there is no
-   usable MPC, say so, and do step 3 instead of step 2.
-2. MPC prototype, new script scripts/curobo_moving_rod_mpc.py, on the v2 fair scene and the same shared clock. Use god view only: B's true rod box,
-   with and without the v2 prediction stretch. Continuous control: the arm keeps executing the previous command while the next step is computed; count
-   that compute time on the clock. Same shuttle task, speeds 0.05, 0.10, 0.20 m/s. Report reaches, collision episodes split into moving and holding, min true
-   clearance, step time median and p95, and direction of motion relative to the rod when it is within 50 mm.
-3. Only if there is no MPC: the patch. When the current state is inside the box, plan against the current box without prediction, and choose the retreat that
-   increases distance from the rod. Same report.
-4. Compare directly with v2 B in one table. Only if MPC B survives 0.10 m/s: run camera E once at 0.10 m/s with the same controller and add it to the table.
-5. Viewer through the per-user port: same view as v2, plus the controller name and step rate, and selectable cases. Must not rewrite tracked files.
+1. No-rod reference: with no obstacle, time a start-to-goal reach for (a) the v2 MotionPlanner path at its own timing and (b) the current MPC settings.
+   Report time to enter 6 mm, and the tool distance to goal over time.
+2. Find the cause: read the MPC config actually loaded and list the settings that limit speed or final convergence (for example velocity scaling, goal cost
+   weights, horizon, convergence or terminal terms). Say which one causes the slow final approach, with evidence from step 1.
+3. Tune with no rod only: change as few settings as possible until MPC reaches within 6 mm in no more than twice the v2 reach time and stays within joint
+   velocity limits. Report max joint velocity and max joint acceleration of the result, since the plant has no acceleration limit. Then freeze the settings in
+   one named config block. Never tune against rod results.
+4. Rerun MPC B, current box and prediction, at 0.05, 0.10 and 0.20 m/s, with the frozen settings. Same table as the MPC prototype plus the v2 B rows.
+5. If B survives 0.10 m/s (zero collisions and at least one reach), run camera E at every speed B survived, with the same controller. Also log per frame how far
+   E's box is from the true rod box (missing height, missing width, offset), so partial views can be found. Report the worst frames.
+6. Viewer through the per-user port, the new cases selectable. Must not rewrite tracked files.
 
 If a step blocks you for over 20 minutes, stop, report the exact error and your read of it, and commit what works. Save to
-docs/experiments/sim-camera-curobo/results/moving_rod_mpc.*. Append an "MPC prototype" section to docs/SIM_CAMERA_MOVING_ROD.md and a short note in
+docs/experiments/sim-camera-curobo/results/moving_rod_mpc_tuned.*. Append an "MPC tuned" section to docs/SIM_CAMERA_MOVING_ROD.md and a short note in
 docs/SIM_CAMERA_MOVING_ROD.zh-TW.md, each with a plain "what you should see" list and the exact one-line run command. Stop every process you started. Commit
 by path, push, reply in 5 lines with the hash and the run command.
