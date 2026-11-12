@@ -15,41 +15,29 @@ No pending task
 Leave the deleted 05_c2_tall_wall_refused.png and the untracked curobo/ untouched. Stage files by
 explicit path only. No git clean/reset/restore/stash/add -A.
 
-## Task: dodge a moving rod using only the arm camera (branch `experiment/newton-link-depth-camera`, time box 120 min)
+## Task: make the moving-rod scene fair, then add prediction and escape (branch `experiment/newton-link-depth-camera`, time box 90 min)
 
-The senior wants something like NVIDIA's demos where a stick is pushed into the workspace and the arm avoids it. Static walls passed in Sixth pass;
-this is the first test where each frame shows something new. Same rules as before: no install, no sudo, no real robot, no Newton physics, no ROS, no
-nvblox, no cuMotion, no media. Planner input never uses truth except case B. Do not change config/jazzy_fem_initial_positions.yaml,
-config/obstacles.yaml, the mount yaml, the URDF, or anything the FEM grasp uses. New script scripts/curobo_camera_moving_rod.py and launcher
-scripts/run_sim_camera_moving_rod.sh; reuse the Sixth pass code (raised start, wrist_3 limit, speed rule, border rule, one warmed planner).
+Review of 81505e3. Housekeeping, depth panel, no-write viewer and the shared clock are accepted. The results do not test the camera yet: B (god view)
+also collides at 0.05 m/s. Claude's reading of moving_rod.json, three design faults in Claude's spec:
+- The goal state is inside the rod's sweep: target-to-box clearance reaches -0.025 m in B. Some collisions cannot be avoided while the task requires
+  parking at the goal.
+- No escape: once the rod is close, the current state is inside the box, TRAJOPT_FAILED, and the arm holds still while the rod drives through it
+  (B 0.05 m/s: 33 held cycles, -42.6 mm while holding).
+- No prediction: the planner sees where the rod is, not where it will be after compute plus execution.
 
-1. Housekeeping first:
-   - Viewer runs must never rewrite tracked files. Results go to the repo only with an explicit --save-results flag.
-   - Add the live simulated depth image panel back to the viewer, as scripts/newton_sim_depth_cloud_viser.py had.
-   - In docs/SIM_CAMERA_CUROBO.md, note that run_sim_camera_curobo_fifth_pass.sh now runs the corrected rule, so Fifth pass is reproduced only at 67966b4.
-2. Rod: a vertical cylinder, radius 0.025 m, standing on the floor, top 0.35 m (below the start camera). It moves along world X at constant speed,
-   back and forth between x 0.30 and 0.70 m, at y 0.263 (across the arm route). Move it in Newton by its body pose each capture, not by rebuilding
-   the model, and mind the old `q[6:] = 0.0` trap. The planner sees only the camera box.
-3. Arm task: shuttle between the raised start and the goal for 20 s of simulated time. Count reaches, true collisions, min true clearance, and time
-   spent stopped with no plan.
-4. Old points: points inside the current camera view are replaced by this frame. Points outside it are kept for at most 1.0 s of simulated time,
-   then dropped. Report how many stale points the box used each cycle.
-5. Time: one simulated clock. Each cycle the rod moves for the cycle's measured compute time plus the duration of the executed segment, so the planner gets
-   no free time. The arm does not move while computing (stop and go); say so in the report. Also run once with compute time counted as zero, to show
-   what latency costs.
-6. Cases, each at rod speeds 0.05, 0.10 and 0.20 m/s, same seeds:
-   - A no obstacle in the planner (must collide, or the scene proves nothing)
-   - B god view: the rod's true bounding box each cycle, same clock
-   - E camera only, with rules 4 and 5
-7. One blind case at 0.10 m/s: the rod enters from behind the camera, outside its view. Report what happens, even if it hits. Add no fix.
-8. Report per case: reaches, collisions, min true clearance, stopped time, whole-cycle median and p95, and the rod-to-arm distance when the rod was first
-   seen. Save planner failure status. State the fastest speed E survives.
-9. Viewer on 127.0.0.1:8084: true rod, camera points, fitted box, live frustum, depth panel, sim time, rod speed, current case. Playback plays the cycles
-   in simulated time. Keep the Playback error field.
+Same rules as the last task. Edit scripts/curobo_camera_moving_rod.py and keep everything accepted above.
 
-Known limits, list but do not solve: one box for all points; floor cut at z 0.012 m; robot pixels from the simulator shape index; the camera only sees
-in front of and below the gripper.
+1. Fair scene: before running, sweep the rod over its whole X range and require at least 25 mm true clearance to the start and goal states at every rod
+   position, and that A still collides. If the current lane fails, search lane Y, X range and top height (keep radius 0.025 m, top below the start camera) and
+   state the chosen one. Report any lane that fails as INVALID_SCENE.
+2. Prediction, same rule for B and E: estimate rod velocity (B from truth, E only from the box centres of recent frames), and stretch the box along that
+   velocity by speed x (expected compute + one executed segment) x 2. State the numbers.
+3. Escape: if the plan to the current target fails, or the current state is within 30 mm of the box, plan to a retreat pose instead: the raised start, or
+   if that also fails, 0.10 m straight up from the current tool. Hold still only if all fail. Count each escape and say which it used.
+4. Rerun A, B, E at 0.05, 0.10, 0.20 m/s, the zero-latency control at 0.10, and the blind entry at 0.10, on the fair scene. Split collisions into "while
+   moving" and "while holding". Report the fastest speed B survives and the fastest speed E survives.
+5. Viewer: same as now, plus the predicted box in a separate colour and an ESCAPE label when it is active. Do not rewrite tracked files.
 
-If a step blocks you for over 20 minutes, stop, report the exact error and your read of it, and commit what works. Save raw results to
-docs/experiments/sim-camera-curobo/results/moving_rod.*. Write docs/SIM_CAMERA_MOVING_ROD.md with a plain "what you should see" list and the exact one-line
-run command. Stop every process you started. Commit by path, push, reply in 5 lines with the hash and the run command.
+If a step blocks you for over 20 minutes, stop, report the exact error and your read of it, and commit what works. Keep moving_rod.* as history and save to
+moving_rod_v2.*. Append a "Second run" section to docs/SIM_CAMERA_MOVING_ROD.md with a plain "what you should see" list and the exact one-line run command.
+Stop every process you started. Commit by path, push, reply in 5 lines with the hash and the run command.
