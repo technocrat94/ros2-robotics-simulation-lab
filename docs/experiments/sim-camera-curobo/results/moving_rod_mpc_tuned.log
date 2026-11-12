@@ -1,0 +1,503 @@
+{
+  "frozen_config": {
+    "name": "mpc_no_rod_dt_0.02_nonterminal_0.3",
+    "acceleration_regularization": 10000.0,
+    "non_terminal_tool_pose_weight_factor": 0.3,
+    "optimization_dt": 0.02
+  },
+  "camera_cases": [],
+  "summaries": {
+    "Tuned B current box 0.05 m/s": {
+      "mode": "B",
+      "prediction": false,
+      "rod_speed_mps": 0.05,
+      "controller": "cuRobo MPC tuned, held joint velocity during computation",
+      "reaches": 7,
+      "true_collisions": 0,
+      "collision_episodes_by_onset_phase": {
+        "moving": 0,
+        "holding": 0
+      },
+      "collision_samples_by_phase": {
+        "moving": 0,
+        "holding": 0
+      },
+      "minimum_true_clearance_m": 0.0161733780954417,
+      "steps": 800,
+      "simulated_duration_s": 19.999999999999932,
+      "compute_median_ms": 20.821376936510205,
+      "compute_p95_ms": 21.92967222072184,
+      "solver_median_ms": 19.96440556831658,
+      "solver_p95_ms": 21.074465406127274,
+      "step_period_median_ms": 25.000000000000355,
+      "step_period_p95_ms": 25.000000000000355,
+      "achieved_step_rate_hz": 40.000000000000135,
+      "within_50mm_robot_direction_samples": {
+        "away": 124,
+        "toward": 97,
+        "stationary": 0
+      },
+      "within_50mm_mean_robot_clearance_rate_mps": 0.021962590271654422,
+      "within_50mm_mean_relative_clearance_rate_mps": 4.921948611859816e-05,
+      "infeasible_steps": 0,
+      "joint_position_clamped_intervals": 0,
+      "survives": true,
+      "time_to_first_goal_s": 3.249999999999993,
+      "max_joint_velocity_radps": [
+        0.7056266069412231,
+        0.643291711807251,
+        0.16331765055656433,
+        0.5755700469017029,
+        0.09311623871326447,
+        0.6869983077049255
+      ],
+      "max_sampled_joint_acceleration_radps2": [
+        4.881042957305908,
+        4.982213973999023,
+        2.297682762145996,
+        4.68841028213501,
+        1.0586082935333252,
+        6.207812786102295
+      ],
+      "max_proposed_joint_velocity_radps": [
+        0.7056266069412231,
+        0.643291711807251,
+        0.16331765055656433,
+        0.5755700469017029,
+        0.09311623871326447,
+        0.6869983077049255
+      ],
+      "velocity_limits_radps": [
+        [
+          -3.1415927410125732,
+          -3.1415927410125732,
+          -3.1415927410125732,
+          -3.1415927410125732,
+          -3.1415927410125732,
+          -3.1415927410125732
+        ],
+        [
+          3.1415927410125732,
+          3.1415927410125732,
+          3.1415927410125732,
+          3.1415927410125732,
+          3.1415927410125732,
+          3.1415927410125732
+        ]
+      ],
+      "within_joint_velocity_limits": true,
+      "velocity_clipped_steps": 0,
+      "worst_camera_frames": {}
+    },
+    "Tuned B prediction 0.05 m/s": {
+      "mode": "B",
+      "prediction": true,
+      "rod_speed_mps": 0.05,
+      "controller": "cuRobo MPC tuned, held joint velocity during computation",
+      "reaches": 7,
+      "true_collisions": 0,
+      "collision_episodes_by_onset_phase": {
+        "moving": 0,
+        "holding": 0
+      },
+      "collision_samples_by_phase": {
+        "moving": 0,
+        "holding": 0
+      },
+      "minimum_true_clearance_m": 0.015270994151851229,
+      "steps": 800,
+      "simulated_duration_s": 19.999999999999932,
+      "compute_median_ms": 20.839464850723743,
+      "compute_p95_ms": 21.838084841147065,
+      "solver_median_ms": 19.964226754382253,
+      "solver_p95_ms": 20.89827163144946,
+      "step_period_median_ms": 25.000000000000355,
+      "step_period_p95_ms": 25.000000000000355,
+      "achieved_step_rate_hz": 40.000000000000135,
+      "within_50mm_robot_direction_samples": {
+        "away": 58,
+        "toward": 61,
+        "stationary": 0
+      },
+      "within_50mm_mean_robot_clearance_rate_mps": 0.004855469094086824,
+      "within_50mm_mean_relative_clearance_rate_mps": 0.005553084268642849,
+      "infeasible_steps": 0,
+      "joint_position_clamped_intervals": 0,
+      "survives": true,
+      "time_to_first_goal_s": 3.0499999999999936,
+      "max_joint_velocity_radps": [
+        0.8349493145942688,
+        0.7168210744857788,
+        0.2459363490343094,
+        0.6453012228012085,
+        0.17548370361328125,
+        0.6988873481750488
+      ],
+      "max_sampled_joint_acceleration_radps2": [
+        5.33119535446167,
+        5.418647289276123,
+        2.8375518321990967,
+        3.1903998851776123,
+        1.816697359085083,
+        3.807774782180786
+      ],
+      "max_proposed_joint_velocity_radps": [
+        0.8349493145942688,
+        0.7168210744857788,
+        0.2459363490343094,
+        0.6453012228012085,
+        0.17548370361328125,
+        0.6988873481750488
+      ],
+      "velocity_limits_radps": [
+        [
+          -3.1415927410125732,
+          -3.1415927410125732,
+          -3.1415927410125732,
+          -3.1415927410125732,
+          -3.1415927410125732,
+          -3.1415927410125732
+        ],
+        [
+          3.1415927410125732,
+          3.1415927410125732,
+          3.1415927410125732,
+          3.1415927410125732,
+          3.1415927410125732,
+          3.1415927410125732
+        ]
+      ],
+      "within_joint_velocity_limits": true,
+      "velocity_clipped_steps": 0,
+      "worst_camera_frames": {}
+    },
+    "Tuned B current box 0.10 m/s": {
+      "mode": "B",
+      "prediction": false,
+      "rod_speed_mps": 0.1,
+      "controller": "cuRobo MPC tuned, held joint velocity during computation",
+      "reaches": 3,
+      "true_collisions": 2,
+      "collision_episodes_by_onset_phase": {
+        "moving": 2,
+        "holding": 0
+      },
+      "collision_samples_by_phase": {
+        "moving": 232,
+        "holding": 0
+      },
+      "minimum_true_clearance_m": -0.06542486093286996,
+      "steps": 800,
+      "simulated_duration_s": 19.999999999999932,
+      "compute_median_ms": 21.168083883821964,
+      "compute_p95_ms": 22.694981610402465,
+      "solver_median_ms": 20.34079167060554,
+      "solver_p95_ms": 21.790256421081722,
+      "step_period_median_ms": 25.000000000000355,
+      "step_period_p95_ms": 25.000000000000355,
+      "achieved_step_rate_hz": 40.000000000000135,
+      "within_50mm_robot_direction_samples": {
+        "away": 369,
+        "toward": 144,
+        "stationary": 4
+      },
+      "within_50mm_mean_robot_clearance_rate_mps": 0.04599834626575338,
+      "within_50mm_mean_relative_clearance_rate_mps": -0.006555044331745419,
+      "infeasible_steps": 225,
+      "joint_position_clamped_intervals": 0,
+      "survives": false,
+      "time_to_first_goal_s": 3.174999999999993,
+      "max_joint_velocity_radps": [
+        2.511894702911377,
+        3.007631540298462,
+        2.5097622871398926,
+        1.798598289489746,
+        1.688700556755066,
+        2.8684630393981934
+      ],
+      "max_sampled_joint_acceleration_radps2": [
+        17.015594482421875,
+        15.030689239501953,
+        12.765864372253418,
+        11.558614730834961,
+        8.98409366607666,
+        21.103233337402344
+      ],
+      "max_proposed_joint_velocity_radps": [
+        2.511894702911377,
+        3.007631540298462,
+        2.5097622871398926,
+        1.798598289489746,
+        1.688700556755066,
+        2.8684630393981934
+      ],
+      "velocity_limits_radps": [
+        [
+          -3.1415927410125732,
+          -3.1415927410125732,
+          -3.1415927410125732,
+          -3.1415927410125732,
+          -3.1415927410125732,
+          -3.1415927410125732
+        ],
+        [
+          3.1415927410125732,
+          3.1415927410125732,
+          3.1415927410125732,
+          3.1415927410125732,
+          3.1415927410125732,
+          3.1415927410125732
+        ]
+      ],
+      "within_joint_velocity_limits": true,
+      "velocity_clipped_steps": 0,
+      "worst_camera_frames": {}
+    },
+    "Tuned B prediction 0.10 m/s": {
+      "mode": "B",
+      "prediction": true,
+      "rod_speed_mps": 0.1,
+      "controller": "cuRobo MPC tuned, held joint velocity during computation",
+      "reaches": 3,
+      "true_collisions": 1,
+      "collision_episodes_by_onset_phase": {
+        "moving": 1,
+        "holding": 0
+      },
+      "collision_samples_by_phase": {
+        "moving": 178,
+        "holding": 0
+      },
+      "minimum_true_clearance_m": -0.08084555711084387,
+      "steps": 800,
+      "simulated_duration_s": 19.999999999999932,
+      "compute_median_ms": 21.39787469059229,
+      "compute_p95_ms": 22.56586232688278,
+      "solver_median_ms": 20.542310317978263,
+      "solver_p95_ms": 21.55302062164992,
+      "step_period_median_ms": 25.000000000000355,
+      "step_period_p95_ms": 25.000000000000355,
+      "achieved_step_rate_hz": 40.000000000000135,
+      "within_50mm_robot_direction_samples": {
+        "away": 495,
+        "toward": 78,
+        "stationary": 1
+      },
+      "within_50mm_mean_robot_clearance_rate_mps": 0.04246867416690901,
+      "within_50mm_mean_relative_clearance_rate_mps": -0.0004639651322933205,
+      "infeasible_steps": 163,
+      "joint_position_clamped_intervals": 0,
+      "survives": false,
+      "time_to_first_goal_s": 3.5749999999999917,
+      "max_joint_velocity_radps": [
+        0.7034051418304443,
+        0.7952569127082825,
+        1.5988777875900269,
+        0.9786126017570496,
+        0.1782037317752838,
+        0.6507007479667664
+      ],
+      "max_sampled_joint_acceleration_radps2": [
+        6.2538498640060425,
+        6.177283525466919,
+        6.854233741760254,
+        5.030786991119385,
+        1.2913867235183716,
+        3.249638080596924
+      ],
+      "max_proposed_joint_velocity_radps": [
+        0.7034051418304443,
+        0.7952569127082825,
+        1.5988777875900269,
+        0.9786126017570496,
+        0.1782037317752838,
+        0.6507007479667664
+      ],
+      "velocity_limits_radps": [
+        [
+          -3.1415927410125732,
+          -3.1415927410125732,
+          -3.1415927410125732,
+          -3.1415927410125732,
+          -3.1415927410125732,
+          -3.1415927410125732
+        ],
+        [
+          3.1415927410125732,
+          3.1415927410125732,
+          3.1415927410125732,
+          3.1415927410125732,
+          3.1415927410125732,
+          3.1415927410125732
+        ]
+      ],
+      "within_joint_velocity_limits": true,
+      "velocity_clipped_steps": 0,
+      "worst_camera_frames": {}
+    },
+    "Tuned B current box 0.20 m/s": {
+      "mode": "B",
+      "prediction": false,
+      "rod_speed_mps": 0.2,
+      "controller": "cuRobo MPC tuned, held joint velocity during computation",
+      "reaches": 3,
+      "true_collisions": 3,
+      "collision_episodes_by_onset_phase": {
+        "moving": 3,
+        "holding": 0
+      },
+      "collision_samples_by_phase": {
+        "moving": 154,
+        "holding": 0
+      },
+      "minimum_true_clearance_m": -0.03144415060738281,
+      "steps": 800,
+      "simulated_duration_s": 19.999999999999932,
+      "compute_median_ms": 21.097756922245026,
+      "compute_p95_ms": 22.341812658123672,
+      "solver_median_ms": 20.28255187906325,
+      "solver_p95_ms": 21.516756154596806,
+      "step_period_median_ms": 25.000000000000355,
+      "step_period_p95_ms": 25.000000000000355,
+      "achieved_step_rate_hz": 40.000000000000135,
+      "within_50mm_robot_direction_samples": {
+        "away": 285,
+        "toward": 63,
+        "stationary": 0
+      },
+      "within_50mm_mean_robot_clearance_rate_mps": 0.05675416763880567,
+      "within_50mm_mean_relative_clearance_rate_mps": -0.000254443373305663,
+      "infeasible_steps": 165,
+      "joint_position_clamped_intervals": 0,
+      "survives": false,
+      "time_to_first_goal_s": 2.8749999999999942,
+      "max_joint_velocity_radps": [
+        2.7459938526153564,
+        1.8793601989746094,
+        2.045255661010742,
+        2.4163455963134766,
+        2.473334312438965,
+        2.6402792930603027
+      ],
+      "max_sampled_joint_acceleration_radps2": [
+        10.085663795471191,
+        9.911389350891113,
+        14.490470886230469,
+        16.209421157836914,
+        12.584714889526367,
+        8.661314010620117
+      ],
+      "max_proposed_joint_velocity_radps": [
+        2.7459938526153564,
+        1.8793601989746094,
+        2.045255661010742,
+        2.4163455963134766,
+        2.473334312438965,
+        2.6402792930603027
+      ],
+      "velocity_limits_radps": [
+        [
+          -3.1415927410125732,
+          -3.1415927410125732,
+          -3.1415927410125732,
+          -3.1415927410125732,
+          -3.1415927410125732,
+          -3.1415927410125732
+        ],
+        [
+          3.1415927410125732,
+          3.1415927410125732,
+          3.1415927410125732,
+          3.1415927410125732,
+          3.1415927410125732,
+          3.1415927410125732
+        ]
+      ],
+      "within_joint_velocity_limits": true,
+      "velocity_clipped_steps": 0,
+      "worst_camera_frames": {}
+    },
+    "Tuned B prediction 0.20 m/s": {
+      "mode": "B",
+      "prediction": true,
+      "rod_speed_mps": 0.2,
+      "controller": "cuRobo MPC tuned, held joint velocity during computation",
+      "reaches": 6,
+      "true_collisions": 0,
+      "collision_episodes_by_onset_phase": {
+        "moving": 0,
+        "holding": 0
+      },
+      "collision_samples_by_phase": {
+        "moving": 0,
+        "holding": 0
+      },
+      "minimum_true_clearance_m": 0.0016566824371860456,
+      "steps": 800,
+      "simulated_duration_s": 19.999999999999932,
+      "compute_median_ms": 21.063111489638686,
+      "compute_p95_ms": 22.246488882228732,
+      "solver_median_ms": 20.227250875905156,
+      "solver_p95_ms": 21.28234424162656,
+      "step_period_median_ms": 25.000000000000355,
+      "step_period_p95_ms": 25.000000000000355,
+      "achieved_step_rate_hz": 40.000000000000135,
+      "within_50mm_robot_direction_samples": {
+        "away": 89,
+        "toward": 96,
+        "stationary": 0
+      },
+      "within_50mm_mean_robot_clearance_rate_mps": 0.03157348378516294,
+      "within_50mm_mean_relative_clearance_rate_mps": -0.000683952283864512,
+      "infeasible_steps": 7,
+      "joint_position_clamped_intervals": 0,
+      "survives": true,
+      "time_to_first_goal_s": 3.4249999999999923,
+      "max_joint_velocity_radps": [
+        0.9513639807701111,
+        0.6515810489654541,
+        0.2969544529914856,
+        0.5101780295372009,
+        0.17439872026443481,
+        0.8862035274505615
+      ],
+      "max_sampled_joint_acceleration_radps2": [
+        6.233900785446167,
+        6.198641061782837,
+        4.701849937438965,
+        6.264688968658447,
+        1.581147313117981,
+        6.149501800537109
+      ],
+      "max_proposed_joint_velocity_radps": [
+        0.9513639807701111,
+        0.6515810489654541,
+        0.2969544529914856,
+        0.5101780295372009,
+        0.17439872026443481,
+        0.8862035274505615
+      ],
+      "velocity_limits_radps": [
+        [
+          -3.1415927410125732,
+          -3.1415927410125732,
+          -3.1415927410125732,
+          -3.1415927410125732,
+          -3.1415927410125732,
+          -3.1415927410125732
+        ],
+        [
+          3.1415927410125732,
+          3.1415927410125732,
+          3.1415927410125732,
+          3.1415927410125732,
+          3.1415927410125732,
+          3.1415927410125732
+        ]
+      ],
+      "within_joint_velocity_limits": true,
+      "velocity_clipped_steps": 0,
+      "worst_camera_frames": {}
+    }
+  }
+}

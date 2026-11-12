@@ -70,3 +70,42 @@ cd ~/ur5_ws/src/ur5_moveit_demo && NEWTON_VIEWER_PORT=30001 scripts/run_sim_came
 ```
 
 離開 Codex 後執行 `codex logout`、`codex login status`，確認未登入。
+
+
+## MPC 調整版
+
+先只做無桿測試：MotionPlanner 在自身軌跡時間 0.875 秒進入 6 mm，
+原 MPC 為 11.8 秒；新設定門檻是兩倍，即 1.75 秒。
+最後只改兩個設定：`optimization_dt=0.020 s`、
+`non_terminal_tool_pose_weight_factor=0.3`，凍結為
+`NO_ROD_SELECTED_MPC`。加速度平滑成本仍為 10000，沒有改 library 或舊原型。
+
+新設定在無桿時 1.125 秒到達，最大關節速度 0.617 rad/s，沒有裁切；
+最大離散加速度約 3.60 rad/s²。加速度是每次命令更新的 Δv/Δt；
+理想速度積分器的瞬間切換沒有有限連續加速度峰值，不能當硬體驗收。
+單降加速度成本、單改目標權重或時間尺度都未達標；
+證據支持時間尺度與短期目標成本的交互影響，不是 GPU 或速度上限造成緩慢。
+所有調參只看無桿結果，桿件測試後沒有再調整。
+
+有桿結果：0.05 m/s 有／無預測都達到 7 次且零碰撞；
+0.10 m/s 兩者仍碰撞；0.20 m/s 預測組達到 6 次且零碰撞。
+這不代表較低速度都安全，結果有時序相位與非線性效應。
+因 B 沒通過 0.10 m/s 的明確門檻，依規則沒有跑任何 E，
+也沒有可報告的實測最差相機影格。每影格盒子缺高、缺寬與偏移的記錄已實作並經 CPU 案例檢查。
+
+應看到：
+
+- 可選的 Tuned B 三種速度與兩種預測設定。
+- 手臂到達並往返、控制器名稱、實測更新率與共同模擬時間。
+- 紅桿、洋紅點雲、橘色觀測盒、藍色預測盒與深度圖。
+- 0.10 m/s 的碰撞案例，以及正常播放時 `Playback error: none`。
+
+一行唯讀觀看指令（wrapper 自動載入個人 port 設定，本次使用 30000）：
+
+```bash
+cd ~/ur5_ws/src/ur5_moveit_demo && scripts/run_sim_camera_moving_rod_mpc_tuned.sh --replay
+```
+
+下一步是檢查高速時 infeasible（不可行）命令與碰撞的關係，再決定新的控制實驗；
+這次不更動已凍結設定。詳細候選失敗、比較表與每關節數據都保留在英文紀錄及 JSON。
+離開 Codex 後執行 `codex logout`、`codex login status`，確認未登入。

@@ -390,3 +390,218 @@ cover old-command integration, continuity, joint bounds, zero-duration steps,
 MPC boundary indexing, and replay write protection. All project CI checks pass.
 The prototype remains a kinematic experiment, with no physical-contact or
 hardware-safety acceptance.
+
+
+## MPC tuned
+
+Check date: 2026-11-12 (Asia/Taipei). Source parent:
+`ad2bf29` (full parent hash is recorded in the session handoff).
+This is a new configuration and script beside the accepted v2 and original MPC
+prototype. Those scripts, their worker, old evidence, library code, shared
+configs and the FEM grasp path are unchanged. The same CUDA environment and
+ideal continuous velocity plant are used; no installation, ROS, Newton physics,
+real robot, nvblox, cuMotion or media artifacts are involved.
+
+### No-rod reference before tuning
+
+All obstacles are disabled, with the identical raised start, Cartesian goal,
+and 6 mm positional acceptance. MotionPlanner executes its returned path at
+its own 25 ms interpolation timing. Planning/setup is reported separately and
+excluded from path time. MPC includes the same measured-compute/shared-clock
+execution as the original prototype and stops at its first measured reach.
+
+| No-rod controller | Time to enter 6 mm | Final sampled error | Max commanded joint speed | Max update-sampled acceleration |
+| --- | ---: | ---: | ---: | ---: |
+| v2 MotionPlanner path | 0.875 s | 4.743 mm at first reach | 0.724449 rad/s | 3.347397 rad/s² |
+| Original MPC | 11.800 s | 5.819 mm | 0.051068 rad/s | 0.030044 rad/s² |
+| Frozen tuned MPC | 1.125 s | 3.728 mm | 0.616654 rad/s | 3.596537 rad/s² |
+
+The deadline is twice MotionPlanner's reach time: `1.750 s`. Tuned MPC passed in `1.125 s`, with no joint-position or velocity clipping and zero infeasible steps in this no-rod run. All six joint speed bounds remain +/-3.141593 rad/s. MotionPlanner planning time, excluded from the reference path clock, was `0.060790 s`.
+
+The acceleration values are explicitly `abs(v_new-v_old) / control-period`
+maxima, recorded per joint. The plant has instantaneous velocity switches and
+no acceleration limiter: its ideal continuous-time acceleration at a switch
+has no finite peak. These discrete numbers are diagnostics, not hardware
+acceleration or jerk guarantees.
+
+Tool distance to the original goal over time is stored at every step. The
+following table interpolates within the saved samples and shows `ended` after
+a reference run finishes (it does not invent a held-goal continuation).
+
+| Sim time s | MotionPlanner distance mm | Original MPC distance mm | Tuned MPC distance mm |
+| ---: | ---: | ---: | ---: |
+| 0.000 | 378.260 | 378.261 | 378.261 |
+| 0.250 | 337.380 | 377.547 | 328.926 |
+| 0.500 | 194.562 | 375.390 | 229.463 |
+| 0.750 | 45.289 | 371.909 | 112.649 |
+| 0.875 | 4.743 | 369.709 | 65.877 |
+| 1.000 | 0.000 | 367.231 | 30.583 |
+| 1.125 | ended | 364.479 | 3.728 |
+| 1.750 | ended | 347.154 | ended |
+| 2.000 | ended | 338.814 | ended |
+| 5.000 | ended | 209.733 | ended |
+| 10.000 | ended | 36.114 | ended |
+| 11.800 | ended | 5.819 | ended |
+
+### Loaded settings, cause and no-rod selection evidence
+
+The actual loaded config is captured for every candidate. The local cuRobo
+checkout is unchanged (`78fd485fa82d9b9a063fb4985e371814587e666a`).
+`ModelPredictiveControlCfg.create` loads `mpc/lbfgs_mpc.yml` and
+`mpc/transition_bspline_mpc.yml`. `solver_mpc_cfg.py` overrides knot timing and
+`solver_mpc.py:enable_tool_pose_tracking` applies the non-terminal factor.
+
+| Setting | Original | Frozen | Interpretation |
+| --- | ---: | ---: | --- |
+| Optimization knot interval | 0.100 s | 0.020 s | Changes forecast time scale and differentiation/retimed costs |
+| Non-terminal tool pose factor | 0.001 | 0.3 | Gives the near-term goal substantially more cost |
+| Interpolation steps | 4 | 4 | MPC sample interval changes from 0.025 to 0.005 s |
+| Executor period | 0.025 s | 0.025 s | Same shared clock and previous-command execution |
+| B-spline control points / state horizon | 16 / 81 | 16 / 81 | Same shape, shorter nominal time span |
+| Velocity scale | 1.0 | 1.0 | No artificial slow-speed multiplier |
+| Tool pose weights | [5000, 200] | unchanged | Loaded optimizer pose costs |
+| Velocity / acceleration / jerk regularization | [0.01, 10000, 10] | unchanged | Acceleration smoothing is retained |
+| Retime regularization weights | true | true | Knot-time changes also rescale derivative costs |
+| Terminal pose cost tolerance | [0, 0] | unchanged | No terminal deadband at 6 mm |
+| Solver position metric / task reach | 5 mm / 6 mm | unchanged | Tolerance was not loosened |
+| Warm / cold LBFGS iterations | 200 / 300 | unchanged | GPU solve work is comparable |
+
+This rules out a binding joint-speed cap or GPU delay as the source of the
+original slow approach: the no-rod original commands were far below limits.
+The tested cause is the **cost/time configuration**: a long knot interval plus
+weak near-term tracking allows a slow receding-horizon approach. Changing only
+acceleration regularization did not fix it. Shortening the knot interval alone
+improved progress but did not meet the 6 mm/deadline requirement; changing only
+the pose factor also failed, and large factors could become infeasible.
+The two-setting combination passes. This is causal ablation evidence for that
+combination, not proof that one scalar is the unique cause. Knot timing also
+changes retimed derivative costs, so its effect cannot be attributed solely
+to horizon duration.
+
+All candidate tests were **no-rod only**. Candidate outcomes are non-monotonic,
+so failure and infeasibility records are preserved rather than inferred from
+weight magnitude. Failed candidates were censored at deadline + 25 ms; `none`
+below means no reach within that interval, not never reaching eventually.
+
+| Acceleration reg. | Non-terminal factor | Knot dt s | Time to reach s | Last error mm | Passed |
+| ---: | ---: | ---: | ---: | ---: | --- |
+| 1000 | 0.001 | 0.100 | none | 346.366 | False |
+| 100 | 0.001 | 0.100 | none | 347.445 | False |
+| 10 | 0.001 | 0.100 | none | 351.168 | False |
+| 1 | 0.001 | 0.100 | none | 350.020 | False |
+| 10000 | 0.01 | 0.100 | none | 345.886 | False |
+| 10000 | 0.1 | 0.100 | none | 296.966 | False |
+| 10000 | 1 | 0.100 | none | 120.694 | False |
+| 10000 | 10 | 0.100 | none | 529.479 | False |
+| 10000 | 2 | 0.100 | none | 88.177 | False |
+| 10000 | 3 | 0.100 | none | 830.792 | False |
+| 10000 | 5 | 0.100 | none | 709.526 | False |
+| 10000 | 0.001 | 0.030 | none | 140.537 | False |
+| 10000 | 0.001 | 0.020 | none | 26.979 | False |
+| 10000 | 0.001 | 0.050 | none | 239.009 | False |
+| 10000 | 0.001 | 0.040 | none | 207.149 | False |
+| 10000 | 0.001 | 0.010 | none | 146.295 | False |
+| 10000 | 0.1 | 0.020 | none | 155.147 | False |
+| 10000 | 0.01 | 0.020 | none | 45.371 | False |
+| 10000 | 0.3 | 0.020 | 1.125 | 3.728 | True |
+
+The result is frozen in the single `NO_ROD_SELECTED_MPC` block named
+`mpc_no_rod_dt_0.02_nonterminal_0.3` in the new script. The rod runner refuses
+settings that differ from the no-rod selection and embeds the reference file's
+SHA-256. That file was finalized before any tuned rod test; no settings were
+changed based on rod outcomes. The adapter derives command indexing from the
+configured MPC interpolation interval and retains the accepted boundary-skip
+rule, previous-command execution and 25 ms executor period.
+
+### Frozen rod results compared with v2 B
+
+All cases last 20 simulated seconds on the accepted fair scene. Collision
+columns are episodes classified by onset phase, not colliding sample counts.
+Timings are full control periods (compute plus executed remainder); solver and
+compute timings are also retained separately. The v2 rows use their saved
+whole-cycle timings.
+
+| Controller | Rod m/s | Reaches | Collisions moving / holding | Min clearance mm | Period median / p95 ms | Rate Hz |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| v2 B prediction + escape | 0.05 | 3 | 0 / 0 | 10.905 | 312.601 / 399.853 | 3.35 |
+| Tuned B current box | 0.05 | 7 | 0 / 0 | 16.173 | 25.000 / 25.000 | 40.00 |
+| Tuned B prediction | 0.05 | 7 | 0 / 0 | 15.271 | 25.000 / 25.000 | 40.00 |
+| v2 B prediction + escape | 0.10 | 3 | 0 / 1 | -33.951 | 284.221 / 377.383 | 3.40 |
+| Tuned B current box | 0.10 | 3 | 2 / 0 | -65.425 | 25.000 / 25.000 | 40.00 |
+| Tuned B prediction | 0.10 | 3 | 1 / 0 | -80.846 | 25.000 / 25.000 | 40.00 |
+| v2 B prediction + escape | 0.20 | 2 | 0 / 4 | -20.676 | 281.466 / 359.611 | 3.50 |
+| Tuned B current box | 0.20 | 3 | 3 / 0 | -31.444 | 25.000 / 25.000 | 40.00 |
+| Tuned B prediction | 0.20 | 6 | 0 / 0 | 1.657 | 25.000 / 25.000 | 40.00 |
+
+The tuned controller now reaches targets. Both variants pass 0.05 m/s;
+current-box B fails 0.10 and 0.20, while prediction B fails 0.10 but passes
+0.20 in this single measured-timing run. Thus the fastest *tested* surviving
+speed is 0.20 m/s with prediction; this is **not** a monotonic safe-speed bound
+or a guarantee of passing every lower speed. Rod/robot phase and the nonlinear
+controller matter. The frozen configuration was not retuned after these runs.
+
+Neither B variant passed 0.10 m/s, so the explicit 0.10 gate for camera E
+failed: **no E speed was run**, including 0.05 and 0.20. There are no measured
+worst camera frames to report. The E path is implemented to log, per capture,
+missing box, missing vertical/XY coverage, missing top, and XYZ/norm center
+offset against the true rod box; this scoring occurs after command selection
+and is never E planner input. It scores the actual fitted box including point
+memory, before prediction. Worst-height, worst-width and worst-offset frames
+and missing-box counts are retained when E is authorized by the gate. CPU
+fixtures verify partial/shifted and missing boxes; no camera experiment is
+claimed from those fixtures.
+
+| Tuned case | Max joint speed rad/s | Max update-sampled acceleration rad/s² | Near-rod away / toward / stationary samples |
+| --- | ---: | ---: | ---: |
+| Tuned B current box 0.05 m/s | 0.705627 | 6.207813 | 124 / 97 / 0 |
+| Tuned B prediction 0.05 m/s | 0.834949 | 5.418647 | 58 / 61 / 0 |
+| Tuned B current box 0.10 m/s | 3.007632 | 21.103233 | 369 / 144 / 4 |
+| Tuned B prediction 0.10 m/s | 1.598878 | 6.854234 | 495 / 78 / 1 |
+| Tuned B current box 0.20 m/s | 2.745994 | 16.209421 | 285 / 63 / 0 |
+| Tuned B prediction 0.20 m/s | 0.951364 | 6.264689 | 89 / 96 / 0 |
+
+All commanded speeds stayed within the existing joint bounds without velocity
+clipping, and no position clamps occurred. Acceleration is still unbounded in
+the ideal plant between sampled commands. Near-rod direction uses the original
+prototype's robot-only change in signed clearance with the rod fixed, while
+full relative rates also include rod motion. Near-rod starts when clearance is
+within 50 mm. Infeasible finite MPC commands are executed as in the accepted
+prototype; collisions at higher speeds show that continuous motion alone is
+not a safety solution.
+
+### Viewer: what you should see
+
+- Selectable **Tuned B** cases for current box/prediction and all three speeds.
+- Controller name, measured step rate, shared simulated time and truth clearance.
+- Arm motion that reaches and shuttles, unlike the original zero-reach prototype.
+- Red rod, magenta points, orange observed box and blue prediction box.
+- Camera frustum and offline depth replay; images do not affect god-view control.
+- Collision examples at 0.10 m/s; the viewer is evidence, not a safety claim.
+- `Playback error: none` after both 0.10 m/s callback checks.
+
+Exact one-line viewer command (read-only saved replay, using the per-user port):
+
+```bash
+cd ~/ur5_ws/src/ur5_moveit_demo && scripts/run_sim_camera_moving_rod_mpc_tuned.sh --replay
+```
+
+The wrapper sources `lab_session_env.sh`; port 30000 was checked free and used.
+The existing 30001 listener (PID 1248594) was left untouched. Replay cannot be
+combined with save or reference flags. Hashes of all old/new evidence files
+are checked around replay; the proof is in `moving_rod_mpc_tuned.viewer.log`.
+
+Exact no-rod regeneration, then frozen rod-evidence regeneration:
+
+```bash
+cd ~/ur5_ws/src/ur5_moveit_demo && scripts/run_sim_camera_moving_rod_mpc_tuned.sh --reference --save-results
+cd ~/ur5_ws/src/ur5_moveit_demo && scripts/run_sim_camera_moving_rod_mpc_tuned.sh --headless --save-results
+```
+
+The named block must match the no-rod selection before the second command runs.
+Evidence is `moving_rod_mpc_tuned.reference.json`, `moving_rod_mpc_tuned.json`
+and `.log`. Four CPU tests cover the no-rod qualification gate, partial/offset
+box coverage, missing/worst frames and replay write protection. Project CI,
+all six GPU B cases, old-command integration audit and viewer callbacks pass
+execution checks. Those checks do not convert colliding cases into acceptance.
+The remaining boundary is collision avoidance at normal task speed, then E's
+conditional perception test; no contact-physics or hardware claim is made.

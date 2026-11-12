@@ -258,3 +258,61 @@ cd ~/ur5_ws/src/ur5_moveit_demo && NEWTON_VIEWER_PORT=30001 scripts/run_sim_came
 ```
 
 Exit Codex, run `codex logout` and `codex login status`, and confirm logged out.
+
+
+## 2026-11-12 MPC tuned configuration
+
+Source parent: `ad2bf29bd4afba1e6b26c3b3e6c237b318966806`, branch `experiment/newton-link-depth-camera`.
+Same school Ubuntu 24.04.4 / Jazzy installation, user aisc216 and RTX 3080;
+this task started no ROS or Newton physics. Local cuRobo is unchanged.
+Resolve the implementation commit with
+`git log -1 --format=%H -- scripts/curobo_moving_rod_mpc_tuned.py` after syncing.
+
+No-rod reference: v2 MotionPlanner enters 6 mm in 0.875 s at its own trajectory
+timing (planning excluded), original MPC in 11.8 s. The new single named block
+`NO_ROD_SELECTED_MPC` changes optimization_dt from 0.100 to 0.020 s and the
+non-terminal pose factor from 0.001 to 0.3, keeping acceleration regularization
+10000 and all limits unchanged. It reaches in 1.125 s, below the 1.75 s gate,
+with peak commanded speed 0.616654 rad/s and peak update-sampled acceleration
+3.596537 rad/s², no velocity clips or position clamps. The ideal velocity plant
+still has instantaneous switching and no finite continuous acceleration peak.
+
+All tuning was no-rod only; failed single-parameter candidates, including
+infeasible high pose factors, are retained. The successful two-setting
+interaction supports a cost/time-scale diagnosis rather than a GPU or speed-cap
+explanation; it does not identify a unique causal scalar. Reference SHA-256 is
+embedded in the rod result and must match the frozen source block before runs.
+
+Frozen rod results: current box/prediction at 0.05 each reach 7 with no collisions.
+At 0.10 they reach 3 with 2/1 collisions. At 0.20 they reach 3/6 with 3/0
+collisions. Prediction's fastest tested survivor is 0.20, but it failed 0.10:
+never claim a monotonic safe-speed interval. Since the explicit B-at-0.10 gate
+failed, no E cases ran. E per-frame height/width undercoverage and center-offset
+logging is implemented and CPU-tested; no measured worst frames exist yet.
+
+Added new tuned script, isolated-port wrapper, four CPU tests, reference and
+rod evidence plus viewer hash proof; appended English and Chinese records.
+Accepted v2/original MPC scripts, workers, evidence, library code, shared configs
+and FEM grasp path are unchanged. Existing dirty result files, deleted wall
+image and untracked cuRobo checkout remain preserved and excluded from commit.
+
+Tests: four CPU contracts, project CI, six 20 s GPU B cases, old-command
+integration audit, frozen reference-hash check and two 0.10 m/s viewer callbacks.
+Read-only replay preserved old/new evidence hashes. Port 30000 was free and
+used; the existing 30001 listener PID 1248594 was left untouched. Its renderer
+child PID 1248601 (PPID 1248594, started 18:18:34 before this task) was also
+preserved. All reference, rod, renderer and viewer processes started by this
+task are stopped at completion.
+
+Next single diagnostic: inspect infeasible-command execution and true collision
+on the frozen 0.10 m/s traces before proposing a new controller change.
+The remaining boundary is robust avoidance at normal task speed; camera E is
+conditional and unmeasured. Do not alter the frozen block using rod outcomes.
+
+Read-only resume:
+
+```bash
+cd ~/ur5_ws/src/ur5_moveit_demo && scripts/run_sim_camera_moving_rod_mpc_tuned.sh --replay
+```
+
+Exit Codex, run `codex logout` and `codex login status`, confirm logged out.
