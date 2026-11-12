@@ -15,31 +15,27 @@ No pending task
 Leave the deleted 05_c2_tall_wall_refused.png and the untracked curobo/ untouched. Stage files by
 explicit path only. No git clean/reset/restore/stash/add -A.
 
-## Task: make the moving-rod scene fair, then add prediction and escape (branch `experiment/newton-link-depth-camera`, time box 90 min)
+## Task: does cuRobo MPC dodge the rod better? (branch `experiment/newton-link-depth-camera`, time box 90 min)
 
-Review of 81505e3. Housekeeping, depth panel, no-write viewer and the shared clock are accepted. The results do not test the camera yet: B (god view)
-also collides at 0.05 m/s. Claude's reading of moving_rod.json, three design faults in Claude's spec:
-- The goal state is inside the rod's sweep: target-to-box clearance reaches -0.025 m in B. Some collisions cannot be avoided while the task requires
-  parking at the goal.
-- No escape: once the rod is close, the current state is inside the box, TRAJOPT_FAILED, and the arm holds still while the rod drives through it
-  (B 0.05 m/s: 33 held cycles, -42.6 mm while holding).
-- No prediction: the planner sees where the rod is, not where it will be after compute plus execution.
+Review of 2f7fcda: the fair scene, prediction, escape and viewer are accepted. The failure is the controller. In B and E the predicted box covers the current
+arm state, every plan is refused (start in collision, TRAJOPT_FAILED), the arm freezes and the rod drives through it (B 0.10 cycles 41-45, E 0.10 cycles
+25-29). Stop-and-go plus whole-path replanning cannot push away continuously. Same rules as before: no install, no sudo, no real robot, no Newton physics,
+no ROS, no nvblox, no cuMotion, no media. Do not change the accepted moving-rod v2 script behaviour, the FEM grasp path or shared configs. Use
+scripts/lab_session_env.sh and its per-user port; do not stop processes you did not start.
 
-Same rules as the last task. Edit scripts/curobo_camera_moving_rod.py and keep everything accepted above.
+1. Survey, read only: in the project's cuRobo 0.8 checkout (`curobo/`), find the MPC (model predictive control) API. Report the class and file, how it gets a
+   goal, how obstacles are updated each step, its step rate on this GPU, and whether it can start from a state that is already in collision. If there is no
+   usable MPC, say so, and do step 3 instead of step 2.
+2. MPC prototype, new script scripts/curobo_moving_rod_mpc.py, on the v2 fair scene and the same shared clock. Use god view only: B's true rod box,
+   with and without the v2 prediction stretch. Continuous control: the arm keeps executing the previous command while the next step is computed; count
+   that compute time on the clock. Same shuttle task, speeds 0.05, 0.10, 0.20 m/s. Report reaches, collision episodes split into moving and holding, min true
+   clearance, step time median and p95, and direction of motion relative to the rod when it is within 50 mm.
+3. Only if there is no MPC: the patch. When the current state is inside the box, plan against the current box without prediction, and choose the retreat that
+   increases distance from the rod. Same report.
+4. Compare directly with v2 B in one table. Only if MPC B survives 0.10 m/s: run camera E once at 0.10 m/s with the same controller and add it to the table.
+5. Viewer through the per-user port: same view as v2, plus the controller name and step rate, and selectable cases. Must not rewrite tracked files.
 
-1. Fair scene: before running, sweep the rod over its whole X range and require at least 25 mm true clearance to the start and goal states at every rod
-   position, and that A still collides. If the current lane fails, search lane Y, X range and top height (keep radius 0.025 m, top below the start camera) and
-   state the chosen one. Report any lane that fails as INVALID_SCENE.
-2. Prediction, same rule for B and E: estimate rod velocity (B from truth, E only from the box centres of recent frames), and stretch the box along that
-   velocity by speed x (expected compute + one executed segment) x 2. State the numbers.
-3. Escape: if the plan to the current target fails, or the current state is within 30 mm of the box, plan to a retreat pose instead: the raised start, or
-   if that also fails, 0.10 m straight up from the current tool. Hold still only if all fail. Count each escape and say which it used.
-4. Rerun A, B, E at 0.05, 0.10, 0.20 m/s, the zero-latency control at 0.10, and the blind entry at 0.10, on the fair scene. Split collisions into "while
-   moving" and "while holding". Report the fastest speed B survives and the fastest speed E survives.
-5. Viewer: same as now, plus the predicted box in a separate colour and an ESCAPE label when it is active. The user cannot tell the camera points
-   from the white background: draw the camera points in a strong colour (for example magenta) and slightly larger, and keep each box colour different from
-   the points. Do not rewrite tracked files.
-
-If a step blocks you for over 20 minutes, stop, report the exact error and your read of it, and commit what works. Keep moving_rod.* as history and save to
-moving_rod_v2.*. Append a "Second run" section to docs/SIM_CAMERA_MOVING_ROD.md with a plain "what you should see" list and the exact one-line run command.
-Stop every process you started. Commit by path, push, reply in 5 lines with the hash and the run command.
+If a step blocks you for over 20 minutes, stop, report the exact error and your read of it, and commit what works. Save to
+docs/experiments/sim-camera-curobo/results/moving_rod_mpc.*. Append an "MPC prototype" section to docs/SIM_CAMERA_MOVING_ROD.md and a short note in
+docs/SIM_CAMERA_MOVING_ROD.zh-TW.md, each with a plain "what you should see" list and the exact one-line run command. Stop every process you started. Commit
+by path, push, reply in 5 lines with the hash and the run command.
