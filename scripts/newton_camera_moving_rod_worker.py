@@ -107,7 +107,7 @@ class MovingRodCamera:
         )
         self.capture_count = 0
 
-    def _assign_pose(self, arm: np.ndarray, rod_x_m: float) -> None:
+    def _assign_pose(self, arm: np.ndarray, rod_x_m: float, rod_y_m: float | None = None) -> None:
         # Preserve every non-arm joint from the imported model. In particular,
         # do not use the old q[6:] = 0.0 shortcut: the rod pose is independent.
         q = self.q_template.copy()
@@ -118,14 +118,14 @@ class MovingRodCamera:
         )
         body_q = self.state.body_q.numpy()
         body_q[self.rod_body] = np.array(
-            (rod_x_m, ROD_Y_M, ROD_CENTER_Z_M, 0.0, 0.0, 0.0, 1.0),
+            (rod_x_m, ROD_Y_M if rod_y_m is None else rod_y_m, ROD_CENTER_Z_M, 0.0, 0.0, 0.0, 1.0),
             dtype=np.float32,
         )
         self.state.body_q.assign(body_q)
         self.model.bvh_refit_shapes(self.state)
 
-    def capture(self, arm: np.ndarray, rod_x_m: float) -> dict[str, object]:
-        self._assign_pose(arm, rod_x_m)
+    def capture(self, arm: np.ndarray, rod_x_m: float, rod_y_m: float | None = None) -> dict[str, object]:
+        self._assign_pose(arm, rod_x_m, rod_y_m)
         wp.launch(
             compose_camera,
             dim=1,
@@ -235,7 +235,7 @@ def main() -> None:
         arm = np.asarray(request["arm_q"], dtype=np.float32)
         rod_x_m = float(request["rod_x_m"])
         started = time.perf_counter()
-        capture = scene.capture(arm, rod_x_m)
+        capture = scene.capture(arm, rod_x_m, request.get("rod_y_m"))
         capture_ms = (time.perf_counter() - started) * 1000.0
         output = Path(request["output"])
         np.savez_compressed(

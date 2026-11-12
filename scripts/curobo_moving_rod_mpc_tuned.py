@@ -433,6 +433,8 @@ def save_json(path: Path, results: dict[str, Any]) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
+    parser.add_argument("--interactive", action="store_true", help="live drag-and-switch demo; never writes results")
+    parser.add_argument("--interactive-smoke", action="store_true", help="test live group lifecycle within 30 seconds")
     parser.add_argument("--reference", action="store_true")
     parser.add_argument("--headless", action="store_true")
     parser.add_argument("--replay", action="store_true")
@@ -444,6 +446,13 @@ def main() -> int:
     args = parser.parse_args()
     if args.replay and (args.save_results or args.reference):
         parser.error("--replay is read-only and cannot be combined with --save-results or --reference")
+    if args.interactive_smoke and not args.interactive:
+        parser.error("--interactive-smoke requires --interactive")
+    if args.interactive:
+        if args.replay or args.reference or args.headless or args.save_results:
+            parser.error("--interactive is live and cannot replay, regenerate references, or save results")
+        from curobo_moving_rod_live import live_main
+        return live_main(args)
     baseline = json.loads(original.BASELINE_FILE.read_text())
     original.configure_scene(baseline)
     if args.reference:

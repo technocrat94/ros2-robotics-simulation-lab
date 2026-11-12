@@ -1,0 +1,3795 @@
+{
+  "frozen_config": {
+    "name": "mpc_no_rod_dt_0.02_nonterminal_0.3",
+    "acceleration_regularization": 10000.0,
+    "non_terminal_tool_pose_weight_factor": 0.3,
+    "optimization_dt": 0.02
+  },
+  "E_gate": "old B-at-0.10 gate explicitly lifted for this report; E at both speeds and all phases",
+  "rates": [
+    {
+      "mode": "A",
+      "speed_mps": 0.05,
+      "valid_phases": 5,
+      "invalid_phases": 0,
+      "successes": 0,
+      "success_rate": 0.0,
+      "mean_reaches": 8.2,
+      "collision_episodes": 10,
+      "worst_clearance_m": -0.028114114489134402,
+      "max_joint_speed_radps": 0.7581173181533813,
+      "max_sampled_acceleration_radps2": 6.547119617462158
+    },
+    {
+      "mode": "B",
+      "speed_mps": 0.05,
+      "valid_phases": 5,
+      "invalid_phases": 0,
+      "successes": 5,
+      "success_rate": 1.0,
+      "mean_reaches": 7.2,
+      "collision_episodes": 0,
+      "worst_clearance_m": 0.01461236203041865,
+      "max_joint_speed_radps": 0.8557485342025757,
+      "max_sampled_acceleration_radps2": 5.962374210357666
+    },
+    {
+      "mode": "E",
+      "speed_mps": 0.05,
+      "valid_phases": 5,
+      "invalid_phases": 0,
+      "successes": 3,
+      "success_rate": 0.6,
+      "mean_reaches": 4.0,
+      "collision_episodes": 4,
+      "worst_clearance_m": -0.07692379603823367,
+      "max_joint_speed_radps": 2.8549160957336426,
+      "max_sampled_acceleration_radps2": 12.070870399475098
+    },
+    {
+      "mode": "A",
+      "speed_mps": 0.1,
+      "valid_phases": 4,
+      "invalid_phases": 1,
+      "successes": 0,
+      "success_rate": 0.0,
+      "mean_reaches": 8.75,
+      "collision_episodes": 9,
+      "worst_clearance_m": -0.0277635553254188,
+      "max_joint_speed_radps": 0.8084995746612549,
+      "max_sampled_acceleration_radps2": 6.953072547912598
+    },
+    {
+      "mode": "B",
+      "speed_mps": 0.1,
+      "valid_phases": 4,
+      "invalid_phases": 1,
+      "successes": 4,
+      "success_rate": 1.0,
+      "mean_reaches": 6.5,
+      "collision_episodes": 0,
+      "worst_clearance_m": 0.014396589223980641,
+      "max_joint_speed_radps": 1.6544815301895142,
+      "max_sampled_acceleration_radps2": 11.9224214553833
+    },
+    {
+      "mode": "E",
+      "speed_mps": 0.1,
+      "valid_phases": 4,
+      "invalid_phases": 1,
+      "successes": 1,
+      "success_rate": 0.25,
+      "mean_reaches": 3.75,
+      "collision_episodes": 3,
+      "worst_clearance_m": -0.04535296559202304,
+      "max_joint_speed_radps": 0.7442477345466614,
+      "max_sampled_acceleration_radps2": 3.2874417304992676
+    }
+  ],
+  "per_phase": [
+    {
+      "speed_mps": 0.05,
+      "initial_x_m": 0.36,
+      "status": "VALID_SCENE",
+      "cases": {
+        "A": {
+          "mode": "A",
+          "prediction": false,
+          "rod_speed_mps": 0.05,
+          "controller": "cuRobo MPC tuned, held joint velocity during computation",
+          "reaches": 7,
+          "true_collisions": 1,
+          "collision_episodes_by_onset_phase": {
+            "moving": 1,
+            "holding": 0
+          },
+          "collision_samples_by_phase": {
+            "moving": 10,
+            "holding": 0
+          },
+          "minimum_true_clearance_m": -0.012599610074411724,
+          "steps": 800,
+          "simulated_duration_s": 19.999999999999932,
+          "compute_median_ms": 18.11430579982698,
+          "compute_p95_ms": 18.829663703218102,
+          "solver_median_ms": 17.843091394752264,
+          "solver_p95_ms": 18.522940343245864,
+          "step_period_median_ms": 25.000000000000355,
+          "step_period_p95_ms": 25.000000000000355,
+          "achieved_step_rate_hz": 40.000000000000135,
+          "within_50mm_robot_direction_samples": {
+            "away": 146,
+            "toward": 107,
+            "stationary": 0
+          },
+          "within_50mm_mean_robot_clearance_rate_mps": 0.0032616054649632895,
+          "within_50mm_mean_relative_clearance_rate_mps": 0.0012875345123199804,
+          "infeasible_steps": 0,
+          "joint_position_clamped_intervals": 0,
+          "survives": false,
+          "time_to_first_goal_s": 3.5749999999999917,
+          "max_joint_velocity_radps": [
+            0.7581173181533813,
+            0.7277718782424927,
+            0.22839899361133575,
+            0.5542949438095093,
+            0.087708979845047,
+            0.7241873741149902
+          ],
+          "max_sampled_joint_acceleration_radps2": [
+            4.840993881225586,
+            4.642176628112793,
+            2.511775255203247,
+            3.6116182804107666,
+            1.7211884260177612,
+            4.376777172088623
+          ],
+          "max_proposed_joint_velocity_radps": [
+            0.7581173181533813,
+            0.7277718782424927,
+            0.22839899361133575,
+            0.5542949438095093,
+            0.087708979845047,
+            0.7241873741149902
+          ],
+          "velocity_limits_radps": [
+            [
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732
+            ],
+            [
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732
+            ]
+          ],
+          "within_joint_velocity_limits": true,
+          "velocity_clipped_steps": 0,
+          "worst_camera_frames": {},
+          "initial_x_m": 0.36,
+          "scene_status": "VALID_SCENE"
+        },
+        "B": {
+          "mode": "B",
+          "prediction": true,
+          "rod_speed_mps": 0.05,
+          "controller": "cuRobo MPC tuned, held joint velocity during computation",
+          "reaches": 8,
+          "true_collisions": 0,
+          "collision_episodes_by_onset_phase": {
+            "moving": 0,
+            "holding": 0
+          },
+          "collision_samples_by_phase": {
+            "moving": 0,
+            "holding": 0
+          },
+          "minimum_true_clearance_m": 0.020244271347649438,
+          "steps": 800,
+          "simulated_duration_s": 19.999999999999932,
+          "compute_median_ms": 19.46359477005899,
+          "compute_p95_ms": 20.31890405341983,
+          "solver_median_ms": 18.726913258433342,
+          "solver_p95_ms": 19.49720166157931,
+          "step_period_median_ms": 25.000000000000355,
+          "step_period_p95_ms": 25.000000000000355,
+          "achieved_step_rate_hz": 40.000000000000135,
+          "within_50mm_robot_direction_samples": {
+            "away": 34,
+            "toward": 32,
+            "stationary": 0
+          },
+          "within_50mm_mean_robot_clearance_rate_mps": 0.008982526613442392,
+          "within_50mm_mean_relative_clearance_rate_mps": 0.003984753008991635,
+          "infeasible_steps": 0,
+          "joint_position_clamped_intervals": 0,
+          "survives": true,
+          "time_to_first_goal_s": 1.0500000000000005,
+          "max_joint_velocity_radps": [
+            0.7220180034637451,
+            0.6733657717704773,
+            0.20456703007221222,
+            0.5855786204338074,
+            0.1777593046426773,
+            0.752719521522522
+          ],
+          "max_sampled_joint_acceleration_radps2": [
+            5.2557549476623535,
+            5.026880264282227,
+            1.4291601181030273,
+            4.083373069763184,
+            1.4019906520843506,
+            4.329156875610352
+          ],
+          "max_proposed_joint_velocity_radps": [
+            0.7220180034637451,
+            0.6733657717704773,
+            0.20456703007221222,
+            0.5855786204338074,
+            0.1777593046426773,
+            0.752719521522522
+          ],
+          "velocity_limits_radps": [
+            [
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732
+            ],
+            [
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732
+            ]
+          ],
+          "within_joint_velocity_limits": true,
+          "velocity_clipped_steps": 0,
+          "worst_camera_frames": {},
+          "initial_x_m": 0.36,
+          "scene_status": "VALID_SCENE"
+        },
+        "E": {
+          "mode": "E",
+          "prediction": true,
+          "rod_speed_mps": 0.05,
+          "controller": "cuRobo MPC tuned, held joint velocity during computation",
+          "reaches": 5,
+          "true_collisions": 0,
+          "collision_episodes_by_onset_phase": {
+            "moving": 0,
+            "holding": 0
+          },
+          "collision_samples_by_phase": {
+            "moving": 0,
+            "holding": 0
+          },
+          "minimum_true_clearance_m": 0.01470244897035937,
+          "steps": 377,
+          "simulated_duration_s": 20.0,
+          "compute_median_ms": 50.17203977331519,
+          "compute_p95_ms": 68.57687951996921,
+          "solver_median_ms": 20.75760578736663,
+          "solver_p95_ms": 22.0091650262475,
+          "step_period_median_ms": 50.06179679185152,
+          "step_period_p95_ms": 68.57687951996921,
+          "achieved_step_rate_hz": 18.85,
+          "within_50mm_robot_direction_samples": {
+            "away": 72,
+            "toward": 53,
+            "stationary": 0
+          },
+          "within_50mm_mean_robot_clearance_rate_mps": 0.020094833781423967,
+          "within_50mm_mean_relative_clearance_rate_mps": 0.001571469735668741,
+          "infeasible_steps": 5,
+          "joint_position_clamped_intervals": 0,
+          "survives": true,
+          "time_to_first_goal_s": 3.4924204633571208,
+          "max_joint_velocity_radps": [
+            0.44424283504486084,
+            0.4712224006652832,
+            0.10766948014497757,
+            0.316643625497818,
+            0.15229247510433197,
+            0.36519402265548706
+          ],
+          "max_sampled_joint_acceleration_radps2": [
+            2.043203115463257,
+            1.8757225275039673,
+            1.6339762210845947,
+            2.1123578548431396,
+            0.4604555070400238,
+            1.1730400323867798
+          ],
+          "max_proposed_joint_velocity_radps": [
+            0.44424283504486084,
+            0.4712224006652832,
+            0.10766948014497757,
+            0.316643625497818,
+            0.15229247510433197,
+            0.36519402265548706
+          ],
+          "velocity_limits_radps": [
+            [
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732
+            ],
+            [
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732
+            ]
+          ],
+          "within_joint_velocity_limits": true,
+          "velocity_clipped_steps": 0,
+          "worst_camera_frames": {
+            "missing_box_frames": 111,
+            "height": {
+              "step": 26,
+              "time_s": 1.2516219136305153,
+              "missing_box": true,
+              "missing_height_m": 0.25,
+              "missing_width_xy_m": [
+                0.05,
+                0.05
+              ],
+              "center_offset_xyz_m": null,
+              "center_offset_norm_m": null,
+              "missing_top_m": 0.25,
+              "true_center_m": [
+                0.30258109568152575,
+                0.24499999999999997,
+                0.125
+              ],
+              "true_dims_m": [
+                0.05,
+                0.05,
+                0.25
+              ]
+            },
+            "width": {
+              "step": 19,
+              "time_s": 0.9030320304445922,
+              "missing_box": false,
+              "missing_height_m": 0.1679994049668312,
+              "missing_width_xy_m": [
+                0.05,
+                1.3877787807814457e-17
+              ],
+              "missing_top_m": 0.1679994049668312,
+              "center_offset_xyz_m": [
+                0.05396502682473514,
+                -0.0022445198893546736,
+                -0.0839997024834156
+              ],
+              "center_offset_norm_m": 0.09986597021523612,
+              "observed_center_m": [
+                0.3688134253025055,
+                0.2427554801106453,
+                0.0410002975165844
+              ],
+              "observed_dims_m": [
+                0.056656866073608425,
+                0.07549919068813327,
+                0.0820005950331688
+              ],
+              "true_center_m": [
+                0.31484839847777035,
+                0.24499999999999997,
+                0.125
+              ],
+              "true_dims_m": [
+                0.05,
+                0.05,
+                0.25
+              ]
+            },
+            "offset": {
+              "step": 25,
+              "time_s": 1.2016724133864045,
+              "missing_box": false,
+              "missing_height_m": 0.19188354864716528,
+              "missing_width_xy_m": [
+                0.05,
+                1.3877787807814457e-17
+              ],
+              "missing_top_m": 0.19188354864716528,
+              "center_offset_xyz_m": [
+                0.06717972624115648,
+                -0.0011284229159354842,
+                -0.09594177432358264
+              ],
+              "center_offset_norm_m": 0.1171290442907787,
+              "observed_center_m": [
+                0.3672633469104767,
+                0.24387157708406448,
+                0.029058225676417353
+              ],
+              "observed_dims_m": [
+                0.0443968462944031,
+                0.07326699674129489,
+                0.058116451352834705
+              ],
+              "true_center_m": [
+                0.3000836206693202,
+                0.24499999999999997,
+                0.125
+              ],
+              "true_dims_m": [
+                0.05,
+                0.05,
+                0.25
+              ]
+            }
+          },
+          "initial_x_m": 0.36,
+          "scene_status": "VALID_SCENE"
+        }
+      }
+    },
+    {
+      "speed_mps": 0.05,
+      "initial_x_m": 0.44,
+      "status": "VALID_SCENE",
+      "cases": {
+        "A": {
+          "mode": "A",
+          "prediction": false,
+          "rod_speed_mps": 0.05,
+          "controller": "cuRobo MPC tuned, held joint velocity during computation",
+          "reaches": 7,
+          "true_collisions": 1,
+          "collision_episodes_by_onset_phase": {
+            "moving": 1,
+            "holding": 0
+          },
+          "collision_samples_by_phase": {
+            "moving": 16,
+            "holding": 0
+          },
+          "minimum_true_clearance_m": -0.011837353218895869,
+          "steps": 800,
+          "simulated_duration_s": 19.999999999999932,
+          "compute_median_ms": 18.082415452226996,
+          "compute_p95_ms": 19.04913503676653,
+          "solver_median_ms": 17.825708026066422,
+          "solver_p95_ms": 18.675947468727827,
+          "step_period_median_ms": 25.000000000000355,
+          "step_period_p95_ms": 25.000000000000355,
+          "achieved_step_rate_hz": 40.000000000000135,
+          "within_50mm_robot_direction_samples": {
+            "away": 139,
+            "toward": 48,
+            "stationary": 0
+          },
+          "within_50mm_mean_robot_clearance_rate_mps": 0.01586938594498018,
+          "within_50mm_mean_relative_clearance_rate_mps": -0.0004689899691911758,
+          "infeasible_steps": 0,
+          "joint_position_clamped_intervals": 0,
+          "survives": false,
+          "time_to_first_goal_s": 2.624999999999995,
+          "max_joint_velocity_radps": [
+            0.6500901579856873,
+            0.6686158180236816,
+            0.1551942229270935,
+            0.5432631373405457,
+            0.07224194705486298,
+            0.670613706111908
+          ],
+          "max_sampled_joint_acceleration_radps2": [
+            4.9925971031188965,
+            5.003593921661377,
+            1.9697118997573853,
+            3.554205894470215,
+            1.0870620012283325,
+            4.2364821434021
+          ],
+          "max_proposed_joint_velocity_radps": [
+            0.6500901579856873,
+            0.6686158180236816,
+            0.1551942229270935,
+            0.5432631373405457,
+            0.07224194705486298,
+            0.670613706111908
+          ],
+          "velocity_limits_radps": [
+            [
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732
+            ],
+            [
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732
+            ]
+          ],
+          "within_joint_velocity_limits": true,
+          "velocity_clipped_steps": 0,
+          "worst_camera_frames": {},
+          "initial_x_m": 0.44,
+          "scene_status": "VALID_SCENE"
+        },
+        "B": {
+          "mode": "B",
+          "prediction": true,
+          "rod_speed_mps": 0.05,
+          "controller": "cuRobo MPC tuned, held joint velocity during computation",
+          "reaches": 7,
+          "true_collisions": 0,
+          "collision_episodes_by_onset_phase": {
+            "moving": 0,
+            "holding": 0
+          },
+          "collision_samples_by_phase": {
+            "moving": 0,
+            "holding": 0
+          },
+          "minimum_true_clearance_m": 0.024046521429503587,
+          "steps": 800,
+          "simulated_duration_s": 19.999999999999932,
+          "compute_median_ms": 19.30112740956247,
+          "compute_p95_ms": 19.984155613929033,
+          "solver_median_ms": 18.616824178025126,
+          "solver_p95_ms": 19.230827130377293,
+          "step_period_median_ms": 25.000000000000355,
+          "step_period_p95_ms": 25.000000000000355,
+          "achieved_step_rate_hz": 40.000000000000135,
+          "within_50mm_robot_direction_samples": {
+            "away": 247,
+            "toward": 82,
+            "stationary": 0
+          },
+          "within_50mm_mean_robot_clearance_rate_mps": 0.013400802868272579,
+          "within_50mm_mean_relative_clearance_rate_mps": -0.0002164939343486744,
+          "infeasible_steps": 0,
+          "joint_position_clamped_intervals": 0,
+          "survives": true,
+          "time_to_first_goal_s": 3.6499999999999915,
+          "max_joint_velocity_radps": [
+            0.8238621950149536,
+            0.6654986143112183,
+            0.41510576009750366,
+            0.5409749150276184,
+            0.1344030797481537,
+            0.7061888575553894
+          ],
+          "max_sampled_joint_acceleration_radps2": [
+            5.565227031707764,
+            5.356567859649658,
+            3.045588731765747,
+            3.9339041709899902,
+            3.5468637943267822,
+            4.503787517547607
+          ],
+          "max_proposed_joint_velocity_radps": [
+            0.8238621950149536,
+            0.6654986143112183,
+            0.41510576009750366,
+            0.5409749150276184,
+            0.1344030797481537,
+            0.7061888575553894
+          ],
+          "velocity_limits_radps": [
+            [
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732
+            ],
+            [
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732
+            ]
+          ],
+          "within_joint_velocity_limits": true,
+          "velocity_clipped_steps": 0,
+          "worst_camera_frames": {},
+          "initial_x_m": 0.44,
+          "scene_status": "VALID_SCENE"
+        },
+        "E": {
+          "mode": "E",
+          "prediction": true,
+          "rod_speed_mps": 0.05,
+          "controller": "cuRobo MPC tuned, held joint velocity during computation",
+          "reaches": 5,
+          "true_collisions": 0,
+          "collision_episodes_by_onset_phase": {
+            "moving": 0,
+            "holding": 0
+          },
+          "collision_samples_by_phase": {
+            "moving": 0,
+            "holding": 0
+          },
+          "minimum_true_clearance_m": 0.01436082804040395,
+          "steps": 387,
+          "simulated_duration_s": 20.0,
+          "compute_median_ms": 47.26312588900328,
+          "compute_p95_ms": 67.11694723926485,
+          "solver_median_ms": 20.394775085151196,
+          "solver_p95_ms": 21.900777192786336,
+          "step_period_median_ms": 47.26312588900328,
+          "step_period_p95_ms": 67.11694723926485,
+          "achieved_step_rate_hz": 19.35,
+          "within_50mm_robot_direction_samples": {
+            "away": 158,
+            "toward": 59,
+            "stationary": 0
+          },
+          "within_50mm_mean_robot_clearance_rate_mps": 0.0026571373309152847,
+          "within_50mm_mean_relative_clearance_rate_mps": 0.0004800593919441646,
+          "infeasible_steps": 2,
+          "joint_position_clamped_intervals": 0,
+          "survives": true,
+          "time_to_first_goal_s": 3.648770689032972,
+          "max_joint_velocity_radps": [
+            0.6178711652755737,
+            0.4394453167915344,
+            0.2331693023443222,
+            0.3367765247821808,
+            0.06941910833120346,
+            0.36575672030448914
+          ],
+          "max_sampled_joint_acceleration_radps2": [
+            2.7057478353338453,
+            2.9525229930877686,
+            0.8247105479240417,
+            1.616267448019033,
+            0.34062275290489197,
+            1.2878373861312866
+          ],
+          "max_proposed_joint_velocity_radps": [
+            0.6178711652755737,
+            0.4394453167915344,
+            0.2331693023443222,
+            0.3367765247821808,
+            0.06941910833120346,
+            0.36575672030448914
+          ],
+          "velocity_limits_radps": [
+            [
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732
+            ],
+            [
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732
+            ]
+          ],
+          "within_joint_velocity_limits": true,
+          "velocity_clipped_steps": 0,
+          "worst_camera_frames": {
+            "missing_box_frames": 140,
+            "height": {
+              "step": 33,
+              "time_s": 1.531611863989383,
+              "missing_box": true,
+              "missing_height_m": 0.25,
+              "missing_width_xy_m": [
+                0.05,
+                0.05
+              ],
+              "center_offset_xyz_m": null,
+              "center_offset_norm_m": null,
+              "missing_top_m": 0.25,
+              "true_center_m": [
+                0.36341940680053086,
+                0.24499999999999997,
+                0.125
+              ],
+              "true_dims_m": [
+                0.05,
+                0.05,
+                0.25
+              ]
+            },
+            "width": {
+              "step": 28,
+              "time_s": 1.3040336114354432,
+              "missing_box": false,
+              "missing_height_m": 0.09683981120586396,
+              "missing_width_xy_m": [
+                0.05,
+                1.3877787807814457e-17
+              ],
+              "missing_top_m": 0.09683981120586396,
+              "center_offset_xyz_m": [
+                0.05739391675684602,
+                -0.0009949979186057722,
+                -0.04841990560293198
+              ],
+              "center_offset_norm_m": 0.07509686385027436,
+              "observed_center_m": [
+                0.43219223618507385,
+                0.2440050020813942,
+                0.07658009439706802
+              ],
+              "observed_dims_m": [
+                0.06310102224349978,
+                0.07800944030284884,
+                0.15316018879413604
+              ],
+              "true_center_m": [
+                0.37479831942822783,
+                0.24499999999999997,
+                0.125
+              ],
+              "true_dims_m": [
+                0.05,
+                0.05,
+                0.25
+              ]
+            },
+            "offset": {
+              "step": 170,
+              "time_s": 8.416505262255669,
+              "missing_box": false,
+              "missing_height_m": 0.2299999701976776,
+              "missing_width_xy_m": [
+                0.0,
+                1.3877787807814457e-17
+              ],
+              "missing_top_m": 0.0,
+              "center_offset_xyz_m": [
+                -0.0026399134099484023,
+                -0.0027079758048057234,
+                0.1249999850988388
+              ],
+              "center_offset_norm_m": 0.12505718112320205,
+              "observed_center_m": [
+                0.5781853497028351,
+                0.24229202419519424,
+                0.2499999850988388
+              ],
+              "observed_dims_m": [
+                0.07416495561599734,
+                0.07399685561656955,
+                0.040000029802322395
+              ],
+              "true_center_m": [
+                0.5808252631127835,
+                0.24499999999999997,
+                0.125
+              ],
+              "true_dims_m": [
+                0.05,
+                0.05,
+                0.25
+              ]
+            }
+          },
+          "initial_x_m": 0.44,
+          "scene_status": "VALID_SCENE"
+        }
+      }
+    },
+    {
+      "speed_mps": 0.05,
+      "initial_x_m": 0.52,
+      "status": "VALID_SCENE",
+      "cases": {
+        "A": {
+          "mode": "A",
+          "prediction": false,
+          "rod_speed_mps": 0.05,
+          "controller": "cuRobo MPC tuned, held joint velocity during computation",
+          "reaches": 9,
+          "true_collisions": 3,
+          "collision_episodes_by_onset_phase": {
+            "moving": 3,
+            "holding": 0
+          },
+          "collision_samples_by_phase": {
+            "moving": 22,
+            "holding": 0
+          },
+          "minimum_true_clearance_m": -0.0230788816569385,
+          "steps": 800,
+          "simulated_duration_s": 19.999999999999932,
+          "compute_median_ms": 18.03219993598759,
+          "compute_p95_ms": 18.68329585995525,
+          "solver_median_ms": 17.79790106229484,
+          "solver_p95_ms": 18.383227405138314,
+          "step_period_median_ms": 25.000000000000355,
+          "step_period_p95_ms": 25.000000000000355,
+          "achieved_step_rate_hz": 40.000000000000135,
+          "within_50mm_robot_direction_samples": {
+            "away": 107,
+            "toward": 83,
+            "stationary": 0
+          },
+          "within_50mm_mean_robot_clearance_rate_mps": -0.01552051555681894,
+          "within_50mm_mean_relative_clearance_rate_mps": -0.001361865517905536,
+          "infeasible_steps": 0,
+          "joint_position_clamped_intervals": 0,
+          "survives": false,
+          "time_to_first_goal_s": 2.674999999999995,
+          "max_joint_velocity_radps": [
+            0.6081960201263428,
+            0.6101447343826294,
+            0.11912693828344345,
+            0.49672970175743103,
+            0.08773878216743469,
+            0.5859487056732178
+          ],
+          "max_sampled_joint_acceleration_radps2": [
+            6.233498454093933,
+            6.144896149635315,
+            1.743971347808838,
+            3.674587309360504,
+            1.2554749250411987,
+            5.117028713226318
+          ],
+          "max_proposed_joint_velocity_radps": [
+            0.6081960201263428,
+            0.6101447343826294,
+            0.11912693828344345,
+            0.49672970175743103,
+            0.08773878216743469,
+            0.5859487056732178
+          ],
+          "velocity_limits_radps": [
+            [
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732
+            ],
+            [
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732
+            ]
+          ],
+          "within_joint_velocity_limits": true,
+          "velocity_clipped_steps": 0,
+          "worst_camera_frames": {},
+          "initial_x_m": 0.52,
+          "scene_status": "VALID_SCENE"
+        },
+        "B": {
+          "mode": "B",
+          "prediction": true,
+          "rod_speed_mps": 0.05,
+          "controller": "cuRobo MPC tuned, held joint velocity during computation",
+          "reaches": 6,
+          "true_collisions": 0,
+          "collision_episodes_by_onset_phase": {
+            "moving": 0,
+            "holding": 0
+          },
+          "collision_samples_by_phase": {
+            "moving": 0,
+            "holding": 0
+          },
+          "minimum_true_clearance_m": 0.01461236203041865,
+          "steps": 800,
+          "simulated_duration_s": 19.999999999999932,
+          "compute_median_ms": 19.244050374254584,
+          "compute_p95_ms": 20.011047506704926,
+          "solver_median_ms": 18.563963705673814,
+          "solver_p95_ms": 19.230680353939533,
+          "step_period_median_ms": 25.000000000000355,
+          "step_period_p95_ms": 25.000000000000355,
+          "achieved_step_rate_hz": 40.000000000000135,
+          "within_50mm_robot_direction_samples": {
+            "away": 76,
+            "toward": 89,
+            "stationary": 0
+          },
+          "within_50mm_mean_robot_clearance_rate_mps": -0.0004081056311073494,
+          "within_50mm_mean_relative_clearance_rate_mps": -0.0009354322373485977,
+          "infeasible_steps": 0,
+          "joint_position_clamped_intervals": 0,
+          "survives": true,
+          "time_to_first_goal_s": 3.3999999999999924,
+          "max_joint_velocity_radps": [
+            0.8557485342025757,
+            0.8082315325737,
+            0.27382779121398926,
+            0.6479067206382751,
+            0.19293949007987976,
+            0.651421308517456
+          ],
+          "max_sampled_joint_acceleration_radps2": [
+            5.962374210357666,
+            5.185481071472168,
+            3.358314037322998,
+            4.121881484985352,
+            1.5042644739151,
+            4.297924041748047
+          ],
+          "max_proposed_joint_velocity_radps": [
+            0.8557485342025757,
+            0.8082315325737,
+            0.27382779121398926,
+            0.6479067206382751,
+            0.19293949007987976,
+            0.651421308517456
+          ],
+          "velocity_limits_radps": [
+            [
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732
+            ],
+            [
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732
+            ]
+          ],
+          "within_joint_velocity_limits": true,
+          "velocity_clipped_steps": 0,
+          "worst_camera_frames": {},
+          "initial_x_m": 0.52,
+          "scene_status": "VALID_SCENE"
+        },
+        "E": {
+          "mode": "E",
+          "prediction": true,
+          "rod_speed_mps": 0.05,
+          "controller": "cuRobo MPC tuned, held joint velocity during computation",
+          "reaches": 1,
+          "true_collisions": 3,
+          "collision_episodes_by_onset_phase": {
+            "moving": 3,
+            "holding": 0
+          },
+          "collision_samples_by_phase": {
+            "moving": 195,
+            "holding": 0
+          },
+          "minimum_true_clearance_m": -0.07692379603823367,
+          "steps": 403,
+          "simulated_duration_s": 20.0,
+          "compute_median_ms": 47.32071701437235,
+          "compute_p95_ms": 64.0286729671061,
+          "solver_median_ms": 20.259812008589506,
+          "solver_p95_ms": 22.172314347699285,
+          "step_period_median_ms": 47.32071701437235,
+          "step_period_p95_ms": 64.0286729671061,
+          "achieved_step_rate_hz": 20.15,
+          "within_50mm_robot_direction_samples": {
+            "away": 178,
+            "toward": 247,
+            "stationary": 2
+          },
+          "within_50mm_mean_robot_clearance_rate_mps": -0.007572293233886459,
+          "within_50mm_mean_relative_clearance_rate_mps": -0.002879355263235188,
+          "infeasible_steps": 129,
+          "joint_position_clamped_intervals": 0,
+          "survives": false,
+          "time_to_first_goal_s": 11.669321886729449,
+          "max_joint_velocity_radps": [
+            0.7799246311187744,
+            0.8200933933258057,
+            1.966156005859375,
+            2.8549160957336426,
+            1.8879470825195312,
+            1.4612975120544434
+          ],
+          "max_sampled_joint_acceleration_radps2": [
+            6.534154891967773,
+            5.601161956787109,
+            6.517007827758789,
+            12.070870399475098,
+            6.703150272369385,
+            5.869758605957031
+          ],
+          "max_proposed_joint_velocity_radps": [
+            0.7799246311187744,
+            0.8200933933258057,
+            1.966156005859375,
+            2.8549160957336426,
+            1.8879470825195312,
+            1.4612975120544434
+          ],
+          "velocity_limits_radps": [
+            [
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732
+            ],
+            [
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732
+            ]
+          ],
+          "within_joint_velocity_limits": true,
+          "velocity_clipped_steps": 0,
+          "worst_camera_frames": {
+            "missing_box_frames": 171,
+            "height": {
+              "step": 37,
+              "time_s": 1.616628695745021,
+              "missing_box": true,
+              "missing_height_m": 0.25,
+              "missing_width_xy_m": [
+                0.05,
+                0.05
+              ],
+              "center_offset_xyz_m": null,
+              "center_offset_norm_m": null,
+              "missing_top_m": 0.25,
+              "true_center_m": [
+                0.43916856521274894,
+                0.24499999999999997,
+                0.125
+              ],
+              "true_dims_m": [
+                0.05,
+                0.05,
+                0.25
+              ]
+            },
+            "width": {
+              "step": 37,
+              "time_s": 1.616628695745021,
+              "missing_box": true,
+              "missing_height_m": 0.25,
+              "missing_width_xy_m": [
+                0.05,
+                0.05
+              ],
+              "center_offset_xyz_m": null,
+              "center_offset_norm_m": null,
+              "missing_top_m": 0.25,
+              "true_center_m": [
+                0.43916856521274894,
+                0.24499999999999997,
+                0.125
+              ],
+              "true_dims_m": [
+                0.05,
+                0.05,
+                0.25
+              ]
+            },
+            "offset": {
+              "step": 198,
+              "time_s": 8.656108785886317,
+              "missing_box": false,
+              "missing_height_m": 0.20067327611148356,
+              "missing_width_xy_m": [
+                0.033442484200931946,
+                0.01228208780288699
+              ],
+              "missing_top_m": 0.20067327611148356,
+              "center_offset_xyz_m": [
+                -0.032245047152973605,
+                0.01364103436470035,
+                -0.10033663805574178
+              ],
+              "center_offset_norm_m": 0.10626975967209748,
+              "observed_center_m": [
+                0.48056039214134216,
+                0.2586410343647003,
+                0.024663361944258215
+              ],
+              "observed_dims_m": [
+                0.04760512590408328,
+                0.052717893123626736,
+                0.04932672388851643
+              ],
+              "true_center_m": [
+                0.5128054392943158,
+                0.24499999999999997,
+                0.125
+              ],
+              "true_dims_m": [
+                0.05,
+                0.05,
+                0.25
+              ]
+            }
+          },
+          "initial_x_m": 0.52,
+          "scene_status": "VALID_SCENE"
+        }
+      }
+    },
+    {
+      "speed_mps": 0.05,
+      "initial_x_m": 0.6,
+      "status": "VALID_SCENE",
+      "cases": {
+        "A": {
+          "mode": "A",
+          "prediction": false,
+          "rod_speed_mps": 0.05,
+          "controller": "cuRobo MPC tuned, held joint velocity during computation",
+          "reaches": 9,
+          "true_collisions": 3,
+          "collision_episodes_by_onset_phase": {
+            "moving": 3,
+            "holding": 0
+          },
+          "collision_samples_by_phase": {
+            "moving": 43,
+            "holding": 0
+          },
+          "minimum_true_clearance_m": -0.028114114489134402,
+          "steps": 800,
+          "simulated_duration_s": 19.999999999999932,
+          "compute_median_ms": 18.316295696422458,
+          "compute_p95_ms": 19.062048033811152,
+          "solver_median_ms": 18.05330254137516,
+          "solver_p95_ms": 18.71057003736496,
+          "step_period_median_ms": 25.000000000000355,
+          "step_period_p95_ms": 25.000000000000355,
+          "achieved_step_rate_hz": 40.000000000000135,
+          "within_50mm_robot_direction_samples": {
+            "away": 275,
+            "toward": 159,
+            "stationary": 0
+          },
+          "within_50mm_mean_robot_clearance_rate_mps": 0.0005647775229260423,
+          "within_50mm_mean_relative_clearance_rate_mps": -0.0020002709129775995,
+          "infeasible_steps": 0,
+          "joint_position_clamped_intervals": 0,
+          "survives": false,
+          "time_to_first_goal_s": 1.2749999999999997,
+          "max_joint_velocity_radps": [
+            0.6909807324409485,
+            0.6498544216156006,
+            0.15258696675300598,
+            0.5214064121246338,
+            0.09475778788328171,
+            0.6876497268676758
+          ],
+          "max_sampled_joint_acceleration_radps2": [
+            5.432685375213623,
+            5.20353889465332,
+            5.755000591278076,
+            3.345189094543457,
+            2.4056360721588135,
+            3.8998937606811523
+          ],
+          "max_proposed_joint_velocity_radps": [
+            0.6909807324409485,
+            0.6498544216156006,
+            0.15258696675300598,
+            0.5214064121246338,
+            0.09475778788328171,
+            0.6876497268676758
+          ],
+          "velocity_limits_radps": [
+            [
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732
+            ],
+            [
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732
+            ]
+          ],
+          "within_joint_velocity_limits": true,
+          "velocity_clipped_steps": 0,
+          "worst_camera_frames": {},
+          "initial_x_m": 0.6,
+          "scene_status": "VALID_SCENE"
+        },
+        "B": {
+          "mode": "B",
+          "prediction": true,
+          "rod_speed_mps": 0.05,
+          "controller": "cuRobo MPC tuned, held joint velocity during computation",
+          "reaches": 8,
+          "true_collisions": 0,
+          "collision_episodes_by_onset_phase": {
+            "moving": 0,
+            "holding": 0
+          },
+          "collision_samples_by_phase": {
+            "moving": 0,
+            "holding": 0
+          },
+          "minimum_true_clearance_m": 0.02155453891761499,
+          "steps": 800,
+          "simulated_duration_s": 19.999999999999932,
+          "compute_median_ms": 19.481542520225048,
+          "compute_p95_ms": 20.516851358115673,
+          "solver_median_ms": 18.752908101305366,
+          "solver_p95_ms": 19.672487722709775,
+          "step_period_median_ms": 25.000000000000355,
+          "step_period_p95_ms": 25.000000000000355,
+          "achieved_step_rate_hz": 40.000000000000135,
+          "within_50mm_robot_direction_samples": {
+            "away": 105,
+            "toward": 100,
+            "stationary": 0
+          },
+          "within_50mm_mean_robot_clearance_rate_mps": 0.008784425485014277,
+          "within_50mm_mean_relative_clearance_rate_mps": -0.012263670762719616,
+          "infeasible_steps": 0,
+          "joint_position_clamped_intervals": 0,
+          "survives": true,
+          "time_to_first_goal_s": 3.1249999999999933,
+          "max_joint_velocity_radps": [
+            0.6956490874290466,
+            0.7344408631324768,
+            0.20571781694889069,
+            0.5661463737487793,
+            0.08922982960939407,
+            0.7092822194099426
+          ],
+          "max_sampled_joint_acceleration_radps2": [
+            5.217805862426758,
+            5.142040252685547,
+            1.882850170135498,
+            3.5506391525268555,
+            1.2251734733581543,
+            4.777207374572754
+          ],
+          "max_proposed_joint_velocity_radps": [
+            0.6956490874290466,
+            0.7344408631324768,
+            0.20571781694889069,
+            0.5661463737487793,
+            0.08922982960939407,
+            0.7092822194099426
+          ],
+          "velocity_limits_radps": [
+            [
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732
+            ],
+            [
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732
+            ]
+          ],
+          "within_joint_velocity_limits": true,
+          "velocity_clipped_steps": 0,
+          "worst_camera_frames": {},
+          "initial_x_m": 0.6,
+          "scene_status": "VALID_SCENE"
+        },
+        "E": {
+          "mode": "E",
+          "prediction": true,
+          "rod_speed_mps": 0.05,
+          "controller": "cuRobo MPC tuned, held joint velocity during computation",
+          "reaches": 4,
+          "true_collisions": 0,
+          "collision_episodes_by_onset_phase": {
+            "moving": 0,
+            "holding": 0
+          },
+          "collision_samples_by_phase": {
+            "moving": 0,
+            "holding": 0
+          },
+          "minimum_true_clearance_m": 0.03789079502165308,
+          "steps": 373,
+          "simulated_duration_s": 20.0,
+          "compute_median_ms": 49.20851485803723,
+          "compute_p95_ms": 74.60858719423412,
+          "solver_median_ms": 20.692888647317886,
+          "solver_p95_ms": 21.93202031776309,
+          "step_period_median_ms": 49.20851485803723,
+          "step_period_p95_ms": 74.60858719423412,
+          "achieved_step_rate_hz": 18.65,
+          "within_50mm_robot_direction_samples": {
+            "away": 42,
+            "toward": 19,
+            "stationary": 0
+          },
+          "within_50mm_mean_robot_clearance_rate_mps": 0.027696264264664573,
+          "within_50mm_mean_relative_clearance_rate_mps": 0.0020249618631666684,
+          "infeasible_steps": 2,
+          "joint_position_clamped_intervals": 0,
+          "survives": true,
+          "time_to_first_goal_s": 3.9650372401811182,
+          "max_joint_velocity_radps": [
+            0.5164883136749268,
+            0.3840683102607727,
+            0.17398330569267273,
+            0.37847813963890076,
+            0.17493906617164612,
+            0.3636392652988434
+          ],
+          "max_sampled_joint_acceleration_radps2": [
+            2.507356944786898,
+            2.5164510798689985,
+            1.0606484413146973,
+            1.4916877803092023,
+            0.7274554371833801,
+            1.1933972071549626
+          ],
+          "max_proposed_joint_velocity_radps": [
+            0.5164883136749268,
+            0.3840683102607727,
+            0.17398330569267273,
+            0.37847813963890076,
+            0.17493906617164612,
+            0.3636392652988434
+          ],
+          "velocity_limits_radps": [
+            [
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732
+            ],
+            [
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732
+            ]
+          ],
+          "within_joint_velocity_limits": true,
+          "velocity_clipped_steps": 0,
+          "worst_camera_frames": {
+            "missing_box_frames": 109,
+            "height": {
+              "step": 53,
+              "time_s": 2.995872579049319,
+              "missing_box": true,
+              "missing_height_m": 0.25,
+              "missing_width_xy_m": [
+                0.05,
+                0.05
+              ],
+              "center_offset_xyz_m": null,
+              "center_offset_norm_m": null,
+              "missing_top_m": 0.25,
+              "true_center_m": [
+                0.450206371047534,
+                0.24499999999999997,
+                0.125
+              ],
+              "true_dims_m": [
+                0.05,
+                0.05,
+                0.25
+              ]
+            },
+            "width": {
+              "step": 53,
+              "time_s": 2.995872579049319,
+              "missing_box": true,
+              "missing_height_m": 0.25,
+              "missing_width_xy_m": [
+                0.05,
+                0.05
+              ],
+              "center_offset_xyz_m": null,
+              "center_offset_norm_m": null,
+              "missing_top_m": 0.25,
+              "true_center_m": [
+                0.450206371047534,
+                0.24499999999999997,
+                0.125
+              ],
+              "true_dims_m": [
+                0.05,
+                0.05,
+                0.25
+              ]
+            },
+            "offset": {
+              "step": 365,
+              "time_s": 19.610771712847054,
+              "missing_box": false,
+              "missing_height_m": 0.20121699154376982,
+              "missing_width_xy_m": [
+                0.04032059953548019,
+                0.023878052234649685
+              ],
+              "missing_top_m": 0.20121699154376982,
+              "center_offset_xyz_m": [
+                0.04788264618255206,
+                0.01943588733673099,
+                -0.10060849577188491
+              ],
+              "center_offset_norm_m": 0.11310424812309638,
+              "observed_center_m": [
+                0.4673440605401993,
+                0.26443588733673096,
+                0.024391504228115084
+              ],
+              "observed_dims_m": [
+                0.0651240932941437,
+                0.041115670204162624,
+                0.04878300845623017
+              ],
+              "true_center_m": [
+                0.4194614143576472,
+                0.24499999999999997,
+                0.125
+              ],
+              "true_dims_m": [
+                0.05,
+                0.05,
+                0.25
+              ]
+            }
+          },
+          "initial_x_m": 0.6,
+          "scene_status": "VALID_SCENE"
+        }
+      }
+    },
+    {
+      "speed_mps": 0.05,
+      "initial_x_m": 0.68,
+      "status": "VALID_SCENE",
+      "cases": {
+        "A": {
+          "mode": "A",
+          "prediction": false,
+          "rod_speed_mps": 0.05,
+          "controller": "cuRobo MPC tuned, held joint velocity during computation",
+          "reaches": 9,
+          "true_collisions": 2,
+          "collision_episodes_by_onset_phase": {
+            "moving": 2,
+            "holding": 0
+          },
+          "collision_samples_by_phase": {
+            "moving": 29,
+            "holding": 0
+          },
+          "minimum_true_clearance_m": -0.027724346478632526,
+          "steps": 800,
+          "simulated_duration_s": 19.999999999999932,
+          "compute_median_ms": 18.236187752336264,
+          "compute_p95_ms": 18.98674804251641,
+          "solver_median_ms": 17.97627122141421,
+          "solver_p95_ms": 18.652686569839716,
+          "step_period_median_ms": 25.000000000000355,
+          "step_period_p95_ms": 25.000000000000355,
+          "achieved_step_rate_hz": 40.000000000000135,
+          "within_50mm_robot_direction_samples": {
+            "away": 116,
+            "toward": 72,
+            "stationary": 0
+          },
+          "within_50mm_mean_robot_clearance_rate_mps": 0.005926769169739214,
+          "within_50mm_mean_relative_clearance_rate_mps": -0.003486024601258719,
+          "infeasible_steps": 0,
+          "joint_position_clamped_intervals": 0,
+          "survives": false,
+          "time_to_first_goal_s": 1.2499999999999998,
+          "max_joint_velocity_radps": [
+            0.7274566292762756,
+            0.685107409954071,
+            0.1422761082649231,
+            0.5862450003623962,
+            0.07848106324672699,
+            0.6628450751304626
+          ],
+          "max_sampled_joint_acceleration_radps2": [
+            6.547119617462158,
+            6.180565357208252,
+            1.8259668350219727,
+            3.4982991218566895,
+            1.1396780014038086,
+            4.78116512298584
+          ],
+          "max_proposed_joint_velocity_radps": [
+            0.7274566292762756,
+            0.685107409954071,
+            0.1422761082649231,
+            0.5862450003623962,
+            0.07848106324672699,
+            0.6628450751304626
+          ],
+          "velocity_limits_radps": [
+            [
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732
+            ],
+            [
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732
+            ]
+          ],
+          "within_joint_velocity_limits": true,
+          "velocity_clipped_steps": 0,
+          "worst_camera_frames": {},
+          "initial_x_m": 0.68,
+          "scene_status": "VALID_SCENE"
+        },
+        "B": {
+          "mode": "B",
+          "prediction": true,
+          "rod_speed_mps": 0.05,
+          "controller": "cuRobo MPC tuned, held joint velocity during computation",
+          "reaches": 7,
+          "true_collisions": 0,
+          "collision_episodes_by_onset_phase": {
+            "moving": 0,
+            "holding": 0
+          },
+          "collision_samples_by_phase": {
+            "moving": 0,
+            "holding": 0
+          },
+          "minimum_true_clearance_m": 0.017436344683295177,
+          "steps": 800,
+          "simulated_duration_s": 19.999999999999932,
+          "compute_median_ms": 19.59134847857058,
+          "compute_p95_ms": 20.488929352723062,
+          "solver_median_ms": 18.85476429015398,
+          "solver_p95_ms": 19.68631516210735,
+          "step_period_median_ms": 25.000000000000355,
+          "step_period_p95_ms": 25.000000000000355,
+          "achieved_step_rate_hz": 40.000000000000135,
+          "within_50mm_robot_direction_samples": {
+            "away": 63,
+            "toward": 50,
+            "stationary": 0
+          },
+          "within_50mm_mean_robot_clearance_rate_mps": 0.024720019751428027,
+          "within_50mm_mean_relative_clearance_rate_mps": 0.0017992381549959177,
+          "infeasible_steps": 0,
+          "joint_position_clamped_intervals": 0,
+          "survives": true,
+          "time_to_first_goal_s": 2.7249999999999948,
+          "max_joint_velocity_radps": [
+            0.7909427285194397,
+            0.8119658827781677,
+            0.2601858675479889,
+            0.637132465839386,
+            0.09850524365901947,
+            0.7901069521903992
+          ],
+          "max_sampled_joint_acceleration_radps2": [
+            5.6539201736450195,
+            5.878749847412109,
+            1.761433482170105,
+            3.8123607635498047,
+            1.5127062797546387,
+            4.350706100463867
+          ],
+          "max_proposed_joint_velocity_radps": [
+            0.7909427285194397,
+            0.8119658827781677,
+            0.2601858675479889,
+            0.637132465839386,
+            0.09850524365901947,
+            0.7901069521903992
+          ],
+          "velocity_limits_radps": [
+            [
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732
+            ],
+            [
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732
+            ]
+          ],
+          "within_joint_velocity_limits": true,
+          "velocity_clipped_steps": 0,
+          "worst_camera_frames": {},
+          "initial_x_m": 0.68,
+          "scene_status": "VALID_SCENE"
+        },
+        "E": {
+          "mode": "E",
+          "prediction": true,
+          "rod_speed_mps": 0.05,
+          "controller": "cuRobo MPC tuned, held joint velocity during computation",
+          "reaches": 5,
+          "true_collisions": 1,
+          "collision_episodes_by_onset_phase": {
+            "moving": 1,
+            "holding": 0
+          },
+          "collision_samples_by_phase": {
+            "moving": 16,
+            "holding": 0
+          },
+          "minimum_true_clearance_m": -0.0174550388616404,
+          "steps": 366,
+          "simulated_duration_s": 20.0,
+          "compute_median_ms": 52.35582450404763,
+          "compute_p95_ms": 68.48214252386242,
+          "solver_median_ms": 20.78374195843935,
+          "solver_p95_ms": 21.822221926413476,
+          "step_period_median_ms": 52.265096455812454,
+          "step_period_p95_ms": 68.48214252386242,
+          "achieved_step_rate_hz": 18.3,
+          "within_50mm_robot_direction_samples": {
+            "away": 19,
+            "toward": 24,
+            "stationary": 0
+          },
+          "within_50mm_mean_robot_clearance_rate_mps": -0.037843044204277636,
+          "within_50mm_mean_relative_clearance_rate_mps": -0.01867003237796718,
+          "infeasible_steps": 2,
+          "joint_position_clamped_intervals": 0,
+          "survives": false,
+          "time_to_first_goal_s": 3.328349817544222,
+          "max_joint_velocity_radps": [
+            0.42138051986694336,
+            0.40363064408302307,
+            0.0750197321176529,
+            0.2955780029296875,
+            0.042441487312316895,
+            0.32762661576271057
+          ],
+          "max_sampled_joint_acceleration_radps2": [
+            3.2974727153778076,
+            1.9044731855392456,
+            0.8930444121360779,
+            1.1580513715744019,
+            0.24116162955760956,
+            0.9665647149085999
+          ],
+          "max_proposed_joint_velocity_radps": [
+            0.42138051986694336,
+            0.40363064408302307,
+            0.0750197321176529,
+            0.2955780029296875,
+            0.042441487312316895,
+            0.32762661576271057
+          ],
+          "velocity_limits_radps": [
+            [
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732
+            ],
+            [
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732
+            ]
+          ],
+          "within_joint_velocity_limits": true,
+          "velocity_clipped_steps": 0,
+          "worst_camera_frames": {
+            "missing_box_frames": 68,
+            "height": {
+              "step": 44,
+              "time_s": 2.5555972512811422,
+              "missing_box": true,
+              "missing_height_m": 0.25,
+              "missing_width_xy_m": [
+                0.05,
+                0.05
+              ],
+              "center_offset_xyz_m": null,
+              "center_offset_norm_m": null,
+              "missing_top_m": 0.25,
+              "true_center_m": [
+                0.552220137435943,
+                0.24499999999999997,
+                0.125
+              ],
+              "true_dims_m": [
+                0.05,
+                0.05,
+                0.25
+              ]
+            },
+            "width": {
+              "step": 44,
+              "time_s": 2.5555972512811422,
+              "missing_box": true,
+              "missing_height_m": 0.25,
+              "missing_width_xy_m": [
+                0.05,
+                0.05
+              ],
+              "center_offset_xyz_m": null,
+              "center_offset_norm_m": null,
+              "missing_top_m": 0.25,
+              "true_center_m": [
+                0.552220137435943,
+                0.24499999999999997,
+                0.125
+              ],
+              "true_dims_m": [
+                0.05,
+                0.05,
+                0.25
+              ]
+            },
+            "offset": {
+              "step": 261,
+              "time_s": 13.852442947216332,
+              "missing_box": false,
+              "missing_height_m": 0.2299999701976776,
+              "missing_width_xy_m": [
+                0.0,
+                1.3877787807814457e-17
+              ],
+              "missing_top_m": 0.0,
+              "center_offset_xyz_m": [
+                -0.0025361235532909143,
+                -0.0026940953731536543,
+                0.1249999850988388
+              ],
+              "center_offset_norm_m": 0.12505473340608556,
+              "observed_center_m": [
+                0.6100860238075256,
+                0.2423059046268463,
+                0.2499999850988388
+              ],
+              "observed_dims_m": [
+                0.07418182373046878,
+                0.07384493827819827,
+                0.040000029802322395
+              ],
+              "true_center_m": [
+                0.6126221473608165,
+                0.24499999999999997,
+                0.125
+              ],
+              "true_dims_m": [
+                0.05,
+                0.05,
+                0.25
+              ]
+            }
+          },
+          "initial_x_m": 0.68,
+          "scene_status": "VALID_SCENE"
+        }
+      }
+    },
+    {
+      "speed_mps": 0.1,
+      "initial_x_m": 0.36,
+      "status": "INVALID_SCENE",
+      "cases": {
+        "A": {
+          "mode": "A",
+          "prediction": false,
+          "rod_speed_mps": 0.1,
+          "controller": "cuRobo MPC tuned, held joint velocity during computation",
+          "reaches": 9,
+          "true_collisions": 0,
+          "collision_episodes_by_onset_phase": {
+            "moving": 0,
+            "holding": 0
+          },
+          "collision_samples_by_phase": {
+            "moving": 0,
+            "holding": 0
+          },
+          "minimum_true_clearance_m": 0.008971462089709954,
+          "steps": 800,
+          "simulated_duration_s": 19.999999999999932,
+          "compute_median_ms": 18.055869732052088,
+          "compute_p95_ms": 18.80237532313913,
+          "solver_median_ms": 17.827117815613747,
+          "solver_p95_ms": 18.44794531352818,
+          "step_period_median_ms": 25.000000000000355,
+          "step_period_p95_ms": 25.000000000000355,
+          "achieved_step_rate_hz": 40.000000000000135,
+          "within_50mm_robot_direction_samples": {
+            "away": 68,
+            "toward": 30,
+            "stationary": 0
+          },
+          "within_50mm_mean_robot_clearance_rate_mps": 0.07158519170392687,
+          "within_50mm_mean_relative_clearance_rate_mps": 0.0010244875522733988,
+          "infeasible_steps": 0,
+          "joint_position_clamped_intervals": 0,
+          "survives": true,
+          "time_to_first_goal_s": 1.0750000000000004,
+          "max_joint_velocity_radps": [
+            0.7260802984237671,
+            0.7354481220245361,
+            0.16551858186721802,
+            0.5244219899177551,
+            0.055528245866298676,
+            0.649932324886322
+          ],
+          "max_sampled_joint_acceleration_radps2": [
+            4.705532550811768,
+            4.457730770111084,
+            1.4294421672821045,
+            3.4903812408447266,
+            0.9423494338989258,
+            5.042158126831055
+          ],
+          "max_proposed_joint_velocity_radps": [
+            0.7260802984237671,
+            0.7354481220245361,
+            0.16551858186721802,
+            0.5244219899177551,
+            0.055528245866298676,
+            0.649932324886322
+          ],
+          "velocity_limits_radps": [
+            [
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732
+            ],
+            [
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732
+            ]
+          ],
+          "within_joint_velocity_limits": true,
+          "velocity_clipped_steps": 0,
+          "worst_camera_frames": {},
+          "initial_x_m": 0.36,
+          "scene_status": "INVALID_SCENE"
+        },
+        "B": {
+          "mode": "B",
+          "prediction": true,
+          "rod_speed_mps": 0.1,
+          "controller": "cuRobo MPC tuned, held joint velocity during computation",
+          "reaches": 5,
+          "true_collisions": 0,
+          "collision_episodes_by_onset_phase": {
+            "moving": 0,
+            "holding": 0
+          },
+          "collision_samples_by_phase": {
+            "moving": 0,
+            "holding": 0
+          },
+          "minimum_true_clearance_m": 0.014908942057010207,
+          "steps": 800,
+          "simulated_duration_s": 19.999999999999932,
+          "compute_median_ms": 19.478072179481387,
+          "compute_p95_ms": 20.346137415617704,
+          "solver_median_ms": 18.77277554012835,
+          "solver_p95_ms": 19.58841911982745,
+          "step_period_median_ms": 25.000000000000355,
+          "step_period_p95_ms": 25.000000000000355,
+          "achieved_step_rate_hz": 40.000000000000135,
+          "within_50mm_robot_direction_samples": {
+            "away": 87,
+            "toward": 45,
+            "stationary": 0
+          },
+          "within_50mm_mean_robot_clearance_rate_mps": 0.06920954189130861,
+          "within_50mm_mean_relative_clearance_rate_mps": -0.0024526541433297086,
+          "infeasible_steps": 83,
+          "joint_position_clamped_intervals": 0,
+          "survives": true,
+          "time_to_first_goal_s": 0.9750000000000006,
+          "max_joint_velocity_radps": [
+            0.7579647898674011,
+            1.11175537109375,
+            0.8697534799575806,
+            0.5553560853004456,
+            0.1470334827899933,
+            0.6329475045204163
+          ],
+          "max_sampled_joint_acceleration_radps2": [
+            4.4293622970581055,
+            5.510621070861816,
+            4.380197525024414,
+            3.6451148986816406,
+            1.6757547855377197,
+            3.929334878921509
+          ],
+          "max_proposed_joint_velocity_radps": [
+            0.7579647898674011,
+            1.11175537109375,
+            0.8697534799575806,
+            0.5553560853004456,
+            0.1470334827899933,
+            0.6329475045204163
+          ],
+          "velocity_limits_radps": [
+            [
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732
+            ],
+            [
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732
+            ]
+          ],
+          "within_joint_velocity_limits": true,
+          "velocity_clipped_steps": 0,
+          "worst_camera_frames": {},
+          "initial_x_m": 0.36,
+          "scene_status": "INVALID_SCENE"
+        },
+        "E": {
+          "mode": "E",
+          "prediction": true,
+          "rod_speed_mps": 0.1,
+          "controller": "cuRobo MPC tuned, held joint velocity during computation",
+          "reaches": 4,
+          "true_collisions": 0,
+          "collision_episodes_by_onset_phase": {
+            "moving": 0,
+            "holding": 0
+          },
+          "collision_samples_by_phase": {
+            "moving": 0,
+            "holding": 0
+          },
+          "minimum_true_clearance_m": 0.004987575110991103,
+          "steps": 375,
+          "simulated_duration_s": 20.0,
+          "compute_median_ms": 51.576165948063135,
+          "compute_p95_ms": 65.81580084748566,
+          "solver_median_ms": 20.829261746257544,
+          "solver_p95_ms": 22.256410913541913,
+          "step_period_median_ms": 51.576165948063135,
+          "step_period_p95_ms": 65.81580084748566,
+          "achieved_step_rate_hz": 18.75,
+          "within_50mm_robot_direction_samples": {
+            "away": 30,
+            "toward": 61,
+            "stationary": 0
+          },
+          "within_50mm_mean_robot_clearance_rate_mps": -0.018626758598990403,
+          "within_50mm_mean_relative_clearance_rate_mps": -0.0012717488478484625,
+          "infeasible_steps": 1,
+          "joint_position_clamped_intervals": 0,
+          "survives": true,
+          "time_to_first_goal_s": 3.416655153501779,
+          "max_joint_velocity_radps": [
+            0.647598147392273,
+            0.4140892028808594,
+            0.25576645135879517,
+            0.3387969434261322,
+            0.11312868446111679,
+            0.4344956874847412
+          ],
+          "max_sampled_joint_acceleration_radps2": [
+            3.423192262649536,
+            1.9867148399353027,
+            1.4025393724441528,
+            1.5419939756393433,
+            1.2912770509719849,
+            1.846496343612671
+          ],
+          "max_proposed_joint_velocity_radps": [
+            0.647598147392273,
+            0.4140892028808594,
+            0.25576645135879517,
+            0.3387969434261322,
+            0.11312868446111679,
+            0.4344956874847412
+          ],
+          "velocity_limits_radps": [
+            [
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732
+            ],
+            [
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732
+            ]
+          ],
+          "within_joint_velocity_limits": true,
+          "velocity_clipped_steps": 0,
+          "worst_camera_frames": {
+            "missing_box_frames": 80,
+            "height": {
+              "step": 25,
+              "time_s": 1.1322253486141562,
+              "missing_box": true,
+              "missing_height_m": 0.25,
+              "missing_width_xy_m": [
+                0.05,
+                0.05
+              ],
+              "center_offset_xyz_m": null,
+              "center_offset_norm_m": null,
+              "missing_top_m": 0.25,
+              "true_center_m": [
+                0.3532225348614156,
+                0.24499999999999997,
+                0.125
+              ],
+              "true_dims_m": [
+                0.05,
+                0.05,
+                0.25
+              ]
+            },
+            "width": {
+              "step": 11,
+              "time_s": 0.47619622899219394,
+              "missing_box": false,
+              "missing_height_m": 0.17260302931070326,
+              "missing_width_xy_m": [
+                0.05,
+                1.3877787807814457e-17
+              ],
+              "missing_top_m": 0.17260302931070326,
+              "center_offset_xyz_m": [
+                0.05506904060952367,
+                -0.002422879338264433,
+                -0.08630151465535163
+              ],
+              "center_offset_norm_m": 0.10240322753580097,
+              "observed_center_m": [
+                0.36744941771030426,
+                0.24257712066173553,
+                0.03869848534464836
+              ],
+              "observed_dims_m": [
+                0.05429184317588809,
+                0.07512682557106021,
+                0.07739697068929673
+              ],
+              "true_center_m": [
+                0.3123803771007806,
+                0.24499999999999997,
+                0.125
+              ],
+              "true_dims_m": [
+                0.05,
+                0.05,
+                0.25
+              ]
+            },
+            "offset": {
+              "step": 252,
+              "time_s": 13.297527826856822,
+              "missing_box": false,
+              "missing_height_m": 0.2299999850988388,
+              "missing_width_xy_m": [
+                0.0,
+                1.3877787807814457e-17
+              ],
+              "missing_top_m": 0.0,
+              "center_offset_xyz_m": [
+                -0.003603052990510891,
+                -0.0011233863234519637,
+                0.1249999925494194
+              ],
+              "center_offset_norm_m": 0.12505695552442916,
+              "observed_center_m": [
+                0.6266441643238068,
+                0.243876613676548,
+                0.2499999925494194
+              ],
+              "observed_dims_m": [
+                0.07274553060531619,
+                0.0766834753751755,
+                0.0400000149011612
+              ],
+              "true_center_m": [
+                0.6302472173143177,
+                0.24499999999999997,
+                0.125
+              ],
+              "true_dims_m": [
+                0.05,
+                0.05,
+                0.25
+              ]
+            }
+          },
+          "initial_x_m": 0.36,
+          "scene_status": "INVALID_SCENE"
+        }
+      }
+    },
+    {
+      "speed_mps": 0.1,
+      "initial_x_m": 0.44,
+      "status": "VALID_SCENE",
+      "cases": {
+        "A": {
+          "mode": "A",
+          "prediction": false,
+          "rod_speed_mps": 0.1,
+          "controller": "cuRobo MPC tuned, held joint velocity during computation",
+          "reaches": 9,
+          "true_collisions": 3,
+          "collision_episodes_by_onset_phase": {
+            "moving": 3,
+            "holding": 0
+          },
+          "collision_samples_by_phase": {
+            "moving": 54,
+            "holding": 0
+          },
+          "minimum_true_clearance_m": -0.020342498923223894,
+          "steps": 800,
+          "simulated_duration_s": 19.999999999999932,
+          "compute_median_ms": 18.09816900640726,
+          "compute_p95_ms": 18.98204379249364,
+          "solver_median_ms": 17.866787500679493,
+          "solver_p95_ms": 18.609110824763775,
+          "step_period_median_ms": 25.000000000000355,
+          "step_period_p95_ms": 25.000000000000355,
+          "achieved_step_rate_hz": 40.000000000000135,
+          "within_50mm_robot_direction_samples": {
+            "away": 172,
+            "toward": 136,
+            "stationary": 0
+          },
+          "within_50mm_mean_robot_clearance_rate_mps": 0.0034432376741655286,
+          "within_50mm_mean_relative_clearance_rate_mps": -0.0005685296714725811,
+          "infeasible_steps": 0,
+          "joint_position_clamped_intervals": 0,
+          "survives": false,
+          "time_to_first_goal_s": 1.2249999999999999,
+          "max_joint_velocity_radps": [
+            0.6888923048973083,
+            0.6719009280204773,
+            0.1517074853181839,
+            0.581632673740387,
+            0.06727706640958786,
+            0.7870786786079407
+          ],
+          "max_sampled_joint_acceleration_radps2": [
+            4.821854591369629,
+            5.220797061920166,
+            2.920447826385498,
+            4.084947109222412,
+            0.7635056972503662,
+            5.317246913909912
+          ],
+          "max_proposed_joint_velocity_radps": [
+            0.6888923048973083,
+            0.6719009280204773,
+            0.1517074853181839,
+            0.581632673740387,
+            0.06727706640958786,
+            0.7870786786079407
+          ],
+          "velocity_limits_radps": [
+            [
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732
+            ],
+            [
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732
+            ]
+          ],
+          "within_joint_velocity_limits": true,
+          "velocity_clipped_steps": 0,
+          "worst_camera_frames": {},
+          "initial_x_m": 0.44,
+          "scene_status": "VALID_SCENE"
+        },
+        "B": {
+          "mode": "B",
+          "prediction": true,
+          "rod_speed_mps": 0.1,
+          "controller": "cuRobo MPC tuned, held joint velocity during computation",
+          "reaches": 7,
+          "true_collisions": 0,
+          "collision_episodes_by_onset_phase": {
+            "moving": 0,
+            "holding": 0
+          },
+          "collision_samples_by_phase": {
+            "moving": 0,
+            "holding": 0
+          },
+          "minimum_true_clearance_m": 0.029844005124933085,
+          "steps": 800,
+          "simulated_duration_s": 19.999999999999932,
+          "compute_median_ms": 19.33897053822875,
+          "compute_p95_ms": 20.118329161778092,
+          "solver_median_ms": 18.639924004673958,
+          "solver_p95_ms": 19.328257255256176,
+          "step_period_median_ms": 25.000000000000355,
+          "step_period_p95_ms": 25.000000000000355,
+          "achieved_step_rate_hz": 40.000000000000135,
+          "within_50mm_robot_direction_samples": {
+            "away": 135,
+            "toward": 82,
+            "stationary": 2
+          },
+          "within_50mm_mean_robot_clearance_rate_mps": 0.008671118013904388,
+          "within_50mm_mean_relative_clearance_rate_mps": 4.503270182663856e-06,
+          "infeasible_steps": 0,
+          "joint_position_clamped_intervals": 0,
+          "survives": true,
+          "time_to_first_goal_s": 1.2499999999999998,
+          "max_joint_velocity_radps": [
+            0.6850945949554443,
+            0.7855635285377502,
+            0.2402919977903366,
+            0.5873088836669922,
+            0.09078383445739746,
+            0.7796413898468018
+          ],
+          "max_sampled_joint_acceleration_radps2": [
+            5.014863014221191,
+            5.060155391693115,
+            2.5777807235717773,
+            5.130055904388428,
+            1.1439919471740723,
+            4.3585638999938965
+          ],
+          "max_proposed_joint_velocity_radps": [
+            0.6850945949554443,
+            0.7855635285377502,
+            0.2402919977903366,
+            0.5873088836669922,
+            0.09078383445739746,
+            0.7796413898468018
+          ],
+          "velocity_limits_radps": [
+            [
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732
+            ],
+            [
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732
+            ]
+          ],
+          "within_joint_velocity_limits": true,
+          "velocity_clipped_steps": 0,
+          "worst_camera_frames": {},
+          "initial_x_m": 0.44,
+          "scene_status": "VALID_SCENE"
+        },
+        "E": {
+          "mode": "E",
+          "prediction": true,
+          "rod_speed_mps": 0.1,
+          "controller": "cuRobo MPC tuned, held joint velocity during computation",
+          "reaches": 4,
+          "true_collisions": 1,
+          "collision_episodes_by_onset_phase": {
+            "moving": 1,
+            "holding": 0
+          },
+          "collision_samples_by_phase": {
+            "moving": 16,
+            "holding": 0
+          },
+          "minimum_true_clearance_m": -0.0195423607952126,
+          "steps": 378,
+          "simulated_duration_s": 20.0,
+          "compute_median_ms": 51.10551859252155,
+          "compute_p95_ms": 66.72355576884001,
+          "solver_median_ms": 20.870191045105457,
+          "solver_p95_ms": 22.157204058021307,
+          "step_period_median_ms": 51.10551859252155,
+          "step_period_p95_ms": 66.43128811847419,
+          "achieved_step_rate_hz": 18.9,
+          "within_50mm_robot_direction_samples": {
+            "away": 30,
+            "toward": 97,
+            "stationary": 0
+          },
+          "within_50mm_mean_robot_clearance_rate_mps": -0.03505320823605487,
+          "within_50mm_mean_relative_clearance_rate_mps": 0.0033597491916376593,
+          "infeasible_steps": 3,
+          "joint_position_clamped_intervals": 0,
+          "survives": false,
+          "time_to_first_goal_s": 3.5346809686161578,
+          "max_joint_velocity_radps": [
+            0.6742851138114929,
+            0.39594125747680664,
+            0.21469469368457794,
+            0.30528679490089417,
+            0.15603117644786835,
+            0.47114071249961853
+          ],
+          "max_sampled_joint_acceleration_radps2": [
+            2.015115737915039,
+            1.6818536520004272,
+            1.021706461906433,
+            1.8408327102661133,
+            1.372830867767334,
+            1.3733052015304565
+          ],
+          "max_proposed_joint_velocity_radps": [
+            0.6742851138114929,
+            0.39594125747680664,
+            0.21469469368457794,
+            0.30528679490089417,
+            0.15603117644786835,
+            0.47114071249961853
+          ],
+          "velocity_limits_radps": [
+            [
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732
+            ],
+            [
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732
+            ]
+          ],
+          "within_joint_velocity_limits": true,
+          "velocity_clipped_steps": 0,
+          "worst_camera_frames": {
+            "missing_box_frames": 86,
+            "height": {
+              "step": 33,
+              "time_s": 1.5184086193330586,
+              "missing_box": true,
+              "missing_height_m": 0.25,
+              "missing_width_xy_m": [
+                0.05,
+                0.05
+              ],
+              "center_offset_xyz_m": null,
+              "center_offset_norm_m": null,
+              "missing_top_m": 0.25,
+              "true_center_m": [
+                0.3118408619333058,
+                0.24499999999999997,
+                0.125
+              ],
+              "true_dims_m": [
+                0.05,
+                0.05,
+                0.25
+              ]
+            },
+            "width": {
+              "step": 20,
+              "time_s": 0.9250179375521839,
+              "missing_box": false,
+              "missing_height_m": 0.0347550916671753,
+              "missing_width_xy_m": [
+                0.05,
+                1.3877787807814457e-17
+              ],
+              "missing_top_m": 0.0347550916671753,
+              "center_offset_xyz_m": [
+                0.07514238561503589,
+                -0.0017697539925574934,
+                -0.01737754583358765
+              ],
+              "center_offset_norm_m": 0.07714589583582114,
+              "observed_center_m": [
+                0.4226405918598175,
+                0.24323024600744247,
+                0.10762245416641235
+              ],
+              "observed_dims_m": [
+                0.0912454414367676,
+                0.0764594513177872,
+                0.2152449083328247
+              ],
+              "true_center_m": [
+                0.3474982062447816,
+                0.24499999999999997,
+                0.125
+              ],
+              "true_dims_m": [
+                0.05,
+                0.05,
+                0.25
+              ]
+            },
+            "offset": {
+              "step": 32,
+              "time_s": 1.47259582253173,
+              "missing_box": false,
+              "missing_height_m": 0.18358449220657347,
+              "missing_width_xy_m": [
+                0.05,
+                1.3877787807814457e-17
+              ],
+              "missing_top_m": 0.18358449220657347,
+              "center_offset_xyz_m": [
+                0.09811478081159292,
+                -0.0010866028070449507,
+                -0.09179224610328673
+              ],
+              "center_offset_norm_m": 0.13436334084881024,
+              "observed_center_m": [
+                0.40537436306476593,
+                0.24391339719295502,
+                0.03320775389671326
+              ],
+              "observed_dims_m": [
+                0.04576372981071475,
+                0.07447999596595767,
+                0.06641550779342652
+              ],
+              "true_center_m": [
+                0.307259582253173,
+                0.24499999999999997,
+                0.125
+              ],
+              "true_dims_m": [
+                0.05,
+                0.05,
+                0.25
+              ]
+            }
+          },
+          "initial_x_m": 0.44,
+          "scene_status": "VALID_SCENE"
+        }
+      }
+    },
+    {
+      "speed_mps": 0.1,
+      "initial_x_m": 0.52,
+      "status": "VALID_SCENE",
+      "cases": {
+        "A": {
+          "mode": "A",
+          "prediction": false,
+          "rod_speed_mps": 0.1,
+          "controller": "cuRobo MPC tuned, held joint velocity during computation",
+          "reaches": 8,
+          "true_collisions": 2,
+          "collision_episodes_by_onset_phase": {
+            "moving": 2,
+            "holding": 0
+          },
+          "collision_samples_by_phase": {
+            "moving": 22,
+            "holding": 0
+          },
+          "minimum_true_clearance_m": -0.023799791932106018,
+          "steps": 800,
+          "simulated_duration_s": 19.999999999999932,
+          "compute_median_ms": 18.195218639448285,
+          "compute_p95_ms": 18.898676289245486,
+          "solver_median_ms": 17.93784135952592,
+          "solver_p95_ms": 18.584394198842347,
+          "step_period_median_ms": 25.000000000000355,
+          "step_period_p95_ms": 25.000000000000355,
+          "achieved_step_rate_hz": 40.000000000000135,
+          "within_50mm_robot_direction_samples": {
+            "away": 198,
+            "toward": 126,
+            "stationary": 0
+          },
+          "within_50mm_mean_robot_clearance_rate_mps": -0.006260608343122311,
+          "within_50mm_mean_relative_clearance_rate_mps": 0.00034923458762821705,
+          "infeasible_steps": 0,
+          "joint_position_clamped_intervals": 0,
+          "survives": false,
+          "time_to_first_goal_s": 0.9000000000000006,
+          "max_joint_velocity_radps": [
+            0.6667001843452454,
+            0.7212344408035278,
+            0.14474719762802124,
+            0.5652850270271301,
+            0.0714767724275589,
+            0.7001680135726929
+          ],
+          "max_sampled_joint_acceleration_radps2": [
+            5.622733116149902,
+            5.645573139190674,
+            2.1128385066986084,
+            5.29712438583374,
+            1.5386565923690796,
+            6.953072547912598
+          ],
+          "max_proposed_joint_velocity_radps": [
+            0.6667001843452454,
+            0.7212344408035278,
+            0.14474719762802124,
+            0.5652850270271301,
+            0.0714767724275589,
+            0.7001680135726929
+          ],
+          "velocity_limits_radps": [
+            [
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732
+            ],
+            [
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732
+            ]
+          ],
+          "within_joint_velocity_limits": true,
+          "velocity_clipped_steps": 0,
+          "worst_camera_frames": {},
+          "initial_x_m": 0.52,
+          "scene_status": "VALID_SCENE"
+        },
+        "B": {
+          "mode": "B",
+          "prediction": true,
+          "rod_speed_mps": 0.1,
+          "controller": "cuRobo MPC tuned, held joint velocity during computation",
+          "reaches": 8,
+          "true_collisions": 0,
+          "collision_episodes_by_onset_phase": {
+            "moving": 0,
+            "holding": 0
+          },
+          "collision_samples_by_phase": {
+            "moving": 0,
+            "holding": 0
+          },
+          "minimum_true_clearance_m": 0.02158699162883264,
+          "steps": 800,
+          "simulated_duration_s": 19.999999999999932,
+          "compute_median_ms": 19.56028351560235,
+          "compute_p95_ms": 20.32842133194208,
+          "solver_median_ms": 18.809851026162505,
+          "solver_p95_ms": 19.43606659770012,
+          "step_period_median_ms": 25.000000000000355,
+          "step_period_p95_ms": 25.000000000000355,
+          "achieved_step_rate_hz": 40.000000000000135,
+          "within_50mm_robot_direction_samples": {
+            "away": 144,
+            "toward": 49,
+            "stationary": 0
+          },
+          "within_50mm_mean_robot_clearance_rate_mps": 0.006092428229421554,
+          "within_50mm_mean_relative_clearance_rate_mps": 0.00030582666029861785,
+          "infeasible_steps": 1,
+          "joint_position_clamped_intervals": 0,
+          "survives": true,
+          "time_to_first_goal_s": 2.5749999999999953,
+          "max_joint_velocity_radps": [
+            0.7864375710487366,
+            0.7897062301635742,
+            0.3986095190048218,
+            0.7323571443557739,
+            0.19533410668373108,
+            0.8186826705932617
+          ],
+          "max_sampled_joint_acceleration_radps2": [
+            6.58400297164917,
+            5.436953067779541,
+            3.432137966156006,
+            3.582906126976013,
+            7.813364267349243,
+            7.428500652313232
+          ],
+          "max_proposed_joint_velocity_radps": [
+            0.7864375710487366,
+            0.7897062301635742,
+            0.3986095190048218,
+            0.7323571443557739,
+            0.19533410668373108,
+            0.8186826705932617
+          ],
+          "velocity_limits_radps": [
+            [
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732
+            ],
+            [
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732
+            ]
+          ],
+          "within_joint_velocity_limits": true,
+          "velocity_clipped_steps": 0,
+          "worst_camera_frames": {},
+          "initial_x_m": 0.52,
+          "scene_status": "VALID_SCENE"
+        },
+        "E": {
+          "mode": "E",
+          "prediction": true,
+          "rod_speed_mps": 0.1,
+          "controller": "cuRobo MPC tuned, held joint velocity during computation",
+          "reaches": 3,
+          "true_collisions": 1,
+          "collision_episodes_by_onset_phase": {
+            "moving": 1,
+            "holding": 0
+          },
+          "collision_samples_by_phase": {
+            "moving": 85,
+            "holding": 0
+          },
+          "minimum_true_clearance_m": -0.04535296559202304,
+          "steps": 393,
+          "simulated_duration_s": 20.0,
+          "compute_median_ms": 49.329566303640604,
+          "compute_p95_ms": 60.78092083334921,
+          "solver_median_ms": 20.483831875026226,
+          "solver_p95_ms": 21.73126870766282,
+          "step_period_median_ms": 49.16192917153239,
+          "step_period_p95_ms": 60.295562818646424,
+          "achieved_step_rate_hz": 19.65,
+          "within_50mm_robot_direction_samples": {
+            "away": 139,
+            "toward": 66,
+            "stationary": 0
+          },
+          "within_50mm_mean_robot_clearance_rate_mps": 0.010421432903090356,
+          "within_50mm_mean_relative_clearance_rate_mps": -0.0038849844195917864,
+          "infeasible_steps": 4,
+          "joint_position_clamped_intervals": 0,
+          "survives": false,
+          "time_to_first_goal_s": 6.632708023767918,
+          "max_joint_velocity_radps": [
+            0.35935649275779724,
+            0.5097160935401917,
+            0.41723307967185974,
+            0.41341647505760193,
+            0.1451406627893448,
+            0.34615880250930786
+          ],
+          "max_sampled_joint_acceleration_radps2": [
+            1.6821038722991943,
+            1.8011382818222046,
+            1.9815508127212524,
+            1.7931488752365112,
+            0.7428819537162781,
+            0.958818793296814
+          ],
+          "max_proposed_joint_velocity_radps": [
+            0.35935649275779724,
+            0.5097160935401917,
+            0.41723307967185974,
+            0.41341647505760193,
+            0.1451406627893448,
+            0.34615880250930786
+          ],
+          "velocity_limits_radps": [
+            [
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732
+            ],
+            [
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732
+            ]
+          ],
+          "within_joint_velocity_limits": true,
+          "velocity_clipped_steps": 0,
+          "worst_camera_frames": {
+            "missing_box_frames": 91,
+            "height": {
+              "step": 34,
+              "time_s": 1.619908935856074,
+              "missing_box": true,
+              "missing_height_m": 0.25,
+              "missing_width_xy_m": [
+                0.05,
+                0.05
+              ],
+              "center_offset_xyz_m": null,
+              "center_offset_norm_m": null,
+              "missing_top_m": 0.25,
+              "true_center_m": [
+                0.3580091064143926,
+                0.24499999999999997,
+                0.125
+              ],
+              "true_dims_m": [
+                0.05,
+                0.05,
+                0.25
+              ]
+            },
+            "width": {
+              "step": 20,
+              "time_s": 0.9892703667283058,
+              "missing_box": false,
+              "missing_height_m": 0.0,
+              "missing_width_xy_m": [
+                0.05,
+                1.3877787807814457e-17
+              ],
+              "missing_top_m": 0.0,
+              "center_offset_xyz_m": [
+                0.06602006807923316,
+                -0.0015601095557212508,
+                0.010000000000000009
+              ],
+              "center_offset_norm_m": 0.0667913417368781,
+              "observed_center_m": [
+                0.4870930314064026,
+                0.24343989044427872,
+                0.135
+              ],
+              "observed_dims_m": [
+                0.0819751310348511,
+                0.07687951505184176,
+                0.27
+              ],
+              "true_center_m": [
+                0.4210729633271694,
+                0.24499999999999997,
+                0.125
+              ],
+              "true_dims_m": [
+                0.05,
+                0.05,
+                0.25
+              ]
+            },
+            "offset": {
+              "step": 33,
+              "time_s": 1.5753104076720774,
+              "missing_box": false,
+              "missing_height_m": 0.14908391565084456,
+              "missing_width_xy_m": [
+                0.05,
+                1.3877787807814457e-17
+              ],
+              "missing_top_m": 0.14908391565084456,
+              "center_offset_xyz_m": [
+                0.11156304047442972,
+                -0.0015497308969497359,
+                -0.07454195782542228
+              ],
+              "center_offset_norm_m": 0.13418352038234516,
+              "observed_center_m": [
+                0.474031999707222,
+                0.24345026910305023,
+                0.050458042174577715
+              ],
+              "observed_dims_m": [
+                0.055853067636489895,
+                0.07685875773429873,
+                0.10091608434915543
+              ],
+              "true_center_m": [
+                0.36246895923279226,
+                0.24499999999999997,
+                0.125
+              ],
+              "true_dims_m": [
+                0.05,
+                0.05,
+                0.25
+              ]
+            }
+          },
+          "initial_x_m": 0.52,
+          "scene_status": "VALID_SCENE"
+        }
+      }
+    },
+    {
+      "speed_mps": 0.1,
+      "initial_x_m": 0.6,
+      "status": "VALID_SCENE",
+      "cases": {
+        "A": {
+          "mode": "A",
+          "prediction": false,
+          "rod_speed_mps": 0.1,
+          "controller": "cuRobo MPC tuned, held joint velocity during computation",
+          "reaches": 9,
+          "true_collisions": 3,
+          "collision_episodes_by_onset_phase": {
+            "moving": 3,
+            "holding": 0
+          },
+          "collision_samples_by_phase": {
+            "moving": 48,
+            "holding": 0
+          },
+          "minimum_true_clearance_m": -0.0277635553254188,
+          "steps": 800,
+          "simulated_duration_s": 19.999999999999932,
+          "compute_median_ms": 18.012971384450793,
+          "compute_p95_ms": 18.75591645948589,
+          "solver_median_ms": 17.76606240309775,
+          "solver_p95_ms": 18.435259419493377,
+          "step_period_median_ms": 25.000000000000355,
+          "step_period_p95_ms": 25.000000000000355,
+          "achieved_step_rate_hz": 40.000000000000135,
+          "within_50mm_robot_direction_samples": {
+            "away": 173,
+            "toward": 138,
+            "stationary": 1
+          },
+          "within_50mm_mean_robot_clearance_rate_mps": 0.0017585868426810908,
+          "within_50mm_mean_relative_clearance_rate_mps": -0.00023067697297202578,
+          "infeasible_steps": 0,
+          "joint_position_clamped_intervals": 0,
+          "survives": false,
+          "time_to_first_goal_s": 1.1500000000000001,
+          "max_joint_velocity_radps": [
+            0.8084995746612549,
+            0.6869645714759827,
+            0.18997259438037872,
+            0.6032930016517639,
+            0.07771402597427368,
+            0.719709575176239
+          ],
+          "max_sampled_joint_acceleration_radps2": [
+            4.47196102142334,
+            4.8034820556640625,
+            2.227120876312256,
+            3.8131916522979736,
+            1.6268714666366577,
+            4.201009273529053
+          ],
+          "max_proposed_joint_velocity_radps": [
+            0.8084995746612549,
+            0.6869645714759827,
+            0.18997259438037872,
+            0.6032930016517639,
+            0.07771402597427368,
+            0.719709575176239
+          ],
+          "velocity_limits_radps": [
+            [
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732
+            ],
+            [
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732
+            ]
+          ],
+          "within_joint_velocity_limits": true,
+          "velocity_clipped_steps": 0,
+          "worst_camera_frames": {},
+          "initial_x_m": 0.6,
+          "scene_status": "VALID_SCENE"
+        },
+        "B": {
+          "mode": "B",
+          "prediction": true,
+          "rod_speed_mps": 0.1,
+          "controller": "cuRobo MPC tuned, held joint velocity during computation",
+          "reaches": 6,
+          "true_collisions": 0,
+          "collision_episodes_by_onset_phase": {
+            "moving": 0,
+            "holding": 0
+          },
+          "collision_samples_by_phase": {
+            "moving": 0,
+            "holding": 0
+          },
+          "minimum_true_clearance_m": 0.014396589223980641,
+          "steps": 800,
+          "simulated_duration_s": 19.999999999999932,
+          "compute_median_ms": 19.338231068104506,
+          "compute_p95_ms": 20.089816045947373,
+          "solver_median_ms": 18.635781481862068,
+          "solver_p95_ms": 19.29385841358453,
+          "step_period_median_ms": 25.000000000000355,
+          "step_period_p95_ms": 25.000000000000355,
+          "achieved_step_rate_hz": 40.000000000000135,
+          "within_50mm_robot_direction_samples": {
+            "away": 104,
+            "toward": 55,
+            "stationary": 0
+          },
+          "within_50mm_mean_robot_clearance_rate_mps": 0.020076023649715995,
+          "within_50mm_mean_relative_clearance_rate_mps": 0.00029535456158437466,
+          "infeasible_steps": 0,
+          "joint_position_clamped_intervals": 0,
+          "survives": true,
+          "time_to_first_goal_s": 3.474999999999992,
+          "max_joint_velocity_radps": [
+            0.7897133231163025,
+            0.7046936750411987,
+            0.15943600237369537,
+            0.5605400800704956,
+            0.17722994089126587,
+            0.6503325700759888
+          ],
+          "max_sampled_joint_acceleration_radps2": [
+            6.236381530761719,
+            6.204240322113037,
+            1.5601311922073364,
+            4.083573818206787,
+            1.441851258277893,
+            4.018652439117432
+          ],
+          "max_proposed_joint_velocity_radps": [
+            0.7897133231163025,
+            0.7046936750411987,
+            0.15943600237369537,
+            0.5605400800704956,
+            0.17722994089126587,
+            0.6503325700759888
+          ],
+          "velocity_limits_radps": [
+            [
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732
+            ],
+            [
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732
+            ]
+          ],
+          "within_joint_velocity_limits": true,
+          "velocity_clipped_steps": 0,
+          "worst_camera_frames": {},
+          "initial_x_m": 0.6,
+          "scene_status": "VALID_SCENE"
+        },
+        "E": {
+          "mode": "E",
+          "prediction": true,
+          "rod_speed_mps": 0.1,
+          "controller": "cuRobo MPC tuned, held joint velocity during computation",
+          "reaches": 4,
+          "true_collisions": 0,
+          "collision_episodes_by_onset_phase": {
+            "moving": 0,
+            "holding": 0
+          },
+          "collision_samples_by_phase": {
+            "moving": 0,
+            "holding": 0
+          },
+          "minimum_true_clearance_m": 0.018721812361500126,
+          "steps": 368,
+          "simulated_duration_s": 20.0,
+          "compute_median_ms": 53.30705642700195,
+          "compute_p95_ms": 75.17637007404116,
+          "solver_median_ms": 20.70610667578876,
+          "solver_p95_ms": 21.834638598375022,
+          "step_period_median_ms": 53.30705642700195,
+          "step_period_p95_ms": 75.17637007404117,
+          "achieved_step_rate_hz": 18.4,
+          "within_50mm_robot_direction_samples": {
+            "away": 25,
+            "toward": 94,
+            "stationary": 0
+          },
+          "within_50mm_mean_robot_clearance_rate_mps": -0.03860344836579108,
+          "within_50mm_mean_relative_clearance_rate_mps": -0.009749781541790205,
+          "infeasible_steps": 4,
+          "joint_position_clamped_intervals": 0,
+          "survives": true,
+          "time_to_first_goal_s": 5.116274370346218,
+          "max_joint_velocity_radps": [
+            0.7442477345466614,
+            0.5052765607833862,
+            0.26069363951683044,
+            0.2897675633430481,
+            0.11001527309417725,
+            0.4900711476802826
+          ],
+          "max_sampled_joint_acceleration_radps2": [
+            2.573271407539469,
+            2.556917980458328,
+            1.115257740020752,
+            1.4960399288215556,
+            0.5033789277076721,
+            1.4883495569229126
+          ],
+          "max_proposed_joint_velocity_radps": [
+            0.7442477345466614,
+            0.5052765607833862,
+            0.26069363951683044,
+            0.2897675633430481,
+            0.11001527309417725,
+            0.4900711476802826
+          ],
+          "velocity_limits_radps": [
+            [
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732
+            ],
+            [
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732
+            ]
+          ],
+          "within_joint_velocity_limits": true,
+          "velocity_clipped_steps": 0,
+          "worst_camera_frames": {
+            "missing_box_frames": 89,
+            "height": {
+              "step": 58,
+              "time_s": 3.4024287653155625,
+              "missing_box": true,
+              "missing_height_m": 0.25,
+              "missing_width_xy_m": [
+                0.05,
+                0.05
+              ],
+              "center_offset_xyz_m": null,
+              "center_offset_norm_m": null,
+              "missing_top_m": 0.25,
+              "true_center_m": [
+                0.3402428765315562,
+                0.24499999999999997,
+                0.125
+              ],
+              "true_dims_m": [
+                0.05,
+                0.05,
+                0.25
+              ]
+            },
+            "width": {
+              "step": 47,
+              "time_s": 2.884698354639113,
+              "missing_box": false,
+              "missing_height_m": 0.11091912120580674,
+              "missing_width_xy_m": [
+                0.05,
+                1.3877787807814457e-17
+              ],
+              "missing_top_m": 0.11091912120580674,
+              "center_offset_xyz_m": [
+                0.08176090652123097,
+                0.006844249665737184,
+                -0.05545956060290337
+              ],
+              "center_offset_norm_m": 0.09903258277419369,
+              "observed_center_m": [
+                0.39329107105731964,
+                0.25184424966573715,
+                0.06954043939709663
+              ],
+              "observed_dims_m": [
+                0.10488045096397403,
+                0.06631044924259188,
+                0.13908087879419326
+              ],
+              "true_center_m": [
+                0.31153016453608867,
+                0.24499999999999997,
+                0.125
+              ],
+              "true_dims_m": [
+                0.05,
+                0.05,
+                0.25
+              ]
+            },
+            "offset": {
+              "step": 346,
+              "time_s": 19.01434498326853,
+              "missing_box": false,
+              "missing_height_m": 0.1323701176047325,
+              "missing_width_xy_m": [
+                0.05,
+                1.3877787807814457e-17
+              ],
+              "missing_top_m": 0.1323701176047325,
+              "center_offset_xyz_m": [
+                0.08565329383127379,
+                -0.001450340151786772,
+                -0.06618505880236625
+              ],
+              "center_offset_norm_m": 0.10825457144793049,
+              "observed_center_m": [
+                0.38708779215812683,
+                0.2435496598482132,
+                0.058814941197633745
+              ],
+              "observed_dims_m": [
+                0.07190486669540408,
+                0.07709056019783023,
+                0.11762988239526749
+              ],
+              "true_center_m": [
+                0.30143449832685304,
+                0.24499999999999997,
+                0.125
+              ],
+              "true_dims_m": [
+                0.05,
+                0.05,
+                0.25
+              ]
+            }
+          },
+          "initial_x_m": 0.6,
+          "scene_status": "VALID_SCENE"
+        }
+      }
+    },
+    {
+      "speed_mps": 0.1,
+      "initial_x_m": 0.68,
+      "status": "VALID_SCENE",
+      "cases": {
+        "A": {
+          "mode": "A",
+          "prediction": false,
+          "rod_speed_mps": 0.1,
+          "controller": "cuRobo MPC tuned, held joint velocity during computation",
+          "reaches": 9,
+          "true_collisions": 1,
+          "collision_episodes_by_onset_phase": {
+            "moving": 1,
+            "holding": 0
+          },
+          "collision_samples_by_phase": {
+            "moving": 16,
+            "holding": 0
+          },
+          "minimum_true_clearance_m": -0.026764410281807115,
+          "steps": 800,
+          "simulated_duration_s": 19.999999999999932,
+          "compute_median_ms": 18.150608520954847,
+          "compute_p95_ms": 18.851364986039698,
+          "solver_median_ms": 17.88459741510451,
+          "solver_p95_ms": 18.52922283578664,
+          "step_period_median_ms": 25.000000000000355,
+          "step_period_p95_ms": 25.000000000000355,
+          "achieved_step_rate_hz": 40.000000000000135,
+          "within_50mm_robot_direction_samples": {
+            "away": 77,
+            "toward": 56,
+            "stationary": 0
+          },
+          "within_50mm_mean_robot_clearance_rate_mps": -0.007089142555929152,
+          "within_50mm_mean_relative_clearance_rate_mps": -0.0017517472047043068,
+          "infeasible_steps": 0,
+          "joint_position_clamped_intervals": 0,
+          "survives": false,
+          "time_to_first_goal_s": 1.0750000000000004,
+          "max_joint_velocity_radps": [
+            0.7236111164093018,
+            0.6666685342788696,
+            0.17900098860263824,
+            0.5158386826515198,
+            0.12526008486747742,
+            0.67203688621521
+          ],
+          "max_sampled_joint_acceleration_radps2": [
+            4.930205821990967,
+            5.388315200805664,
+            1.3360166549682617,
+            3.6722612380981445,
+            1.040041446685791,
+            4.381537437438965
+          ],
+          "max_proposed_joint_velocity_radps": [
+            0.7236111164093018,
+            0.6666685342788696,
+            0.17900098860263824,
+            0.5158386826515198,
+            0.12526008486747742,
+            0.67203688621521
+          ],
+          "velocity_limits_radps": [
+            [
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732
+            ],
+            [
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732
+            ]
+          ],
+          "within_joint_velocity_limits": true,
+          "velocity_clipped_steps": 0,
+          "worst_camera_frames": {},
+          "initial_x_m": 0.68,
+          "scene_status": "VALID_SCENE"
+        },
+        "B": {
+          "mode": "B",
+          "prediction": true,
+          "rod_speed_mps": 0.1,
+          "controller": "cuRobo MPC tuned, held joint velocity during computation",
+          "reaches": 5,
+          "true_collisions": 0,
+          "collision_episodes_by_onset_phase": {
+            "moving": 0,
+            "holding": 0
+          },
+          "collision_samples_by_phase": {
+            "moving": 0,
+            "holding": 0
+          },
+          "minimum_true_clearance_m": 0.016627378051917982,
+          "steps": 800,
+          "simulated_duration_s": 19.999999999999932,
+          "compute_median_ms": 19.48490901850164,
+          "compute_p95_ms": 20.327295479364693,
+          "solver_median_ms": 18.794358475133777,
+          "solver_p95_ms": 19.598277704790235,
+          "step_period_median_ms": 25.000000000000355,
+          "step_period_p95_ms": 25.000000000000355,
+          "achieved_step_rate_hz": 40.000000000000135,
+          "within_50mm_robot_direction_samples": {
+            "away": 121,
+            "toward": 59,
+            "stationary": 0
+          },
+          "within_50mm_mean_robot_clearance_rate_mps": 0.07352853914341609,
+          "within_50mm_mean_relative_clearance_rate_mps": -0.0018302496728668733,
+          "infeasible_steps": 29,
+          "joint_position_clamped_intervals": 0,
+          "survives": true,
+          "time_to_first_goal_s": 3.5749999999999917,
+          "max_joint_velocity_radps": [
+            0.6878964900970459,
+            1.1431065797805786,
+            1.6544815301895142,
+            0.7604123950004578,
+            0.23208168148994446,
+            0.6897678375244141
+          ],
+          "max_sampled_joint_acceleration_radps2": [
+            8.801657676696777,
+            7.9099321365356445,
+            11.9224214553833,
+            8.253717422485352,
+            9.123340606689453,
+            5.252734184265137
+          ],
+          "max_proposed_joint_velocity_radps": [
+            0.6878964900970459,
+            1.1431065797805786,
+            1.6544815301895142,
+            0.7604123950004578,
+            0.23208168148994446,
+            0.6897678375244141
+          ],
+          "velocity_limits_radps": [
+            [
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732
+            ],
+            [
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732
+            ]
+          ],
+          "within_joint_velocity_limits": true,
+          "velocity_clipped_steps": 0,
+          "worst_camera_frames": {},
+          "initial_x_m": 0.68,
+          "scene_status": "VALID_SCENE"
+        },
+        "E": {
+          "mode": "E",
+          "prediction": true,
+          "rod_speed_mps": 0.1,
+          "controller": "cuRobo MPC tuned, held joint velocity during computation",
+          "reaches": 4,
+          "true_collisions": 1,
+          "collision_episodes_by_onset_phase": {
+            "moving": 1,
+            "holding": 0
+          },
+          "collision_samples_by_phase": {
+            "moving": 7,
+            "holding": 0
+          },
+          "minimum_true_clearance_m": -0.007059049868682034,
+          "steps": 356,
+          "simulated_duration_s": 20.0,
+          "compute_median_ms": 57.16813891194761,
+          "compute_p95_ms": 80.33224707469344,
+          "solver_median_ms": 20.848078653216362,
+          "solver_p95_ms": 22.350308252498507,
+          "step_period_median_ms": 57.16813891194761,
+          "step_period_p95_ms": 80.33224707469344,
+          "achieved_step_rate_hz": 17.8,
+          "within_50mm_robot_direction_samples": {
+            "away": 118,
+            "toward": 44,
+            "stationary": 0
+          },
+          "within_50mm_mean_robot_clearance_rate_mps": 0.04878468577024005,
+          "within_50mm_mean_relative_clearance_rate_mps": 0.003113091761368411,
+          "infeasible_steps": 9,
+          "joint_position_clamped_intervals": 0,
+          "survives": false,
+          "time_to_first_goal_s": 4.296779837924987,
+          "max_joint_velocity_radps": [
+            0.49432191252708435,
+            0.48049622774124146,
+            0.18687240779399872,
+            0.31900614500045776,
+            0.10478459298610687,
+            0.38590019941329956
+          ],
+          "max_sampled_joint_acceleration_radps2": [
+            2.2939181327819824,
+            3.2874417304992676,
+            1.2475028038024902,
+            1.894579529762268,
+            0.6335977911949158,
+            1.9797043800354004
+          ],
+          "max_proposed_joint_velocity_radps": [
+            0.49432191252708435,
+            0.48049622774124146,
+            0.18687240779399872,
+            0.31900614500045776,
+            0.10478459298610687,
+            0.38590019941329956
+          ],
+          "velocity_limits_radps": [
+            [
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732,
+              -3.1415927410125732
+            ],
+            [
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732,
+              3.1415927410125732
+            ]
+          ],
+          "within_joint_velocity_limits": true,
+          "velocity_clipped_steps": 0,
+          "worst_camera_frames": {
+            "missing_box_frames": 81,
+            "height": {
+              "step": 58,
+              "time_s": 3.519514411687851,
+              "missing_box": true,
+              "missing_height_m": 0.25,
+              "missing_width_xy_m": [
+                0.05,
+                0.05
+              ],
+              "center_offset_xyz_m": null,
+              "center_offset_norm_m": null,
+              "missing_top_m": 0.25,
+              "true_center_m": [
+                0.3280485588312149,
+                0.24499999999999997,
+                0.125
+              ],
+              "true_dims_m": [
+                0.05,
+                0.05,
+                0.25
+              ]
+            },
+            "width": {
+              "step": 46,
+              "time_s": 2.968602932523936,
+              "missing_box": false,
+              "missing_height_m": 0.1086986991763115,
+              "missing_width_xy_m": [
+                0.05,
+                1.3877787807814457e-17
+              ],
+              "missing_top_m": 0.1086986991763115,
+              "center_offset_xyz_m": [
+                0.08166600058786566,
+                0.0066671940684318864,
+                -0.05434934958815575
+              ],
+              "center_offset_norm_m": 0.0983241523198597,
+              "observed_center_m": [
+                0.4648057073354721,
+                0.25166719406843185,
+                0.07065065041184425
+              ],
+              "observed_dims_m": [
+                0.10997706532478335,
+                0.0666642624139786,
+                0.1413013008236885
+              ],
+              "true_center_m": [
+                0.38313970674760645,
+                0.24499999999999997,
+                0.125
+              ],
+              "true_dims_m": [
+                0.05,
+                0.05,
+                0.25
+              ]
+            },
+            "offset": {
+              "step": 57,
+              "time_s": 3.4747322984039783,
+              "missing_box": false,
+              "missing_height_m": 0.17553560763597487,
+              "missing_width_xy_m": [
+                0.05,
+                1.3877787807814457e-17
+              ],
+              "missing_top_m": 0.17553560763597487,
+              "center_offset_xyz_m": [
+                0.11131076820194719,
+                0.006654051244258913,
+                -0.08776780381798743
+              ],
+              "center_offset_norm_m": 0.14190683881582863,
+              "observed_center_m": [
+                0.4438375383615494,
+                0.2516540512442589,
+                0.03723219618201256
+              ],
+              "observed_dims_m": [
+                0.05370020747184756,
+                0.06663797676563266,
+                0.07446439236402512
+              ],
+              "true_center_m": [
+                0.3325267701596022,
+                0.24499999999999997,
+                0.125
+              ],
+              "true_dims_m": [
+                0.05,
+                0.05,
+                0.25
+              ]
+            }
+          },
+          "initial_x_m": 0.68,
+          "scene_status": "VALID_SCENE"
+        }
+      }
+    }
+  ],
+  "worst_E_frames_all": [
+    {
+      "step": 26,
+      "time_s": 1.2516219136305153,
+      "missing_box": true,
+      "missing_height_m": 0.25,
+      "missing_width_xy_m": [
+        0.05,
+        0.05
+      ],
+      "center_offset_xyz_m": null,
+      "center_offset_norm_m": null,
+      "missing_top_m": 0.25,
+      "true_center_m": [
+        0.30258109568152575,
+        0.24499999999999997,
+        0.125
+      ],
+      "true_dims_m": [
+        0.05,
+        0.05,
+        0.25
+      ],
+      "case": "Rates E 0.05 m/s X=0.36",
+      "speed_mps": 0.05,
+      "initial_x_m": 0.36,
+      "scene_status": "VALID_SCENE"
+    },
+    {
+      "step": 27,
+      "time_s": 1.2987886383198202,
+      "missing_box": true,
+      "missing_height_m": 0.25,
+      "missing_width_xy_m": [
+        0.05,
+        0.05
+      ],
+      "center_offset_xyz_m": null,
+      "center_offset_norm_m": null,
+      "missing_top_m": 0.25,
+      "true_center_m": [
+        0.304939431915991,
+        0.24499999999999997,
+        0.125
+      ],
+      "true_dims_m": [
+        0.05,
+        0.05,
+        0.25
+      ],
+      "case": "Rates E 0.05 m/s X=0.36",
+      "speed_mps": 0.05,
+      "initial_x_m": 0.36,
+      "scene_status": "VALID_SCENE"
+    },
+    {
+      "step": 28,
+      "time_s": 1.3462605783715844,
+      "missing_box": true,
+      "missing_height_m": 0.25,
+      "missing_width_xy_m": [
+        0.05,
+        0.05
+      ],
+      "center_offset_xyz_m": null,
+      "center_offset_norm_m": null,
+      "missing_top_m": 0.25,
+      "true_center_m": [
+        0.3073130289185792,
+        0.24499999999999997,
+        0.125
+      ],
+      "true_dims_m": [
+        0.05,
+        0.05,
+        0.25
+      ],
+      "case": "Rates E 0.05 m/s X=0.36",
+      "speed_mps": 0.05,
+      "initial_x_m": 0.36,
+      "scene_status": "VALID_SCENE"
+    }
+  ],
+  "worst_E_frames_valid": [
+    {
+      "step": 26,
+      "time_s": 1.2516219136305153,
+      "missing_box": true,
+      "missing_height_m": 0.25,
+      "missing_width_xy_m": [
+        0.05,
+        0.05
+      ],
+      "center_offset_xyz_m": null,
+      "center_offset_norm_m": null,
+      "missing_top_m": 0.25,
+      "true_center_m": [
+        0.30258109568152575,
+        0.24499999999999997,
+        0.125
+      ],
+      "true_dims_m": [
+        0.05,
+        0.05,
+        0.25
+      ],
+      "case": "Rates E 0.05 m/s X=0.36",
+      "speed_mps": 0.05,
+      "initial_x_m": 0.36,
+      "scene_status": "VALID_SCENE"
+    },
+    {
+      "step": 27,
+      "time_s": 1.2987886383198202,
+      "missing_box": true,
+      "missing_height_m": 0.25,
+      "missing_width_xy_m": [
+        0.05,
+        0.05
+      ],
+      "center_offset_xyz_m": null,
+      "center_offset_norm_m": null,
+      "missing_top_m": 0.25,
+      "true_center_m": [
+        0.304939431915991,
+        0.24499999999999997,
+        0.125
+      ],
+      "true_dims_m": [
+        0.05,
+        0.05,
+        0.25
+      ],
+      "case": "Rates E 0.05 m/s X=0.36",
+      "speed_mps": 0.05,
+      "initial_x_m": 0.36,
+      "scene_status": "VALID_SCENE"
+    },
+    {
+      "step": 28,
+      "time_s": 1.3462605783715844,
+      "missing_box": true,
+      "missing_height_m": 0.25,
+      "missing_width_xy_m": [
+        0.05,
+        0.05
+      ],
+      "center_offset_xyz_m": null,
+      "center_offset_norm_m": null,
+      "missing_top_m": 0.25,
+      "true_center_m": [
+        0.3073130289185792,
+        0.24499999999999997,
+        0.125
+      ],
+      "true_dims_m": [
+        0.05,
+        0.05,
+        0.25
+      ],
+      "case": "Rates E 0.05 m/s X=0.36",
+      "speed_mps": 0.05,
+      "initial_x_m": 0.36,
+      "scene_status": "VALID_SCENE"
+    }
+  ]
+}

@@ -316,3 +316,76 @@ cd ~/ur5_ws/src/ur5_moveit_demo && scripts/run_sim_camera_moving_rod_mpc_tuned.s
 ```
 
 Exit Codex, run `codex logout` and `codex login status`, confirm logged out.
+
+
+## 2026-11-12 fixed-phase report and interactive groups
+
+Source parent `8f7e4f2c02629ab5ed0d047c0b4e557b8331be18`, branch
+`experiment/newton-link-depth-camera`. Same school Ubuntu 24.04.4/Jazzy,
+user aisc216 and RTX 3080; no ROS, physics, install or hardware operation.
+Resolve the implementation commit with
+`git log -1 --format=%H -- scripts/curobo_moving_rod_rates.py` after syncing.
+
+Completed 30 cases: fixed initial X=0.36/0.44/0.52/0.60/0.68, decreasing X,
+0.05/0.10 m/s, 20 simulated seconds, A/B/E with the frozen tuned MPC.
+A has no obstacle input and is scored against truth. B/E use prediction; E uses
+the unchanged v2 memory. The prior 0.10 B gate was explicitly lifted for this
+report, so all ten E cases ran. No tuning or phase substitution occurred.
+AST audit confirms batch control/perception/clock identical to the tuned
+controller except A's obstacle-disable branch.
+
+Valid-phase success rates: 0.05 B=5/5, E=3/5; 0.10 B=4/4, E=1/4.
+The 0.10, X=0.36 condition is INVALID_SCENE because A did not collide;
+all its A/B/E data remain but are excluded from aggregate rates and extrema.
+A rates are 0/5 and 0/4 by the scene-validity definition. Full mean reaches,
+episodes, min clearance, joint speeds/accelerations and per-phase table are in
+`moving_rod_rates.json`/`.log` and the English record. All 19776 step clocks
+were audited; E has one geometry-error record per capture. Valid E frames
+include 946 missing boxes out of 3401; worst-three ranking is explicit.
+One-page senior report: `docs/SIM_CAMERA_MOVING_ROD_REPORT.zh-TW.md`.
+
+Steps 1–6 were saved and the speed/phase/case replay verified before live work.
+Then added tuned-script `--interactive` dispatch and an independent lifecycle
+manager: planar drag, same frozen controller, clean stop/join/worker exit,
+raised-start reset, start new group. Renderer protocol adds optional Y only;
+old default-Y behavior is regression-tested. Frozen settings, tuned factory
+and run_case, v2/original MPC source, old results, library/shared configs/FEM
+path are unchanged. Existing dirty results, deleted wall image and untracked
+cuRobo remain untouched and excluded from commit.
+
+Live smoke took 14.160289 s, using actual programmatic GUI callbacks
+A→E→B→A, three switches. Maximum owned GPU loops=1; all four reset errors=0.
+E renderer PID 1255421 exited with code 0 before B started.
+All owned threads/workers stopped; the old user viewer PID 1251897 and renderer
+1251905 on port 30000 were preserved. New viewers used personal override 30001.
+Live mode never writes evidence; all 11 old/new result hashes were unchanged
+through replay and smoke. Live rates include UI/capture costs and wall-clock
+plant motion; short smoke rates are not a long-duration performance benchmark.
+
+Tests: CPU denominator/invalid-phase/stall contracts; five live lifecycle,
+geometry, Y-protocol and write-guard tests; existing four tuned contracts;
+project CI, 30-case GPU batch, 19776 interval audit, three replay callbacks,
+14.16 s live smoke and evidence-hash checks. Verification files:
+`moving_rod_rates.viewer.log` and `moving_rod_rates.live.log`.
+
+Limits: ideal velocity plant without an acceleration limiter, noise-free camera,
+one rod/one AABB, simulator shape-index masking, forward/downward view,
+finite infeasible MPC commands and measured-timing variability. Acceleration
+numbers are update-sampled Δv/Δt, not bounded continuous physical peaks.
+Next single step: present the one-page descriptive rates and inspect E's
+per-frame missing/partial boxes alongside collision timing before proposing
+another experiment; do not tune against these results silently.
+
+Read-only phase replay:
+
+```bash
+cd ~/ur5_ws/src/ur5_moveit_demo && NEWTON_VIEWER_PORT=30001 scripts/run_sim_camera_moving_rod_rates.sh --replay
+```
+
+Interactive live demo (no writes):
+
+```bash
+cd ~/ur5_ws/src/ur5_moveit_demo && NEWTON_VIEWER_PORT=30001 scripts/run_sim_camera_moving_rod_mpc_tuned.sh --interactive
+```
+
+Exit Codex, run `codex logout` and `codex login status`, and confirm logged out.

@@ -109,3 +109,49 @@ cd ~/ur5_ws/src/ur5_moveit_demo && scripts/run_sim_camera_moving_rod_mpc_tuned.s
 下一步是檢查高速時 infeasible（不可行）命令與碰撞的關係，再決定新的控制實驗；
 這次不更動已凍結設定。詳細候選失敗、比較表與每關節數據都保留在英文紀錄及 JSON。
 離開 Codex 後執行 `codex logout`、`codex login status`，確認未登入。
+
+
+## 固定五相位成功率
+
+本次不調參；A/B/E 都用同一凍結 MPC，A 只關掉規劃障礙物。
+兩速度各測初始 X=0.36、0.44、0.52、0.60、0.68 m，朝負 X，共 30 組。
+依使用者要求解除舊 E 門檻，兩速度都完整執行 E。
+A 未碰撞的速度×相位保留為 INVALID_SCENE，但不列入三組分母；
+成功要求零碰撞且至少一次到達，分母為零時不能報 0% 或 100%。
+
+主管用的一頁表、漏盒／缺高／缺寬／偏移最差影格，見
+[主管報告](SIM_CAMERA_MOVING_ROD_REPORT.zh-TW.md)。逐相位數據、失敗案例與原始時鐘都保留。
+E 的中心偏移在漏盒時沒有定義，不能用零假裝準確；
+同尺寸但錯位的盒也可能缺覆蓋面積。單次通過或少量固定相位不是安全速度保證。
+
+應看到速度、相位與 A/B/E 三個選單，以及紅桿、洋紅點雲、橘盒、藍預測盒、
+深度圖、實測更新率、相位有效性與 signed clearance。INVALID_SCENE 仍可回放。
+
+一行唯讀回放：
+
+```bash
+cd ~/ur5_ws/src/ur5_moveit_demo && NEWTON_VIEWER_PORT=30001 scripts/run_sim_camera_moving_rod_rates.sh --replay
+```
+
+
+### 互動拖曳與群組生命週期
+
+統計與主管摘要保存後才加入 `--interactive`，不會改寫結果。
+桿件只沿地面 XY 拖曳，保持直立、半徑 25 mm、高 250 mm。
+A/B/E 共用凍結 MPC；A 不放障礙盒，B 用真值盒，E 用相機與原點記憶。
+切換先停止舊迴圈並等相機 worker 退出，再重設手臂，最後啟動新群組。
+
+應看到群組／狀態、真值淨空、從群組開始累計的碰撞、更新率，以及 E 的點雲、盒與深度圖。
+真實牆鐘時間照常前進，E 的較低更新率不會讓世界暫停。
+程式化 GUI smoke 用 14.16 秒完成 A→E→B→A，最多一個控制迴圈，
+E worker 正常退出，四次手臂重設誤差為零；這不是人工滑鼠操作驗收，也不列入成功率。
+
+一行互動指令：
+
+```bash
+cd ~/ur5_ws/src/ur5_moveit_demo && NEWTON_VIEWER_PORT=30001 scripts/run_sim_camera_moving_rod_mpc_tuned.sh --interactive
+```
+
+本批有效相位 B 為 5/5、4/4；E 為 3/5、1/4。0.10 m/s 的 X=0.36 無效但保留。
+相同相位重跑仍可能因實測計算時間而不同，不能把 100% 小樣本當通用安全保證。
+離開 Codex 後執行 `codex logout`、`codex login status`，確認未登入。

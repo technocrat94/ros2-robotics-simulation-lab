@@ -605,3 +605,219 @@ all six GPU B cases, old-command integration audit and viewer callbacks pass
 execution checks. Those checks do not convert colliding cases into acceptance.
 The remaining boundary is collision avoidance at normal task speed, then E's
 conditional perception test; no contact-physics or hardware claim is made.
+
+
+## Fixed-phase success rates
+
+Check date: 2026-11-12 (Asia/Taipei). Source parent:
+`8f7e4f2c02629ab5ed0d047c0b4e557b8331be18`.
+The frozen `mpc_no_rod_dt_0.02_nonterminal_0.3` block, v2 scene, prediction,
+point-memory and continuous shared clock are unchanged. Phases were declared
+before running: X=0.36, 0.44, 0.52, 0.60, 0.68 m, initially decreasing X,
+at 0.05 and 0.10 m/s. Case order is speed, ascending phase, A/B/E. Each lasts
+20 simulated seconds; setup and renderer warmup are outside the clock.
+
+A uses the same frozen MPC with obstacle input disabled, retaining cylinder
+truth scoring. This matches B/E's controller for the obstacle-input ablation;
+it is distinct from historical v2 MotionPlanner A. B uses the true box with
+prediction. E uses the camera fit, prediction and unchanged v2 memory.
+The old B-at-0.10 E gate is explicitly lifted at the user's request: all ten E
+cases ran. E's capture/fit latency remains counted while the old command moves.
+The existing tuned replay and its renderer were not stopped.
+
+A collision makes a speed/phase condition valid. All A-noncolliding conditions
+remain in the per-phase table as INVALID_SCENE and are excluded from A/B/E
+rates and all aggregate metrics. Success is zero collisions and >=1 reach;
+zero denominator is undefined, never interpreted as success or failure rate.
+These are five prescribed phases, not independent random trials or a safety
+certification. All recorded numbers are single outcomes per phase; no tuning
+or phase replacement was performed.
+
+### Aggregate over valid phases
+
+| Case | Speed m/s | Successes / valid (rate) | Mean reaches | Episodes total | Worst clearance mm | Max joint speed rad/s | Max update acceleration rad/s² |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| A | 0.05 | 0/5 (0%) | 8.20 | 10 | -28.114 | 0.758117 | 6.547120 |
+| B | 0.05 | 5/5 (100%) | 7.20 | 0 | 14.612 | 0.855749 | 5.962374 |
+| E | 0.05 | 3/5 (60%) | 4.00 | 4 | -76.924 | 2.854916 | 12.070870 |
+| A | 0.10 | 0/4 (0%) | 8.75 | 9 | -27.764 | 0.808500 | 6.953073 |
+| B | 0.10 | 4/4 (100%) | 6.50 | 0 | 14.397 | 1.654482 | 11.922421 |
+| E | 0.10 | 1/4 (25%) | 3.75 | 3 | -45.353 | 0.744248 | 3.287442 |
+
+All aggregates above use valid phases only, including maxima and worst signed
+clearance. The full per-case JSON retains excluded runs too. Acceleration is
+abs(new_velocity-old_velocity)/elapsed control period, as in the tuned study;
+the ideal velocity plant has instantaneous changes and no finite continuous
+acceleration peak at a switch. Moving/holding episode onsets and colliding
+samples are separately recorded, rather than conflating samples with episodes.
+
+### Per-phase table (all phases retained)
+
+Each case entry is reaches / collision episodes / min signed clearance mm.
+
+| Rod m/s | Initial X m | Validity | A | B prediction | E prediction |
+| --- | --- | --- | --- | --- | --- |
+| 0.05 | 0.36 | VALID_SCENE | 7 / 1 / -12.600 | 8 / 0 / 20.244 | 5 / 0 / 14.702 |
+| 0.05 | 0.44 | VALID_SCENE | 7 / 1 / -11.837 | 7 / 0 / 24.047 | 5 / 0 / 14.361 |
+| 0.05 | 0.52 | VALID_SCENE | 9 / 3 / -23.079 | 6 / 0 / 14.612 | 1 / 3 / -76.924 |
+| 0.05 | 0.60 | VALID_SCENE | 9 / 3 / -28.114 | 8 / 0 / 21.555 | 4 / 0 / 37.891 |
+| 0.05 | 0.68 | VALID_SCENE | 9 / 2 / -27.724 | 7 / 0 / 17.436 | 5 / 1 / -17.455 |
+| 0.10 | 0.36 | INVALID_SCENE | 9 / 0 / 8.971 | 5 / 0 / 14.909 | 4 / 0 / 4.988 |
+| 0.10 | 0.44 | VALID_SCENE | 9 / 3 / -20.342 | 7 / 0 / 29.844 | 4 / 1 / -19.542 |
+| 0.10 | 0.52 | VALID_SCENE | 8 / 2 / -23.800 | 8 / 0 / 21.587 | 3 / 1 / -45.353 |
+| 0.10 | 0.60 | VALID_SCENE | 9 / 3 / -27.764 | 6 / 0 / 14.397 | 4 / 0 / 18.722 |
+| 0.10 | 0.68 | VALID_SCENE | 9 / 1 / -26.764 | 5 / 0 / 16.627 | 4 / 1 / -7.059 |
+
+### E per-frame geometry errors
+
+Every captured E frame records whether its actual pre-prediction planner box
+(including v2 point memory) is missing, vertical and X/Y missing coverage,
+missing top, XYZ center offset and offset norm versus the true rod box at the
+capture timestamp. Missing coverage is true extent minus interval intersection,
+so a shifted same-sized box can have missing coverage. An absent box has full
+missing height and width; its center offset is undefined, not zero. Truth is
+used after action selection for scoring only, never E controller input.
+
+Worst frames are ranked with missing boxes first, then the sum of missing
+height, missing X/Y coverage and defined center-offset norm, in metres.
+Stable chronological ties remain. Both all-phase and valid-phase top threes
+are retained in JSON, so filtering cannot hide the excluded scene diagnostics.
+The following are the worst valid-phase frames (all-phase fallback if none).
+
+| Rod m/s | Initial X m | Time s | Missing box | Missing height mm | Missing X/Y mm | Offset XYZ mm | Offset norm mm |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 0.05 | 0.36 | 1.251622 | True | 250.000 | 50.000/50.000 | undefined | — |
+| 0.05 | 0.36 | 1.298789 | True | 250.000 | 50.000/50.000 | undefined | — |
+| 0.05 | 0.36 | 1.346261 | True | 250.000 | 50.000/50.000 | undefined | — |
+
+Total E frames (all phases): 3776. Valid-phase missing boxes: 946/3401. These errors establish partial/missing perception but do not isolate the cause of each collision. B infeasibility and E sensing latency are separate observed factors.
+
+### Rate viewer and what you should see
+
+- Separate speed, initial-phase and A/B/E selectors, retaining invalid phases.
+- Raised-start-to-goal shuttle, true red rod, magenta points, orange observed
+  box and blue prediction box; A has no planner box.
+- Depth/frustum replay, controller rate, signed truth clearance and validity.
+- Exactly the saved phase on the rod clock, not one shared phase for all cases.
+- `Playback error: none` after A/B/E callback checks at 0.10 m/s, X=0.60 m.
+
+Exact one-line read-only replay command:
+
+```bash
+cd ~/ur5_ws/src/ur5_moveit_demo && NEWTON_VIEWER_PORT=30001 scripts/run_sim_camera_moving_rod_rates.sh --replay
+```
+
+The wrapper loads the private lab environment. The existing port-30000 viewer
+PID 1251897 and its renderer child PID 1251905 are preserved; the new viewer
+uses an explicitly free personal override. Replay cannot be combined with
+saving. The phase table and report were saved before interactive work; all
+viewer image rendering is after the measured batch and excluded from its clock.
+
+Exact evidence regeneration:
+
+```bash
+cd ~/ur5_ws/src/ur5_moveit_demo && scripts/run_sim_camera_moving_rod_rates.sh --headless --save-results
+```
+
+`moving_rod_rates.json` retains all step clocks, joint traces and E frame errors;
+`.log` contains rate and per-phase summaries. The one-page senior summary is
+`docs/SIM_CAMERA_MOVING_ROD_REPORT.zh-TW.md`. Known limits remain: ideal
+velocity plant with no acceleration bound, noise-free simulated camera, one
+rod, one fitted AABB, simulator shape-index robot masking, and a forward/downward
+camera view. These results are not hardware/contact-physics validation.
+
+
+### Interactive drag mode (after the report was saved)
+
+The completed 30-case data, rate table, one-page Chinese report and three
+replay callbacks were saved/verified before interactive code was added. The
+new `--interactive` branch in the tuned script is incompatible with replay,
+reference regeneration, headless execution or saving. It checks that the saved
+30-case report exists and matches the frozen config. Normal tuned/reference
+behavior and all controller/perception scalar settings remain unchanged.
+
+The live mode uses a Viser translation gizmo like the existing
+`docs/experiments/curobo-v2/prototype/curobo_dodge_demo.py`, with rotations
+and Z translation disabled. X/Y dragging is allowed; rod center Z remains
+0.125 m, radius 0.025 m, height 0.250 m and orientation identity. It does not
+reject rod placements that collide with the arm: those contacts are scored.
+The renderer protocol gains an optional per-capture `rod_y_m` solely to render
+XY dragging; absent Y retains the original default. No camera intrinsics,
+filtering, shape-index masking, memory, box fitting or prediction gains change.
+CPU tests verify the default-Y contract and non-sticky per-capture override.
+
+A/B/E share the same frozen MPC and raised-start/goal shuttle. A disables the
+box; B uses the dragged rod's true box and velocity; E uses only fresh camera
+box centers and the unchanged v2 point memory for planner input. Prediction
+retains `2 * velocity * (expected compute + 0.025 s)`. Truth is scoring/display
+only outside B. Running state advances on **wall time**: the previous joint
+velocity is integrated during capture, solve, UI work and pacing. Solver/camera
+startup is labelled starting, before the group becomes running. The UI shows
+group, starting/running/stopped state, current signed truth clearance, collision
+episodes since group start, measured control rate, elapsed wall time, and E
+points/box/depth. Instantaneous velocity switches and finite infeasible commands
+retain the existing prototype's limitations.
+
+Each dropdown change signals and joins the old loop, waits for that group's
+camera process to exit, destroys its MPC and synchronizes its GPU work, then
+resets the arm and starts the next group. A/B need no camera worker; E owns one.
+The switch refuses to launch a successor if old-thread or worker shutdown fails.
+Only owned thread/process references are used; no process-name termination is
+performed. All scratch camera arrays live in a temporary directory and are
+removed; live mode never calls an evidence writer.
+
+The programmatic smoke used the actual Viser dropdown callbacks and translated
+the XY gizmo. It is not a claim of manual mouse or browser visual acceptance.
+Measured elapsed time was **14.160289 s**, including startup, three
+switches A→E→B→A and final shutdown, below the 30 s cap. The captured process
+output window (including imports/report loading) was 16.704001 s, also below
+30 s. Every group executed
+9 steps; all four resets had zero joint error. Maximum concurrent owned GPU
+control loops was 1. The E worker PID
+1255421 exited normally with code 0
+before B was requested. All old-thread joins and worker-stopped checks passed.
+
+Short-smoke rate snapshots after eight steps were A=35.351 Hz,
+E=13.184 Hz, B=32.444 Hz, A=35.796 Hz.
+These are live loop measurements including camera/UI costs, not a steady-state
+benchmark or a promise of 40 Hz. Wall time is not slowed to compensate for E's
+lower measured update rate. The sensor's returned XY center was cross-checked
+against the gizmo at capture time. All 11 old/new evidence hashes remained
+unchanged after both replay and interactive smoke.
+
+What you should see:
+
+- a floor-standing vertical red rod with an XY translation gizmo;
+- A/B/E dropdown, with starting then running after each clean reset;
+- the robot shuttling while the user moves the rod, with live clearance,
+  collision episodes and measured rate;
+- E's magenta point cloud, fitted/predicted boxes, frustum and depth image;
+- only one group's loop active at a time; switching resets the robot and count.
+
+Exact one-line live command:
+
+```bash
+cd ~/ur5_ws/src/ur5_moveit_demo && NEWTON_VIEWER_PORT=30001 scripts/run_sim_camera_moving_rod_mpc_tuned.sh --interactive
+```
+
+Exact lifecycle smoke command (does not write evidence):
+
+```bash
+cd ~/ur5_ws/src/ur5_moveit_demo && NEWTON_VIEWER_PORT=30001 scripts/run_sim_camera_moving_rod_mpc_tuned.sh --interactive --interactive-smoke
+```
+
+The audit harness stores the captured stdout summary and before/after hashes
+in `moving_rod_rates.live.log`; the live program itself writes no result files.
+`moving_rod_rates.viewer.log` proves the preceding three-filter replay and
+step-1–6 ordering. CPU tests exercise serial switching, refusing a successor on
+failed worker cleanup, floor/cylinder geometry, optional renderer Y, and live
+write-flag rejection. Prior v2/original MPC source, old evidence, library code,
+shared configs and FEM grasp path remain unchanged. The tuned script changes
+only its CLI to dispatch the new live feature; its frozen block, factory and
+batch controller are unchanged. The renderer's new optional argument preserves
+its old default behavior.
+
+Unlike the previous single run, this batch's B at X=0.60, 0.10 m/s passed with
+the same frozen settings. The shared clock includes measured compute time, so
+reruns can differ even at the same nominal phase. These descriptive phase rates
+must not be promoted to deterministic or hardware-safety guarantees.

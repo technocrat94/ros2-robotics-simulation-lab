@@ -1,0 +1,243 @@
+{
+  "smoke": {
+    "elapsed_s": 14.160289358813316,
+    "observations": [
+      {
+        "group": "A",
+        "steps": 8,
+        "rate_hz": 35.35101221284916,
+        "reset_error_rad": 0.0
+      },
+      {
+        "group": "E",
+        "steps": 8,
+        "rate_hz": 13.184388523257567,
+        "reset_error_rad": 0.0
+      },
+      {
+        "group": "B",
+        "steps": 8,
+        "rate_hz": 32.4438055110563,
+        "reset_error_rad": 0.0
+      },
+      {
+        "group": "A",
+        "steps": 8,
+        "rate_hz": 35.79614398333872,
+        "reset_error_rad": 0.0
+      }
+    ],
+    "switches": [
+      {
+        "from": "A",
+        "to": "E",
+        "old_thread_stopped": true,
+        "old_worker_pid": null,
+        "old_worker_exitcode": null,
+        "old_worker_stopped": true,
+        "old_stopped_at": 2424686.505071221,
+        "new_requested_at": 2424686.505503655
+      },
+      {
+        "from": "E",
+        "to": "B",
+        "old_thread_stopped": true,
+        "old_worker_pid": 1255421,
+        "old_worker_exitcode": 0,
+        "old_worker_stopped": true,
+        "old_stopped_at": 2424692.259546532,
+        "new_requested_at": 2424692.260482726
+      },
+      {
+        "from": "B",
+        "to": "A",
+        "old_thread_stopped": true,
+        "old_worker_pid": null,
+        "old_worker_exitcode": null,
+        "old_worker_stopped": true,
+        "old_stopped_at": 2424694.313845511,
+        "new_requested_at": 2424694.314321197
+      }
+    ],
+    "groups": [
+      {
+        "group": "A",
+        "state": "stopped",
+        "started_at": 2424683.558587267,
+        "steps": 9,
+        "worker_pid": null,
+        "worker_exitcode": null,
+        "worker_stopped": true,
+        "error": null,
+        "initial_q": [
+          -2.688859224319458,
+          -2.095384120941162,
+          -0.7184052467346191,
+          1.2429931163787842,
+          4.71238899230957,
+          -2.688859224319458
+        ],
+        "final_q": [
+          -2.6389149619222803,
+          -2.143712676440275,
+          -0.7242408463560157,
+          1.2736372697176974,
+          4.707795601424932,
+          -2.6637482901356524
+        ],
+        "reset_error_rad": 0.0,
+        "collision_episodes": 0,
+        "rate_hz": 35.502141552692784,
+        "renderer_xy_checked": false,
+        "running_since": 2424686.242868391,
+        "live_elapsed_s": 0.2535058339126408,
+        "stopped_at": 2424686.505071221
+      },
+      {
+        "group": "E",
+        "state": "stopped",
+        "started_at": 2424686.505510717,
+        "steps": 9,
+        "worker_pid": 1255421,
+        "worker_exitcode": 0,
+        "worker_stopped": true,
+        "error": null,
+        "initial_q": [
+          -2.688859224319458,
+          -2.095384120941162,
+          -0.7184052467346191,
+          1.2429931163787842,
+          4.71238899230957,
+          -2.688859224319458
+        ],
+        "final_q": [
+          -2.517764178803575,
+          -2.1431834783111525,
+          -0.7439785309846763,
+          1.2547472857483866,
+          4.665627668090591,
+          -2.5965820888938462
+        ],
+        "reset_error_rad": 0.0,
+        "collision_episodes": 0,
+        "rate_hz": 13.181345021047534,
+        "renderer_xy_checked": true,
+        "running_since": 2424690.949997895,
+        "live_elapsed_s": 0.6827831291593611,
+        "stopped_at": 2424692.259546532
+      },
+      {
+        "group": "B",
+        "state": "stopped",
+        "started_at": 2424692.260495331,
+        "steps": 9,
+        "worker_pid": null,
+        "worker_exitcode": null,
+        "worker_stopped": true,
+        "error": null,
+        "initial_q": [
+          -2.688859224319458,
+          -2.095384120941162,
+          -0.7184052467346191,
+          1.2429931163787842,
+          4.71238899230957,
+          -2.688859224319458
+        ],
+        "final_q": [
+          -2.609693534597409,
+          -2.128143193549722,
+          -0.7357332571864723,
+          1.2568481544846979,
+          4.691588659053785,
+          -2.648529061852093
+        ],
+        "reset_error_rad": 0.0,
+        "collision_episodes": 0,
+        "rate_hz": 32.613168839384805,
+        "renderer_xy_checked": false,
+        "running_since": 2424694.028549914,
+        "live_elapsed_s": 0.27596214413642883,
+        "stopped_at": 2424694.313845511
+      },
+      {
+        "group": "A",
+        "state": "stopped",
+        "started_at": 2424694.314328561,
+        "steps": 9,
+        "worker_pid": null,
+        "worker_exitcode": null,
+        "worker_stopped": true,
+        "error": null,
+        "initial_q": [
+          -2.688859224319458,
+          -2.095384120941162,
+          -0.7184052467346191,
+          1.2429931163787842,
+          4.71238899230957,
+          -2.688859224319458
+        ],
+        "final_q": [
+          -2.6379034742793674,
+          -2.1454054115811148,
+          -0.7245662077655143,
+          1.2737583402837607,
+          4.707692764924326,
+          -2.6626952064607656
+        ],
+        "reset_error_rad": 0.0,
+        "collision_episodes": 0,
+        "rate_hz": 35.86026157422621,
+        "renderer_xy_checked": false,
+        "running_since": 2424696.097990493,
+        "live_elapsed_s": 0.25097418716177344,
+        "stopped_at": 2424696.357377784
+      }
+    ],
+    "max_concurrent_gpu_loops": 1,
+    "all_threads_stopped": true,
+    "all_workers_stopped": true,
+    "upright_floor_center": [
+      0.52,
+      0.22,
+      0.125
+    ],
+    "frozen_config": {
+      "name": "mpc_no_rod_dt_0.02_nonterminal_0.3",
+      "acceleration_regularization": 10000.0,
+      "non_terminal_tool_pose_weight_factor": 0.3,
+      "optimization_dt": 0.02
+    },
+    "writes_results": false,
+    "all_passed": true
+  },
+  "programmatic_gui_callbacks_and_xy_translation": true,
+  "evidence_hashes_unchanged": true,
+  "before_sha256": {
+    "moving_rod.json": "9f7cb876fb9e259d910bdbcfe4b4cf2aade261b9d7b7f4d7c3dc4a8b7012c768",
+    "moving_rod.log": "c195dcca392c192aa7dab7d71543927152df07757215e86b0dd71eac4ec47abf",
+    "moving_rod_v2.json": "ecc65d9eab046814d65acc4a036d264507301010ada12e445e6fbd44f4fd82e6",
+    "moving_rod_v2.log": "f8d646d290761ce14d530d4094b46bda07a0cd0320ed876818b7ea43c80d7e01",
+    "moving_rod_mpc.json": "74fde7efc5dfdf6e42f62c0a95e436b87601d74c3b8471f23c6ac4356887f844",
+    "moving_rod_mpc.log": "0a043d42adb0f30e8a4245fb98df2471463af563556287c6c1984b428549b868",
+    "moving_rod_mpc_tuned.json": "7e964bf8581c0a2725352896a4547a0ff54a7c9be34a68fd7ab450161d49c0a8",
+    "moving_rod_mpc_tuned.log": "012dd929cc949d3312ffb2634e1562f55cc1a1ab6815e4f3442baf5c7c7e70a3",
+    "moving_rod_mpc_tuned.reference.json": "9fd6000600a959c58fc7a479a41b3eb1e5b79c3a132f43beb3ca15e0bb770a74",
+    "moving_rod_rates.json": "e889b39a3d5465aa818e664b9f14d6d5feb3c0ec8d87f5b122056f8df4475227",
+    "moving_rod_rates.log": "9af72f2d4adb106366ca3ab265f54b086b7340bc4fdef237ab31f17c7ba5e623"
+  },
+  "after_sha256": {
+    "moving_rod.json": "9f7cb876fb9e259d910bdbcfe4b4cf2aade261b9d7b7f4d7c3dc4a8b7012c768",
+    "moving_rod.log": "c195dcca392c192aa7dab7d71543927152df07757215e86b0dd71eac4ec47abf",
+    "moving_rod_v2.json": "ecc65d9eab046814d65acc4a036d264507301010ada12e445e6fbd44f4fd82e6",
+    "moving_rod_v2.log": "f8d646d290761ce14d530d4094b46bda07a0cd0320ed876818b7ea43c80d7e01",
+    "moving_rod_mpc.json": "74fde7efc5dfdf6e42f62c0a95e436b87601d74c3b8471f23c6ac4356887f844",
+    "moving_rod_mpc.log": "0a043d42adb0f30e8a4245fb98df2471463af563556287c6c1984b428549b868",
+    "moving_rod_mpc_tuned.json": "7e964bf8581c0a2725352896a4547a0ff54a7c9be34a68fd7ab450161d49c0a8",
+    "moving_rod_mpc_tuned.log": "012dd929cc949d3312ffb2634e1562f55cc1a1ab6815e4f3442baf5c7c7e70a3",
+    "moving_rod_mpc_tuned.reference.json": "9fd6000600a959c58fc7a479a41b3eb1e5b79c3a132f43beb3ca15e0bb770a74",
+    "moving_rod_rates.json": "e889b39a3d5465aa818e664b9f14d6d5feb3c0ec8d87f5b122056f8df4475227",
+    "moving_rod_rates.log": "9af72f2d4adb106366ca3ab265f54b086b7340bc4fdef237ab31f17c7ba5e623"
+  },
+  "captured_process_output_window_s": 16.704001,
+  "process_window_scope": "stdout-file birth through final output, including imports/report loading; core viewer/group smoke time is recorded separately"
+}
