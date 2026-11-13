@@ -37,7 +37,7 @@ def start_viewer(config: Path, results: dict[str, Any], frames: dict[str, list[d
     validity = server.gui.add_text("Phase validity", "", disabled=True)
 
     def selected_name() -> str:
-        return index[(group_select.value, float(speed_select.value), float(phase_select.value), int(repeat_select.value))]
+        return index[(group_select.value, float(speed_select.value), float(phase_select.value), (1 if group_select.value=="A" else int(repeat_select.value)))]
     controller = server.gui.add_text("Controller", "cuRobo MPC", disabled=True)
     rate = server.gui.add_text("Simulated step rate", "", disabled=True)
     clock_text = server.gui.add_text("Sim time", "0", disabled=True)
@@ -116,13 +116,17 @@ def start_viewer(config: Path, results: dict[str, Any], frames: dict[str, list[d
 
     play.on_click(click)
     def filter_changed(_event: Any) -> None:
+        repeat_select.disabled = group_select.value=="A"
+        if group_select.value=="A":repeat_select.value="1"
         name = selected_name()
         show(name, frames[name][0])
     for handle in (group_select, speed_select, phase_select, repeat_select):
         handle.on_update(filter_changed)
+    repeat_select.disabled = True
     show(first, frames[first][0])
     verification = []
     for mode, repeat in (("A",1),("B",3),("E",5)):
+        group_select.value = mode
         repeat_select.value = str(repeat)
         group_select.value, speed_select.value, phase_select.value = mode, "0.10", "0.60"
         name = selected_name()

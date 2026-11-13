@@ -189,7 +189,7 @@ class LiveGroups(OriginalLiveGroups):
 
 def live_main(args):
     results=json.loads(v3.RESULT_FILE.read_text())
-    if not results.get("complete") or len(results["cases"])!=150:
+    if not results.get("complete") or len(results["cases"])!=110:
         raise RuntimeError("complete v3 measurement before interactive mode")
     ref=json.loads(v3.REFERENCE_FILE.read_text())
     if ref["robot_config_sha256"]!=v3.hashlib.sha256(args.robot_config.read_bytes()).hexdigest():

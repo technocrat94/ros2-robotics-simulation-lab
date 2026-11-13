@@ -283,7 +283,6 @@ def run_case(mpc: ModelPredictiveControl, start: np.ndarray, speed: float,
         "within_joint_acceleration_limits": bool(np.all(max_acceleration <= np.maximum(np.abs(accel_limits[0]),np.abs(accel_limits[1]))+1e-6)),
         "mpc_horizon_s": horizon_s, "observation_times_s": observation_times,
     }
-    print("MOVING_ROD_MPC_CASE " + json.dumps(summary), flush=True)
     boundary_times = {round(c["sim_time_end_s"],9) for c in cycles} | {0.}
     traces = [p for p in traces if round(p["time_s"],9) in boundary_times]
     return {"summary": summary, "cycles": cycles, "trace": traces,
@@ -382,18 +381,17 @@ def build(config,worker,save):
         observation_hz=OBS_HZ,observation_rule="exact n/30 sim-time poses; consume latest frame at control ticks; hold fit/velocity between frames",
         prediction_rule="single velocity sweep over full MPC horizon plus 1/30 s; no old factor of two",
         plant="held joint velocity; command delta bounded by config acceleration times 25 ms; ideal discrete plant",
-        case_order="speed, phase, repeat 1..5, A/B/E; fresh MPC instance each run",
+        case_order="speed, phase, repeat 1..5, A only repeat 1, B/E every repeat; fresh MPC instance each run",
         storage=dict(float_decimal_places=8,trace="exact control-boundary states; dense collision scoring unchanged; linear held-velocity interpolation",
                      fit="center, dimensions, point count; repeated renderer metadata omitted"),cases={})
     for speed in rates.SPEEDS:
         for phase in rates.PHASES:
             v2.ROD_START_X_M=phase
             for repeat in range(1,REPEATS+1):
-                for mode in ("A","B","E"):
+                for mode in (("A","B","E") if repeat==1 else ("B","E")):
                     if mode=="E" and worker.process is None:
                         worker.start();worker.capture(start,phase)
                     name=f"v3 {mode} {speed:.2f} m/s X={phase:.2f} repeat={repeat}"
-                    print("V3_CASE_START "+name,flush=True)
                     mpc,loaded=make_mpc(config,ref["selected_config"])
                     results["loaded_config"]=loaded
                     try:
@@ -402,6 +400,7 @@ def build(config,worker,save):
                     finally:
                         mpc.destroy()
                     case["summary"].update(initial_x_m=phase,repeat=repeat)
+                    print(f"V3_CASE_DONE {name} success={case['summary']['survives']} collisions={case['summary']['true_collisions']}",flush=True)
                     results["cases"][name]=compact_case(case)
                     if save:tuned.save_json(RESULT_FILE,results)
     summarize(results);results["complete"]=True
@@ -450,7 +449,7 @@ def main():
             if args.save_results:
                 tuned.save_json(RESULT_FILE,results)
                 RESULT_FILE.with_suffix(".log").write_text(json.dumps({k:results[k] for k in ("frozen_config","loaded_config","rates","per_phase")},indent=2)+"\n")
-                print("V3_RESULTS_SAVED",flush=True)
+                print("V3_RESULTS_SAVED "+json.dumps(results["rates"]),flush=True)
             if not args.headless:
                 from curobo_moving_rod_v3_viewer import start_viewer
                 tuned.original.configure_scene(results)

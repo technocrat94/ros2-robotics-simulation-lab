@@ -462,21 +462,19 @@ MPC horizon from actual config (81−1)*.02/4=.4 s; single swept-box extension o
 the simulated world. Full no-rod reference passes in 1.075 s; the existing frozen
 MPC block was retained, no rod-based tuning. Reference includes robot-config SHA.
 
-Measured all 150 cases: 2 speeds ×5 phases ×3 groups ×5 repeats, each 20 simulated
+Original 150-run task completed before remote revision 569433e; final primary set is 110 cases: 2 speeds ×5 phases ×(A once + B/E five repeats), each 20 simulated
 seconds/800 control steps. Fresh MPC instance and robot/point/velocity state per
 case. No interactive demo during measurement. No phases are INVALID_SCENE under
-the five-repeat A rule; all 25 runs/group/speed enter the table. Success requires
+the single-A validity rule; 5 A and 25 B/E runs per speed enter the table. Success requires
 zero collisions and at least one reach. B is 25/25 at each speed; E is 5/25 at each;
 E is not close to B in this batch. No failure-cause attribution is made.
 
-A speed=0.05: success=0/25, collision_runs=25, worst/median_worst_mm=-38.51/-31.33, max_v=0.662192, max_delta_v_dt=5.904637.
 B speed=0.05: success=25/25, collision_runs=0, worst/median_worst_mm=17.68/27.29, max_v=2.679810, max_delta_v_dt=10.000000.
 E speed=0.05: success=5/25, collision_runs=20, worst/median_worst_mm=-86.81/-19.20, max_v=3.073118, max_delta_v_dt=10.000000.
-A speed=0.10: success=0/25, collision_runs=25, worst/median_worst_mm=-41.12/-24.75, max_v=0.662192, max_delta_v_dt=5.904637.
 B speed=0.10: success=25/25, collision_runs=0, worst/median_worst_mm=17.83/37.71, max_v=2.789972, max_delta_v_dt=10.000000.
 E speed=0.10: success=5/25, collision_runs=20, worst/median_worst_mm=-26.22/-18.25, max_v=1.972038, max_delta_v_dt=10.000000.
 
-All 120,000 steps pass fixed-clock/horizon/index, exact observation timestamps,
+All original 120,000 steps pass (88,000 primary +32,000 supplemental A) fixed-clock/horizon/index, exact observation timestamps,
 held-frame age, speed/command-acceleration bounds, previous-velocity integration,
 no joint-position clamps and five-repeat validity checks. JSON retains all
 control-boundary states, commands, clocks, boxes, observations and all repeats;
@@ -517,3 +515,7 @@ threads/workers/viewers stopped; existing user latency replay remains untouched.
 Programmatic GUI callback/gizmo smoke, not manual browser acceptance. See
 moving_rod_v3.viewer.log, moving_rod_v3.live.log and moving_rod_v3.validation.log.
 No watch mode wrote results; old and new evidence hashes verified unchanged.
+
+Merged remote 569433e without touching unrelated work. Keep 110 primary cases and 40 extra A runs under extra_A_runs (excluded from all main metrics). Future build loop runs A only on repeat 1, B/E on repeats 1..5; one short completion line per case and final table. Viewer forces repeat 1 for A and disables that repeat selector. Live gate requires 110 primary cases. No B/E result, frozen controller, physical rule or measured trace changed.
+
+Final revised-schema verification: A-only-repeat-1 replay callbacks pass; interactive 110-case gate and lifecycle smoke pass in 17.016493 s. All owned processes exited. Prior evidence unchanged; revised JSON/log/reference hashes unchanged through both checks.

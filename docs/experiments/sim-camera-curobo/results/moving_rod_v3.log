@@ -1,4 +1,5 @@
 {
+  "schedule_note": "Original 150-case task completed before remote update 569433e arrived; 110 requested cases form primary table; 40 extra A runs retained separately and excluded.",
   "frozen_config": {
     "name": "mpc_no_rod_dt_0.02_nonterminal_0.3",
     "acceleration_regularization": 10000.0,
@@ -101,16 +102,16 @@
     {
       "mode": "A",
       "speed_mps": 0.05,
-      "total_runs": 25,
+      "total_runs": 5,
       "successes": 0,
-      "collision_runs": 25,
+      "collision_runs": 5,
       "worst_clearance_m": -0.03850931,
       "median_worst_clearance_m": -0.03132833,
       "max_joint_speed_radps": 0.66219169,
       "max_acceleration_radps2": 5.90463713,
       "limits_pass": true,
-      "real_compute_median_ms": 19.622077935,
-      "real_compute_p95_ms": 20.805308035
+      "real_compute_median_ms": 19.863288384999997,
+      "real_compute_p95_ms": 20.9125615175
     },
     {
       "mode": "B",
@@ -143,16 +144,16 @@
     {
       "mode": "A",
       "speed_mps": 0.1,
-      "total_runs": 25,
+      "total_runs": 5,
       "successes": 0,
-      "collision_runs": 25,
+      "collision_runs": 5,
       "worst_clearance_m": -0.04111952,
       "median_worst_clearance_m": -0.02475066,
       "max_joint_speed_radps": 0.66219169,
       "max_acceleration_radps2": 5.90463713,
       "limits_pass": true,
-      "real_compute_median_ms": 19.658264935,
-      "real_compute_p95_ms": 20.801135389
+      "real_compute_median_ms": 19.60992208,
+      "real_compute_p95_ms": 20.7084611735
     },
     {
       "mode": "B",

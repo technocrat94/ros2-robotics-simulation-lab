@@ -44,15 +44,15 @@ class V3Rules(unittest.TestCase):
         self.assertEqual(fit["center_m"],[.5,.245,.125])
         self.assertIsNone(scope["stretch_fit"](None,[1,0,0],1.))
 
-    def test_a_any_repeat_validates_all_repeats(self):
+    def test_a_once_validates_all_be_repeats(self):
         results=dict(cases={})
         for speed in (.05,.10):
             for phase in (.36,.60):
                 for repeat in range(1,6):
-                    for mode in ("A","B","E"):
+                    for mode in (("A","B","E") if repeat==1 else ("B","E")):
                         valid=phase==.60
                         s=dict(mode=mode,rod_speed_mps=speed,initial_x_m=phase,repeat=repeat,
-                            true_collisions=int(valid and mode=="A" and repeat==5),
+                            true_collisions=int(valid and mode=="A" and repeat==1),
                             survives=mode=="B",minimum_true_clearance_m=.01 if valid else -999.,
                             max_joint_velocity_radps=[.5 if valid else 999.]*6,
                             max_sampled_joint_acceleration_radps2=[2. if valid else 999.]*6,
@@ -62,13 +62,13 @@ class V3Rules(unittest.TestCase):
                             cycles=[dict(measured_compute_ms=20. if valid else 999.)])
         scope["summarize"](results)
         for r in results["rates"]:
-            self.assertEqual(r["total_runs"],5)
+            self.assertEqual(r["total_runs"],1 if r["mode"]=="A" else 5)
             self.assertEqual(r["successes"],5 if r["mode"]=="B" else 0)
             self.assertEqual(r["collision_runs"],1 if r["mode"]=="A" else 0)
             self.assertEqual(r["real_compute_median_ms"],20.)
             self.assertEqual(r["max_joint_speed_radps"],.5)
             self.assertEqual(r["median_worst_clearance_m"],.01)
-        self.assertEqual(len(results["cases"]),60)
+        self.assertEqual(len(results["cases"]),44)
 
     def test_exact_observation_times_and_historical_pose(self):
         fn=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=="run_case")
@@ -110,8 +110,8 @@ class V3Rules(unittest.TestCase):
         if not path.exists():self.skipTest("GPU evidence not present")
         results=json.loads(path.read_text())
         if not results["complete"]:self.skipTest("measurement still in progress")
-        self.assertEqual(len(results["cases"]),150)
-        for case in results["cases"].values():
+        self.assertEqual(len(results["cases"]),110)
+        for case in [*results["cases"].values(),*results.get("extra_A_runs",{}).values()]:
             s=case["summary"]
             self.assertEqual(s["steps"],800)
             self.assertEqual(len(case["trace"]),801)
@@ -133,7 +133,7 @@ class V3Rules(unittest.TestCase):
                 previous=command
         for row in results["per_phase"]:
             a=[c["summary"] for c in results["cases"].values() if c["summary"]["mode"]=="A" and c["summary"]["rod_speed_mps"]==row["speed_mps"] and c["summary"]["initial_x_m"]==row["initial_x_m"]]
-            self.assertEqual(len(a),5)
+            self.assertEqual(len(a),1)
             self.assertEqual(row["status"]=="VALID_SCENE",any(c["true_collisions"]>0 for c in a))
 
     def test_occupied_viewer_port_fails_early(self):

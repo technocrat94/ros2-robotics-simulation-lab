@@ -899,8 +899,8 @@ camera errors, per-phase status, pooled metrics and repeat comparisons.
 ## v3 fixed rules
 
 This MPC-only experiment freezes the plant, timing, observation and prediction
-rules before the rod batch. There are 150 independent runs: A/B/E × speeds
-0.05/0.10 m/s × initial X 0.36/0.44/0.52/0.60/0.68 m × five repeats, each
+rules before the rod batch. There are 110 primary runs: speeds
+0.05/0.10 m/s × initial X 0.36/0.44/0.52/0.60/0.68 m × (A once + B/E five repeats), each
 20 simulated seconds. Every run constructs a fresh controller and resets the
 robot, point memory and observed velocity. No interactive demo runs during measurement.
 
@@ -931,18 +931,18 @@ Rule provenance:
    E uses the unchanged simulated-camera fit and v2 timed point memory.
 
 Success means zero truth collisions and at least one goal reach. A phase is
-INVALID_SCENE only when A never collides in all five repeats. Every run remains
-in the JSON; all five repeats for every group in that phase are excluded from
+INVALID_SCENE when the single A run does not collide. Every run remains
+in the JSON; A and all five B/E repeats in that phase are excluded from
 aggregates. Collision runs count runs with any collision, not episodes.
 The median/p95 compute values pool control steps in valid runs. Finite actions
 marked infeasible by MPC still execute after the same speed/acceleration clamp.
 
 | Group | Speed m/s | Success/total | Collision runs | Worst/median worst clearance mm | Max speed rad/s | Max command acceleration rad/s² | Real compute median/p95 ms |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| A | 0.05 | 0/25 | 25 | -38.51/-31.33 | 0.662 | 5.905 | 19.62/20.81 |
+| A | 0.05 | 0/5 | 5 | -38.51/-31.33 | 0.662 | 5.905 | 19.86/20.91 |
 | B | 0.05 | 25/25 | 0 | 17.68/27.29 | 2.680 | 10.000 | 21.10/22.44 |
 | E | 0.05 | 5/25 | 20 | -86.81/-19.20 | 3.073 | 10.000 | 49.44/69.12 |
-| A | 0.10 | 0/25 | 25 | -41.12/-24.75 | 0.662 | 5.905 | 19.66/20.80 |
+| A | 0.10 | 0/5 | 5 | -41.12/-24.75 | 0.662 | 5.905 | 19.61/20.71 |
 | B | 0.10 | 25/25 | 0 | 17.83/37.71 | 2.790 | 10.000 | 21.12/22.40 |
 | E | 0.10 | 5/25 | 20 | -26.22/-18.25 | 1.972 | 10.000 | 48.33/67.45 |
 
@@ -985,3 +985,5 @@ per-phase validity and rule provenance. Dense collision scoring remains unchange
 only redundant serialization metadata is omitted, floats stored to eight decimals.
 
 Verification: all 150 replay frame sets and A1/B3/E5 non-main playback callbacks passed; interactive A→E→B→A smoke passed in 16.78 s, at most one GPU loop, all owned workers/threads stopped. This was a programmatic GUI smoke.
+
+Schedule revision: remote commit 569433e arrived after the original 150-run batch had completed. The primary table uses the requested 110 runs (A repeat 1 only); 40 extra A runs are retained under extra_A_runs and excluded. All original 150 runs passed the 120,000-step audit. The primary subset has 88,000 steps. Future batches run 110 cases with one short line per completed case and checkpoints.

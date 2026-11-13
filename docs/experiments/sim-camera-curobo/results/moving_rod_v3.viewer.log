@@ -3,3 +3,6 @@ MOVING_ROD_V3_VIEWER {"cases": [{"case": "v3 A 0.10 m/s X=0.60 repeat=1", "error
 MOVING_ROD_V3_URL http://127.0.0.1:30002
 Owned viewer and renderer exited.
 First attempt correctly refused occupied port 30001; preserved user latency replay PID 1314241.
+Revised 110-case schema: A forces repeat 1; B/E repeat selectors and A1/B3/E5 callbacks rechecked.
+MOVING_ROD_V3_VIEWER {"cases": [{"case": "v3 A 0.10 m/s X=0.60 repeat=1", "error": null, "callback_non_main": true, "robot_changed": true, "rod_changed": true, "depth_updates": 100, "predicted_box_available": false}, {"case": "v3 B 0.10 m/s X=0.60 repeat=3", "error": null, "callback_non_main": true, "robot_changed": true, "rod_changed": true, "depth_updates": 100, "predicted_box_available": true}, {"case": "v3 E 0.10 m/s X=0.60 repeat=5", "error": null, "callback_non_main": true, "robot_changed": true, "rod_changed": true, "depth_updates": 100, "predicted_box_available": true}], "all_passed": true}
+REVISED_110_VIEWER_PASSED
