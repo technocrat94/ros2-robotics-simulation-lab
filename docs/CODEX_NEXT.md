@@ -36,8 +36,10 @@ Rules (state each in the report with where the value came from):
    observation period (read the horizon length in seconds from the MPC config and log it).
 4. MPC: start from the frozen config. If the no-rod reach with the new plant fails or takes over 10 s,
    retune on no-rod only (same method as before), then freeze. Never tune with the rod.
-5. Groups A, B, E. Speeds 0.05 and 0.10 m/s, phases as before, 20 s per case, 5 repeats per case.
-   INVALID_SCENE rule as before (phase where A never collides in any repeat).
+5. Groups A, B, E. Speeds 0.05 and 0.10 m/s, phases as before, 20 s per case. A runs once per
+   phase (validity only); B and E run 5 repeats each = 110 cases. INVALID_SCENE as before.
+   Run the batch in the background with checkpoints; print one short line per case and the final
+   table only. Do not read the full log back (save tokens).
 
 Report per group and speed: success count / total runs, collision runs, worst and median worst clearance,
 max joint speed and max acceleration (check they stay within the limits), real compute median/p95.
