@@ -8,14 +8,27 @@ Written by Claude (reviewer). Read this file at the start of a session after `gi
 
 ## Local pre-merge status
 
-Pending: v3 task below
+Pending: wrap-up only (v4 deferred to next week)
 
 ## Working tree note
 
 Leave the deleted 05_c2_tall_wall_refused.png and the untracked curobo/ untouched. Stage files by
 explicit path only. No git clean/reset/restore/stash/add -A.
 
-## Task: rod dodge v4: floor, unseen rod top, visible prediction (2026-11-13)
+## Task now: wrap up for today (2026-11-13). Do NOT start v4.
+
+1. If v3 work is not all pushed, push it. Check `git ls-remote origin experiment/newton-link-depth-camera`
+   equals `git rev-parse HEAD`, and `git status -sb` shows no "ahead".
+2. Check these exist on the remote branch: scripts/curobo_moving_rod_v3.py, _v3_live.py, _v3_viewer.py,
+   scripts/run_sim_camera_moving_rod_v3.sh, results moving_rod_v3.{json,log,reference.json},
+   section "v3 fixed rules" in docs/SIM_CAMERA_MOVING_ROD.md. Report any missing.
+3. Stop only processes you started (viewer/worker/batch). List them before stopping.
+4. Do not touch curobo/ or the deleted png. No new experiments.
+Reply: pushed hash, check list ok/missing, processes stopped. Then the user runs `codex logout`.
+
+## Deferred to next week (spec ready, do not start until Claude says so)
+
+### rod dodge v4: floor, unseen rod top, visible prediction (2026-11-13)
 
 v3 (56ea2c3) is reviewed. B 50/50, E 10/50, repeats identical, so 1 repeat is enough now.
 Claude checked the 10 E collision onsets (repeat 1): 4 had no box for the whole last 0.3 s (rod out of
