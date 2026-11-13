@@ -1,0 +1,12 @@
+{
+  "all_passed": true,
+  "cases": 50,
+  "repeats": 2,
+  "steps": 33600,
+  "checks": "fixed clock, horizon, index, held previous velocity, duration, camera-frame count, A20 validity, no position clamp"
+}
+All 14 latency/rates/tuned/live tests passed.
+Project scripts/ci_checks.py: All checks passed.
+Prior evidence SHA256 unchanged; new latency JSON/log unchanged through replay.
+Default run_case AST matches prior version after removing optional latency additions.
+Five replay callbacks passed; all owned processes exited.

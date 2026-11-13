@@ -34,8 +34,11 @@ REPORT_FILE = v2.REPO / "docs/SIM_CAMERA_MOVING_ROD_REPORT.zh-TW.md"
 def run_case(mpc: ModelPredictiveControl, start: np.ndarray, speed: float,
              prediction: bool, mode: str, worker: v2.MovingRodWorker,
              baseline: dict[str, Any], duration: float = 20.,
-             no_rod: bool = False, stop_at_goal: bool = False) -> dict[str, Any]:
+             no_rod: bool = False, stop_at_goal: bool = False,
+             counted_latency_s: float | None = None) -> dict[str, Any]:
     """Run an ideal joint-velocity plant while previous commands execute during compute."""
+    if counted_latency_s is not None and (not math.isfinite(counted_latency_s) or counted_latency_s <= 0):
+        raise ValueError("counted latency must be finite and positive")
     q = start.copy()
     velocity = np.zeros(6)
     state = joint_state(q, velocity)
@@ -60,7 +63,7 @@ def run_case(mpc: ModelPredictiveControl, start: np.ndarray, speed: float,
     cycles = []
     cloud = v2.TimedPointCloud()
     previous_frame = None
-    expected_compute = .025
+    expected_compute = .025 if counted_latency_s is None else counted_latency_s
     collision_active = False
     episodes = {"moving": 0, "holding": 0}
     samples = {"moving": 0, "holding": 0}
@@ -151,11 +154,12 @@ def run_case(mpc: ModelPredictiveControl, start: np.ndarray, speed: float,
         command_sequence = result.action_sequence.velocity.detach().cpu().numpy().reshape(-1, 6)
         feasible = bool(result.success.all())
         compute_s = time.perf_counter()-began
+        counted_compute = compute_s if counted_latency_s is None else counted_latency_s
         # Keep executing the OLD command throughout sensing and optimization.
         previous_velocity = velocity.copy()
-        advance(min(compute_s, duration-clock))
+        advance(min(counted_compute, duration-clock))
         q_after_compute = q.copy()
-        index = min(max(1, int(math.ceil(compute_s / (mpc.config.optimization_dt/4)))), len(command_sequence)-1)
+        index = min(max(1, int(math.ceil(counted_compute / (mpc.config.optimization_dt/4)))), len(command_sequence)-1)
         proposed = command_sequence[index]
         finite = bool(np.isfinite(proposed).all())
         if not finite:
@@ -169,7 +173,7 @@ def run_case(mpc: ModelPredictiveControl, start: np.ndarray, speed: float,
         # Gating on feasibility would recreate the stop-and-go freeze under test.
         if not feasible:
             infeasible += 1
-        advance(min(max(0., CONTROL_DT-compute_s), duration-clock))
+        advance(min(max(0., CONTROL_DT-counted_compute), duration-clock))
         tool = v2.sixth.fourth.tool_position(mpc.kinematics, torch.as_tensor(q, device="cuda", dtype=torch.float32))
         target_error = float(np.linalg.norm(tool-target_points[target]))
         distance_curve.append({"time_s": clock, "distance_m": float(np.linalg.norm(tool-target_points["goal"]))})
@@ -190,7 +194,7 @@ def run_case(mpc: ModelPredictiveControl, start: np.ndarray, speed: float,
             "step": step, "sim_time_start_s": captured_time, "sim_time_end_s": clock,
             "target_after_step": target, "target_reached": reached,
             "measured_compute_ms": compute_s*1000, "solver_ms": solve_s*1000,
-            "compute_counted_s": min(compute_s, duration-captured_time),
+            "compute_counted_s": min(counted_compute, duration-captured_time),
             "q_at_capture_rad": snapshot_q.tolist(),
             "q_after_compute_rad": q_after_compute.tolist(),
             "previous_velocity_radps": previous_velocity.tolist(),
@@ -200,7 +204,7 @@ def run_case(mpc: ModelPredictiveControl, start: np.ndarray, speed: float,
             "velocity_estimate_mps": estimated_velocity.tolist(),
             "prediction_horizon_s": expected_compute+CONTROL_DT if prediction else 0.,
         })
-        expected_compute = compute_s
+        expected_compute = counted_compute
         if stop_at_goal and reached:
             break
     if not (stop_at_goal and first_reach is not None) and clock < duration - 1e-6:
@@ -239,7 +243,7 @@ def run_case(mpc: ModelPredictiveControl, start: np.ndarray, speed: float,
 
 
 def start_viewer(config: Path, results: dict[str, Any], frames: dict[str, list[dict[str, Any]]],
-                 port: int) -> tuple[Any, dict[str, Any]]:
+                 port: int, groups: tuple[str, ...] = ("A", "B", "E")) -> tuple[Any, dict[str, Any]]:
     """Replay selectable MPC cases without writing files."""
     viewer = ViserVisualizer(content_path=ContentPath(robot_config_file=str(config)),
                              connect_ip="127.0.0.1", connect_port=port,
@@ -258,7 +262,7 @@ def start_viewer(config: Path, results: dict[str, Any], frames: dict[str, list[d
     panel = server.gui.add_image(frames[first][0]["depth"], label="Live simulated depth")
     index = {(c["summary"]["mode"], c["summary"]["rod_speed_mps"], c["summary"]["initial_x_m"]): n
              for n,c in results["cases"].items()}
-    group_select = server.gui.add_dropdown("Case", options=("A", "B", "E"), initial_value="A")
+    group_select = server.gui.add_dropdown("Case", options=groups, initial_value=groups[0])
     speed_select = server.gui.add_dropdown("Rod speed m/s", options=("0.05", "0.10"), initial_value="0.05")
     phase_select = server.gui.add_dropdown("Initial X m", options=tuple(f"{x:.2f}" for x in PHASES), initial_value="0.36")
     validity = server.gui.add_text("Phase validity", "", disabled=True)
@@ -341,7 +345,7 @@ def start_viewer(config: Path, results: dict[str, Any], frames: dict[str, list[d
         handle.on_update(filter_changed)
     show(first, frames[first][0])
     verification = []
-    for mode in ("A", "B", "E"):
+    for mode in groups:
         group_select.value, speed_select.value, phase_select.value = mode, "0.10", "0.60"
         name = selected_name()
         output = []
@@ -352,7 +356,7 @@ def start_viewer(config: Path, results: dict[str, Any], frames: dict[str, list[d
             server.stop()
             raise RuntimeError("MPC playback verification timed out")
         verification.extend(output)
-    group_select.value, speed_select.value, phase_select.value = "A", "0.05", "0.36"
+    group_select.value, speed_select.value, phase_select.value = groups[0], "0.05", "0.36"
     show(first, frames[first][0])
     report = {"cases": verification, "all_passed": all(
         c.get("error") is None and c.get("callback_non_main") and c.get("robot_changed") and c.get("rod_changed")

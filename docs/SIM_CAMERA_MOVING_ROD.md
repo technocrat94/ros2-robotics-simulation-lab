@@ -821,3 +821,77 @@ Unlike the previous single run, this batch's B at X=0.60, 0.10 m/s passed with
 the same frozen settings. The shared clock includes measured compute time, so
 reruns can differ even at the same nominal phase. These descriptive phase rates
 must not be promoted to deterministic or hardware-safety guarantees.
+
+## Latency split
+
+The 2026-11-13 batch separates camera perception from counted compute latency using
+A20 (validity only), B20, B50, E20, and E50: two speeds × five phases × five
+groups, 20 simulated seconds each. All use the frozen qualified MPC and prediction;
+E retains v2 point memory. A20 disables the planner obstacle while scoring truth.
+The shared rates loop accepts optional `counted_latency_s`; absent it, the original
+measured-clock path is unchanged. The new entry point imports the original loop,
+factory, renderer and viewer; it never writes the old evidence.
+
+Fixed latency replaces measured compute in plant advance during compute, command
+index, expected-compute prediction horizon (including the first step), counted
+compute record and remainder pacing. Real measured sensing/solve time is retained;
+when it exceeds the fixed value the simulated world pauses. The existing policy
+therefore updates every 25 ms for the 20 ms groups and 50 ms for the 50 ms groups,
+with prediction horizons 45/75 ms. Both command indices saturate at 3. This comparison
+includes cadence and horizon effects under that policy, rather than an isolated
+communication-delay injection.
+
+B50 vs B20 measures the latency effect with perfect perception; E20 vs B20 measures
+the perception effect at equal counted latency. E50 was expected to be close to the
+old measured-latency E. In fact B50 succeeds more often than B20, and E50 does not
+quantitatively reproduce the old E. See the table and repeatability caveat below.
+
+| 組 | 速度 m/s | 成功／有效 | 碰撞次數 | 最差淨空 mm | 實測計算中位／p95 ms |
+|---|---:|---:|---:|---:|---:|
+| A20 | 0.05 | 0/5 | 14 | -42.10 | 19.36/20.48 |
+| B20 | 0.05 | 4/5 | 1 | -8.53 | 20.92/22.30 |
+| B50 | 0.05 | 5/5 | 0 | 22.58 | 20.78/22.06 |
+| E20 | 0.05 | 2/5 | 4 | -77.79 | 54.54/82.01 |
+| E50 | 0.05 | 4/5 | 1 | -7.02 | 53.67/75.78 |
+| A20 | 0.10 | 0/4 | 11 | -35.48 | 19.45/20.58 |
+| B20 | 0.10 | 3/4 | 1 | -82.93 | 20.94/22.31 |
+| B50 | 0.10 | 4/4 | 0 | 17.96 | 20.79/22.12 |
+| E20 | 0.10 | 2/4 | 4 | -24.22 | 53.36/77.65 |
+| E50 | 0.10 | 2/4 | 2 | -17.43 | 56.20/76.49 |
+
+The table pools real compute over control steps in valid phases only. Success means
+zero collision episodes and at least one reach. At speed 0.10, phase X=0.36 has no
+A20 collision and is INVALID_SCENE for all five groups, retained but excluded from
+all metrics. Repeats are separate from the 50-case denominator.
+
+B20/E20 were rerun once at 0.10 m/s, X=0.60, with the same case reset and frozen
+configuration. B20 remains successful, but worst clearance changes from +8.7509 to
++6.6620 mm. E20 changes from success to failure, +15.1808 to −66.1993 mm.
+Thus fixed latency alone does not make this workflow repeatable. Other groups and
+phases were not rerun; remaining variability has not been isolated. E20's lower
+success than B20 suggests perception still matters, but these descriptive runs do
+not justify a precise causal attribution or a monotonic latency claim.
+
+E50 success is 4/5 and 2/4 versus old E 3/5 and 1/4, on the same valid phases.
+Collision episodes are 1/2 versus 4/3; worst clearances −7.02/−17.43 mm versus
+−76.92/−45.35 mm. Old E counts variable measured latency, whereas E50 fixes it.
+The ideal velocity plant has no acceleration limiter; camera noise, additional
+obstacles, physical dynamics and hardware safety remain outside this experiment.
+
+Explicit measurement (writes only the new prefix):
+
+```bash
+scripts/run_sim_camera_moving_rod_latency.sh --headless --save-results
+```
+
+Read-only replay with group, speed and phase dropdowns, magenta camera points,
+observed/predicted boxes, moving rod, robot and depth panel:
+
+```bash
+NEWTON_VIEWER_PORT=30001 scripts/run_sim_camera_moving_rod_latency.sh --replay
+```
+
+Evidence: `docs/experiments/sim-camera-curobo/results/moving_rod_latency.{json,log}`.
+The JSON retains all 50 cases, both repeats, traces, measured/counting clocks,
+camera errors, per-phase status, pooled metrics and repeat comparisons.
+`--replay --save-results` is rejected. No interactive demo ran during measurement.

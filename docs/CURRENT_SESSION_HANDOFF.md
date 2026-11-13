@@ -389,3 +389,54 @@ cd ~/ur5_ws/src/ur5_moveit_demo && NEWTON_VIEWER_PORT=30001 scripts/run_sim_came
 ```
 
 Exit Codex, run `codex logout` and `codex login status`, and confirm logged out.
+
+## 2026-11-13 — fixed-latency perception split
+
+Pulled reviewer task at `a2eab3a` on `experiment/newton-link-depth-camera`.
+Implemented imported rates-loop reuse with optional `counted_latency_s`; default
+measured-clock behavior remains identical. Shared viewer accepts optional group
+labels while default A/B/E behavior remains unchanged. No tuned controller,
+renderer, library, frozen configuration or old saved evidence was changed.
+
+Ran 50 cases: speeds .05/.10, phases .36/.44/.52/.60/.68, groups
+A20/B20/B50/E20/E50, each 20 simulated seconds, plus B20/E20 repeats at .10 X=.60.
+No interactive demo ran during measurement. Fixed clock affects advance, index,
+expected compute, counted compute and remainder pacing; measured time is retained.
+20 ms gives a 25 ms step; 50 ms gives 50 ms, with horizons 45/75 ms and capped
+command index 3. Real compute can pause the simulated world.
+
+A20 marks only .10 X=.36 invalid. Valid-only success counts (slow, fast):
+A20 0/5,0/4; B20 4/5,3/4; B50 5/5,4/4; E20 2/5,2/4; E50 4/5,2/4.
+The comparison is non-monotonic in latency and includes cadence/horizon effects.
+E50 does not quantitatively reproduce old E (3/5,1/4). Repeats are not in rates.
+B20 repeat stays successful but clearance changes +8.7509→+6.6620 mm;
+E20 changes success→failure, +15.1808→−66.1993 mm. Fixed latency does not make
+this workflow fully repeatable; remaining variation is not yet isolated. Do not
+claim causal fractions, all-group repeatability or hardware safety from this run.
+
+Saved new `moving_rod_latency.{json,log}` with all cases, repeats and per-phase
+status. Full 33,600-step audit passes fixed time/horizon/index, previous-velocity
+integration, 20 s duration, camera-frame counts and no joint-position clamping.
+Four latency CPU/evidence tests, original rates test, four tuned contracts and
+five live lifecycle contracts pass. AST comparison verifies that removing only
+the optional-latency additions reconstructs the prior rates run_case exactly.
+Traditional Chinese report and English "Latency split" section contain the table,
+real measured median/p95 (pooled valid steps), repeat differences and limitations.
+
+Run a new explicit measurement only when needed:
+`scripts/run_sim_camera_moving_rod_latency.sh --headless --save-results`
+Read-only five-group replay:
+`NEWTON_VIEWER_PORT=30001 scripts/run_sim_camera_moving_rod_latency.sh --replay`
+
+Preserve the unrelated deleted wall image, modified old second/third/fourth/sixth
+pass results and untracked curobo checkout. No global process cleanup or library
+modification. Next step is to inspect/reset the remaining solver/perception state
+and establish repeatability before making stronger causal claims or tuning.
+Exit Codex, run `codex logout`, then `codex login status`, and confirm logged out.
+
+Final verification: all 50 frame sets rendered after measurement; five group
+callbacks passed on non-main threads, with moving robot/rod and 98 depth
+frames each. Viewer port 30001 and owned camera worker closed. Replay writes
+no results; all prior result hashes and the new JSON/log hashes verified intact.
+Project CI passes. Evidence includes moving_rod_latency.viewer.log and
+moving_rod_latency.validation.log. No owned processes remain running.
