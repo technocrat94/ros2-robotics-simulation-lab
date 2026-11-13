@@ -28,10 +28,16 @@ Keep every v3 rule unchanged except these three. New files `*_v4*`; do not chang
 1. Floor: add a static floor cuboid to the MPC world (top at z=0, or just below if base spheres touch
    it; say which). Score floor contact for all links except the base as a collision too. Check that
    start, goal and raised start are clear.
-2. Unseen top: the fifth-pass height guard only fires when the top point is near camera height, and
-   the border extension never changes height. For the rod case: if the fresh cluster touches any image
-   border, set the box top to the fixed `fixed_unknown_top_m` (0.545 m, a fixed world value, never
-   camera-relative). Log how often it fires.
+2. Principle for E: what the camera has not confirmed is treated as occupied.
+   a. Unseen top: today the top is observed + 20 mm unless the top point is near camera height. Change
+      for the rod case: if the fresh cluster touches any image border, set the box top to the fixed
+      `fixed_unknown_top_m` (0.545 m, fixed world value, never camera-relative). Log how often.
+   b. Out of view: today memory points stay where they were seen for up to 1 s, so the box stays behind
+      while the rod moves away (Claude found box X 0.405-0.468 vs rod X 0.378 at an E collision).
+      Instead, while the rod is not seen, grow the remembered box in X and Y by 0.20 m/s x time since
+      last seen (0.20 = assumed max rod speed, state it), keep the top rule from 2a, drop after 1 s as
+      before. Log the grown size.
+   Do not add active "go and look" behaviour; MPC still only tracks the goal.
 3. Make prediction visible (replay and interactive):
    - observed box (orange) and predicted swept box (blue) with a legend text in the GUI;
    - a ghost rod where E thinks the rod will be at +0.43 s, and an arrow for estimated velocity;
@@ -42,5 +48,5 @@ Keep every v3 rule unchanged except these three. New files `*_v4*`; do not chang
    INVALID_SCENE rule as before. Quiet background run, one line per case, do not read the full log.
 
 Report table per group and speed: success/valid, collision runs, worst clearance, floor contacts,
-how often the top guard fired (E). Add section "v4" to `docs/SIM_CAMERA_MOVING_ROD.md` and a Chinese
+how often 2a and 2b fired (E), and whether E still has collisions with no box or a box not covering the rod. Add section "v4" to `docs/SIM_CAMERA_MOVING_ROD.md` and a Chinese
 table to the zh-TW report with replay and interactive commands. Reply with hash, table, commands.
