@@ -15,43 +15,32 @@ Pending: v3 task below
 Leave the deleted 05_c2_tall_wall_refused.png and the untracked curobo/ untouched. Stage files by
 explicit path only. No git clean/reset/restore/stash/add -A.
 
-## Task: rod dodge v3 with fixed realistic rules (2026-11-13)
+## Task: rod dodge v4: floor, unseen rod top, visible prediction (2026-11-13)
 
-The latency split (effbe9a) is reviewed and closed. Its lesson: rules were not fixed, so every run
-exposed a new gap (no acceleration limit, 3.14 rad/s bursts, 9 mm prediction, single runs that flip).
-Now fix all rules once, then run A/B/E. MPC only (no planner) in this task.
+v3 (56ea2c3) is reviewed. B 50/50, E 10/50, repeats identical, so 1 repeat is enough now.
+Claude checked the 10 E collision onsets (repeat 1): 4 had no box for the whole last 0.3 s (rod out of
+view); 6 had a box but its top was 0.05-0.17 m while the rod is 0.25 m, and it lagged 3-5 cm in X.
+The arm hit the part it never saw. Also the MPC world has no floor (only `camera_obstacle`), so the
+arm may pass through the floor and scoring would not count it.
 
-New files: `scripts/curobo_moving_rod_v3.py`, `scripts/run_sim_camera_moving_rod_v3.sh`. Reuse old code
-by import; do not change old behaviour or old results.
+Keep every v3 rule unchanged except these three. New files `*_v4*`; do not change v3 code or results.
 
-Rules (state each in the report with where the value came from):
-1. Plant: joint velocity limit from the cuRobo robot config, and a joint acceleration limit. Take it
-   from the robot config / UR description if present; if none exists use 3.0 rad/s^2 and say it is an
-   assumption. Clamp the commanded velocity change per step to that limit. Give the same limit to the
-   MPC if its config supports it.
-2. Timing: control period 25 ms, counted compute fixed at 25 ms for every group (not measured).
-   Rod observation updates at 30 Hz for both B and E (E: new camera frame every 33.3 ms; between frames
-   reuse the last one). Still log real measured compute.
-3. Rod prediction: stretch the box along estimated velocity over the full MPC horizon plus one
-   observation period (read the horizon length in seconds from the MPC config and log it).
-4. MPC: start from the frozen config. If the no-rod reach with the new plant fails or takes over 10 s,
-   retune on no-rod only (same method as before), then freeze. Never tune with the rod.
-5. Groups A, B, E. Speeds 0.05 and 0.10 m/s, phases as before, 20 s per case. A runs once per
-   phase (validity only); B and E run 5 repeats each = 110 cases. INVALID_SCENE as before.
-   Run the batch in the background with checkpoints; print one short line per case and the final
-   table only. Do not read the full log back (save tokens).
+1. Floor: add a static floor cuboid to the MPC world (top at z=0, or just below if base spheres touch
+   it; say which). Score floor contact for all links except the base as a collision too. Check that
+   start, goal and raised start are clear.
+2. Unseen top: the fifth-pass height guard only fires when the top point is near camera height, and
+   the border extension never changes height. For the rod case: if the fresh cluster touches any image
+   border, set the box top to the fixed `fixed_unknown_top_m` (0.545 m, a fixed world value, never
+   camera-relative). Log how often it fires.
+3. Make prediction visible (replay and interactive):
+   - observed box (orange) and predicted swept box (blue) with a legend text in the GUI;
+   - a ghost rod where E thinks the rod will be at +0.43 s, and an arrow for estimated velocity;
+   - GUI text: estimated vs true rod speed;
+   - a checkbox to hide/show prediction in replay.
+4. Prediction on/off groups so the report can show why it matters:
+   A, B, B-nopred, E, E-nopred. Speeds 0.05, 0.10, 0.20 m/s, 5 phases, 1 repeat, A once (75 runs).
+   INVALID_SCENE rule as before. Quiet background run, one line per case, do not read the full log.
 
-Report per group and speed: success count / total runs, collision runs, worst and median worst clearance,
-max joint speed and max acceleration (check they stay within the limits), real compute median/p95.
-Say plainly whether E is close to B. No cause analysis in this task.
-
-Simulation version (the user wants to watch it):
-- `--replay`: dropdowns group / speed / phase / repeat; robot, rod, magenta camera points, observed and
-  predicted boxes, depth panel, sim time, live clearance and joint speed.
-- `--interactive`: user drags the rod; A/B/E switch stops the old loop first (as before); same v3 rules.
-
-Save `docs/experiments/sim-camera-curobo/results/moving_rod_v3.{json,log}`. Add section "v3 fixed rules"
-to `docs/SIM_CAMERA_MOVING_ROD.md` and a short Chinese table to `docs/SIM_CAMERA_MOVING_ROD_REPORT.zh-TW.md`
-with both commands. Do not run interactive while measuring.
-
-Reply with the pushed hash, the table, and the two commands.
+Report table per group and speed: success/valid, collision runs, worst clearance, floor contacts,
+how often the top guard fired (E). Add section "v4" to `docs/SIM_CAMERA_MOVING_ROD.md` and a Chinese
+table to the zh-TW report with replay and interactive commands. Reply with hash, table, commands.
