@@ -440,3 +440,80 @@ frames each. Viewer port 30001 and owned camera worker closed. Replay writes
 no results; all prior result hashes and the new JSON/log hashes verified intact.
 Project CI passes. Evidence includes moving_rod_latency.viewer.log and
 moving_rod_latency.validation.log. No owned processes remain running.
+
+## 2026-11-13 — v3 fixed-rule MPC rod dodge
+
+Task source parent `dcb62f8` on `experiment/newton-link-depth-camera`.
+All old controller/renderer/library code and old evidence were preserved.
+New v3 entry point imports the original MPC factory, joint-state/plant helpers,
+scene, perception, worker and renderer. New viewer/live modules retain the
+existing primitives and serialized lifecycle, with v3-specific scheduling.
+No ROS, planner, Newton physics, install or shared process cleanup was used.
+
+Rules frozen before the rod batch: config joint speed limits ±3.141592741 rad/s;
+config acceleration limits ±10 rad/s² (YAML cspace max_acceleration=10 and scale=1,
+not a 3.0 fallback); hard command delta ≤0.25 rad/s every 25 ms, with the same
+robot config passed into MPC. Plant remains an ideal held-velocity discrete plant;
+feedback acceleration between command updates is zero, command Δv/25 ms is audited.
+Control/counting period 25 ms, exact n/30-second B/E observations using the plant
+pose at that timestamp, latest fit and velocity held between observations.
+MPC horizon from actual config (81−1)*.02/4=.4 s; single swept-box extension over
+.4+1/30=.433333 s (no legacy doubling). Real compute remains logged and can pause
+the simulated world. Full no-rod reference passes in 1.075 s; the existing frozen
+MPC block was retained, no rod-based tuning. Reference includes robot-config SHA.
+
+Measured all 150 cases: 2 speeds ×5 phases ×3 groups ×5 repeats, each 20 simulated
+seconds/800 control steps. Fresh MPC instance and robot/point/velocity state per
+case. No interactive demo during measurement. No phases are INVALID_SCENE under
+the five-repeat A rule; all 25 runs/group/speed enter the table. Success requires
+zero collisions and at least one reach. B is 25/25 at each speed; E is 5/25 at each;
+E is not close to B in this batch. No failure-cause attribution is made.
+
+A speed=0.05: success=0/25, collision_runs=25, worst/median_worst_mm=-38.51/-31.33, max_v=0.662192, max_delta_v_dt=5.904637.
+B speed=0.05: success=25/25, collision_runs=0, worst/median_worst_mm=17.68/27.29, max_v=2.679810, max_delta_v_dt=10.000000.
+E speed=0.05: success=5/25, collision_runs=20, worst/median_worst_mm=-86.81/-19.20, max_v=3.073118, max_delta_v_dt=10.000000.
+A speed=0.10: success=0/25, collision_runs=25, worst/median_worst_mm=-41.12/-24.75, max_v=0.662192, max_delta_v_dt=5.904637.
+B speed=0.10: success=25/25, collision_runs=0, worst/median_worst_mm=17.83/37.71, max_v=2.789972, max_delta_v_dt=10.000000.
+E speed=0.10: success=5/25, collision_runs=20, worst/median_worst_mm=-26.22/-18.25, max_v=1.972038, max_delta_v_dt=10.000000.
+
+All 120,000 steps pass fixed-clock/horizon/index, exact observation timestamps,
+held-frame age, speed/command-acceleration bounds, previous-velocity integration,
+no joint-position clamps and five-repeat validity checks. JSON retains all
+control-boundary states, commands, clocks, boxes, observations and all repeats;
+dense collision scoring is unchanged. Redundant fit metadata is omitted; numeric
+serialization uses eight decimal places. File is below GitHub's 100 MiB limit.
+Seven v3 tests (including all saved data and occupied-port preflight), five existing live lifecycle tests, four
+tuned tests and one rates test pass; project CI passes.
+
+New evidence prefix: docs/experiments/sim-camera-curobo/results/moving_rod_v3.
+Reference: moving_rod_v3.reference.json. English "v3 fixed rules" and the Chinese
+report list all rule sources, full six-row table, limits and both watch commands.
+Use only the explicit new prefix for future measurement; never overwrite old results.
+
+Replay:
+`NEWTON_VIEWER_PORT=30002 scripts/run_sim_camera_moving_rod_v3.sh --replay`
+Interactive:
+`NEWTON_VIEWER_PORT=30002 scripts/run_sim_camera_moving_rod_v3.sh --interactive`
+Both from ~/ur5_ws/src/ur5_moveit_demo. Live mode uses fixed simulated steps,
+so UI shows separate simulation/wall time; user drag is an external input.
+
+Leave unrelated old second/third/fourth/sixth pass JSON/log modifications, the
+deleted wall image and untracked curobo checkout untouched. Stage only explicit
+paths. Next single step: present the fixed-rule table and let the user watch the
+saved repeats or interactive v3; do not add cause analysis or tune against the rod.
+Exit Codex, run codex logout, then codex login status, and confirm logged out.
+
+Final watch verification: all 150 frame sets rendered, then actual non-main
+playback callbacks for A repeat 1, B repeat 3, E repeat 5 at .10 X=.60 passed,
+100 depth frames each. Initial requested port 30001 was occupied by the user's
+latency replay PID 1314241, so the guard correctly refused alternate binding;
+that process was preserved. Replayed successfully on explicitly selected 30002.
+A preflight check now detects occupied ports before expensive frame rendering.
+
+Interactive A→E→B→A smoke passed in 16.775633 s with three switches, maximum one
+owned GPU loop, zero reset error, speed/command-acceleration and exact observation
+count checks passed. E camera PID 1323255 exited code 0 before B began. All owned
+threads/workers/viewers stopped; existing user latency replay remains untouched.
+Programmatic GUI callback/gizmo smoke, not manual browser acceptance. See
+moving_rod_v3.viewer.log, moving_rod_v3.live.log and moving_rod_v3.validation.log.
+No watch mode wrote results; old and new evidence hashes verified unchanged.

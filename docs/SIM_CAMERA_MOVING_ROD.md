@@ -895,3 +895,93 @@ Evidence: `docs/experiments/sim-camera-curobo/results/moving_rod_latency.{json,l
 The JSON retains all 50 cases, both repeats, traces, measured/counting clocks,
 camera errors, per-phase status, pooled metrics and repeat comparisons.
 `--replay --save-results` is rejected. No interactive demo ran during measurement.
+
+## v3 fixed rules
+
+This MPC-only experiment freezes the plant, timing, observation and prediction
+rules before the rod batch. There are 150 independent runs: A/B/E × speeds
+0.05/0.10 m/s × initial X 0.36/0.44/0.52/0.60/0.68 m × five repeats, each
+20 simulated seconds. Every run constructs a fresh controller and resets the
+robot, point memory and observed velocity. No interactive demo runs during measurement.
+
+Rule provenance:
+
+1. Velocity limits come from the loaded cuRobo robot model/URDF: approximately
+   ±3.141593 rad/s for each arm joint. Robot YAML:
+   `~/.cache/ur5_moveit_demo/curobo_v2/ur5_robotiq_curobo.yml`, referencing
+   `ur5_robotiq.urdf` in the same directory. Its cspace max_acceleration is
+   10 rad/s² per joint with acceleration_scale=1, so the 3.0 fallback is unused.
+   The same robot config is supplied to MPC; the executor also clamps each
+   velocity delta to at most 10 × 0.025 = 0.25 rad/s.
+2. The task specifies a 25 ms control period and fixed 25 ms counted compute.
+   B/E observe at exact n/30 simulated seconds, using the corresponding past
+   held-velocity plant pose; each control tick consumes the latest observation.
+   The box and estimated velocity are held between observations. Real sensing
+   and solve time is still recorded; longer compute pauses simulated time.
+3. The actual MPC config has 81 state samples, optimization_dt=0.02 s,
+   interpolation_steps=4: horizon=(81−1)×0.02/4=0.4 s. Prediction sweeps the box
+   once along estimated velocity over 0.4+1/30=0.433333 s, with no legacy factor two.
+4. The final no-rod qualification reaches in 1.075 s with limits satisfied,
+   below the specified 10 s threshold. The original qualified settings are kept;
+   there is no rod-based tuning. Qualification and robot-config SHA are saved in
+   `moving_rod_v3.reference.json`.
+5. Rod geometry/path/phases come unchanged from the accepted scene: radius
+   0.025 m, height 0.25 m, Y=0.245 m, X between 0.30/0.70 m, initial negative X.
+   A is obstacle-disabled MPC with truth scored, B uses observed truth boxes,
+   E uses the unchanged simulated-camera fit and v2 timed point memory.
+
+Success means zero truth collisions and at least one goal reach. A phase is
+INVALID_SCENE only when A never collides in all five repeats. Every run remains
+in the JSON; all five repeats for every group in that phase are excluded from
+aggregates. Collision runs count runs with any collision, not episodes.
+The median/p95 compute values pool control steps in valid runs. Finite actions
+marked infeasible by MPC still execute after the same speed/acceleration clamp.
+
+| Group | Speed m/s | Success/total | Collision runs | Worst/median worst clearance mm | Max speed rad/s | Max command acceleration rad/s² | Real compute median/p95 ms |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| A | 0.05 | 0/25 | 25 | -38.51/-31.33 | 0.662 | 5.905 | 19.62/20.81 |
+| B | 0.05 | 25/25 | 0 | 17.68/27.29 | 2.680 | 10.000 | 21.10/22.44 |
+| E | 0.05 | 5/25 | 20 | -86.81/-19.20 | 3.073 | 10.000 | 49.44/69.12 |
+| A | 0.10 | 0/25 | 25 | -41.12/-24.75 | 0.662 | 5.905 | 19.66/20.80 |
+| B | 0.10 | 25/25 | 0 | 17.83/37.71 | 2.790 | 10.000 | 21.12/22.40 |
+| E | 0.10 | 5/25 | 20 | -26.22/-18.25 | 1.972 | 10.000 | 48.33/67.45 |
+
+B succeeds in 25/25 runs at each speed; E succeeds in 5/25 at each speed.
+E is not close to B in this batch.
+
+All command speed/acceleration checks pass. Acceleration is the discrete command
+change divided by 25 ms, not a continuous physical acceleration bound. This is
+still an ideal held-velocity integrator, a noise-free camera and one rod/AABB,
+with simulator shape-index masking and the established forward/downward view.
+No hardware safety result is implied.
+
+Measurement (write only the new prefix):
+
+```bash
+scripts/run_sim_camera_moving_rod_v3.sh --reference --headless --save-results
+scripts/run_sim_camera_moving_rod_v3.sh --headless --save-results
+```
+
+Watch the saved runs or drag the floor-standing rod interactively:
+
+```bash
+cd ~/ur5_ws/src/ur5_moveit_demo
+NEWTON_VIEWER_PORT=30002 scripts/run_sim_camera_moving_rod_v3.sh --replay
+NEWTON_VIEWER_PORT=30002 scripts/run_sim_camera_moving_rod_v3.sh --interactive
+```
+
+Replay offers group/speed/phase/repeat selectors, robot, rod, magenta camera
+points, observed/predicted boxes, depth, simulation time, live truth clearance
+and joint speed. Interactive uses the same v3 command clamp, fixed simulated
+clock, observation schedule and full-horizon prediction. It reuses serialized
+stop/join/worker cleanup before a group reset. Wall time and simulated time are
+shown separately because the fixed-clock simulation can run slower than real time.
+Neither watching mode writes measured results; replay with --save-results is rejected.
+
+Evidence: `docs/experiments/sim-camera-curobo/results/moving_rod_v3.{json,log}`.
+The compact JSON stores every control-boundary state (exact linear held-velocity
+interpolation between states), per-step commands/clocks/boxes, all repeats,
+per-phase validity and rule provenance. Dense collision scoring remains unchanged;
+only redundant serialization metadata is omitted, floats stored to eight decimals.
+
+Verification: all 150 replay frame sets and A1/B3/E5 non-main playback callbacks passed; interactive A→E→B→A smoke passed in 16.78 s, at most one GPU loop, all owned workers/threads stopped. This was a programmatic GUI smoke.
