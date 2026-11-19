@@ -28,7 +28,7 @@ class PredictionVisuals:
         self.enabled.value='on' if prediction else 'off'
         show=bool(self.visible.value and prediction and fit is not None)
         self.ghost.visible=show
-        self.arrow.visible=show and np.linalg.norm(estimate)>1e-9
+        self.arrow.visible=bool(show and float(np.linalg.norm(estimate))>1e-9)
         if self.box is not None:self.box.visible=show
         if fit is not None:
             center=np.asarray(fit['center_m'])
