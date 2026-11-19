@@ -29,24 +29,24 @@ Checkpoint ready for visual review at Z=0.20 m (v6 memory on hold).
 Leave the deleted 05_c2_tall_wall_refused.png and the untracked curobo/ untouched. Stage files by
 explicit path only. No git clean/reset/restore/stash/add -A.
 
-## Task: lower the poke bar so the camera can see it, checkpoint only (2026-11-19)
+## Task: final poke batch + dodge-dance demo (2026-11-19)
 
-4eaf927 checked by the user in replay: B dodges (scene fair), but E never sees the bar: at Z=0.35 m the
-bar is above or level with the down-looking camera, so it is never in the depth image. Camera stays fixed.
+682ea7b accepted (Z=0.20 m, E 0 contacts in smoke). The user is away for dinner and asked for one last
+experiment that combines today's work, so this task may run the batch without a further checkpoint.
+Keep everything from 682ea7b: floor slab + exclusions, floor 10 mm / bar 30 mm activation, safety plane,
+accel limits, start-up look, height memory + robot cap, bar border extension, 8-point bar minimum,
+prediction, viewer fixes. Fail-fast rule at the top applies.
 
-1. Try bar heights Z = 0.20, 0.15, 0.10 m (same poke motion, lane Y=0.28). For each, report:
-   A bar collisions; frames where the bar is in E's depth image (any bar pixels) and frames with a valid
-   E fit; time between first fit and first A contact. Pick the highest Z where A collides AND E gets a
-   valid fit before the arm reaches the bar. If none, report and stop.
-2. If the bar is in the depth image but there is no valid fit, find which filter drops it and fix it
-   for the bar only (say what it was).
-3. Smoke at the chosen Z: A, B, E, 20 s each. NO batch.
-4. Interactive: default bar Z = the chosen value.
-Reply: hash, height table, smoke table, replay + interactive commands, 3 lines on what to look at. STOP.
-
-Checkpoint completed. B and E each reached without bar or floor contact at Z=0.20 m.
-See [report and viewer commands](SIM_CAMERA_MOVING_ROD.md#lower-short-bar-poke-checkpoint)
-and [中文報告](SIM_CAMERA_MOVING_ROD_REPORT.zh-TW.md#短桿降高-checkpoint).
+1. Batch (bar Z=0.20 m, 20 s each, 1 repeat): lanes Y = 0.20, 0.28, 0.36; poke speeds 0.05, 0.10, 0.20 m/s;
+   two start offsets (poke starts at t=0 and at t=2.0 s). Groups A (validity), B, E, E-nopred = 72 runs.
+   A lane/speed/offset with no A contact is INVALID_SCENE for all groups. Print expected wall time first.
+2. Table per group and speed: success/valid, bar-contact runs, floor-contact runs, worst clearance,
+   safety-plane activations; for E hits: no box / box not covering. Short Chinese table in the zh-TW report.
+3. Interactive "Dance" button (the user's dodge-dance demo): every 3 s, poke from +X toward the gripper's
+   CURRENT Y and Z (Z clamped to 0.15-0.30 m), 0.10 m/s, retract, repeat until pressed again. Works in A/B/E
+   and E-nopred; switching stops the old loop as before. Keep the Poke button and XYZ drag.
+4. Replay: group / lane / speed / offset dropdowns, depth panel, boxes, ghost, arrow.
+Reply: hash, table, replay + interactive commands, 3 lines on what to watch. Then stop (user will check).
 
 ### Spec kept from v4 (unchanged rules)
 : floor, unseen rod top, visible prediction (started 2026-11-19)
