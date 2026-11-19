@@ -8,14 +8,37 @@ Written by Claude (reviewer). Read this file at the start of a session after `gi
 
 ## Local pre-merge status
 
-Pending: v4 task below
+Pending: v4.1 task below
 
 ## Working tree note
 
 Leave the deleted 05_c2_tall_wall_refused.png and the untracked curobo/ untouched. Stage files by
 explicit path only. No git clean/reset/restore/stash/add -A.
 
-## Task: rod dodge v4: floor, unseen rod top, visible prediction (started 2026-11-19)
+## Task: v4.1 fix the floor, then rerun v4 (2026-11-19)
+
+v4 (1880b81) reviewed: all 75 runs fail, even A, with nonbase links ~0.8-1.0 m under the floor.
+Claude's reading (check it): start, raised start and goal all have the SAME 3.12 mm floor clearance,
+so the closest sphere is one that never moves up or down, almost surely `shoulder_link` (rotates only
+about joint 1 at base height). It sits inside the 0.03 m collision activation distance at every pose,
+so floor cost is always on. And the floor slab is only 0.1 m thick: a sphere pushed past its middle gets
+a gradient DOWN and the arm dives through. Also Claude's rough FK of saved traces shows v3 B/E and two
+11/13 rate runs already dipped below z=0 when there was no floor.
+
+1. Confirm which link(s) give the 3.12 mm. Treat links that cannot move vertically (base + shoulder_link)
+   as base: exclude them from floor cost and floor scoring. Say the final list.
+2. Floor slab thick: top z=0, thickness 2 m (centre z=-1), so the gradient always points up.
+3. Preflight: every scored sphere at start/raised start/goal has floor clearance >= 0.03 m. If not,
+   report and stop (do not move the goal without asking).
+4. No-rod A reach must pass with no floor contact before the batch. Never tune with the rod.
+5. Rescore old saved traces for floor contact with the same nonbase list (no rerun): rates (7527503)
+   and v3. Report runs with floor contact and deepest depth per group.
+6. Rerun the v4 batch exactly as specified below (75 runs), same table, viewer, commands.
+
+Reply: hash, link list, preflight clearances, old-run floor rescoring, v4 table.
+
+### Spec kept from v4 (unchanged rules)
+: floor, unseen rod top, visible prediction (started 2026-11-19)
 
 v3 (56ea2c3) is reviewed. B 50/50, E 10/50, repeats identical, so 1 repeat is enough now.
 Claude checked the 10 E collision onsets (repeat 1): 4 had no box for the whole last 0.3 s (rod out of
