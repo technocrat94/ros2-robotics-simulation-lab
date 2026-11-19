@@ -6,36 +6,33 @@ Written by Claude (reviewer). Read this file at the start of a session after `gi
 `git push origin <branch>`, then check that `git ls-remote origin <branch>` equals `git rev-parse HEAD`.
 "Everything up-to-date" means nothing new was pushed; it is not success. Reply with the pushed hash.
 
-**Standing rule: fail fast, never run a broken batch to the end.**
-- Before any batch over 10 runs: run a smoke set first (A and B, speed 0.05, one phase). If A has any
-  floor contact or B does not succeed, STOP and report. Do not start the batch.
-- During a batch, stop at once and report (keep the checkpoint) if any of these happen: floor depth
-  > 0.02 m in any run; the first 3 B runs all fail; any non-finite value; a run takes > 3x its expected
-  wall time.
-- Before starting, print the expected total wall time. Do not wait silently for a known-bad result.
+**Standing rule: fail fast on setup bugs, never run a broken batch to the end.**
+- Before any batch over 10 runs: smoke set first (A and B, speed 0.05, one phase). If A has any floor
+  contact, A never reaches without the rod, or B does not succeed, STOP and report.
+- During a batch, stop at once (keep the checkpoint) only for setup-bug signals: any A or B run with
+  floor contact; floor depth > 0.20 m in any run; the first 3 B runs all fail; any non-finite value;
+  a run > 3x its expected wall time.
+- E and *-nopred failures (rod or floor contact) are results, not bugs: score them as failed and continue.
+- Before starting, print the expected total wall time.
 
 ## Local pre-merge status
 
-Pending: v4.2 task below
+Pending: v4.2 resume batch
 
 ## Working tree note
 
 Leave the deleted 05_c2_tall_wall_refused.png and the untracked curobo/ untouched. Stage files by
 explicit path only. No git clean/reset/restore/stash/add -A.
 
-## Task: v4.2 floor-only activation distance 10 mm (2026-11-19)
+## Task: v4.2 resume the batch under the revised fail-fast rule (2026-11-19)
 
-4f25019 reviewed: gate and stop were correct. No-rod A had zero floor contact but never reached the goal
-(best 7.6 mm, end 55 mm). Claude's reading: the goal needs upper_arm_link 25.7 mm above the floor, inside
-the 30 mm activation distance, so floor cost pulls the arm off the goal. The floor is static and known
-exactly, so it does not need the same margin as the rod.
-
-1. In FloorMaskedScene give the floor its own activation distance 0.010 m. Rod stays 0.030 m. Change
-   nothing else (goal, poses, slab, exclusions, MPC settings stay).
-2. Check: floor cost and gradient are exactly zero at start, raised start and goal.
-3. Then the same ordered gates as before: no-rod A qualification (reach <= 6 mm, zero floor contact),
-   smoke A+B at 0.05 one phase, then the 75-run v4 batch. Stop at the first failed gate and report.
-Reply: hash, gate results, table (or where it stopped and why).
+eefec3a reviewed: floor-only 10 mm activation accepted; qualification and smoke passed. The stop at E
+(30.7 mm under the floor) followed Claude's old rule, which was too broad: an E failure is a result.
+The rule at the top of this file is now revised. Resume the v4.2 batch from the checkpoint (or restart
+it if resuming is unsafe; say which), all 75 runs, nothing else changed.
+Report the v4 table plus per group: floor-contact runs and deepest floor depth, and for E/E-nopred
+whether floor contacts happen while a grown or tall (2a/2b) box is active.
+Reply: hash, table, commands for replay and interactive.
 
 ### Spec kept from v4 (unchanged rules)
 : floor, unseen rod top, visible prediction (started 2026-11-19)
