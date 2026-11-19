@@ -708,3 +708,23 @@ Verification passed for all four saved replay selections, the prediction
 display toggle, and five interactive group switches. Both viewers closed
 and the interactive smoke confirmed all owned workers and threads exited.
 The v4 and v4.1 suites passed 18 tests in total. Repository CI passed.
+
+## v5 height memory and executor floor braking
+
+Task parent d3005f2. New v5 entry point reuses gated v4.2 MPC, clocks, scenes,
+and scoring. Every E/E-nopred run seeds height memory with a stationary t=0
+camera observation outside the timed loop. Uses the highest observed rod
+point, border-based top confidence, and a 20 mm cap below the lowest scored
+sphere overlapping the current observed or swept footprint. Samples braking
+at 5 ms against a 5 mm floor plane with acceleration-reachable velocity
+scaling. Full design and counter definitions are in the v5 report section.
+
+Endpoint, no-rod and A/B smoke gates passed. All 75 new runs completed.
+Zero floor-contact runs and 7.763 mm overall minimum floor clearance.
+The plane scaled seven command steps in B-nopred at .20 m/s and X=.52 m.
+The three invalid A phases were .05/X=.68 and .10/X=.44/.52. Valid B 9/12,
+E 2/12 and E-nopred 3/12. All 60,000 steps passed saved-command and evidence
+audits. All 22 related tests and project CI passed. Replay and five-group
+interactive smoke passed and stopped. Results use moving_rod_v5.{json,log}
+and moving_rod_v5.gates.json. Viewer entry is
+scripts/run_sim_camera_moving_rod_v5.sh --replay or --interactive.

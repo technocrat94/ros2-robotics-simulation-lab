@@ -1236,3 +1236,73 @@ and activation distances with five selectable groups.
 NEWTON_VIEWER_PORT=30004 scripts/run_sim_camera_moving_rod_v42.sh --replay
 NEWTON_VIEWER_PORT=30004 scripts/run_sim_camera_moving_rod_v42.sh --interactive
 ```
+
+## v5 height memory and floor braking plane
+
+v5 keeps the v4.2 geometry, 20 mm endpoint check, 10 mm MPC floor activation,
+30 mm rod activation, frozen tracking configuration and sample clocks. Each E
+run takes a camera frame at the stationary start pose before the timed loop.
+This frame seeds the t=0 observation and the next observation is at 1/30 s.
+
+The rod track retains its highest observed point, with the existing 20 mm
+vertical fit padding. A fresh cluster clear of all image borders is the
+criterion for having seen the top. A cropped track with no such observation
+can use the fixed 0.545 m top only if the footprint misses the scored robot
+spheres. The current footprint test intersects each sphere's XY disk with the
+box rectangle. Before submitting a box to MPC, both observed and swept boxes
+are limited to 20 mm below the lowest overlapping sphere bottom. An empty
+vertical interval is discarded. Height limits are recomputed on each command
+tick, including during lost-view XY growth, without lowering the stored
+highest observation. Lost-view memory still expires after 1 s.
+
+At command release, the executor samples FK every 5 ms along the 25 ms held
+command and the following joint acceleration-limited braking sequence. If
+any scored sphere bottom falls below 5 mm at a sample, it bisects a velocity
+scale in [0,1] and checks each candidate. Scale candidates are projected into
+the reachable velocity interval for that 25 ms command update. If no checked
+candidate can brake inside the plane, the run reports a floor-plane failure.
+The floor check covers simulated sample points. It does not establish
+continuous collision avoidance or a UR safety certification.
+
+The 1b fallback and 1c cap counters count command steps that apply the rule to
+either the observed or swept box. Rule 3 counts accepted command steps where
+scaling was required. Lost-view growth still counts observations, rather than
+command steps. Existing E collision coverage compares the box present at a
+rod collision onset against the true rod geometry.
+
+The endpoint checks passed. No-rod A reached in 1.025 s at 3.478 mm goal
+error without floor contact. Smoke A/B had zero floor contact, and B reached
+six times without rod collisions. All 75 batch cases completed. The lowest
+floor clearance was 7.763 mm and there were zero floor-contact runs. The
+plane scaled seven commands, all in B-nopred at 0.20 m/s and X=0.52 m.
+
+Three phases were invalid because A never hit the rod: 0.05 m/s at X=0.68 m
+and 0.10 m/s at X=0.44 and 0.52 m. The table pools the remaining runs.
+The no-box and uncovered counts are rod collision onsets for E groups.
+
+| Group | Speed m/s | Success/valid | Collision runs | Worst clearance mm | Floor runs/episodes | Raise/grow/cap/brake | No box/uncovered |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| A | 0.05 | 0/4 | 4 | -29.59 | 0/0 | 0/0/0/0 | — |
+| B | 0.05 | 4/4 | 0 | 8.92 | 0/0 | 0/0/0/0 | — |
+| B-nopred | 0.05 | 3/4 | 1 | -66.27 | 0/0 | 0/0/0/0 | — |
+| E | 0.05 | 1/4 | 3 | -80.09 | 0/0 | 0/429/395/0 | 4/1 |
+| E-nopred | 0.05 | 2/4 | 2 | -86.59 | 0/0 | 158/363/330/0 | 2/0 |
+| A | 0.10 | 0/3 | 3 | -41.41 | 0/0 | 0/0/0/0 | — |
+| B | 0.10 | 3/3 | 0 | 8.08 | 0/0 | 0/0/0/0 | — |
+| B-nopred | 0.10 | 3/3 | 0 | 1.74 | 0/0 | 0/0/0/0 | — |
+| E | 0.10 | 1/3 | 2 | -68.13 | 0/0 | 26/358/430/0 | 2/1 |
+| E-nopred | 0.10 | 0/3 | 3 | -78.71 | 0/0 | 30/345/403/0 | 3/0 |
+| A | 0.20 | 0/5 | 5 | -31.15 | 0/0 | 0/0/0/0 | — |
+| B | 0.20 | 2/5 | 3 | -77.21 | 0/0 | 0/0/0/0 | — |
+| B-nopred | 0.20 | 1/5 | 4 | -86.92 | 0/0 | 0/0/0/7 | — |
+| E | 0.20 | 0/5 | 5 | -74.93 | 0/0 | 328/857/1012/0 | 4/5 |
+| E-nopred | 0.20 | 1/5 | 4 | -67.89 | 0/0 | 160/614/651/0 | 0/6 |
+
+Scripts from the package directory:
+
+```bash
+NEWTON_VIEWER_PORT=30004 scripts/run_sim_camera_moving_rod_v5.sh --replay
+NEWTON_VIEWER_PORT=30004 scripts/run_sim_camera_moving_rod_v5.sh --interactive
+```
+
+Evidence is saved as `moving_rod_v5.gates.json` and `moving_rod_v5.{json,log}`.

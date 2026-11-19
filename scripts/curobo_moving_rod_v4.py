@@ -70,7 +70,8 @@ def run_case(mpc: ModelPredictiveControl, start: np.ndarray, speed: float,
              baseline: dict[str, Any], duration: float = 20.,
              no_rod: bool = False, stop_at_goal: bool = False, *,
              floor_mask: np.ndarray | None = None,
-             step_guard: Callable[[float], str | None] | None = None) -> dict[str, Any]:
+             step_guard: Callable[[float], str | None] | None = None,
+             height_memory=None, plane_factory=None) -> dict[str, Any]:
     """Run the held-velocity plant, optionally stopping after a scored step."""
     family=mode.split("-")[0]
     mask=nonbase_mask(mpc.kinematics) if floor_mask is None else floor_mask
@@ -111,7 +112,9 @@ def run_case(mpc: ModelPredictiveControl, start: np.ndarray, speed: float,
     }
     traces = [{"time_s": 0., "q": q.tolist()}]
     cycles = []
-    camera_memory=ConservativeRodMemory(baseline["border_rule"]["fixed_unknown_top_m"])
+    camera_memory = (height_memory if height_memory is not None else
+                     ConservativeRodMemory(baseline["border_rule"]["fixed_unknown_top_m"]))
+    plane = None if plane_factory is None else plane_factory(mpc.kinematics, mask, position_limits, accel_limits)
     previous_frame = None
     expected_compute = CONTROL_DT
     collision_active = False
@@ -205,6 +208,14 @@ def run_case(mpc: ModelPredictiveControl, start: np.ndarray, speed: float,
         q = positions[-1].copy()
         clock += duration
 
+    if height_memory is not None and family == "E" and not no_rod:
+        startup_x = v2.rod_x_at(0., speed, v2.ROD_START_X_M, -1.)
+        startup = worker.capture(start, startup_x).camera
+        fit, estimated_velocity, _, event = camera_memory.observe(startup, 0.)
+        perception_events.append(dict(event, startup=True))
+        observation_times.append(0.)
+        next_observation = 1
+
     for step in range(1, 20001):
         if clock >= duration - 1e-9:
             break
@@ -240,7 +251,13 @@ def run_case(mpc: ModelPredictiveControl, start: np.ndarray, speed: float,
                 if previous_frame is not None:
                     estimated_velocity = (center-previous_frame[1])/(observed_time-previous_frame[0])
                 previous_frame = (observed_time,center.copy())
+        raw_fit = fit
         predicted = stretch_fit(fit, estimated_velocity, horizon_s+1/OBS_HZ) if prediction else fit
+        if height_memory is not None:
+            fit, predicted, tall_box_active, _ = height_memory.boxes(
+                raw_fit, estimated_velocity, horizon_s+1/OBS_HZ if prediction else 0.,
+                mpc.kinematics, snapshot_q, mask)
+
         update_box(mpc, predicted)
         state = joint_state(snapshot_q, velocity)
         # Between discrete command updates the held-velocity plant has zero acceleration.
@@ -268,6 +285,8 @@ def run_case(mpc: ModelPredictiveControl, start: np.ndarray, speed: float,
         max_proposed_velocity = np.maximum(max_proposed_velocity, np.abs(proposed))
         velocity_clip_steps += int(np.any(proposed < velocity_limits[0]-1e-6) or np.any(proposed > velocity_limits[1]+1e-6))
         velocity = limited_command(proposed, previous_velocity, velocity_limits, accel_limits)
+        if plane is not None:
+            velocity = plane.filter(q, previous_velocity, velocity)
         acceleration = (velocity-previous_velocity)/CONTROL_DT
         # Finite infeasible MPC actions are intentionally executed in this simulation.
         # Gating on feasibility would recreate the stop-and-go freeze under test.
@@ -304,6 +323,9 @@ def run_case(mpc: ModelPredictiveControl, start: np.ndarray, speed: float,
             "observation_updated": observation_updated,
             "observation_time_s": observation_times[-1] if observation_times else None,
         })
+        if plane is not None:
+            cycles[-1]["floor_plane_factor"] = plane.last_factor
+        fit = raw_fit
         expected_compute = counted_compute
         if step_guard is not None:
             if not np.isfinite(tool).all():
@@ -354,6 +376,10 @@ def run_case(mpc: ModelPredictiveControl, start: np.ndarray, speed: float,
     if step_guard is not None:
         summary.update(minimum_floor_clearance_m=minimum_floor, stop_reason=stop_reason,
                        floor_contact_box_samples=floor_box_samples)
+    if plane is not None:
+        summary["floor_plane_actions"] = plane.acts
+    if height_memory is not None:
+        summary["box_cap_actions"] = height_memory.cap_events
     boundary_times = {round(c["sim_time_end_s"],9) for c in cycles} | {0.}
     traces = [p for p in traces if round(p["time_s"],9) in boundary_times]
     return {"summary": summary, "cycles": cycles, "trace": traces,

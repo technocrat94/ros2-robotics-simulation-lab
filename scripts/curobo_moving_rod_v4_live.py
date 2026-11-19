@@ -20,6 +20,8 @@ class LiveGroups(OriginalLiveGroups):
     make_mpc = staticmethod(v3.make_mpc)
     floor_mask = staticmethod(nonbase_mask)
     version = "v4"
+    camera_memory = staticmethod(ConservativeRodMemory)
+    plane_factory = None
 
     def __init__(self,args,baseline):
         preflight = json.loads(self.preflight_file.read_text())
@@ -114,14 +116,19 @@ class LiveGroups(OriginalLiveGroups):
                     prior_center = self.read_rod()
                     prior_sim = 0.
                     prior_executed_velocity=np.zeros(6)
+                    memory=self.camera_memory(self.baseline["border_rule"]["fixed_unknown_top_m"])
                     if family=="E":
                         worker = LiveCameraWorker(self.args.newton_python,Path(temp))
                         worker.start()
                         record["worker_pid"] = worker.process.pid
-                        worker.capture_xy(q,self.read_rod())
+                        startup_capture = worker.capture_xy(q,self.read_rod())
+                        if hasattr(memory, 'boxes'):
+                            capture = startup_capture
+                            fit,estimate,points,_ = memory.observe(capture.camera,0.)
+                            observation_index = 1
                         record["renderer_xy_checked"] = True
-                    memory=ConservativeRodMemory(self.baseline["border_rule"]["fixed_unknown_top_m"])
                     mask=self.floor_mask(mpc.kinematics)
+                    plane = None if self.plane_factory is None else self.plane_factory(mpc.kinematics, mask, positions, accel_limits)
                     previous_true_center=self.read_rod()
                     floor_active=False
                     previous_frame = None
@@ -167,7 +174,14 @@ class LiveGroups(OriginalLiveGroups):
                                     estimate = (box_center-previous_frame[1])/(observed_time-previous_frame[0])
                                 previous_frame = (observed_time,box_center)
                         prior_q,prior_center,prior_sim = q.copy(),center.copy(),sim_clock
+                        raw_fit = fit
                         predicted = v3.stretch_fit(fit,estimate,horizon+1/v3.OBS_HZ) if prediction else fit
+                        if family == "E" and hasattr(memory, 'boxes'):
+                            fit, predicted, _, _ = memory.boxes(
+                                raw_fit, estimate, horizon+1/v3.OBS_HZ if prediction else 0.,
+                                mpc.kinematics, q, mask)
+                            record["top_rule_events"] = memory.top_events
+                            record["box_cap_actions"] = memory.cap_events
                         tuned.update_box(mpc,predicted)
                         result = mpc.optimize_action_sequence(tuned.joint_state(q,velocity))
                         torch.cuda.synchronize()
@@ -183,6 +197,9 @@ class LiveGroups(OriginalLiveGroups):
                             raise RuntimeError("non-finite live MPC velocity")
                         old_velocity = velocity.copy()
                         velocity = v3.limited_command(commands[index],velocity,speeds,accel_limits)
+                        if plane is not None:
+                            velocity = plane.filter(q,old_velocity,velocity)
+                            record["floor_plane_actions"] = plane.acts
                         record["max_speed_radps"] = max(record.get("max_speed_radps",0.),float(np.max(np.abs(velocity))))
                         record["max_acceleration_radps2"] = max(record.get("max_acceleration_radps2",0.),float(np.max(np.abs(velocity-old_velocity))/v3.CONTROL_DT))
                         state = tuned.joint_state(q,velocity)
@@ -213,6 +230,7 @@ class LiveGroups(OriginalLiveGroups):
                             self.depth.image = capture.depth_preview
                         if hasattr(self,"graphics"):
                             self.graphics.update(fit,estimate,true_velocity,horizon+1/v3.OBS_HZ,prediction,self.predicted)
+                        fit = raw_fit
                         periods.append(done-previous_done)
                         previous_done = done
                         record["steps"] += 1
