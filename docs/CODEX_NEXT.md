@@ -17,31 +17,38 @@ Written by Claude (reviewer). Read this file at the start of a session after `gi
 
 ## Local pre-merge status
 
-Pending: camera tilt coverage test
+Pending: v6 memory task below
 
 ## Working tree note
 
 Leave the deleted 05_c2_tall_wall_refused.png and the untracked curobo/ untouched. Stage files by
 explicit path only. No git clean/reset/restore/stash/add -A.
 
-## Task: camera tilt coverage test, no MPC (2026-11-19)
+## Task: v6 evidence-based rod memory, camera unchanged (2026-11-19)
 
-v5 (d37f17b) reviewed and accepted: zero floor contact, B 9/12, E 2/12. Most E rod hits had no box: the rod
-was out of view. Before any new control run, measure how much a camera tilt helps the camera see the rod.
+The camera mount is fixed hardware: do NOT change tilt or mount. Solve E's misses in software.
+Claude's v5 analysis: of E rod hits, most had no box, and in those the rod had last been seen 1.0-1.8 s
+earlier, so memory had expired by the 1 s TTL while the rod was still next to the arm. Before expiring,
+the grown box reached ~0.5 x 0.5 m.
 
-0. Viewer bug: Claude pushed dd7ff91 (arrow visibility was numpy.bool_, msgspec crashed the Viser
-   connection on E). Check it, and search v4/v5 viewer and live code for any other numpy scalar passed to
-   Viser (`.visible`, `.value`, colors, positions) and convert to plain Python types. Test E in replay.
-1. Replay only: take the saved v5 B joint traces (all speeds and valid phases) and the true rod positions.
-   At every 30 Hz observation time render the E camera with mount tilt 0, 15, 30, 45 degrees (tilt the
-   camera to look more forward along the tool; tilt override in this script only, do not edit
-   config/sim_camera_mount.yaml). No MPC, no control, robot follows the saved trace.
-2. Per tilt, report: % of frames with a valid rod cluster; % with the rod top seen (cluster clear of the
-   top border); the same two numbers only in the 0.5 s before each closest approach of the rod to the arm
-   (the moment that matters); robot pixels fraction (gripper in view).
-3. Also show it: a replay with a tilt dropdown and the depth image, robot, rod, camera frustum.
-Save `moving_rod_tilt.{json,log}`, add section "Camera tilt coverage" to docs/SIM_CAMERA_MOVING_ROD.md,
-short Chinese table to the zh-TW report. Reply: hash, table, replay command.
+0. Viewer bug: Claude pushed dd7ff91 (arrow visibility was numpy.bool_; msgspec dropped the Viser
+   connection on E). Check it; search v4/v5/v6 viewer and live code for other numpy scalars passed to
+   Viser (.visible, .value, colors, positions) and convert to plain Python types. Test E replay.
+1. Represent the remembered rod as a set of columns on a 0.05 m XY grid (preallocate e.g. 64 cuboids
+   in the MPC scene, disable unused ones). Each column height = highest observed top (v5 rules 1a/1b).
+2. No time expiry. A column is removed only by evidence:
+   a. the camera currently sees that column's floor or the space there as empty (ray reaches past it), or
+   b. the robot's scored spheres currently occupy that column below its top (the rod cannot be where
+      the arm is) — this replaces v5 rule 1c's whole-box cap.
+3. While unseen, columns spread from the last seen position at 0.20 m/s (as v5 growth), but spreading
+   stops into columns already cleared by 2a/2b. Cap total spread at 0.25 m from the last seen centre.
+4. Prediction: as v5 (sweep along estimated velocity) applied to the columns of the current fresh fit.
+5. Everything else as v5 (floor, safety plane, start-up look, gates, fail-fast). Batch: A, B, E, E-nopred,
+   speeds 0.05/0.10/0.20, 5 phases, 1 repeat (A once) = 60 runs. B is unchanged from v5, you may reuse v5 B
+   only if the code path is identical; otherwise rerun.
+Report table per group and speed, floor runs, and for E hits: no column / column present but not covering;
+also how often 2a and 2b removed columns. Replay + interactive showing the columns (orange) and cleared
+cells briefly (grey). Reply: hash, table, commands.
 
 ### Spec kept from v4 (unchanged rules)
 : floor, unseen rod top, visible prediction (started 2026-11-19)
