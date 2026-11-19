@@ -15,40 +15,37 @@ Written by Claude (reviewer). Read this file at the start of a session after `gi
 - E and *-nopred failures (rod or floor contact) are results, not bugs: score them as failed and continue.
 - Before starting, print the expected total wall time.
 
+**Standing rule: stop at a checkpoint for the user (from 2026-11-19).**
+Every task ends at a checkpoint the user can check by eye: a short smoke run plus a Viser command
+(replay and/or interactive) and 3 lines on what to look at. Never start a batch (> 10 runs) in the same
+task; the batch is its own later task after the user says the checkpoint looks right.
+
 ## Local pre-merge status
 
-Pending: v6 memory task below
+Pending: horizontal bar checkpoint (v6 memory on hold)
 
 ## Working tree note
 
 Leave the deleted 05_c2_tall_wall_refused.png and the untracked curobo/ untouched. Stage files by
 explicit path only. No git clean/reset/restore/stash/add -A.
 
-## Task: v6 evidence-based rod memory, camera unchanged (2026-11-19)
+## Task: horizontal bar scene, checkpoint only (2026-11-19)
 
-The camera mount is fixed hardware: do NOT change tilt or mount. Solve E's misses in software.
-Claude's v5 analysis: of E rod hits, most had no box, and in those the rod had last been seen 1.0-1.8 s
-earlier, so memory had expired by the 1 s TTL while the rod was still next to the arm. Before expiring,
-the grown box reached ~0.5 x 0.5 m.
+User wants an NVIDIA-style demo with a HORIZONTAL bar (like a stick held across), dodged by the arm.
+Camera mount stays fixed. Keep v5 code (floor, safety plane, accel limits, start-up look, gates) and
+dd7ff91 viewer fix (also check other numpy scalars passed to Viser in the files you touch).
 
-0. Viewer bug: Claude pushed dd7ff91 (arrow visibility was numpy.bool_; msgspec dropped the Viser
-   connection on E). Check it; search v4/v5/v6 viewer and live code for other numpy scalars passed to
-   Viser (.visible, .value, colors, positions) and convert to plain Python types. Test E replay.
-1. Represent the remembered rod as a set of columns on a 0.05 m XY grid (preallocate e.g. 64 cuboids
-   in the MPC scene, disable unused ones). Each column height = highest observed top (v5 rules 1a/1b).
-2. No time expiry. A column is removed only by evidence:
-   a. the camera currently sees that column's floor or the space there as empty (ray reaches past it), or
-   b. the robot's scored spheres currently occupy that column below its top (the rod cannot be where
-      the arm is) — this replaces v5 rule 1c's whole-box cap.
-3. While unseen, columns spread from the last seen position at 0.20 m/s (as v5 growth), but spreading
-   stops into columns already cleared by 2a/2b. Cap total spread at 0.25 m from the last seen centre.
-4. Prediction: as v5 (sweep along estimated velocity) applied to the columns of the current fresh fit.
-5. Everything else as v5 (floor, safety plane, start-up look, gates, fail-fast). Batch: A, B, E, E-nopred,
-   speeds 0.05/0.10/0.20, 5 phases, 1 repeat (A once) = 60 runs. B is unchanged from v5, you may reuse v5 B
-   only if the code path is identical; otherwise rerun.
-Report table per group and speed, floor runs, and for E hits: no column / column present but not covering;
-also how often 2a and 2b removed columns. Replay + interactive showing the columns (orange) and cleared
-cells briefly (grey). Reply: hash, table, commands.
+1. New scene option: horizontal bar, radius 0.02 m, length 0.60 m, along world X, centre X=0.50.
+   Scripted motion: the bar moves along Y between 0.05 and 0.55 at height Z=0.35 m, crossing the arm's
+   start-to-goal path (tool goes Y 0.12 -> 0.45). Check A collides; if not, report the nearest
+   height/lane that makes A collide and stop.
+2. E perception: v5 rules, but turn OFF the "raise top to 0.545 m" rule for this bar (it is meant for
+   vertical rods); instead, if the bar cluster touches an image border, extend the box along X to the
+   full 0.60 m bar length centred on the seen part. Log when it fires.
+3. Interactive mode: user drags the bar in X, Y and Z (gizmo), groups A/B/E switch cleanly as before.
+4. Smoke only: B and E, scripted motion, speed 0.10 m/s, 20 s, one start phase. NO batch.
+Reply: hash, smoke results (reach, rod/floor contact, worst clearance), the replay and interactive commands,
+and 3 lines on what the user should look at. Then STOP.
 
 ### Spec kept from v4 (unchanged rules)
 : floor, unseen rod top, visible prediction (started 2026-11-19)
