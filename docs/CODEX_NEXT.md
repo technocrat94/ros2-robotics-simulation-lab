@@ -37,15 +37,14 @@ Keep everything from 682ea7b: floor slab + exclusions, floor 10 mm / bar 30 mm a
 accel limits, start-up look, height memory + robot cap, bar border extension, 8-point bar minimum,
 prediction, viewer fixes. Fail-fast rule at the top applies.
 
-1. Batch (bar Z=0.20 m, 20 s each, 1 repeat): lanes Y = 0.20, 0.28, 0.36; poke speeds 0.05, 0.10, 0.20 m/s;
-   two start offsets (poke starts at t=0 and at t=2.0 s). Groups A (validity), B, E, E-nopred = 72 runs.
-   A lane/speed/offset with no A contact is INVALID_SCENE for all groups. Print expected wall time first.
-2. Table per group and speed: success/valid, bar-contact runs, floor-contact runs, worst clearance,
-   safety-plane activations; for E hits: no box / box not covering. Short Chinese table in the zh-TW report.
+TIME LIMIT: the user wants this whole task done in about 10 minutes. The 72-run batch is POSTPONED
+(do not run it). Do only items 3 and 5, minimal code, reuse existing viewer/live code.
+1. (postponed) batch.
+2. Smoke only: E, lane Y=0.28, speed 0.10, 20 s, once, to show the live code still works.
 3. Interactive "Dance" button (the user's dodge-dance demo): every 3 s, poke from +X toward the gripper's
    CURRENT Y and Z (Z clamped to 0.15-0.30 m), 0.10 m/s, retract, repeat until pressed again. Works in A/B/E
    and E-nopred; switching stops the old loop as before. Keep the Poke button and XYZ drag.
-4. Replay: group / lane / speed / offset dropdowns, depth panel, boxes, ghost, arrow.
+4. (postponed) replay dropdowns.
 5. Interactive vertical cylinder (to verify the unseen-top rule): add a second draggable obstacle, a
    vertical rod (radius 0.025 m, height selectable 0.25 / 0.50 m, standing on the floor), with a toggle to
    enable it next to the bar. E applies the v5 rod rules to it: height memory, raise to 0.545 m only if the
