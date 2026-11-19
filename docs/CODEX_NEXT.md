@@ -22,39 +22,17 @@ task; the batch is its own later task after the user says the checkpoint looks r
 
 ## Local pre-merge status
 
-Dance and vertical rod demo ready for visual review. The batch and extra replay selectors are postponed.
+No pending task
 
 ## Working tree note
 
 Leave the deleted 05_c2_tall_wall_refused.png and the untracked curobo/ untouched. Stage files by
 explicit path only. No git clean/reset/restore/stash/add -A.
 
-## Task: Dance and vertical rod demo (2026-11-19)
+## Task: none. Work stopped for today (2026-11-19)
 
-682ea7b accepted (Z=0.20 m, E 0 contacts in smoke).
-Keep everything from 682ea7b: floor slab + exclusions, floor 10 mm / bar 30 mm activation, safety plane,
-accel limits, start-up look, height memory + robot cap, bar border extension, 8-point bar minimum,
-prediction, viewer fixes. Fail-fast rule at the top applies.
-
-TIME LIMIT: the user wants this whole task done in about 10 minutes. The 72-run batch is POSTPONED
-(do not run it). Do only items 3 and 5, minimal code, reuse existing viewer/live code.
-1. (postponed) batch.
-2. Smoke only: E, lane Y=0.28, speed 0.10, 20 s, once, to show the live code still works.
-3. Interactive "Dance" button (the user's dodge-dance demo): every 3 s, poke from +X toward the gripper's
-   CURRENT Y and Z (Z clamped to 0.15-0.30 m), 0.10 m/s, retract, repeat until pressed again. Works in A/B/E
-   and E-nopred; switching stops the old loop as before. Keep the Poke button and XYZ drag.
-4. (postponed) replay dropdowns.
-5. Interactive vertical cylinder (to verify the unseen-top rule): add a second draggable obstacle, a
-   vertical rod (radius 0.025 m, height selectable 0.25 / 0.50 m, standing on the floor), with a toggle to
-   enable it next to the bar. E applies the v5 rod rules to it: height memory, raise to 0.545 m only if the
-   top was never seen AND not under the arm, robot cap. GUI text for the rod: "top seen" / "assumed tall"
-   / "capped by arm", plus the box top height. Small check (not part of the batch): one E run where the
-   rod is placed so only its lower part is in view; confirm the box top becomes 0.545 m, and one where the
-   arm is above it; confirm it is capped. Report both.
-Reply: hash, table, replay + interactive commands, 3 lines on what to watch. Then stop (user will check).
-
-See the [demo and viewer commands](SIM_CAMERA_MOVING_ROD.md#short-bar-dance-and-vertical-rod-demo)
-and the [Chinese report](SIM_CAMERA_MOVING_ROD_REPORT.zh-TW.md#短桿-dance-與直立桿互動).
+52409ae (Dance + vertical rod) reviewed. Do not start anything. Postponed for next time: the 72-run
+poke batch with replay selectors, v6 column memory. Claude will write the next task here.
 
 ### Spec kept from v4 (unchanged rules)
 : floor, unseen rod top, visible prediction (started 2026-11-19)
