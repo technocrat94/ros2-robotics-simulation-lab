@@ -591,3 +591,65 @@ untracked curobo checkout. Stage explicit paths only. Next single step: review t
 floor/position-limit failures and E onset coverage table before authorizing another
 controller/model change; do not silently tune or start a new experiment.
 Exit Codex, run codex logout and codex login status, confirm logged out.
+
+## 2026-11-19 — v4.1 stops at preflight (task parent c3ea22c)
+
+The explicit >=.03 m gate fails, so do not run any motion. The task's stop
+condition overrides the requested 75-run rerun. No no-rod, A/B smoke, new batch,
+new replay or interactive motion was started; no goal/start pose was moved.
+
+Confirmed original 3.119573 mm is shoulder_link (3 spheres), fixed sphere-Z
+under start/raised/goal plus +/- .2 rad perturbation of each joint. Base_link_inertia
+(8 spheres) is also vertically fixed, bottom 20 mm. Final actual exclusions for
+floor cost AND scoring: base_link_inertia and shoulder_link, 11 spheres total.
+101 spheres remain scored, including upper_arm_link which does move vertically.
+Aliases world/base/base_link have no collision spheres in this robot.
+
+After those exclusions, endpoint minima are start=27.450740 mm,
+raised_start=27.354322 mm,
+goal=25.734223 mm, all upper_arm_link and all <30 mm.
+Do not silently exclude upper_arm, lower the floor, shrink radii/activation or move
+the goal to pass. Need explicit reviewer/user authorization for the next geometry
+or endpoint change. No expected 75-run wall time was printed because no batch was
+started. Read-only old-trace rescoring was estimated at 1–2 minutes and completed
+in 3.123 s; it is FK analysis, not a control rerun.
+
+New v41 code preserves v3/v4 source and evidence. Floor geometry is top z=0,
+thickness 2 m, center z=-1, 10×10 m footprint. FloorMaskedScene is injected through
+the supported MPC constructor, combining native rod queries over all robot spheres
+with separate floor queries whose base/shoulder radii are disabled. Separate buffers
+preserve gradients; no library/config/world-toggle patching. Static GPU cost/gradient
+and CUDA-graph checks pass: excluded floor cost/gradient zero, rod interaction retained,
+thin slab z=-.08 gradient down, thick floor gradient up. Full MPC setup/motion remains
+UNQUALIFIED because make_mpc checks the failed gate before robot/MPC construction.
+
+Old traces rescored at saved sample points only, no interpolation/planning/rerun;
+new ground mask and z=0. Sources match Git blobs exactly: rates 7527503, v3 56ea2c3.
+rates A: floor runs 0/10, deepest 0.000000 mm.
+rates B: floor runs 1/10, deepest 76.997034 mm.
+rates E: floor runs 1/10, deepest 105.073266 mm.
+v3 A: floor runs 0/10, deepest 0.000000 mm.
+v3 B: floor runs 15/50, deepest 180.218011 mm.
+v3 E: floor runs 35/50, deepest 115.773387 mm.
+v3 supplementary A A: floor runs 0/40, deepest 0.000000 mm.
+
+Primary v3 denominator A10/B50/E50; supplemental A40 reported separately.
+180 stored runs are analyzed. Sampled depth is a lower bound and can miss contact
+between saved samples. Original result metrics/files were not overwritten.
+
+New evidence: moving_rod_v41.preflight.json, old_floor_rescore.{json,log},
+cost_check.json and validation.log in the existing results directory. Seven CPU
+contracts cover link filtering, strict/finite gate, blocked real factory, separate
+buffers/full rod geometry, and source/summary integrity. The explicit GPU checker
+is scripts/check_curobo_moving_rod_v41_cuda.py, default read-only, --save-results
+writes only v41 static evidence; it performs zero robot motion.
+
+Diagnostic commands from ~/ur5_ws/src/ur5_moveit_demo:
+scripts/run_sim_camera_moving_rod_v41.sh --save-results    # expected exit 2
+scripts/run_sim_camera_moving_rod_v41.sh --rescore --save-results
+There is no v4.1 motion table or replay data. Existing v4 replay is historical v4.
+
+Do not touch unrelated dirty old second/third/fourth/sixth pass results, deleted
+wall PNG or untracked curobo/. Stage explicit paths. Next step is reviewer/user
+decision on endpoint/collision-model geometry; the current task expressly says
+stop instead of launching a broken batch. Exit Codex, codex logout, codex login status.

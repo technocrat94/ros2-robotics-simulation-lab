@@ -165,3 +165,45 @@ NEWTON_VIEWER_PORT=30004 scripts/run_sim_camera_moving_rod_v4.sh --interactive
 觀看驗證：五組非主執行緒播放回呼與預測顯示開／關通過；互動五次切換 21.55 秒通過，最多一個自有 GPU 迴圈，所有自有 worker／執行緒已停止。這是程式化 GUI smoke，未消除表內的運動安全失敗。
 
 0.20 m/s 的失去視野速度界限是批次假設；人工拖曳屬外部輸入，未限制拖曳速度。
+
+## v4.1：地板修正後，端點門檻未通過（2026-11-19）
+
+**依 CODEX_NEXT 第 3 點停止：不執行無桿、A/B smoke 或 75 案例批次，沒有移動目標。v4.1 沒有新運動成功率表。** 以下只有靜態幾何／成本驗證及舊軌跡重計分。
+
+確認原 3.120 mm 來自 `shoulder_link` 的 3 顆球；`base_link_inertia` 的 8 顆球底高度為 20.000 mm。兩連桿在 start／raised start／goal 與逐關節 ±0.2 rad 的 FK 檢查中，球心 Z 變化皆為 0。最終地板成本與計分排除名單為 **base_link_inertia、shoulder_link**，共 11 顆；其他 101 顆均保留，包括可垂直移動的 upper_arm_link。
+
+地板修正為頂面 z=0、厚 2 m、中心 z=-1（10×10×2 m）。地板與桿使用分開的原生可微分碰撞查詢：只對地板停用上述 11 顆球，桿仍查詢完整球集。沒有改 curobo/、機器人 YAML、v3 或 v4 的舊程式／結果。靜態 GPU 成本與梯度、CUDA graph forward/backward 驗證通過：排除連桿的地板成本及梯度為 0，對桿的成本／梯度仍非零；在 z=-0.08 m 的測試球，舊薄 slab 梯度往下，新厚地板往上。這不是完整 MPC 運動驗證。
+
+**30 mm preflight 門檻：**
+
+| 姿態 | 最小地板淨空 mm | 控制門檻的連桿 | 結果 |
+|---|---:|---|---|
+| start | 27.451 | upper_arm_link | 未通過 |
+| raised_start | 27.354 | upper_arm_link | 未通過 |
+| goal | 25.734 | upper_arm_link | 未通過 |
+
+排除肩部後，上臂仍位於 30 mm activation distance 內；其球心 Z 在 FK 檢查中可變，不能擅自把整條上臂當基座排除。三個姿態皆未達門檻，因此未執行新的無桿資格測試、A/B smoke、75-run 批次、回放或互動。新 factory 在建構 MPC 前強制檢查此門檻與來源雜湊。未降低地板、縮小啟動距離、修改球半徑或移動任何起點／目標來讓檢查通過。
+
+**舊軌跡重計分，無控制重跑：** 使用同一 101 球名單與 z=0 地板高度。rates 來源逐位元吻合 7527503；v3 來源吻合 56ea2c3。v3 主資料為 A 10／B 50／E 50 次；另列補充 A 40 次，未混入主資料。
+
+| 舊資料 | 組 | 地板接觸執行／總數 | 最深侵入 mm |
+|---|---|---:|---:|
+| rates | A | 0/10 | 0.000 |
+| rates | B | 1/10 | 76.997 |
+| rates | E | 1/10 | 105.073 |
+| v3 | A | 0/10 | 0.000 |
+| v3 | B | 15/50 | 180.218 |
+| v3 | E | 35/50 | 115.773 |
+| v3 supplementary A | A | 0/40 | 0.000 |
+
+僅計算已保存的 trace samples，未內插或重新規劃；深度是已取樣到的最大侵入，可能漏掉取樣之間的接觸。原有成功率與原始檔均未改寫，舊版的零撞桿不代表零地板碰撞。
+
+診斷指令（僅 preflight／舊資料分析）：
+
+```bash
+cd ~/ur5_ws/src/ur5_moveit_demo
+scripts/run_sim_camera_moving_rod_v41.sh --save-results
+scripts/run_sim_camera_moving_rod_v41.sh --rescore --save-results
+```
+
+第一個指令預期退出碼 2，表示門檻未通過；不是啟動運動。v4 歷史回放仍是 1880b81 的資料，v4.1 未產生可播放的新軌跡。需要先由使用者／reviewer 核准端點或碰撞模型的下一步變更，才能繼續；本次沒有自行變更。

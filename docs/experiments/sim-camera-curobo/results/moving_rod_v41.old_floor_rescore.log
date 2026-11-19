@@ -1,0 +1,59 @@
+{
+  "excluded_links": [
+    "base_link_inertia",
+    "shoulder_link"
+  ],
+  "sampling": "only saved trace samples, no interpolation; therefore depth is a sampled lower bound and may miss between-sample contacts",
+  "elapsed_s": 3.1228676508180797,
+  "summary": [
+    {
+      "dataset": "rates",
+      "group": "A",
+      "runs": 10,
+      "floor_contact_runs": 0,
+      "deepest_depth_m": 0.0
+    },
+    {
+      "dataset": "rates",
+      "group": "B",
+      "runs": 10,
+      "floor_contact_runs": 1,
+      "deepest_depth_m": 0.07699703425168991
+    },
+    {
+      "dataset": "rates",
+      "group": "E",
+      "runs": 10,
+      "floor_contact_runs": 1,
+      "deepest_depth_m": 0.10507326573133469
+    },
+    {
+      "dataset": "v3",
+      "group": "A",
+      "runs": 10,
+      "floor_contact_runs": 0,
+      "deepest_depth_m": 0.0
+    },
+    {
+      "dataset": "v3",
+      "group": "B",
+      "runs": 50,
+      "floor_contact_runs": 15,
+      "deepest_depth_m": 0.18021801114082336
+    },
+    {
+      "dataset": "v3",
+      "group": "E",
+      "runs": 50,
+      "floor_contact_runs": 35,
+      "deepest_depth_m": 0.11577338725328445
+    },
+    {
+      "dataset": "v3 supplementary A",
+      "group": "A",
+      "runs": 40,
+      "floor_contact_runs": 0,
+      "deepest_depth_m": 0.0
+    }
+  ]
+}

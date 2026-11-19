@@ -1087,3 +1087,71 @@ The planner floor is a finite 0.1 m slab; truth floor clearance is the nonbase s
 Watch verification: five non-main replay callbacks and prediction off/on passed; five live switches passed in 21.55 s, maximum one GPU loop, all owned threads/workers stopped. Programmatic GUI smoke only; motion safety failures remain as reported.
 
 The .20 m/s unseen-speed bound is a benchmark assumption; manual dragging is an external input without a drag-speed limiter.
+
+## v4.1 — stopped at the endpoint clearance gate
+
+The task requires stopping if any scored endpoint sphere has less than 30 mm
+floor clearance. This gate fails. No no-rod qualification, A/B smoke, 75-run
+batch, new replay or interactive motion is executed. Goals and start poses are
+unchanged; there is no new v4.1 motion-results table.
+
+The original 3.119573 mm minimum belongs to shoulder_link (3 spheres).
+base_link_inertia (8 spheres) bottoms out at 20 mm. FK at the three endpoints and
++/- .2 rad perturbations of each joint shows zero sphere-Z variation for these
+two links. The actual final floor-exclusion list is base_link_inertia and
+shoulder_link: 11 excluded spheres, 101 scored. Other base aliases have no
+collision spheres in this model. upper_arm_link has vertical motion and remains
+fully scored; it must not be silently excluded to pass the gate.
+
+Floor top z=0, thickness 2 m, center z=-1. The new FloorMaskedScene uses supported
+MPC scene_collision_checker injection and two differentiable native queries:
+full spheres for the rod, masked spheres only for the floor, separate cost and
+gradient buffers. No library files or robot geometry are patched. Static GPU
+checks verify zero excluded-link floor cost/gradient, retained rod cost/gradient,
+upward gradient in the thick floor versus downward below the old slab midpoint,
+and CUDA-graph forward/backward. Full MPC integration is unqualified because the
+endpoint gate blocks construction, before any motion setup.
+
+| Pose | Minimum scored floor clearance mm | Controlling link | Required mm |
+|---|---:|---|---:|
+| start | 27.451 | upper_arm_link | 30 |
+| raised_start | 27.354 | upper_arm_link | 30 |
+| goal | 25.734 | upper_arm_link | 30 |
+
+All three remain within the .03 m activation distance. The floor was not lowered,
+the activation distance and sphere radii were not reduced, and no endpoint was
+moved. The factory checks the passed flag, all three finite clearances, robot SHA,
+frozen settings and reference SHA before constructing an MPC. The 75-run wall-time
+estimate is not applicable because the batch was not started. Saved-trace FK
+rescoring was independently estimated at 1–2 minutes and performs no control rerun.
+
+Historical floor rescoring uses the same exclusions and z=0 ground. The source
+blobs match rates commit 7527503 and v3 commit 56ea2c3 exactly. v3 primary cases are
+A=10/B=50/E=50; its extra 40 A cases are reported separately.
+
+| Source | Group | Floor-contact runs/total | Deepest depth mm |
+|---|---|---:|---:|
+| rates | A | 0/10 | 0.000 |
+| rates | B | 1/10 | 76.997 |
+| rates | E | 1/10 | 105.073 |
+| v3 | A | 0/10 | 0.000 |
+| v3 | B | 15/50 | 180.218 |
+| v3 | E | 35/50 | 115.773 |
+| v3 supplementary A | A | 0/40 | 0.000 |
+
+Only saved samples are checked, without interpolation, simulation or planning.
+Depths are sampled lower bounds and may miss between-sample contacts. Existing
+success metrics and source files are not rewritten. Old rod-only success is not
+evidence of floor-safe motion.
+
+Explicit diagnostics (first command exits 2 for the intended failed gate):
+
+```bash
+scripts/run_sim_camera_moving_rod_v41.sh --save-results
+scripts/run_sim_camera_moving_rod_v41.sh --rescore --save-results
+```
+
+Evidence: moving_rod_v41.preflight.json, moving_rod_v41.old_floor_rescore.{json,log},
+and moving_rod_v41.cost_check.json. Existing v4 replay displays the old v4 data;
+no v4.1 motion data exist. Resume only after an explicitly authorized geometry or
+endpoint change; the current task's stop rule takes precedence over rerunning.

@@ -1,0 +1,53 @@
+{
+  "all_passed": true,
+  "base_floor": {
+    "cost": 0.0,
+    "gradient": [
+      0.0,
+      0.0,
+      0.0
+    ]
+  },
+  "shoulder_floor": {
+    "cost": 0.0,
+    "gradient": [
+      0.0,
+      0.0,
+      0.0
+    ]
+  },
+  "moving_link_floor": {
+    "cost": 0.23499998450279236,
+    "gradient": [
+      0.0,
+      0.0,
+      -1.0
+    ]
+  },
+  "excluded_base_still_collides_with_rod": {
+    "cost": 0.024999994784593582,
+    "gradient": [
+      -1.0,
+      0.0,
+      0.0
+    ]
+  },
+  "thin_slab_below_midpoint": {
+    "cost": 0.054999999701976776,
+    "gradient": [
+      0.0,
+      0.0,
+      1.0
+    ]
+  },
+  "two_metre_floor": {
+    "cost": 0.11499997973442078,
+    "gradient": [
+      0.0,
+      0.0,
+      -1.0
+    ]
+  },
+  "cuda_graph_forward_backward": true,
+  "robot_motion_runs": 0
+}

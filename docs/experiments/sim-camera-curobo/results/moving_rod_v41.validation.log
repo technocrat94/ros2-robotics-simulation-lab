@@ -1,0 +1,61 @@
+Expected preflight CLI exit code: 2 (explicit stop gate).
+Laboratory isolation environment
+  user=aisc216 uid=1000
+  ROS_DOMAIN_ID=20 ROS_LOCALHOST_ONLY=1
+  Newton state=20000 command=20001 viewer=30000
+V41_PREFLIGHT {"passed": false, "excluded_links_with_spheres": ["base_link_inertia", "shoulder_link"], "excluded_spheres": 11, "scored_spheres": 101, "endpoint_floor_clearance_m": {"start": 0.027450740337371826, "raised_start": 0.027354322373867035, "goal": 0.025734223425388336}}
+.......
+----------------------------------------------------------------------
+Ran 7 tests in 0.240s
+
+OK
+V41_STATIC_COST {"all_passed": true, "base_floor": {"cost": 0.0, "gradient": [0.0, 0.0, 0.0]}, "shoulder_floor": {"cost": 0.0, "gradient": [0.0, 0.0, 0.0]}, "moving_link_floor": {"cost": 0.23499998450279236, "gradient": [0.0, 0.0, -1.0]}, "excluded_base_still_collides_with_rod": {"cost": 0.024999994784593582, "gradient": [-1.0, 0.0, 0.0]}, "thin_slab_below_midpoint": {"cost": 0.054999999701976776, "gradient": [0.0, 0.0, 1.0]}, "two_metre_floor": {"cost": 0.11499997973442078, "gradient": [0.0, 0.0, -1.0]}, "cuda_graph_forward_backward": true, "robot_motion_runs": 0}
+Historical blob matches: rates=7527503; v3=56ea2c3.
+No robot motion, no no-rod test, no A/B smoke, no 75-run batch, goal unchanged.
+docs/experiments/sim-camera-curobo/results/moving_rod.json: OK
+docs/experiments/sim-camera-curobo/results/moving_rod_latency.json: OK
+docs/experiments/sim-camera-curobo/results/moving_rod_mpc.json: OK
+docs/experiments/sim-camera-curobo/results/moving_rod_mpc_tuned.json: OK
+docs/experiments/sim-camera-curobo/results/moving_rod_mpc_tuned.reference.json: OK
+docs/experiments/sim-camera-curobo/results/moving_rod_rates.json: OK
+docs/experiments/sim-camera-curobo/results/moving_rod_v2.json: OK
+docs/experiments/sim-camera-curobo/results/moving_rod_v2_scene_search.json: OK
+docs/experiments/sim-camera-curobo/results/moving_rod_v3.json: OK
+docs/experiments/sim-camera-curobo/results/moving_rod_v3.reference.json: OK
+docs/experiments/sim-camera-curobo/results/moving_rod_v4.json: OK
+docs/experiments/sim-camera-curobo/results/moving_rod_v4.preflight.json: OK
+docs/experiments/sim-camera-curobo/results/moving_rod.log: OK
+docs/experiments/sim-camera-curobo/results/moving_rod_latency.log: OK
+docs/experiments/sim-camera-curobo/results/moving_rod_latency.validation.log: OK
+docs/experiments/sim-camera-curobo/results/moving_rod_latency.viewer.log: OK
+docs/experiments/sim-camera-curobo/results/moving_rod_mpc.log: OK
+docs/experiments/sim-camera-curobo/results/moving_rod_mpc.viewer.log: OK
+docs/experiments/sim-camera-curobo/results/moving_rod_mpc_tuned.log: OK
+docs/experiments/sim-camera-curobo/results/moving_rod_mpc_tuned.viewer.log: OK
+docs/experiments/sim-camera-curobo/results/moving_rod_rates.live.log: OK
+docs/experiments/sim-camera-curobo/results/moving_rod_rates.log: OK
+docs/experiments/sim-camera-curobo/results/moving_rod_rates.viewer.log: OK
+docs/experiments/sim-camera-curobo/results/moving_rod_v2.log: OK
+docs/experiments/sim-camera-curobo/results/moving_rod_v3.live.log: OK
+docs/experiments/sim-camera-curobo/results/moving_rod_v3.log: OK
+docs/experiments/sim-camera-curobo/results/moving_rod_v3.validation.log: OK
+docs/experiments/sim-camera-curobo/results/moving_rod_v3.viewer.log: OK
+docs/experiments/sim-camera-curobo/results/moving_rod_v4.live.log: OK
+docs/experiments/sim-camera-curobo/results/moving_rod_v4.log: OK
+docs/experiments/sim-camera-curobo/results/moving_rod_v4.validation.log: OK
+docs/experiments/sim-camera-curobo/results/moving_rod_v4.viewer.log: OK
+[python] checked 80/80 files
+[shell] checked 43/43 files
+[yaml] checked 14/14 files
+[json] checked 71/71 files
+[xml] checked 4/4 files
+[license] LICENSE and package.xml files checked
+[gripper] 50 mm / 2.0 mm -> 0.375145 rad, drop 10.578 mm
+[calibration-table] matched 14 C++/CSV rows within 1e-09
+[obstacles] schema and disabled-by-default policy checked
+[pass-policy] obstacle-contact guard unit test run
+[step-c-result] C2 planning-failure classifier unit test run
+[curobo-step-c-result] cuRobo/Newton C1 extractor unit test run
+[step-c-safe-route] Step C scripts preserve the verified safe route
+
+All checks passed.
