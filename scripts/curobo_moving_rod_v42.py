@@ -2,6 +2,7 @@
 """Run the v4.2 gates with a floor-only 10 mm MPC activation distance."""
 import argparse
 import json
+import os
 import signal
 import tempfile
 import time
@@ -18,7 +19,8 @@ v4, v2, tuned = v41.v4, v41.v2, v41.tuned
 FLOOR_ACTIVATION_M = .010
 ROD_ACTIVATION_M = .030
 REPORT = v2.RESULTS_DIR / 'moving_rod_v42.gates.json'
-BATCH = v2.RESULTS_DIR / 'moving_rod_v42.json'
+PREVIOUS_BATCH = v2.RESULTS_DIR / 'moving_rod_v42.json'
+BATCH = v2.RESULTS_DIR / 'moving_rod_v42.resumed.json'
 EXPECTED_WALL_S = {mode: 50 if mode.startswith('E') else 30 for mode in v4.GROUPS}
 
 
@@ -77,6 +79,14 @@ def run_case(config, settings, baseline, mode, *, no_rod=False, speed=.05, worke
     return result
 
 
+def floor_stop_reason(mode, clearance):
+    if clearance < -.20:
+        return f'floor penetration {-clearance*1000:.3f} mm exceeds 200 mm'
+    if mode in ('A', 'B'):
+        return v41.floor_guard(clearance)
+    return None
+
+
 def checkpoint(report):
     temp = BATCH.with_suffix('.tmp')
     temp.write_text(json.dumps(report, separators=(',', ':'), allow_nan=False)+'\n')
@@ -96,29 +106,48 @@ def batch(config, newton_python):
     tuned.original.configure_scene(baseline)
     matrix = [(speed, phase, mode) for speed in v4.SPEEDS for phase in v4.PHASES
               for mode in v4.GROUPS]
-    expected_s = sum(EXPECTED_WALL_S[mode] for _, _, mode in matrix)
-    print(f'V42 estimated batch wall time: {expected_s/60:.0f} minutes for {len(matrix)} runs', flush=True)
+    previous = json.loads(PREVIOUS_BATCH.read_text())
+    if (previous['preflight'] != preflight or previous['rod'] != baseline['rod']
+            or previous['raised_start'] != baseline['raised_start']
+            or previous['floor_activation_m'] != FLOOR_ACTIVATION_M
+            or previous['rod_activation_m'] != ROD_ACTIVATION_M):
+        raise RuntimeError('Previous checkpoint configuration does not match')
+    carried = {}
+    first_b = []
+    for speed, phase, mode in matrix:
+        name = f'v4.2 {mode} {speed:.2f} m/s X={phase:.2f}'
+        case = previous['cases'].get(name)
+        if case is None or case['summary']['stop_reason']:
+            break
+        summary = case['summary']
+        if (summary['steps'] != 800 or summary['simulated_duration_s'] != 20.
+                or summary['minimum_floor_clearance_m'] < -.20
+                or (mode in ('A', 'B') and summary['floor_contacts'])):
+            raise RuntimeError(f'Completed checkpoint case failed validation: {name}')
+        carried[name] = case
+        if mode == 'B':
+            first_b.append(summary['survives'])
+    remaining = matrix[len(carried):]
+    expected_s = sum(EXPECTED_WALL_S[mode] for _, _, mode in remaining)
+    print(f'V42 resume: {len(carried)} carried, {len(remaining)} to run, '
+          f'estimated remaining wall time {expected_s/60:.1f} minutes', flush=True)
     report = dict(schema='4.2', complete=False, stop_reason=None, preflight=preflight,
                   floor_activation_m=FLOOR_ACTIVATION_M, rod_activation_m=ROD_ACTIVATION_M,
-                  rod=baseline['rod'], raised_start=baseline['raised_start'], cases={},
-                  expected_wall_s_by_mode=EXPECTED_WALL_S, expected_total_wall_s=expected_s)
+                  rod=baseline['rod'], raised_start=baseline['raised_start'], cases=carried,
+                  carried_cases=list(carried), resumed_from=PREVIOUS_BATCH.name,
+                  expected_wall_s_by_mode=EXPECTED_WALL_S, expected_remaining_wall_s=expected_s)
     checkpoint(report)
-    first_b = []
 
     def timeout(_signal, _frame):
         raise TimeoutError('run exceeded 3x expected wall time')
-
-    def guard(clearance):
-        if clearance < -.020:
-            return f'floor penetration {-clearance*1000:.3f} mm exceeds 20 mm'
-        return None
 
     old_handler = signal.signal(signal.SIGALRM, timeout)
     try:
         with tempfile.TemporaryDirectory(prefix='rod-v42-') as temp:
             worker = v2.MovingRodWorker(newton_python, Path(temp))
             try:
-                for speed, phase, mode in matrix:
+                for speed, phase, mode in remaining:
+                    guard = lambda clearance: floor_stop_reason(mode, clearance)
                     v2.ROD_START_X_M = phase
                     name = f'v4.2 {mode} {speed:.2f} m/s X={phase:.2f}'
                     began = time.monotonic()
@@ -167,12 +196,85 @@ def batch(config, newton_python):
     return 0 if report['complete'] else 2
 
 
+def watch(args):
+    v41.v3.check_viewer_port(args.port)
+    baseline = json.loads(tuned.original.BASELINE_FILE.read_text())
+    tuned.original.configure_scene(baseline)
+    if args.interactive:
+        from curobo_moving_rod_v4_live import LiveGroups, smoke
+
+        class LiveV42(LiveGroups):
+            preflight_file = v41.PREFLIGHT_FILE
+            make_mpc = staticmethod(lambda config, settings:
+                                    v41.make_mpc(config, settings, floor_activation_m=FLOOR_ACTIVATION_M))
+            floor_mask = staticmethod(v41.nonbase_mask)
+            version = 'v4.2'
+
+        app = LiveV42(args, baseline)
+        try:
+            print(f'V42_INTERACTIVE http://127.0.0.1:{args.port}', flush=True)
+            if args.interactive_smoke:
+                report = smoke(app)
+                print('V42_INTERACTIVE_SMOKE ' + json.dumps(report), flush=True)
+                return 0 if report['all_passed'] else 2
+            wait_for_viewer(args.duration)
+        finally:
+            if not app.closed:
+                app.close()
+        return 0
+
+    from curobo_moving_rod_v4_viewer import FrameCache, start_viewer
+    report = json.loads(BATCH.read_text())
+    with tempfile.TemporaryDirectory(prefix='rod-v42-replay-') as temp:
+        worker = v2.MovingRodWorker(args.newton_python, Path(temp))
+        viewer = None
+        try:
+            frames = FrameCache(worker, report)
+            frames[next(iter(report['cases']))]
+            viewer, verification = start_viewer(args.robot_config, report, frames, args.port,
+                                                verify=args.viewer_smoke, floor_mask=v41.nonbase_mask)
+            if args.viewer_smoke and not verification["all_passed"]:
+                return 2
+            print(f'V42_REPLAY http://127.0.0.1:{args.port}', flush=True)
+            wait_for_viewer(args.duration)
+        finally:
+            if viewer is not None:
+                viewer._mpc_stop_event.set()
+                for thread in viewer._mpc_workers:
+                    thread.join(timeout=10)
+                viewer._server.stop()
+            worker.close()
+    return 0
+
+
+def wait_for_viewer(duration):
+    began = time.monotonic()
+    try:
+        while duration <= 0 or time.monotonic()-began < duration:
+            time.sleep(.25)
+    except KeyboardInterrupt:
+        pass
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--robot-config', type=Path, default=Path.home()/'.cache/ur5_moveit_demo/curobo_v2/ur5_robotiq_curobo.yml')
-    parser.add_argument('--batch', action='store_true')
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument('--batch', action='store_true')
+    mode.add_argument('--replay', action='store_true')
+    mode.add_argument('--interactive', action='store_true')
+    parser.add_argument('--interactive-smoke', action='store_true')
+    parser.add_argument('--viewer-smoke', action='store_true')
+    parser.add_argument('--duration', type=float, default=0.)
+    parser.add_argument('--port', type=int, default=int(os.environ.get('NEWTON_VIEWER_PORT', '30000')))
     parser.add_argument('--newton-python', type=Path, default=Path.home()/'newton_ws/.venv-cpu/bin/python')
     args = parser.parse_args()
+    if args.viewer_smoke and not args.replay:
+        parser.error("--viewer-smoke requires --replay")
+    if args.interactive_smoke and not args.interactive:
+        parser.error("--interactive-smoke requires --interactive")
+    if args.replay or args.interactive:
+        return watch(args)
     if args.batch:
         return batch(args.robot_config, args.newton_python)
     config = args.robot_config

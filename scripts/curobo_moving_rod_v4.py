@@ -121,6 +121,8 @@ def run_case(mpc: ModelPredictiveControl, start: np.ndarray, speed: float,
     near_robot_rates, near_relative_rates = [], []
     minimum = math.inf
     minimum_floor = math.inf
+    tall_box_active = False
+    floor_box_samples = dict(tall=0, grown=0, either=0, both=0)
     stop_reason = None
     reaches = 0
     infeasible = 0
@@ -177,6 +179,15 @@ def run_case(mpc: ModelPredictiveControl, start: np.ndarray, speed: float,
             if floor_contact and not floor_active:
                 floor_episodes+=1
                 collision_events.append(dict(time_s=float(clock+offsets[i]),kind="floor",clearance_m=float(floor_truth[i])))
+            if floor_contact and step_guard is not None and family == 'E':
+                tall = fit is not None and tall_box_active
+                grown = fit is not None and camera_memory.last_event.get('growth_rule', False)
+                floor_box_samples['tall'] += int(tall)
+                floor_box_samples['grown'] += int(grown)
+                floor_box_samples['either'] += int(tall or grown)
+                floor_box_samples['both'] += int(tall and grown)
+                if not floor_active:
+                    collision_events[-1].update(tall_box_active=tall, grown_box_active=grown)
             floor_samples+=int(floor_contact)
             rod_active=rod_contact;floor_active=floor_contact
             collision_active = colliding
@@ -220,6 +231,8 @@ def run_case(mpc: ModelPredictiveControl, start: np.ndarray, speed: float,
             else:
                 capture = worker.capture(observed_q, observed_x).camera
                 fit, estimated_velocity, points, event = camera_memory.observe(capture,observed_time)
+                if event['fresh_seen']:
+                    tall_box_active = event['top_rule']
                 perception_events.append(event)
                 continue
             estimated_velocity = np.zeros(3)
@@ -339,7 +352,8 @@ def run_case(mpc: ModelPredictiveControl, start: np.ndarray, speed: float,
         "mpc_horizon_s": horizon_s, "observation_times_s": observation_times,
     }
     if step_guard is not None:
-        summary.update(minimum_floor_clearance_m=minimum_floor, stop_reason=stop_reason)
+        summary.update(minimum_floor_clearance_m=minimum_floor, stop_reason=stop_reason,
+                       floor_contact_box_samples=floor_box_samples)
     boundary_times = {round(c["sim_time_end_s"],9) for c in cycles} | {0.}
     traces = [p for p in traces if round(p["time_s"],9) in boundary_times]
     return {"summary": summary, "cycles": cycles, "trace": traces,

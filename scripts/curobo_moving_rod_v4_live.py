@@ -16,16 +16,23 @@ tuned,v2=v4.tuned,v4.v2
 
 
 class LiveGroups(OriginalLiveGroups):
+    preflight_file = v4.PREFLIGHT_FILE
+    make_mpc = staticmethod(v3.make_mpc)
+    floor_mask = staticmethod(nonbase_mask)
+    version = "v4"
+
     def __init__(self,args,baseline):
-        self.selected_config=json.loads(v4.PREFLIGHT_FILE.read_text())["frozen_config"]
+        preflight = json.loads(self.preflight_file.read_text())
+        self.selected_config = preflight["frozen_config"]
         try:
             super().__init__(args,baseline)
             self.selector.options=v4.GROUPS
             self.predicted.wireframe=True
             self.predicted.opacity=.85
-            self.graphics=PredictionVisuals(self.server,json.loads(v4.PREFLIGHT_FILE.read_text())["floor_top_m"])
+            self.graphics=PredictionVisuals(self.server,preflight["floor_top_m"],
+                                            floor_thickness=preflight.get("floor_dims_m",[10.,10.,.1])[2])
             self.speed_text=self.server.gui.add_text("Joint command speed","",disabled=True)
-            self.server.gui.add_markdown("v4: 25 ms simulated clock, 30 Hz observations, config speed/acceleration bounds. Floor contact is scored. Dragging is external input.")
+            self.server.gui.add_markdown(f"{self.version}: 25 ms simulated clock, 30 Hz observations, config speed/acceleration bounds. Floor contact is scored. Dragging is external input.")
         except BaseException:
             if hasattr(self,"server") and not self.closed:self.close()
             raise
@@ -82,7 +89,7 @@ class LiveGroups(OriginalLiveGroups):
                     self.viewer.set_joint_state(v2.sixth.arm_state(q).squeeze(0))
                     record["initial_q"] = q.tolist()
                     record["reset_error_rad"] = float(np.max(np.abs(q-self.start_q)))
-                    mpc,_ = v3.make_mpc(self.args.robot_config,self.selected_config)
+                    mpc,_ = self.make_mpc(self.args.robot_config,self.selected_config)
                     velocity = np.zeros(6)
                     state = tuned.joint_state(q,velocity)
                     mpc.setup(state)
@@ -114,7 +121,7 @@ class LiveGroups(OriginalLiveGroups):
                         worker.capture_xy(q,self.read_rod())
                         record["renderer_xy_checked"] = True
                     memory=ConservativeRodMemory(self.baseline["border_rule"]["fixed_unknown_top_m"])
-                    mask=nonbase_mask(mpc.kinematics)
+                    mask=self.floor_mask(mpc.kinematics)
                     previous_true_center=self.read_rod()
                     floor_active=False
                     previous_frame = None

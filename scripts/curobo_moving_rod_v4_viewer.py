@@ -12,7 +12,7 @@ import curobo_moving_rod_v4 as v4
 from curobo_moving_rod_v4_visuals import PredictionVisuals
 
 def start_viewer(config: Path, results: dict[str, Any], frames: dict[str, list[dict[str, Any]]],
-                 port: int, groups: tuple[str, ...] = v4.GROUPS, verify: bool = False) -> tuple[Any, dict[str, Any]]:
+                 port: int, groups: tuple[str, ...] = v4.GROUPS, verify: bool = False, *, floor_mask=v4.nonbase_mask) -> tuple[Any, dict[str, Any]]:
     """Replay selectable MPC cases without writing files."""
     viewer = ViserVisualizer(content_path=ContentPath(robot_config_file=str(config)),
                              connect_ip="127.0.0.1", connect_port=port,
@@ -21,7 +21,8 @@ def start_viewer(config: Path, results: dict[str, Any], frames: dict[str, list[d
     if int(server._websock_server._port) != port:
         server.stop()
         raise RuntimeError(f"requested port {port} occupied; refusing alternate binding")
-    graphics=PredictionVisuals(server,results["preflight"]["floor_top_m"])
+    floor = results["preflight"]
+    graphics=PredictionVisuals(server,floor["floor_top_m"],floor_thickness=floor.get("floor_dims_m",[10.,10.,.1])[2])
     rod = server.scene.add_cylinder("/truth/rod", radius=v2.ROD_RADIUS_M,
                                    height=v2.ROD_TOP_M, color=(235,55,45))
     points = server.scene.add_point_cloud("/camera/points", points=np.zeros((1,3)),
@@ -39,8 +40,8 @@ def start_viewer(config: Path, results: dict[str, Any], frames: dict[str, list[d
     joint_speed = server.gui.add_text("Joint command speed","",disabled=True)
     validity = server.gui.add_text("Phase validity", "", disabled=True)
 
-    def selected_name() -> str:
-        return index[(group_select.value, float(speed_select.value), float(phase_select.value), (1 if group_select.value=="A" else int(repeat_select.value)))]
+    def selected_name() -> str | None:
+        return index.get((group_select.value, float(speed_select.value), float(phase_select.value), (1 if group_select.value=="A" else int(repeat_select.value))))
     controller = server.gui.add_text("Controller", "cuRobo MPC", disabled=True)
     rate = server.gui.add_text("Simulated step rate", "", disabled=True)
     clock_text = server.gui.add_text("Sim time", "0", disabled=True)
@@ -51,6 +52,7 @@ def start_viewer(config: Path, results: dict[str, Any], frames: dict[str, list[d
     # Use a fresh kinematics object so the controller is destroyed before playback.
     robot = v2.Kinematics(v2.KinematicsCfg.from_robot_yaml_file(
         str(config), tool_frames=[v2.sixth.preflight.TOOL_FRAME]))
+    active_floor_spheres = floor_mask(robot)
     frustum = server.scene.add_camera_frustum("/camera/live", fov=v2.DEPTH_FOV_RAD,
                                              aspect=v2.DEPTH_ASPECT, scale=.13)
     busy = threading.Lock()
@@ -60,14 +62,16 @@ def start_viewer(config: Path, results: dict[str, Any], frames: dict[str, list[d
     def show(name: str, frame: dict[str, Any]) -> None:
         summary = results["cases"][name]["summary"]
         controller.value = summary["controller"]
-        validity.value = summary["scene_status"]
+        validity.value = summary.get("scene_status", "Batch incomplete")
+        if summary.get("stop_reason"):
+            validity.value = summary["stop_reason"]
         rate.value = f"{summary['achieved_step_rate_hz']:.2f} Hz"
         clock_text.value = f"{frame['time_s']:.3f} s"
         q_for_clearance = torch.as_tensor(frame["q"],device="cuda",dtype=torch.float32).reshape(1,-1)
         current_clearance = frame.get("clearance_m")
         if current_clearance is None:
             spheres=v4.sphere_series(robot,q_for_clearance)
-            current_clearance=float(min(v4.cylinder_distances(spheres,np.array([frame["rod_x"]]))[0],v4.floor_distances(spheres,v4.nonbase_mask(robot),results["preflight"]["floor_top_m"])[0]))
+            current_clearance=float(min(v4.cylinder_distances(spheres,np.array([frame["rod_x"]]))[0],v4.floor_distances(spheres,active_floor_spheres,floor["floor_top_m"])[0]))
         clearance.value = f"{current_clearance:+.4f} m"
         cycles = results["cases"][name]["cycles"]
         cycle = cycles[min(len(cycles)-1,max(0,int(round(frame["time_s"]/.025))-1))]
@@ -117,7 +121,10 @@ def start_viewer(config: Path, results: dict[str, Any], frames: dict[str, list[d
                 return {"case": name, "error": error.value}
 
     def click(_event: Any) -> None:
-        thread = threading.Thread(target=playback, args=(selected_name(),), daemon=True)
+        name = selected_name()
+        if name is None:
+            return
+        thread = threading.Thread(target=playback, args=(name,), daemon=True)
         workers.append(thread)
         thread.start()
 
@@ -126,6 +133,10 @@ def start_viewer(config: Path, results: dict[str, Any], frames: dict[str, list[d
         repeat_select.disabled = True
         if group_select.value=="A":repeat_select.value="1"
         name = selected_name()
+        play.disabled = name is None
+        if name is None:
+            validity.value = "No saved run for this selection"
+            return
         show(name, frames[name][0])
     for handle in (group_select, speed_select, phase_select, repeat_select):
         handle.on_update(filter_changed)
@@ -133,10 +144,16 @@ def start_viewer(config: Path, results: dict[str, Any], frames: dict[str, list[d
     show(first, frames[first][0])
     if verify:
         verification = []
-        for mode, repeat in ((g,1) for g in groups):
+        for mode in groups:
+            selection = (mode, .10, .60, 1)
+            if selection not in index:
+                selection = next((key for key in index if key[0] == mode), None)
+            if selection is None:
+                continue
+            _, speed, phase, repeat = selection
             group_select.value = mode
             repeat_select.value = str(repeat)
-            group_select.value, speed_select.value, phase_select.value = mode, "0.10", "0.60"
+            speed_select.value, phase_select.value = f"{speed:.2f}", f"{phase:.2f}"
             name = selected_name()
             output = []
             thread = threading.Thread(target=lambda n=name: output.append(playback(n, fast=True)))

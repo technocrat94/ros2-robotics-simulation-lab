@@ -238,3 +238,26 @@ scripts/run_sim_camera_moving_rod_v41.sh --qualify --save-results
 | E（提前停止） | 1.675 | 0 | 0 | 1 | −30.673 |
 
 E 停止前觸發邊界補高 10 次、失視擴張 30 次，未出現撞桿。原始資料保存在 `moving_rod_v42.gates.json`、`moving_rod_v42.json` 和 `moving_rod_v42.log`。
+
+## v4.2 依修訂規則續跑
+
+保留原 checkpoint 裡完整的 A、B、B-nopred，從 E 案例初始狀態重做第 4 案。沿用已通過的無桿資格檢查及 A/B smoke。剩餘 72 案預估 46 分鐘。E 在模擬時間 1.650 秒首次碰地，1.850 秒時侵入 **205.320 mm**，超過修訂後的 **200 mm** 上限，批次依規則停止。
+
+| 案例（0.05 m/s，X=0.36 m） | 模擬秒數 | 成功 | 到達 | 撞桿次數 | 地板接觸執行／已試 | 地板接觸次數 | 最深地板侵入 mm | 最差淨空 mm |
+|---|---:|---|---:|---:|---:|---:|---:|---:|
+| A | 20.000 | 否 | 9 | 5 | 0/1 | 0 | 0 | −28.834 |
+| B | 20.000 | 是 | 6 | 0 | 0/1 | 0 | 0 | 25.772 |
+| B-nopred | 20.000 | 否 | 4 | 1 | 0/1 | 0 | 0 | −66.271 |
+| E（提前停止） | 1.850 | 否 | 0 | 0 | 1/1 | 1 | 205.320 | −205.320 |
+| E-nopred | — | — | — | — | 0 案 | — | — | — |
+
+E 共觸發 10 次邊界補高、30 次失視擴張。9 個地板接觸取樣點均沒有補高或擴張盒在作用。補高盒的判定包含失視後仍保留補高的記憶盒。E-nopred 尚未排到，75 案批次無法產生完整成功率表。
+
+從套件目錄擇一開啟，下列兩種模式使用同一埠。回放顯示已有的四個案例，互動可切換五組。瀏覽器開啟 <http://localhost:30004>。
+
+```bash
+NEWTON_VIEWER_PORT=30004 scripts/run_sim_camera_moving_rod_v42.sh --replay
+NEWTON_VIEWER_PORT=30004 scripts/run_sim_camera_moving_rod_v42.sh --interactive
+```
+
+續跑資料為 `moving_rod_v42.resumed.{json,log}`。原 checkpoint 仍可核對先前的 20 mm 早停結果。

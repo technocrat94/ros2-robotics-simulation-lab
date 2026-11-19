@@ -1211,3 +1211,28 @@ Evidence is saved as `moving_rod_v42.gates.json` and
 `moving_rod_v42.{json,log}` in the results directory. Run the ordered gates
 with `scripts/run_sim_camera_moving_rod_v42.sh`. The separate `--batch`
 command requires successful gates and an empty batch output path.
+
+## v4.2 resumed under the 200 mm stop rule
+
+The resumed batch carried three complete cases from the previous checkpoint.
+It restarted E at speed 0.05 m/s and initial X=0.36 m because the saved E case
+ended mid-run. The expected wall time for the remaining 72 cases was 46 minutes.
+The previously accepted qualification and A/B smoke apply to this resume.
+
+A, B and B-nopred have no floor contacts. E first contacted the floor at
+1.650 simulated seconds and passed the 200 mm stop threshold at 1.850 s
+with 205.320 mm penetration. The E case had zero reaches and no rod collision.
+Ten observations triggered the border-top rule and 30 triggered XY growth.
+Neither rule's box was active at any of the nine floor-contact samples. A tall
+box count includes remembered boxes that retain their border-raised top.
+E-nopred and later phases were never scheduled. The partial data do not support
+per-group success rates across the speed and phase matrix.
+
+The resumed checkpoint is `moving_rod_v42.resumed.{json,log}`. Read-only replay
+shows the saved prefix, and interactive mode uses the same v4.2 floor model
+and activation distances with five selectable groups.
+
+```bash
+NEWTON_VIEWER_PORT=30004 scripts/run_sim_camera_moving_rod_v42.sh --replay
+NEWTON_VIEWER_PORT=30004 scripts/run_sim_camera_moving_rod_v42.sh --interactive
+```

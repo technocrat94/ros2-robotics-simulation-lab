@@ -691,3 +691,20 @@ The separately launched guarded batch saved A, B, B-nopred and partial E at
 and closed the camera worker. No full table or new viewer was produced.
 The checkpoint is moving_rod_v42.json with complete=false, with gate
 evidence in moving_rod_v42.gates.json. Do not overwrite the checkpoint.
+
+## v4.2 resume (task parent f50d193)
+
+Retained the complete A, B and B-nopred entries from moving_rod_v42.json.
+Reran the previously interrupted E from the start, using the same model
+and accepted qualification/smoke evidence. Remaining estimate 46 minutes.
+A/B floor contact and all-group penetration >200 mm are early-stop signals.
+E stopped at 1.850 s on 205.320 mm penetration. Its nine floor-contact
+samples had zero active border-tall or grown boxes. E-nopred not run.
+Separate moving_rod_v42.resumed.json stores all four entries and remains
+incomplete. The original checkpoint is intact. Replay and interactive use
+scripts/run_sim_camera_moving_rod_v42.sh with --replay or --interactive.
+
+Verification passed for all four saved replay selections, the prediction
+display toggle, and five interactive group switches. Both viewers closed
+and the interactive smoke confirmed all owned workers and threads exited.
+The v4 and v4.1 suites passed 18 tests in total. Repository CI passed.
