@@ -22,17 +22,16 @@ task; the batch is its own later task after the user says the checkpoint looks r
 
 ## Local pre-merge status
 
-Checkpoint ready for visual review at Z=0.20 m (v6 memory on hold).
+Dance and vertical rod demo ready for visual review. The batch and extra replay selectors are postponed.
 
 ## Working tree note
 
 Leave the deleted 05_c2_tall_wall_refused.png and the untracked curobo/ untouched. Stage files by
 explicit path only. No git clean/reset/restore/stash/add -A.
 
-## Task: final poke batch + dodge-dance demo (2026-11-19)
+## Task: Dance and vertical rod demo (2026-11-19)
 
-682ea7b accepted (Z=0.20 m, E 0 contacts in smoke). The user is away for dinner and asked for one last
-experiment that combines today's work, so this task may run the batch without a further checkpoint.
+682ea7b accepted (Z=0.20 m, E 0 contacts in smoke).
 Keep everything from 682ea7b: floor slab + exclusions, floor 10 mm / bar 30 mm activation, safety plane,
 accel limits, start-up look, height memory + robot cap, bar border extension, 8-point bar minimum,
 prediction, viewer fixes. Fail-fast rule at the top applies.
@@ -53,6 +52,9 @@ TIME LIMIT: the user wants this whole task done in about 10 minutes. The 72-run 
    rod is placed so only its lower part is in view; confirm the box top becomes 0.545 m, and one where the
    arm is above it; confirm it is capped. Report both.
 Reply: hash, table, replay + interactive commands, 3 lines on what to watch. Then stop (user will check).
+
+See the [demo and viewer commands](SIM_CAMERA_MOVING_ROD.md#short-bar-dance-and-vertical-rod-demo)
+and the [Chinese report](SIM_CAMERA_MOVING_ROD_REPORT.zh-TW.md#短桿-dance-與直立桿互動).
 
 ### Spec kept from v4 (unchanged rules)
 : floor, unseen rod top, visible prediction (started 2026-11-19)

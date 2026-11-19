@@ -54,17 +54,18 @@ def command_index(compute_s: float, count: int) -> int:
     return min(max(1, int(math.ceil(compute_s / CONTROL_DT))), count-1)
 
 
-def update_box(mpc: ModelPredictiveControl, fit: dict[str, Any] | None) -> None:
+def update_box(mpc: ModelPredictiveControl, fit: dict[str, Any] | None,
+               *, name: str = "camera_obstacle") -> None:
     """Update one preallocated cuboid in-place, keeping CUDA graph storage."""
     checker = mpc.scene_collision_checker
     if fit is None:
-        checker.enable_obstacle("camera_obstacle", False)
+        checker.enable_obstacle(name, False)
         return
-    checker.update_obstacle_pose("camera_obstacle", Pose.from_list(
+    checker.update_obstacle_pose(name, Pose.from_list(
         [*fit["center_m"], 1., 0., 0., 0.]))
-    checker.data.cuboids.update_dims("camera_obstacle", torch.as_tensor(
+    checker.data.cuboids.update_dims(name, torch.as_tensor(
         fit["dims_m"], device="cuda", dtype=torch.float32))
-    checker.enable_obstacle("camera_obstacle", True)
+    checker.enable_obstacle(name, True)
 
 
 def joint_state(q: np.ndarray, velocity: np.ndarray) -> JointState:

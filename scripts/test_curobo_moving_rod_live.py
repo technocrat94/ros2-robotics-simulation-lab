@@ -55,13 +55,17 @@ class LiveContracts(unittest.TestCase):
             def numpy(self):return self.a.copy()
         model=SimpleNamespace(joint_q=Array(np.zeros(8)),joint_qd=None,bvh_refit_shapes=lambda state:None)
         fake=SimpleNamespace(q_template=np.arange(8,dtype=np.float32),model=model,
-                             state=SimpleNamespace(body_q=Array(np.zeros((1,7)))),rod_body=0)
+                             state=SimpleNamespace(body_q=Array(np.zeros((3,7)))), rod_body=0,
+                             vertical_bodies={.25: (1, 20), .50: (2, 21)})
         assign=globals_["_assign_pose"]
         assign(fake,np.zeros(6),.5)
         np.testing.assert_allclose(fake.state.body_q.a[0,:3],[.5,.245,.125])
-        assign(fake,np.zeros(6),.4,.22)
+        assign(fake,np.zeros(6),.4,.22,vertical=(.35,.42,.50))
         np.testing.assert_allclose(fake.state.body_q.a[0,:3],[.4,.22,.125])
+        np.testing.assert_allclose(fake.state.body_q.a[2,:3],[.35,.42,.25])
+        self.assertEqual(fake.state.body_q.a[1,2], -10.)
         assign(fake,np.zeros(6),.6)
+        np.testing.assert_allclose(fake.state.body_q.a[1:,2],[-10., -10.])
         np.testing.assert_allclose(fake.state.body_q.a[0,:3],[.6,.245,.125])
         self.assertEqual(fake.model.joint_q.a[6],6.)
 

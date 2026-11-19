@@ -42,13 +42,15 @@ def cylinder_clearance(spheres: np.ndarray, center: np.ndarray) -> float:
 class LiveCameraWorker(v2.MovingRodWorker):
     """Use the existing renderer protocol with optional per-capture rod Y."""
 
-    def capture_xy(self, q: np.ndarray, center: np.ndarray) -> v2.RodCapture:
+    def capture_xy(self, q: np.ndarray, center: np.ndarray, *, vertical_rod=None) -> v2.RodCapture:
         if self.process is None:
             self.start()
         self.counter += 1
         output = self.temp_dir/f"live_{self.counter:06d}.npz"
         request = {"id":self.counter,"arm_q":q.tolist(),"rod_x_m":float(center[0]),
                    "rod_y_m":float(center[1]),"rod_z_m":float(center[2]),"output":str(output)}
+        if vertical_rod is not None:
+            request["vertical_rod"] = vertical_rod
         self.process.stdin.write(json.dumps(request)+"\n")
         self.process.stdin.flush()
         metadata = json.loads(self._read_prefix("NEWTON_MOVING_ROD_WORKER_RESPONSE "))
@@ -60,8 +62,17 @@ class LiveCameraWorker(v2.MovingRodWorker):
             capture = v2.sixth.fourth.Capture(q=q.astype(np.float32),points=arrays["points"].copy(),
                         camera_transform=arrays["camera_transform"].copy(),metadata=metadata)
             depth = arrays["depth_preview"].copy()
+            vertical = None
+            if vertical_rod is not None:
+                borders = metadata["vertical_border_counts"]
+                vertical = v2.sixth.fourth.Capture(
+                    q=capture.q, points=arrays["vertical_points"].copy(),
+                    camera_transform=capture.camera_transform,
+                    metadata={"border_touches": {k: v > 0 for k, v in borders.items()},
+                              "border_pixel_counts": borders},
+                )
         output.unlink()
-        return v2.RodCapture(capture,depth)
+        return v2.RodCapture(capture, depth, vertical)
 
 
 class LiveGroups:

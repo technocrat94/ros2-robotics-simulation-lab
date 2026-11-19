@@ -39,14 +39,16 @@ def require_preflight(report):
         raise RuntimeError(f'STOP: scored endpoint floor clearance is below {ENDPOINT_GATE_M:.3f} m')
 
 
-def make_mpc(config,settings,*,floor_activation_m=None):
+def make_mpc(config,settings,*,floor_activation_m=None,additional_boxes=()):
     """Fixed v3 MPC plus two-metre floor, filtered only for floor cost."""
     report=json.loads(PREFLIGHT_FILE.read_text());require_preflight(report)
     if report['robot_config_sha256']!=hashlib.sha256(config.read_bytes()).hexdigest() or settings!=report['frozen_config'] or report['reference_sha256']!=hashlib.sha256(v3.REFERENCE_FILE.read_bytes()).hexdigest():
         raise RuntimeError('preflight robot/config differs; requalify before any motion')
     robot_cfg,wrist=v2.sixth.limited_robot_cfg(config,v2.sixth.CAMERA_FRONT_SEED)
+    cuboids = {name: {'dims':[.01,.01,.01], 'pose':[0.,0.,-10.,1.,0.,0.,0.]}
+               for name in ('camera_obstacle', *additional_boxes)}
     cfg=tuned.ModelPredictiveControlCfg.create(robot=robot_cfg,
-        scene_model={'cuboid':{'camera_obstacle':{'dims':[.01,.01,.01],'pose':[0.,0.,-10.,1.,0.,0.,0.]}}},
+        scene_model={'cuboid': cuboids},
         optimization_dt=settings.get('optimization_dt',tuned.OPTIMIZATION_DT),interpolation_steps=4,use_cuda_graph=True,
         optimizer_collision_activation_distance=.03,warm_start_optimization_num_iters=200,cold_start_optimization_num_iters=300,
         squared_l2_regularization_weight=[.01,settings['acceleration_regularization'],10.,0.,0.],

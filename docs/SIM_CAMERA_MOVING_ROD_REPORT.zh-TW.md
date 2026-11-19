@@ -381,3 +381,29 @@ NEWTON_VIEWER_PORT=30004 scripts/run_sim_camera_moving_bar_poke_height.sh --inte
 1. 回放選 A，觀察約 5.125 秒的首次碰撞。
 2. 切 B／E，對照 B 的真值盒和 E 的深度影像、橘色觀測盒與藍色預測盒。
 3. 互動模式從 Z=0.20 m 開始。拖曳 XYZ 後按 **Poke**，確認短桿在目前 Y/Z 伸縮。
+
+## 短桿 Dance 與直立桿互動
+
+E 以 Y=0.28 m、0.10 m/s 驗證 20 秒，到達 6 次，撞桿和碰地都是 0，最小淨空 +25.00 mm。600 幀中有 156 幀拍到桿，156 幀成功擬合，軌跡存於 `moving_bar_poke_height.e_smoke.json`。
+
+Dance 每 3 秒模擬時間重新取樣夾爪位置。桿尖從夾爪的 +X 側以 0.10 m/s 伸出 0.125 m，等速收回後停 0.5 秒。使用取樣當下的 Y、Z，並將 Z 限在 0.15 至 0.30 m。A／B／E／E-nopred 切換會先停止原迴圈。如果 Dance 仍開啟，新組別會重新開始伸縮。原有 XYZ 拖曳與 **Poke** 仍可使用。
+
+直立桿半徑 25 mm、貼地，可選 0.25 或 0.50 m 高。開啟時用 Newton 形狀索引分開同一張深度圖的兩根桿，分別從深度點擬合並保留各自的記憶與 MPC 盒。以 0.50 m 直立桿分別重啟 E，得到以下觀測。
+
+| 直立桿 X／Y（m） | 深度最高點（m） | 盒頂（m） | 狀態 |
+|---|---:|---:|---|
+| 0.38／0.44 | 0.103 | 0.545 | 頂端未知，補高 |
+| 0.58／0.10 | 0.440 | 0.358 | 手臂限頂 |
+
+```bash
+NEWTON_VIEWER_PORT=30006 scripts/run_sim_camera_moving_bar_poke_height.sh --replay
+NEWTON_VIEWER_PORT=30006 scripts/run_sim_camera_moving_bar_poke_height.sh --interactive
+```
+
+擇一啟動後開啟 <http://localhost:30006>。
+
+1. 回放切 E，查看已驗證的短桿軌跡、深度圖和觀測盒。
+2. 互動時按 **Dance** 看短桿每三秒重新取樣夾爪位置。停下後可拖曳或按 **Poke**。
+3. 開啟 0.50 m 直立桿，在表中的兩個 X／Y 位置分別切 A 再切 E，查看盒頂狀態。
+
+72 案批次與其回放選單延後。

@@ -51,6 +51,7 @@ DEPTH_ASPECT = 848 / 480
 class RodCapture:
     camera: sixth.fourth.Capture
     depth_preview: np.ndarray
+    vertical_camera: sixth.fourth.Capture | None = None
 
 
 class MovingRodWorker:

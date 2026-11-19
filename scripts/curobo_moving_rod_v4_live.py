@@ -27,8 +27,11 @@ class LiveGroups(OriginalLiveGroups):
     worker_type = LiveCameraWorker
     truth_clearance = staticmethod(cylinder_clearance)
 
-    def before_obstacle_step(self):
+    def before_obstacle_step(self, tool, sim_clock):
         """Allow scene-specific scripted motion before sampling the gizmo."""
+
+    def extra_obstacle(self):
+        return None
 
     def truth_box(self, center):
         return {"center_m":center.tolist(),"dims_m":[2*v2.ROD_RADIUS_M,2*v2.ROD_RADIUS_M,v2.ROD_TOP_M]}
@@ -117,6 +120,10 @@ class LiveGroups(OriginalLiveGroups):
                     speeds = limits.velocity.detach().cpu().numpy()
                     accel_limits = limits.acceleration.detach().cpu().numpy()
                     horizon = v3.horizon_seconds(mpc)
+                    tool = targets["raised_start"]
+                    extra = self.extra_obstacle()
+                    if extra is not None:
+                        extra.read()
                     sim_clock = 0.
                     observation_index = 0
                     fit = None
@@ -132,7 +139,8 @@ class LiveGroups(OriginalLiveGroups):
                         worker = self.worker_type(self.args.newton_python,Path(temp))
                         worker.start()
                         record["worker_pid"] = worker.process.pid
-                        startup_capture = worker.capture_xy(q,self.read_rod())
+                        startup_capture = (worker.capture_xy(q, self.read_rod()) if extra is None
+                                           else extra.capture(worker, q, self.read_rod(), 0.))
                         if hasattr(memory, 'boxes'):
                             capture = startup_capture
                             fit,estimate,points,_ = memory.observe(capture.camera,0.)
@@ -157,7 +165,9 @@ class LiveGroups(OriginalLiveGroups):
                     self.state_text.value = "running"
                     while not stop.is_set():
                         tick = time.monotonic()
-                        self.before_obstacle_step()
+                        self.before_obstacle_step(tool, sim_clock)
+                        if extra is not None:
+                            extra.read()
                         center = self.read_rod()
                         true_velocity=(center-previous_true_center)/v3.CONTROL_DT
                         previous_true_center=center.copy()
@@ -175,7 +185,9 @@ class LiveGroups(OriginalLiveGroups):
                                 fit = self.truth_box(observed_center)
                                 fresh = fit
                             else:
-                                capture = worker.capture_xy(observed_q.astype(np.float32),observed_center)
+                                camera_q = observed_q.astype(np.float32)
+                                capture = (worker.capture_xy(camera_q, observed_center) if extra is None
+                                           else extra.capture(worker, camera_q, observed_center, observed_time))
                                 fit,estimate,points,event=memory.observe(capture.camera,observed_time)
                                 record["top_rule_events"]=memory.top_events
                                 record["growth_rule_events"]=memory.growth_events
@@ -194,6 +206,8 @@ class LiveGroups(OriginalLiveGroups):
                                 mpc.kinematics, q, mask)
                             record["top_rule_events"] = memory.top_events
                             record["box_cap_actions"] = memory.cap_events
+                        if extra is not None:
+                            extra.update(mpc, family, q, mask, horizon+1/v3.OBS_HZ if prediction else 0.)
                         tuned.update_box(mpc,predicted)
                         result = mpc.optimize_action_sequence(tuned.joint_state(q,velocity))
                         torch.cuda.synchronize()
@@ -218,6 +232,8 @@ class LiveGroups(OriginalLiveGroups):
                         kin = mpc.compute_kinematics(state)
                         spheres = kin.robot_spheres.detach().cpu().numpy().reshape(-1,4)
                         clearance = self.truth_clearance(spheres,self.read_rod())
+                        if extra is not None:
+                            clearance = min(clearance, extra.clearance(spheres))
                         floor_clearance=float(np.min(spheres[mask,2]-spheres[mask,3]-mpc._v4_floor_top))
                         if floor_clearance<0 and not floor_active:record["floor_contacts"]=record.get("floor_contacts",0)+1
                         floor_active=floor_clearance<0
@@ -238,7 +254,8 @@ class LiveGroups(OriginalLiveGroups):
                             if data:
                                 box.position,box.dimensions = tuple(map(float,data["center_m"])),tuple(map(float,data["dims_m"]))
                         if capture is not None:
-                            self.points.points = points if len(points) else np.zeros((1,3))
+                            visible_points = points if extra is None else extra.visible_points(points)
+                            self.points.points = visible_points if len(visible_points) else np.zeros((1,3))
                             self.depth.image = capture.depth_preview
                         if hasattr(self,"graphics"):
                             self.graphics.update(fit,estimate,true_velocity,horizon+1/v3.OBS_HZ,prediction,self.predicted)
@@ -285,6 +302,7 @@ class LiveGroups(OriginalLiveGroups):
 def smoke(app, drag_position=None):
     began=time.monotonic()
     observations=[]
+    first_switch = len(app.switches)
     try:
         for mode in (*app.group_options, "A"):
             app.gizmo.position = (.52,.22,v2.ROD_TOP_M/2) if drag_position is None else drag_position
@@ -307,7 +325,7 @@ def smoke(app, drag_position=None):
         all_workers_stopped=all(x['worker_stopped'] for x in app.history),writes_results=False)
     report['observation_counts_pass']=all(x['observation_count']==(0 if x['group']=='A' else math.floor((x['steps']-1)*.025*30+1e-8)+1) for x in app.history)
     report['all_passed']=bool(report['observation_counts_pass'] and app.max_active_loops==1 and report['all_threads_stopped'] and report['all_workers_stopped']
-        and len(app.switches)==len(app.group_options) and all(x['error'] is None and x['reset_error_rad']==0 and x.get('max_speed_radps',0)<=np.pi+2e-7
+        and len(app.switches)-first_switch==len(app.group_options) and all(x['error'] is None and x['reset_error_rad']==0 and x.get('max_speed_radps',0)<=np.pi+2e-7
         and x.get('max_acceleration_radps2',0)<=10+1e-6 for x in app.history)
         and all(x['old_thread_stopped'] and x['old_worker_stopped'] and x['old_stopped_at']<=x['new_requested_at'] for x in app.switches))
     return report

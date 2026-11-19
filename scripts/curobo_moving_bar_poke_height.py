@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Measure depth visibility and run the lowered short-bar checkpoint."""
 from functools import partial
+import json
 from pathlib import Path
 import tempfile
 
@@ -16,6 +17,7 @@ CHECKPOINT_HEIGHT = .20
 SHORT_BAR_MIN_POINTS = 8
 SCAN = v2.RESULTS_DIR/'moving_bar_poke_height.scan.json'
 RESULT = v2.RESULTS_DIR/'moving_bar_poke_height.checkpoint.json'
+E_SMOKE = v2.RESULTS_DIR/'moving_bar_poke_height.e_smoke.json'
 
 
 class PokeHeight:
@@ -121,5 +123,29 @@ class LiveLowerPoke(LivePoke):
     version = 'v5 short bar poke at lower Z'
 
 
+def smoke_e(args, baseline, preflight):
+    print('POKE_E_SMOKE 20 simulated seconds, estimated wall time 1 minute', flush=True)
+    with tempfile.TemporaryDirectory(prefix='poke-e-smoke-') as temp:
+        worker = scene.BarWorker(args.newton_python, Path(temp))
+        try:
+            case = saved_case(args.robot_config, preflight['frozen_config'], baseline,
+                              'E', worker, scene=scene)['case']
+        finally:
+            worker.close()
+    summary = case['summary']
+    print(f'POKE_E_SMOKE reaches={summary["reaches"]} bar={summary["rod_collisions"]} '
+          f'floor={summary["floor_contacts"]} success={summary["survives"]}', flush=True)
+    observed = case['perception_events']
+    report = dict(case=case, bar_center_start_m=scene.START,
+                  frames_with_bar_pixels=sum(event['bar_pixels'] > 0 for event in observed),
+                  frames_with_fit=sum(event['fresh_seen'] for event in observed),
+                  depth_frames=len(observed))
+    E_SMOKE.write_text(json.dumps(report, separators=(',', ':'), allow_nan=False)+'\n')
+    return 2 if summary['stop_reason'] else 0
+
+
 if __name__ == '__main__':
-    raise SystemExit(main(scene=scene, result=RESULT, live_class=LiveLowerPoke, scan_heights=scan_heights))
+    from curobo_moving_bar_poke_demo import LiveDance, verify_demo
+
+    raise SystemExit(main(scene=scene, result=RESULT, live_class=LiveDance, scan_heights=scan_heights,
+                          smoke_e=smoke_e, verify_live=verify_demo))

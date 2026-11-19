@@ -63,7 +63,7 @@ class LivePoke(LiveBar):
     drag_help = 'Drag in X, Y or Z, or click Poke to extend and retract once at the current Y/Z.'
 
     def __init__(self, args, baseline):
-        self.poke_lock = threading.Lock()
+        self.poke_lock = threading.RLock()
         self.poke_elapsed = None
         self.poke_samples = []
         super().__init__(args, baseline)
@@ -79,7 +79,7 @@ class LivePoke(LiveBar):
             self.poke_elapsed = 0.
             self.poke_button.disabled = True
 
-    def before_obstacle_step(self):
+    def before_obstacle_step(self, tool, sim_clock):
         with self.poke_lock:
             if self.poke_elapsed is None:
                 return
@@ -111,7 +111,7 @@ class LivePoke(LiveBar):
         return {'samples': len(points), 'min_center_x_m': float(points[:, 0].min()), 'yz_m': [.31, .38]}
 
 
-def watch(args, baseline, result_path, *, scene=bar, live_class=None):
+def watch(args, baseline, result_path, *, scene=bar, live_class=None, verify_live=None):
     base.v41.v3.check_viewer_port(args.port)
     if args.interactive:
         app = (live_class or LiveBar)(args, baseline)
@@ -121,7 +121,9 @@ def watch(args, baseline, result_path, *, scene=bar, live_class=None):
                 initial_center = app.read_rod().copy()
                 np.testing.assert_allclose(initial_center, scene.START)
                 poke_check = app.verify_poke() if isinstance(app, LivePoke) else None
+                checks = verify_live(app) if verify_live is not None else {}
                 outcome = smoke(app, drag_position=(.52, .22, .37))
+                outcome.update(checks)
                 outcome['initial_center_m'] = initial_center.tolist()
                 if poke_check is not None:
                     outcome["poke_verified"] = poke_check

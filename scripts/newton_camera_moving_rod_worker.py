@@ -54,6 +54,7 @@ class MovingRodCamera:
         device_name: str,
         horizontal_bar: bool = False,
         bar_length: float = .60,
+        vertical_obstacle: bool = False,
     ):
         self.horizontal_bar = horizontal_bar
         newton.use_coord_layout_targets = True
@@ -79,6 +80,13 @@ class MovingRodCamera:
             color=(0.9, 0.25, 0.15),
             label="moving_rod_shape",
         )
+        self.vertical_bodies = {}
+        if vertical_obstacle:
+            for height in (.25, .50):
+                body = builder.add_body(mass=0., is_kinematic=True,
+                                        label=f"vertical_rod_{height:.2f}")
+                shape = builder.add_shape_cylinder(body, radius=.025, half_height=height/2)
+                self.vertical_bodies[height] = (body, shape)
         builder.add_ground_plane()
         self.model = builder.finalize(device=self.device)
         self.state = self.model.state()
@@ -112,7 +120,7 @@ class MovingRodCamera:
         self.capture_count = 0
 
     def _assign_pose(self, arm: np.ndarray, rod_x_m: float, rod_y_m: float | None = None,
-                     rod_z_m: float | None = None) -> None:
+                     rod_z_m: float | None = None, vertical: list | None = None) -> None:
         # Preserve every non-arm joint from the imported model. In particular,
         # do not use the old q[6:] = 0.0 shortcut: the rod pose is independent.
         q = self.q_template.copy()
@@ -127,12 +135,21 @@ class MovingRodCamera:
              0.0, 0.0, 0.0, 1.0),
             dtype=np.float32,
         )
+        if vertical is not None and (len(vertical) != 3 or vertical[2] not in self.vertical_bodies
+                                     or not np.isfinite(vertical).all()):
+            raise ValueError("vertical rod requires finite X/Y and a supported height")
+        for height, (body, _) in self.vertical_bodies.items():
+            if vertical is not None and height == vertical[2]:
+                x, y, z = vertical[0], vertical[1], height/2
+            else:
+                x, y, z = 0., 0., -10.
+            body_q[body] = (x, y, z, 0., 0., 0., 1.)
         self.state.body_q.assign(body_q)
         self.model.bvh_refit_shapes(self.state)
 
     def capture(self, arm: np.ndarray, rod_x_m: float, rod_y_m: float | None = None,
-                     rod_z_m: float | None = None) -> dict[str, object]:
-        self._assign_pose(arm, rod_x_m, rod_y_m, rod_z_m)
+                     rod_z_m: float | None = None, vertical: list | None = None) -> dict[str, object]:
+        self._assign_pose(arm, rod_x_m, rod_y_m, rod_z_m, vertical)
         wp.launch(
             compose_camera,
             dim=1,
@@ -169,18 +186,28 @@ class MovingRodCamera:
         robot = shape_ids < self.robot_shape_count
         environment = (~robot) & (world[:, 2] > 0.012)
         valid_rows, valid_cols = np.nonzero(valid)
-        environment_rows = valid_rows[environment]
-        environment_cols = valid_cols[environment]
-        border_pixel_counts = {
-            "top": int(np.count_nonzero(environment_rows == 0)),
-            "bottom": int(np.count_nonzero(environment_rows == HEIGHT - 1)),
-            "left": int(np.count_nonzero(environment_cols == 0)),
-            "right": int(np.count_nonzero(environment_cols == WIDTH - 1)),
-        }
-        perceived = voxel_downsample(world[environment])
+        def cloud(mask):
+            rows, cols = valid_rows[mask], valid_cols[mask]
+            counts = {
+                "top": int(np.count_nonzero(rows == 0)),
+                "bottom": int(np.count_nonzero(rows == HEIGHT - 1)),
+                "left": int(np.count_nonzero(cols == 0)),
+                "right": int(np.count_nonzero(cols == WIDTH - 1)),
+            }
+            return voxel_downsample(world[mask]), counts
+
+        vertical_data = {}
+        if vertical is not None:
+            _, shape = self.vertical_bodies[vertical[2]]
+            vertical_mask = environment & (shape_ids == shape)
+            vertical_points, vertical_borders = cloud(vertical_mask)
+            vertical_data = dict(vertical_points=vertical_points, vertical_border_counts=vertical_borders)
+            environment &= ~vertical_mask
+        perceived, border_pixel_counts = cloud(environment)
         conversion_ms = (time.perf_counter() - conversion_started) * 1000.0
         self.capture_count += 1
         return {
+            **vertical_data,
             "points": perceived,
             "camera_transform": camera_transform,
             "depth_preview": camera_common.depth_to_rgb(depth)[
@@ -219,6 +246,7 @@ def main() -> None:
     parser.add_argument("--rod-y", type=float, default=ROD_Y_M)
     parser.add_argument("--rod-top", type=float, default=ROD_TOP_M)
     parser.add_argument("--horizontal-bar", action="store_true")
+    parser.add_argument("--vertical-obstacle", action="store_true")
     parser.add_argument("--bar-length", type=float, default=.60)
     args = parser.parse_args()
     if args.horizontal_bar and (not np.isfinite(args.bar_length) or args.bar_length <= 0):
@@ -226,7 +254,8 @@ def main() -> None:
     globals().update(ROD_Y_M=args.rod_y, ROD_TOP_M=args.rod_top,
                      ROD_CENTER_Z_M=args.rod_top / 2)
     mount, _ = camera_common.read_mount_config(args.mount_config)
-    scene = MovingRodCamera(args.urdf, mount, args.device, args.horizontal_bar, args.bar_length)
+    scene = MovingRodCamera(args.urdf, mount, args.device, args.horizontal_bar, args.bar_length,
+                           args.vertical_obstacle)
     print(
         "NEWTON_MOVING_ROD_WORKER_READY "
         + json.dumps(
@@ -246,14 +275,17 @@ def main() -> None:
         arm = np.asarray(request["arm_q"], dtype=np.float32)
         rod_x_m = float(request["rod_x_m"])
         started = time.perf_counter()
-        capture = scene.capture(arm, rod_x_m, request.get("rod_y_m"), request.get("rod_z_m"))
+        capture = scene.capture(arm, rod_x_m, request.get("rod_y_m"), request.get("rod_z_m"),
+                                request.get("vertical_rod"))
         capture_ms = (time.perf_counter() - started) * 1000.0
         output = Path(request["output"])
+        extra = {"vertical_points": capture["vertical_points"]} if "vertical_points" in capture else {}
         np.savez_compressed(
             output,
             points=capture["points"],
             camera_transform=capture["camera_transform"],
             depth_preview=capture["depth_preview"],
+            **extra,
         )
         response = {
             "id": request["id"],
@@ -270,6 +302,8 @@ def main() -> None:
             "capture_count": capture["capture_count"],
             "scene_builds": 1,
         }
+        if extra:
+            response["vertical_border_counts"] = capture["vertical_border_counts"]
         print(
             "NEWTON_MOVING_ROD_WORKER_RESPONSE " + json.dumps(response),
             flush=True,

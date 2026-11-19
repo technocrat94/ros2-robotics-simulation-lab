@@ -1414,3 +1414,44 @@ Start one command, then open <http://localhost:30004>.
 1. Replay A and watch the first bar contact near 5.125 s.
 2. Compare B's truth box with E's depth image and its orange observed and blue swept boxes.
 3. In interactive mode, the bar starts at Z=0.20 m. Drag it in XYZ and click **Poke** to extend and retract at its current Y/Z.
+
+## Short-bar Dance and vertical rod demo
+
+The 20-second E smoke at Y=0.28 m and 0.10 m/s reached 6 times, with zero
+bar or floor contacts and a minimum clearance of +25.00 mm. E fitted
+156 frames and the bar appeared in 156 of 600 frames. The trace is in
+`moving_bar_poke_height.e_smoke.json`.
+
+Dance samples the gripper position at the start of each 3.0-second simulated
+cycle. The inner tip advances 0.125 m from the +X side at 0.10 m/s, retracts
+at the same speed and pauses 0.5 s. It uses the sampled Y and Z, with Z
+limited to 0.15–0.30 m. Group switching stops the old control loop and
+restarts Dance in the selected group when Dance is enabled. Poke still
+uses the bar's current Y and Z for a single stroke.
+
+The optional floor-standing vertical rod has a 25 mm radius and can be set
+to 0.25 or 0.50 m high. In E and E-nopred, Newton's shape indices separate
+the two obstacle returns from the same depth image. Their fits use only
+observed depth points and maintain separate memories and MPC boxes. The
+vertical rod retains the v5 unseen-top rule and the 40-point minimum.
+The horizontal bar retains its eight-point minimum and border extension.
+
+The following two separate live E starts used the 0.50 m rod.
+
+| Rod X/Y (m) | Highest observed point (m) | Viser state | Box top (m) |
+|---|---:|---|---:|
+| 0.38 / 0.44 | 0.103 | Assumed tall | 0.545 |
+| 0.58 / 0.10 | 0.440 | Capped by arm | 0.358 |
+
+```bash
+NEWTON_VIEWER_PORT=30006 scripts/run_sim_camera_moving_bar_poke_height.sh --replay
+NEWTON_VIEWER_PORT=30006 scripts/run_sim_camera_moving_bar_poke_height.sh --interactive
+```
+
+Start one command and open <http://localhost:30006>.
+
+1. In replay, choose E to inspect the accepted short-bar trajectory, depth and boxes.
+2. In interactive mode press **Dance** to watch the short bar retarget the gripper every three simulated seconds. Stop Dance to drag or use **Poke**.
+3. Enable the 0.50 m vertical rod and switch A → E at each row's X/Y position. Watch the height status and box top.
+
+The 72-run matrix and its replay selectors are postponed.

@@ -79,11 +79,14 @@ def measure(args, baseline, preflight, scene=bar, result=RESULT):
     return 0
 
 
-def main(*, scene=bar, result=RESULT, live_class=None, scan_heights=None):
+def main(*, scene=bar, result=RESULT, live_class=None, scan_heights=None,
+         smoke_e=None, verify_live=None):
     parser = argparse.ArgumentParser(description=__doc__)
     mode = parser.add_mutually_exclusive_group(required=True)
     if scan_heights is not None:
         mode.add_argument('--scan-heights', action='store_true')
+    if smoke_e is not None:
+        mode.add_argument('--smoke-e', action='store_true')
     mode.add_argument('--smoke', action='store_true')
     mode.add_argument('--replay', action='store_true')
     mode.add_argument('--interactive', action='store_true')
@@ -94,18 +97,21 @@ def main(*, scene=bar, result=RESULT, live_class=None, scan_heights=None):
     parser.add_argument('--newton-python', type=Path, default=Path.home()/'newton_ws/.venv-cpu/bin/python')
     args = parser.parse_args()
     scanning = getattr(args, 'scan_heights', False)
-    if args.viewer_smoke and (args.smoke or scanning):
+    e_smoke = getattr(args, 'smoke_e', False)
+    if args.viewer_smoke and (args.smoke or scanning or e_smoke):
         parser.error('--viewer-smoke requires replay or interactive')
     preflight = json.loads(v41.PREFLIGHT_FILE.read_text())
     v41.require_preflight(preflight)
     baseline = json.loads(tuned.original.BASELINE_FILE.read_text())
     tuned.original.configure_scene(baseline)
+    if e_smoke:
+        return smoke_e(args, baseline, preflight)
     if scanning:
         return scan_heights(args, baseline, preflight)
     if args.smoke:
         return measure(args, baseline, preflight, scene, result)
     from curobo_moving_bar_v5_viewer import watch
-    return watch(args, baseline, result, scene=scene, live_class=live_class)
+    return watch(args, baseline, result, scene=scene, live_class=live_class, verify_live=verify_live)
 
 
 if __name__ == '__main__':
