@@ -17,22 +17,38 @@ Written by Claude (reviewer). Read this file at the start of a session after `gi
 
 ## Local pre-merge status
 
-Pending: v4.2 resume batch
+Pending: v5 task below
 
 ## Working tree note
 
 Leave the deleted 05_c2_tall_wall_refused.png and the untracked curobo/ untouched. Stage files by
 explicit path only. No git clean/reset/restore/stash/add -A.
 
-## Task: v4.2 resume the batch under the revised fail-fast rule (2026-11-19)
+## Task: v5 physically consistent rod height + floor safety plane (2026-11-19)
 
-eefec3a reviewed: floor-only 10 mm activation accepted; qualification and smoke passed. The stop at E
-(30.7 mm under the floor) followed Claude's old rule, which was too broad: an E failure is a result.
-The rule at the top of this file is now revised. Resume the v4.2 batch from the checkpoint (or restart
-it if resuming is unsafe; say which), all 75 runs, nothing else changed.
-Report the v4 table plus per group: floor-contact runs and deepest floor depth, and for E/E-nopred
-whether floor contacts happen while a grown or tall (2a/2b) box is active.
-Reply: hash, table, commands for replay and interactive.
+d79082a reviewed. E X=0.36 failed because (Claude's trace): the rod starts under the arm, never seen; the
+border rule raised the top to 0.545 m, so the box contained the arm from t=0 (MPC infeasible every step);
+the box grew to ~0.5 m, was dropped at 1.55 s, then the arm moved down fast and could not brake within the
+10 mm floor activation (205 mm deep). The user keeps start/goal near the floor (real task works near it).
+
+Keep all v4.2 rules except these. New files `*_v5*`.
+1. Height rules (user's design):
+   a. Height memory: keep the highest top ever observed for the rod track; use it while the rod is
+      remembered or out of view.
+   b. Raise to 0.545 m only if the top was never observed AND the box does not overlap the arm's current
+      XY footprint.
+   c. The box may never contain the robot: cap the box top at (lowest scored robot sphere bottom above the
+      box footprint) - 0.02 m. Space the robot occupies is known free.
+2. Start-up look: before t=0 of every E run, take one camera observation from the start pose (no motion,
+   not counted as sim time) so memory starts with what the camera sees. Same for E-nopred.
+3. Floor safety plane (like UR safety planes), in the executor after the MPC command: predict all scored
+   spheres while braking at the joint acceleration limit from the commanded velocity; if any would go
+   below z=0.005 m, scale the command down (bisection on a factor 0..1) until braking stays above.
+   Log how often it acts. MPC floor activation stays 10 mm, rod 30 mm.
+4. Gates as before (preflight, no-rod A reach <= 6 mm with zero floor contact, smoke A+B), then the 75-run
+   v4 batch. Fail-fast rule at top applies.
+Report the v4 table plus floor-contact runs, how often 1b/1c/3 acted, and E collisions with no box /
+uncovered box. Replay and interactive like v4.2. Reply: hash, gates, table, commands.
 
 ### Spec kept from v4 (unchanged rules)
 : floor, unseen rod top, visible prediction (started 2026-11-19)
