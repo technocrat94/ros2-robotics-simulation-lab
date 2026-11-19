@@ -22,29 +22,27 @@ task; the batch is its own later task after the user says the checkpoint looks r
 
 ## Local pre-merge status
 
-Pending: short bar poke checkpoint (v6 memory on hold)
+Pending: lower poke bar checkpoint (v6 memory on hold)
 
 ## Working tree note
 
 Leave the deleted 05_c2_tall_wall_refused.png and the untracked curobo/ untouched. Stage files by
 explicit path only. No git clean/reset/restore/stash/add -A.
 
-## Task: short bar poke scene, checkpoint only (2026-11-19)
+## Task: lower the poke bar so the camera can see it, checkpoint only (2026-11-19)
 
-e642907 reviewed by the user: the 0.60 m sweeping bar was unfair (even B failed; nowhere to hide). User's
-choice: a SHORT bar that POKES toward the arm and pulls back, like a person poking with a stick.
-Reuse the e642907 bar code, viewer and rules; change only the scene and motion.
+4eaf927 checked by the user in replay: B dodges (scene fair), but E never sees the bar: at Z=0.35 m the
+bar is above or level with the down-looking camera, so it is never in the depth image. Camera stays fixed.
 
-1. Bar: horizontal, radius 0.02 m, length 0.30 m, axis along world X.
-2. Poke motion (scripted, repeating): the bar starts outside with its inner tip at X=0.85, moves along -X
-   at 0.10 m/s until the inner tip reaches X=0.45 (just past the tool path at X~0.5), holds 0.5 s,
-   retracts along +X at 0.10 m/s to the start, waits 1.0 s, repeats. Lane: Y=0.28, Z=0.35 (between
-   start and goal). Check A hits; if not, report and stop.
-3. E: border extension along X capped to the 0.30 m bar length (not 0.60).
-4. Interactive: drag in X/Y/Z as now; add a button "Poke" that plays one scripted poke from the bar's
-   current Y/Z.
-5. Smoke only: A, B, E, 20 s each. NO batch.
-Reply: hash, smoke table, replay + interactive commands, 3 lines on what to look at. Then STOP.
+1. Try bar heights Z = 0.20, 0.15, 0.10 m (same poke motion, lane Y=0.28). For each, report:
+   A bar collisions; frames where the bar is in E's depth image (any bar pixels) and frames with a valid
+   E fit; time between first fit and first A contact. Pick the highest Z where A collides AND E gets a
+   valid fit before the arm reaches the bar. If none, report and stop.
+2. If the bar is in the depth image but there is no valid fit, find which filter drops it and fix it
+   for the bar only (say what it was).
+3. Smoke at the chosen Z: A, B, E, 20 s each. NO batch.
+4. Interactive: default bar Z = the chosen value.
+Reply: hash, height table, smoke table, replay + interactive commands, 3 lines on what to look at. STOP.
 
 ### Spec kept from v4 (unchanged rules)
 : floor, unseen rod top, visible prediction (started 2026-11-19)
