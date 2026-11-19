@@ -12,7 +12,7 @@ import curobo_moving_rod_v4 as v4
 from curobo_moving_rod_v4_visuals import PredictionVisuals
 
 def start_viewer(config: Path, results: dict[str, Any], frames: dict[str, list[dict[str, Any]]],
-                 port: int, groups: tuple[str, ...] = v4.GROUPS, verify: bool = False, *, floor_mask=v4.nonbase_mask) -> tuple[Any, dict[str, Any]]:
+                 port: int, groups: tuple[str, ...] = v4.GROUPS, verify: bool = False, *, floor_mask=v4.nonbase_mask, obstacle=None) -> tuple[Any, dict[str, Any]]:
     """Replay selectable MPC cases without writing files."""
     viewer = ViserVisualizer(content_path=ContentPath(robot_config_file=str(config)),
                              connect_ip="127.0.0.1", connect_port=port,
@@ -22,20 +22,34 @@ def start_viewer(config: Path, results: dict[str, Any], frames: dict[str, list[d
         server.stop()
         raise RuntimeError(f"requested port {port} occupied; refusing alternate binding")
     floor = results["preflight"]
-    graphics=PredictionVisuals(server,floor["floor_top_m"],floor_thickness=floor.get("floor_dims_m",[10.,10.,.1])[2])
-    rod = server.scene.add_cylinder("/truth/rod", radius=v2.ROD_RADIUS_M,
-                                   height=v2.ROD_TOP_M, color=(235,55,45))
+    graphics=PredictionVisuals(server,floor["floor_top_m"],floor_thickness=floor.get("floor_dims_m",[10.,10.,.1])[2],
+                               obstacle=obstacle)
+    radius, length = (v2.ROD_RADIUS_M, v2.ROD_TOP_M) if obstacle is None else (obstacle.RADIUS, obstacle.LENGTH)
+    rotation = (1.,0.,0.,0.) if obstacle is None else obstacle.ROTATION_WXYZ
+    rod = server.scene.add_cylinder("/truth/rod", radius=radius, height=length,
+                                   wxyz=rotation, color=(235,55,45))
+    center = (lambda x: (float(x), float(v2.ROD_Y_M), float(v2.ROD_CENTER_Z_M))) if obstacle is None else obstacle.center
+    distances = v4.cylinder_distances if obstacle is None else obstacle.distances
+
+    def coordinate(t, summary):
+        if obstacle is not None:
+            return obstacle.at(t, summary["rod_speed_mps"])
+        return v2.rod_x_at(t, summary["rod_speed_mps"], summary["initial_x_m"], -1.)
     points = server.scene.add_point_cloud("/camera/points", points=np.zeros((1,3)),
                                          colors=(220,0,220), point_size=.011)
     observed = server.scene.add_box("/observed/box", dimensions=(.01,.01,.01), color=(255,145,35), opacity=.42)
     predicted = server.scene.add_box("/predicted/box", dimensions=(.01,.01,.01), color=(80,150,255), opacity=.85, wireframe=True)
     first = next(iter(frames))
     panel = server.gui.add_image(frames[first][0]["depth"], label="Live simulated depth")
-    index = {(c["summary"]["mode"], c["summary"]["rod_speed_mps"], c["summary"]["initial_x_m"], c["summary"]["repeat"]): n
+    phase_key = "initial_x_m" if obstacle is None else "initial_y_m"
+    index = {(c["summary"]["mode"], c["summary"]["rod_speed_mps"], c["summary"][phase_key], c["summary"]["repeat"]): n
              for n,c in results["cases"].items()}
     group_select = server.gui.add_dropdown("Case", options=groups, initial_value=groups[0])
-    speed_select = server.gui.add_dropdown("Rod speed m/s", options=("0.05", "0.10", "0.20"), initial_value="0.05")
-    phase_select = server.gui.add_dropdown("Initial X m", options=tuple(f"{x:.2f}" for x in PHASES), initial_value="0.36")
+    speed_options = ("0.05", "0.10", "0.20") if obstacle is None else ("0.10",)
+    phase_options = tuple(f"{x:.2f}" for x in PHASES) if obstacle is None else (f"{obstacle.START[1]:.2f}",)
+    speed_select = server.gui.add_dropdown("Speed m/s", options=speed_options, initial_value=speed_options[0])
+    phase_select = server.gui.add_dropdown("Initial X m" if obstacle is None else "Initial Y m",
+                                           options=phase_options, initial_value=phase_options[0])
     repeat_select = server.gui.add_dropdown("Repeat",options=("1",),initial_value="1")
     joint_speed = server.gui.add_text("Joint command speed","",disabled=True)
     validity = server.gui.add_text("Phase validity", "", disabled=True)
@@ -71,7 +85,7 @@ def start_viewer(config: Path, results: dict[str, Any], frames: dict[str, list[d
         current_clearance = frame.get("clearance_m")
         if current_clearance is None:
             spheres=v4.sphere_series(robot,q_for_clearance)
-            current_clearance=float(min(v4.cylinder_distances(spheres,np.array([frame["rod_x"]]))[0],v4.floor_distances(spheres,active_floor_spheres,floor["floor_top_m"])[0]))
+            current_clearance=float(min(distances(spheres,np.array([frame["rod_x"]]))[0],v4.floor_distances(spheres,active_floor_spheres,floor["floor_top_m"])[0]))
         clearance.value = f"{current_clearance:+.4f} m"
         cycles = results["cases"][name]["cycles"]
         cycle = cycles[min(len(cycles)-1,max(0,int(round(frame["time_s"]/.025))-1))]
@@ -80,18 +94,18 @@ def start_viewer(config: Path, results: dict[str, Any], frames: dict[str, list[d
         q = np.array(frame["q"], dtype=np.float32)
         viewer.set_joint_state(v2.sixth.arm_state(q).squeeze(0))
         pos, quat = v2.sixth.fourth.camera_pose_for_q(robot, torch.as_tensor(q, device="cuda"), mount)
-        frustum.position, frustum.wxyz = tuple(pos), tuple(quat)
-        rod.position = (frame["rod_x"], v2.ROD_Y_M, v2.ROD_CENTER_Z_M)
+        frustum.position, frustum.wxyz = tuple(map(float,pos)), tuple(map(float,quat))
+        rod.position = center(frame["rod_x"])
         points.points = frame["points"] if len(frame["points"]) else np.zeros((1,3))
         panel.image = frame["depth"]
         for box, fit in ((observed, frame["fit"]), (predicted, frame["predicted_fit"])):
             box.visible = fit is not None
             if fit:
-                box.position, box.dimensions = tuple(fit["center_m"]), tuple(fit["dims_m"])
+                box.position, box.dimensions = tuple(map(float,fit["center_m"])), tuple(map(float,fit["dims_m"]))
         # Show only one box when prediction is disabled, avoiding coincident surfaces.
         t=frame["time_s"]
-        true_vx=(v2.rod_x_at(t+.001,summary["rod_speed_mps"],summary["initial_x_m"],-1.)-frame["rod_x"])/.001
-        graphics.update(cycle["fit"],cycle["velocity_estimate_mps"],[true_vx,0,0],.4+1/30,summary["prediction"],predicted)
+        true_velocity=(np.asarray(center(coordinate(t+.001, summary)))-center(frame["rod_x"]))/.001
+        graphics.update(cycle["fit"],cycle["velocity_estimate_mps"],true_velocity,.4+1/30,summary["prediction"],predicted)
 
     def playback(name: str, fast: bool = False) -> dict[str, Any]:
         with busy:
@@ -105,7 +119,7 @@ def start_viewer(config: Path, results: dict[str, Any], frames: dict[str, list[d
                     while frame_index+1 < len(frames[name]) and frames[name][frame_index+1]["time_s"] <= t:
                         frame_index += 1
                     frame = {**frames[name][frame_index], **sample,
-                             "rod_x": v2.rod_x_at(t, results["cases"][name]["summary"]["rod_speed_mps"], results["cases"][name]["summary"]["initial_x_m"], -1.)}
+                             "rod_x": coordinate(t, results["cases"][name]["summary"])}
                     if not fast:
                         time.sleep(max(0., t-previous_time))
                     if not fast and name!=selected_name():break
@@ -164,7 +178,7 @@ def start_viewer(config: Path, results: dict[str, Any], frames: dict[str, list[d
                 raise RuntimeError("MPC playback verification timed out")
             verification.extend(output)
         repeat_select.value = "1"
-        group_select.value, speed_select.value, phase_select.value = groups[0], "0.05", "0.36"
+        group_select.value, speed_select.value, phase_select.value = groups[0], speed_options[0], phase_options[0]
         show(first, frames[first][0])
         group_select.value="B"
         name=selected_name()
@@ -176,7 +190,7 @@ def start_viewer(config: Path, results: dict[str, Any], frames: dict[str, list[d
         graphics.visible.value=True
         graphics.refresh()
         toggle_on=before and graphics.ghost.visible and graphics.arrow.visible and predicted.visible
-        group_select.value, speed_select.value, phase_select.value = groups[0], "0.05", "0.36"
+        group_select.value, speed_select.value, phase_select.value = groups[0], speed_options[0], phase_options[0]
         show(first,frames[first][0])
         report = {"cases": verification,"verification_run":True,"prediction_toggle_off_verified":toggle_off,"prediction_toggle_on_verified":toggle_on, "all_passed": toggle_off and toggle_on and all(
             c.get("error") is None and c.get("callback_non_main") and c.get("robot_changed") and c.get("rod_changed")
@@ -193,13 +207,14 @@ def start_viewer(config: Path, results: dict[str, Any], frames: dict[str, list[d
 
 class FrameCache(dict):
     """Lazy, serialized camera rendering for a selected saved case only."""
-    def __init__(self,worker,results):
+    def __init__(self,worker,results,render=v4.v3.rates.render_frames):
         super().__init__()
         self.worker,self.results=worker,results
         self.lock=threading.RLock()
+        self.render=render
 
     def __missing__(self,name):
         with self.lock:
             if name not in self:
-                self.update(v4.v3.rates.render_frames(self.worker,{"cases":{name:self.results["cases"][name]}}))
+                self.update(self.render(self.worker,{"cases":{name:self.results["cases"][name]}}))
             return self[name]

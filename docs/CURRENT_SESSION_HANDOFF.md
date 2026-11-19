@@ -728,3 +728,20 @@ audits. All 22 related tests and project CI passed. Replay and five-group
 interactive smoke passed and stopped. Results use moving_rod_v5.{json,log}
 and moving_rod_v5.gates.json. Viewer entry is
 scripts/run_sim_camera_moving_rod_v5.sh --replay or --interactive.
+
+## v5 horizontal bar checkpoint (task parent 582129a)
+
+The X-aligned bar has a 20 mm radius and 0.60 m length and moves along Y
+between 0.05 and 0.55 m at X=0.50 m and Z=0.35 m. The one scripted phase
+starts at Y=0.05 m going positive at 0.10 m/s. Retained v5 camera mount,
+MPC and executor. The E-only change disables the vertical fallback and
+sets the X width to 0.60 m around the fresh seen cluster on border contact.
+
+The 20 mm preflight and no-rod qualification passed. The A validity run
+had 15 bar onsets. The B/E 20 s smoke runs had 1/3 reaches and 2/7 bar
+onsets, respectively. All three had zero floor contact. E used 69 border
+extensions. Data is moving_bar_v5.checkpoint.json. Unit and CI checks
+passed, along with A/B/E replay and prediction toggle, XYZ drag and
+A/B/E live switching. All owned viewer procedures stopped. The next
+batch requires the user's review of this checkpoint as directed in
+CODEX_NEXT.md. The report includes the two viewing commands.

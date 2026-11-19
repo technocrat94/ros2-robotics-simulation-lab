@@ -71,8 +71,13 @@ def run_case(mpc: ModelPredictiveControl, start: np.ndarray, speed: float,
              no_rod: bool = False, stop_at_goal: bool = False, *,
              floor_mask: np.ndarray | None = None,
              step_guard: Callable[[float], str | None] | None = None,
-             height_memory=None, plane_factory=None) -> dict[str, Any]:
+             height_memory=None, plane_factory=None, obstacle=None) -> dict[str, Any]:
     """Run the held-velocity plant, optionally stopping after a scored step."""
+    obstacle_at = ((lambda t, v: v2.rod_x_at(t, v, v2.ROD_START_X_M, -1.))
+                   if obstacle is None else obstacle.at)
+    obstacle_fit = v2.exact_rod_fit if obstacle is None else obstacle.fit
+    obstacle_distances = cylinder_distances if obstacle is None else obstacle.distances
+    obstacle_covers = box_covers_rod if obstacle is None else obstacle.covers
     family=mode.split("-")[0]
     mask=nonbase_mask(mpc.kinematics) if floor_mask is None else floor_mask
     floor_top=float(mpc._v4_floor_top)
@@ -146,17 +151,17 @@ def run_case(mpc: ModelPredictiveControl, start: np.ndarray, speed: float,
         if len(offsets) == 0:
             return
         last_segment_q=q.copy();last_segment_velocity=velocity.copy();last_segment_time=clock
-        xs = np.array([v2.rod_x_at(clock+t, speed, v2.ROD_START_X_M, -1.) for t in offsets])
+        xs = np.array([obstacle_at(clock+t, speed) for t in offsets])
         tensors = torch.as_tensor(positions, device="cuda", dtype=torch.float32)
         spheres=sphere_series(mpc.kinematics,tensors)
-        rod_truth=np.full(len(positions),1000.) if no_rod else cylinder_distances(spheres,xs)
+        rod_truth=np.full(len(positions),1000.) if no_rod else obstacle_distances(spheres,xs)
         floor_truth=floor_distances(spheres,mask,floor_top)
         if step_guard is not None:
             if not (np.isfinite(floor_truth).all() and np.isfinite(rod_truth).all()):
                 raise RuntimeError("non-finite clearance")
             minimum_floor = min(minimum_floor, float(np.min(floor_truth)))
         truth=np.minimum(rod_truth,floor_truth)
-        stationary_rod=np.full(len(positions)-1,1000.) if no_rod else cylinder_distances(spheres[:-1],xs[1:])
+        stationary_rod=np.full(len(positions)-1,1000.) if no_rod else obstacle_distances(spheres[:-1],xs[1:])
         stationary=np.minimum(stationary_rod,floor_truth[:-1])
         for i in range(1, len(offsets)):
             moving = bool(np.max(np.abs(positions[i]-positions[i-1])) > 1e-7)
@@ -174,8 +179,8 @@ def run_case(mpc: ModelPredictiveControl, start: np.ndarray, speed: float,
                 rod_episodes+=1
                 actual_x=float(xs[i])
                 collision_events.append(dict(time_s=float(clock+offsets[i]),kind="rod",
-                    no_box=fit is None,observed_covers_rod=box_covers_rod(fit,actual_x),
-                    predicted_covers_rod=box_covers_rod(predicted,actual_x),
+                    no_box=fit is None,observed_covers_rod=obstacle_covers(fit,actual_x),
+                    predicted_covers_rod=obstacle_covers(predicted,actual_x),
                     fit=small_fit(fit),predicted_fit=small_fit(predicted),
                     truth_x_m=actual_x,clearance_m=float(rod_truth[i]),
                     perception_event=copy.deepcopy(camera_memory.last_event)))
@@ -209,7 +214,7 @@ def run_case(mpc: ModelPredictiveControl, start: np.ndarray, speed: float,
         clock += duration
 
     if height_memory is not None and family == "E" and not no_rod:
-        startup_x = v2.rod_x_at(0., speed, v2.ROD_START_X_M, -1.)
+        startup_x = obstacle_at(0., speed)
         startup = worker.capture(start, startup_x).camera
         fit, estimated_velocity, _, event = camera_memory.observe(startup, 0.)
         perception_events.append(dict(event, startup=True))
@@ -225,18 +230,18 @@ def run_case(mpc: ModelPredictiveControl, start: np.ndarray, speed: float,
         if goal_pending:
             mpc.update_goal_tool_poses(raised_goal if target == "raised_start" else goal, run_ik=False)
             goal_pending = False
-        x = v2.rod_x_at(clock, speed, v2.ROD_START_X_M, -1.)
+        x = obstacle_at(clock, speed)
         observation_updated = False
         while not no_rod and family != "A" and next_observation/OBS_HZ <= clock+1e-9:
             observed_time = next_observation/OBS_HZ
             next_observation += 1
             observation_updated = True
             observation_times.append(observed_time)
-            observed_x = v2.rod_x_at(observed_time, speed, v2.ROD_START_X_M, -1.)
+            observed_x = obstacle_at(observed_time, speed)
             # Reconstruct the held-velocity plant at the exact 30 Hz observation time.
             observed_q=sample_held_pose(last_segment_q,last_segment_velocity,observed_time-last_segment_time,position_limits)
             if family == "B":
-                fit = v2.exact_rod_fit(observed_x)
+                fit = obstacle_fit(observed_x)
                 center = np.asarray(fit["center_m"])
                 fresh = fit
             else:
@@ -380,6 +385,8 @@ def run_case(mpc: ModelPredictiveControl, start: np.ndarray, speed: float,
         summary["floor_plane_actions"] = plane.acts
     if height_memory is not None:
         summary["box_cap_actions"] = height_memory.cap_events
+        if obstacle is not None:
+            summary["bar_border_length_extensions"] = height_memory.border_length_events
     boundary_times = {round(c["sim_time_end_s"],9) for c in cycles} | {0.}
     traces = [p for p in traces if round(p["time_s"],9) in boundary_times]
     return {"summary": summary, "cycles": cycles, "trace": traces,

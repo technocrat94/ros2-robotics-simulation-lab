@@ -302,3 +302,26 @@ NEWTON_VIEWER_PORT=30004 scripts/run_sim_camera_moving_rod_v5.sh --interactive
 ```
 
 結果在 `moving_rod_v5.{json,log}`，資格檢查在 `moving_rod_v5.gates.json`。
+
+## 水平橫桿觀看 checkpoint（2026-11-19）
+
+直徑 40 mm、長 0.60 m 的橫桿沿世界 X 軸，中心固定 X=0.50 m、Z=0.35 m。它從 Y=0.05 m 開始，以 0.10 m/s 沿 Y 往返至 0.55 m。沿用原相機安裝位置與 v5 執行器。無桿資格檢查於 1.025 秒到達。A 確認指定路徑有碰撞，因此保留原高度與路線。
+
+| 組別 | 模擬時間 s | 到達次數 | 撞桿次數 | 碰地次數 | 最差淨空 mm |
+|---|---:|---:|---:|---:|---:|
+| A | 20 | 9 | 15 | 0 | −83.470 |
+| B | 20 | 1 | 2 | 0 | −48.970 |
+| E | 20 | 3 | 7 | 0 | −86.711 |
+
+B 的煞停檢查調整 47 步，最小地板淨空 5.000 mm。E 在新鮮點群碰到影像邊界時，將盒沿 X 擴至 0.60 m 並以可見點的 X 範圍中點對齊，共觸發 69 次。E 仍使用 v5 的限頂與失視記憶，共限頂 173 步。7 次撞桿起始時均無盒。這三案是單相位觀看資料，B 和 E 皆有撞桿。
+
+```bash
+NEWTON_VIEWER_PORT=30004 scripts/run_sim_camera_moving_bar_v5.sh --replay
+NEWTON_VIEWER_PORT=30004 scripts/run_sim_camera_moving_bar_v5.sh --interactive
+```
+
+擇一啟動後開啟 <http://localhost:30004>。
+
+1. 回放切 A，確認紅色橫桿保持水平、沿 Y 穿過手臂路徑。
+2. 切 B 和 E，對照橘色觀測盒、藍色預測盒，以及 E 的深度影像與盒消失時機。
+3. 互動沿 X、Y、Z 拖桿並切換 A/B/E，確認橫桿不旋轉，舊控制迴圈先停止。

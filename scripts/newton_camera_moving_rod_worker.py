@@ -52,7 +52,9 @@ class MovingRodCamera:
         urdf: Path,
         mount: camera_common.MountConfig,
         device_name: str,
+        horizontal_bar: bool = False,
     ):
+        self.horizontal_bar = horizontal_bar
         newton.use_coord_layout_targets = True
         self.device = wp.get_device(device_name)
         builder = newton.ModelBuilder(up_axis=newton.Axis.Z)
@@ -69,9 +71,10 @@ class MovingRodCamera:
         )
         self.rod_shape = builder.add_shape_cylinder(
             self.rod_body,
-            xform=wp.transform_identity(),
-            radius=ROD_RADIUS_M,
-            half_height=0.5 * ROD_TOP_M,
+            xform=(wp.transform((0., 0., 0.), wp.quat_from_axis_angle(wp.vec3(0., 1., 0.), np.pi/2))
+                   if horizontal_bar else wp.transform_identity()),
+            radius=.020 if horizontal_bar else ROD_RADIUS_M,
+            half_height=.30 if horizontal_bar else 0.5 * ROD_TOP_M,
             color=(0.9, 0.25, 0.15),
             label="moving_rod_shape",
         )
@@ -107,7 +110,8 @@ class MovingRodCamera:
         )
         self.capture_count = 0
 
-    def _assign_pose(self, arm: np.ndarray, rod_x_m: float, rod_y_m: float | None = None) -> None:
+    def _assign_pose(self, arm: np.ndarray, rod_x_m: float, rod_y_m: float | None = None,
+                     rod_z_m: float | None = None) -> None:
         # Preserve every non-arm joint from the imported model. In particular,
         # do not use the old q[6:] = 0.0 shortcut: the rod pose is independent.
         q = self.q_template.copy()
@@ -118,14 +122,16 @@ class MovingRodCamera:
         )
         body_q = self.state.body_q.numpy()
         body_q[self.rod_body] = np.array(
-            (rod_x_m, ROD_Y_M if rod_y_m is None else rod_y_m, ROD_CENTER_Z_M, 0.0, 0.0, 0.0, 1.0),
+            (rod_x_m, ROD_Y_M if rod_y_m is None else rod_y_m, (rod_z_m if rod_z_m is not None and self.horizontal_bar else ROD_CENTER_Z_M),
+             0.0, 0.0, 0.0, 1.0),
             dtype=np.float32,
         )
         self.state.body_q.assign(body_q)
         self.model.bvh_refit_shapes(self.state)
 
-    def capture(self, arm: np.ndarray, rod_x_m: float, rod_y_m: float | None = None) -> dict[str, object]:
-        self._assign_pose(arm, rod_x_m, rod_y_m)
+    def capture(self, arm: np.ndarray, rod_x_m: float, rod_y_m: float | None = None,
+                     rod_z_m: float | None = None) -> dict[str, object]:
+        self._assign_pose(arm, rod_x_m, rod_y_m, rod_z_m)
         wp.launch(
             compose_camera,
             dim=1,
@@ -211,11 +217,12 @@ def main() -> None:
     parser.add_argument("--device", default="cuda:0")
     parser.add_argument("--rod-y", type=float, default=ROD_Y_M)
     parser.add_argument("--rod-top", type=float, default=ROD_TOP_M)
+    parser.add_argument("--horizontal-bar", action="store_true")
     args = parser.parse_args()
     globals().update(ROD_Y_M=args.rod_y, ROD_TOP_M=args.rod_top,
                      ROD_CENTER_Z_M=args.rod_top / 2)
     mount, _ = camera_common.read_mount_config(args.mount_config)
-    scene = MovingRodCamera(args.urdf, mount, args.device)
+    scene = MovingRodCamera(args.urdf, mount, args.device, args.horizontal_bar)
     print(
         "NEWTON_MOVING_ROD_WORKER_READY "
         + json.dumps(
@@ -235,7 +242,7 @@ def main() -> None:
         arm = np.asarray(request["arm_q"], dtype=np.float32)
         rod_x_m = float(request["rod_x_m"])
         started = time.perf_counter()
-        capture = scene.capture(arm, rod_x_m, request.get("rod_y_m"))
+        capture = scene.capture(arm, rod_x_m, request.get("rod_y_m"), request.get("rod_z_m"))
         capture_ms = (time.perf_counter() - started) * 1000.0
         output = Path(request["output"])
         np.savez_compressed(

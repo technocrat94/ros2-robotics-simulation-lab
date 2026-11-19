@@ -1306,3 +1306,35 @@ NEWTON_VIEWER_PORT=30004 scripts/run_sim_camera_moving_rod_v5.sh --interactive
 ```
 
 Evidence is saved as `moving_rod_v5.gates.json` and `moving_rod_v5.{json,log}`.
+
+## v5 horizontal bar checkpoint
+
+The horizontal cylinder has radius 20 mm and length 0.60 m, with its axis
+on world X. Its center is at X=0.50 m and Z=0.35 m. The scripted run starts
+at Y=0.05 m, traveling at 0.10 m/s toward Y=0.55 m and reflecting there.
+The camera mount, plant, braking plane and MPC settings are the v5 values.
+The no-rod qualification reached in 1.025 s. A confirmed intersection on
+the requested lane.
+
+| Mode | Duration s | Reaches | Bar episodes | Floor episodes | Worst clearance mm |
+|---|---:|---:|---:|---:|---:|
+| A | 20 | 9 | 15 | 0 | -83.470 |
+| B | 20 | 1 | 2 | 0 | -48.970 |
+| E | 20 | 3 | 7 | 0 | -86.711 |
+
+For the horizontal bar, E disables the vertical-height fallback. When the
+fresh cluster hits an image border, E sets X extent to 0.60 m centered on
+the visible X interval. The height memory and current-arm height cap still
+apply. The length extension fired at 69 observations. The cap acted at 173
+control steps. All seven E collision onsets had no box. B's floor plane
+adjusted 47 commands without contact. The single-phase smoke is available
+in `moving_bar_v5.checkpoint.json`.
+
+```bash
+NEWTON_VIEWER_PORT=30004 scripts/run_sim_camera_moving_bar_v5.sh --replay
+NEWTON_VIEWER_PORT=30004 scripts/run_sim_camera_moving_bar_v5.sh --interactive
+```
+
+1. Replay A to see the horizontal bar cross the arm's path on Y.
+2. Compare B's truth box with E's depth-derived observed and predicted boxes.
+3. Use the XYZ drag handles and alternate A/B/E in interactive mode.

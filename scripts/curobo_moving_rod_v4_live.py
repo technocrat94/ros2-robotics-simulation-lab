@@ -22,17 +22,25 @@ class LiveGroups(OriginalLiveGroups):
     version = "v4"
     camera_memory = staticmethod(ConservativeRodMemory)
     plane_factory = None
+    group_options = v4.GROUPS
+    obstacle = None
+    worker_type = LiveCameraWorker
+    truth_clearance = staticmethod(cylinder_clearance)
+
+    def truth_box(self, center):
+        return {"center_m":center.tolist(),"dims_m":[2*v2.ROD_RADIUS_M,2*v2.ROD_RADIUS_M,v2.ROD_TOP_M]}
 
     def __init__(self,args,baseline):
         preflight = json.loads(self.preflight_file.read_text())
         self.selected_config = preflight["frozen_config"]
         try:
             super().__init__(args,baseline)
-            self.selector.options=v4.GROUPS
+            self.selector.options=self.group_options
             self.predicted.wireframe=True
             self.predicted.opacity=.85
             self.graphics=PredictionVisuals(self.server,preflight["floor_top_m"],
-                                            floor_thickness=preflight.get("floor_dims_m",[10.,10.,.1])[2])
+                                            floor_thickness=preflight.get("floor_dims_m",[10.,10.,.1])[2],
+                                            obstacle=self.obstacle)
             self.speed_text=self.server.gui.add_text("Joint command speed","",disabled=True)
             self.server.gui.add_markdown(f"{self.version}: 25 ms simulated clock, 30 Hz observations, config speed/acceleration bounds. Floor contact is scored. Dragging is external input.")
         except BaseException:
@@ -40,7 +48,7 @@ class LiveGroups(OriginalLiveGroups):
             raise
 
     def switch(self, mode: str) -> None:
-        if mode not in v4.GROUPS:
+        if mode not in self.group_options:
             raise ValueError("unknown group")
         with self.switch_lock:
             if self.closed:
@@ -118,7 +126,7 @@ class LiveGroups(OriginalLiveGroups):
                     prior_executed_velocity=np.zeros(6)
                     memory=self.camera_memory(self.baseline["border_rule"]["fixed_unknown_top_m"])
                     if family=="E":
-                        worker = LiveCameraWorker(self.args.newton_python,Path(temp))
+                        worker = self.worker_type(self.args.newton_python,Path(temp))
                         worker.start()
                         record["worker_pid"] = worker.process.pid
                         startup_capture = worker.capture_xy(q,self.read_rod())
@@ -160,7 +168,7 @@ class LiveGroups(OriginalLiveGroups):
                             observed_center = prior_center+(center-prior_center)*fraction
                             estimate = np.zeros(3)
                             if family=="B":
-                                fit = {"center_m":observed_center.tolist(),"dims_m":[2*v2.ROD_RADIUS_M,2*v2.ROD_RADIUS_M,v2.ROD_TOP_M]}
+                                fit = self.truth_box(observed_center)
                                 fresh = fit
                             else:
                                 capture = worker.capture_xy(observed_q.astype(np.float32),observed_center)
@@ -205,7 +213,7 @@ class LiveGroups(OriginalLiveGroups):
                         state = tuned.joint_state(q,velocity)
                         kin = mpc.compute_kinematics(state)
                         spheres = kin.robot_spheres.detach().cpu().numpy().reshape(-1,4)
-                        clearance = cylinder_clearance(spheres,self.read_rod())
+                        clearance = self.truth_clearance(spheres,self.read_rod())
                         floor_clearance=float(np.min(spheres[mask,2]-spheres[mask,3]-mpc._v4_floor_top))
                         if floor_clearance<0 and not floor_active:record["floor_contacts"]=record.get("floor_contacts",0)+1
                         floor_active=floor_clearance<0
@@ -220,11 +228,11 @@ class LiveGroups(OriginalLiveGroups):
                             pending_goal = True
                         self.viewer.set_joint_state(state.squeeze(0))
                         camera_position,camera_wxyz = v2.sixth.fourth.camera_pose_for_q(mpc.kinematics,state.position,self.mount)
-                        self.frustum.position,self.frustum.wxyz = tuple(camera_position),tuple(camera_wxyz)
+                        self.frustum.position,self.frustum.wxyz = tuple(map(float,camera_position)),tuple(map(float,camera_wxyz))
                         for box,data in ((self.observed,fit),(self.predicted,predicted)):
                             box.visible = data is not None
                             if data:
-                                box.position,box.dimensions = tuple(data["center_m"]),tuple(data["dims_m"])
+                                box.position,box.dimensions = tuple(map(float,data["center_m"])),tuple(map(float,data["dims_m"]))
                         if capture is not None:
                             self.points.points = points if len(points) else np.zeros((1,3))
                             self.depth.image = capture.depth_preview
@@ -270,13 +278,15 @@ class LiveGroups(OriginalLiveGroups):
             print("V4_LIVE_GROUP_STOPPED "+json.dumps(record),flush=True)
 
 
-def smoke(app):
+def smoke(app, drag_position=None):
     began=time.monotonic()
     observations=[]
     try:
-        for mode in ("A","B","B-nopred","E","E-nopred","A"):
-            app.gizmo.position=(.52,.22,v2.ROD_TOP_M/2)
-            app.read_rod()
+        for mode in (*app.group_options, "A"):
+            app.gizmo.position = (.52,.22,v2.ROD_TOP_M/2) if drag_position is None else drag_position
+            center = app.read_rod()
+            if drag_position is not None and not np.allclose(center, drag_position):
+                raise RuntimeError("drag pose was not applied")
             app.selector.value=mode
             deadline=time.monotonic()+15
             while True:
@@ -293,7 +303,7 @@ def smoke(app):
         all_workers_stopped=all(x['worker_stopped'] for x in app.history),writes_results=False)
     report['observation_counts_pass']=all(x['observation_count']==(0 if x['group']=='A' else math.floor((x['steps']-1)*.025*30+1e-8)+1) for x in app.history)
     report['all_passed']=bool(report['observation_counts_pass'] and app.max_active_loops==1 and report['all_threads_stopped'] and report['all_workers_stopped']
-        and len(app.switches)==5 and all(x['error'] is None and x['reset_error_rad']==0 and x.get('max_speed_radps',0)<=np.pi+2e-7
+        and len(app.switches)==len(app.group_options) and all(x['error'] is None and x['reset_error_rad']==0 and x.get('max_speed_radps',0)<=np.pi+2e-7
         and x.get('max_acceleration_radps2',0)<=10+1e-6 for x in app.history)
         and all(x['old_thread_stopped'] and x['old_worker_stopped'] and x['old_stopped_at']<=x['new_requested_at'] for x in app.switches))
     return report

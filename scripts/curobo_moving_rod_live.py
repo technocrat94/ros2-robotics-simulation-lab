@@ -48,7 +48,7 @@ class LiveCameraWorker(v2.MovingRodWorker):
         self.counter += 1
         output = self.temp_dir/f"live_{self.counter:06d}.npz"
         request = {"id":self.counter,"arm_q":q.tolist(),"rod_x_m":float(center[0]),
-                   "rod_y_m":float(center[1]),"output":str(output)}
+                   "rod_y_m":float(center[1]),"rod_z_m":float(center[2]),"output":str(output)}
         self.process.stdin.write(json.dumps(request)+"\n")
         self.process.stdin.flush()
         metadata = json.loads(self._read_prefix("NEWTON_MOVING_ROD_WORKER_RESPONSE "))
@@ -66,6 +66,17 @@ class LiveCameraWorker(v2.MovingRodWorker):
 
 class LiveGroups:
     """Own only this viewer's loop threads, controller instances and camera workers."""
+
+    drag_help = "Drag the rod on the floor. A: no obstacle; B: true box; E: camera. Same frozen MPC."
+
+    def obstacle_handles(self, scene):
+        center = (.60,v2.ROD_Y_M,v2.ROD_TOP_M/2)
+        rod = scene.add_cylinder("/truth/rod", radius=v2.ROD_RADIUS_M, height=v2.ROD_TOP_M,
+                                 color=(235,55,45), position=center)
+        gizmo = scene.add_transform_controls("/controls/rod", position=center, scale=.12,
+                    active_axes=(True,True,False), disable_rotations=True,
+                    translation_limits=((-1000.,1000.),(-1000.,1000.),(center[2],center[2])))
+        return rod, gizmo
 
     def __init__(self, args: Any, baseline: dict[str, Any]):
         self.args, self.baseline = args, baseline
@@ -88,12 +99,7 @@ class LiveGroups:
             server.stop()
             raise RuntimeError(f"personal port {args.port} occupied; refusing fallback")
         self.server = server
-        center = (.60,v2.ROD_Y_M,v2.ROD_TOP_M/2)
-        self.rod = server.scene.add_cylinder("/truth/rod",radius=v2.ROD_RADIUS_M,
-                        height=v2.ROD_TOP_M,color=(235,55,45),position=center)
-        self.gizmo = server.scene.add_transform_controls("/controls/rod",position=center,scale=.12,
-                active_axes=(True,True,False),disable_rotations=True,
-                translation_limits=((-1000.,1000.),(-1000.,1000.),(center[2],center[2])))
+        self.rod, self.gizmo = self.obstacle_handles(server.scene)
         self.points = server.scene.add_point_cloud("/camera/points",points=np.zeros((1,3)),
                         colors=(220,0,220),point_size=.011)
         self.observed = server.scene.add_box("/observed/box",dimensions=(.01,.01,.01),color=(255,145,35),opacity=.42)
@@ -101,7 +107,7 @@ class LiveGroups:
         self.frustum = server.scene.add_camera_frustum("/camera/live",fov=v2.DEPTH_FOV_RAD,
                         aspect=v2.DEPTH_ASPECT,scale=.13)
         self.depth = server.gui.add_image(np.zeros((120,212,3),dtype=np.uint8),label="Live E depth")
-        server.gui.add_markdown("Drag the rod on the floor. A: no obstacle; B: true box; E: camera. Same frozen MPC.")
+        server.gui.add_markdown(self.drag_help)
         self.selector = server.gui.add_dropdown("Group",options=("A","B","E"),initial_value="A")
         self.group_text = server.gui.add_text("Running group","A",disabled=True)
         self.state_text = server.gui.add_text("Group state","stopped",disabled=True)
@@ -118,9 +124,9 @@ class LiveGroups:
 
     def read_rod(self) -> np.ndarray:
         center = floor_center(self.gizmo.position)
-        self.gizmo.position = tuple(center)
+        self.gizmo.position = tuple(map(float, center))
         self.gizmo.wxyz = (1.,0.,0.,0.)
-        self.rod.position = tuple(center)
+        self.rod.position = tuple(map(float, center))
         self.rod.wxyz = (1.,0.,0.,0.)
         return center
 

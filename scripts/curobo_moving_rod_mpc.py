@@ -343,7 +343,7 @@ def build_results(config: Path, worker: v2.MovingRodWorker,
         mpc.destroy()
 
 
-def render_frames(worker: v2.MovingRodWorker, results: dict[str, Any]) -> dict[str, list[dict[str, Any]]]:
+def render_frames(worker: v2.MovingRodWorker, results: dict[str, Any], *, obstacle_at=None) -> dict[str, list[dict[str, Any]]]:
     """Render replay snapshots offline; B never needs camera data to control."""
     frames = {}
     for name, case in results["cases"].items():
@@ -358,7 +358,8 @@ def render_frames(worker: v2.MovingRodWorker, results: dict[str, Any]) -> dict[s
             while cycle_index+1 < len(case["cycles"]) and case["cycles"][cycle_index+1]["sim_time_start_s"] <= t:
                 cycle_index += 1
             cycle = case["cycles"][cycle_index]
-            x = v2.rod_x_at(t, case["summary"]["rod_speed_mps"], v2.ROD_START_X_M, -1.)
+            speed = case["summary"]["rod_speed_mps"]
+            x = v2.rod_x_at(t, speed, v2.ROD_START_X_M, -1.) if obstacle_at is None else obstacle_at(t, speed)
             capture = worker.capture(np.array(sample["q"], dtype=np.float32), x)
             frames[name].append({**sample, "rod_x": x, "points": capture.camera.points,
                                  "depth": capture.depth_preview, "fit": cycle["fit"],

@@ -61,12 +61,15 @@ class MovingRodWorker:
         self.python = python
         self.process = None
 
+    def scene_args(self) -> list[str]:
+        return ["--rod-y", str(ROD_Y_M), "--rod-top", str(ROD_TOP_M)]
+
     def start(self) -> None:
         self.process = subprocess.Popen(
             [
                 str(self.python),
                 str(REPO / "scripts/newton_camera_moving_rod_worker.py"),
-                "--rod-y", str(ROD_Y_M), "--rod-top", str(ROD_TOP_M),
+                *self.scene_args(),
             ],
             cwd=REPO,
             stdin=subprocess.PIPE,
