@@ -22,7 +22,7 @@ task; the batch is its own later task after the user says the checkpoint looks r
 
 ## Local pre-merge status
 
-Pending: lower poke bar checkpoint (v6 memory on hold)
+Checkpoint ready for visual review at Z=0.20 m (v6 memory on hold).
 
 ## Working tree note
 
@@ -43,6 +43,10 @@ bar is above or level with the down-looking camera, so it is never in the depth 
 3. Smoke at the chosen Z: A, B, E, 20 s each. NO batch.
 4. Interactive: default bar Z = the chosen value.
 Reply: hash, height table, smoke table, replay + interactive commands, 3 lines on what to look at. STOP.
+
+Checkpoint completed. B and E each reached without bar or floor contact at Z=0.20 m.
+See [report and viewer commands](SIM_CAMERA_MOVING_ROD.md#lower-short-bar-poke-checkpoint)
+and [中文報告](SIM_CAMERA_MOVING_ROD_REPORT.zh-TW.md#短桿降高-checkpoint).
 
 ### Spec kept from v4 (unchanged rules)
 : floor, unseen rod top, visible prediction (started 2026-11-19)

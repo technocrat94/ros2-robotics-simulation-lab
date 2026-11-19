@@ -1367,3 +1367,50 @@ NEWTON_VIEWER_PORT=30004 scripts/run_sim_camera_moving_bar_poke_v5.sh --interact
 1. In replay, watch the inner tip extend to X=0.45 m, hold and retract.
 2. Compare B's avoidance and boxes against E's depth and empty fit.
 3. In interactive mode, drag in XYZ, then select Poke and watch one cycle at the selected Y/Z.
+
+## Lower short-bar poke checkpoint
+
+The bar remains 0.30 m long and pokes along X at 0.10 m/s on Y=0.28 m.
+The camera mount is fixed. Each height scan ran A and E for 20 simulated
+seconds. Newton renderer shape IDs counted raw bar pixels independently
+of the depth fitter. The lead is A's first contact time minus E's first
+valid fresh fit time, using the simulation clocks of the two runs.
+
+| Center Z (m) | A bar episodes | E frames with bar pixels | E frames with fresh fit | First E fit (s) | First A contact (s) | Fit lead (s) |
+|---:|---:|---:|---:|---:|---:|---:|
+| 0.20 | 3 | 178/600 | 172/600 | 1.633 | 5.125 | 3.492 |
+| 0.15 | 1 | 283/600 | 268/600 | 1.567 | 13.525 | 11.958 |
+| 0.10 | 0 | 284/600 | 222/600 | 1.500 | — | — |
+
+Z=0.20 m is the highest tested height with A contact and an earlier E fit.
+At that height the six visible frames rejected in the scan contained 8–36
+points after 8 mm voxel downsampling. The lowered short-bar checkpoint
+uses an eight-point minimum instead of 40. The fitter still receives
+only depth-derived points. The raw bar pixel counts are for diagnostics.
+
+### 20-second smoke at Z=0.20 m
+
+| Mode | Reaches | Bar episodes | Floor episodes | Minimum clearance (mm) |
+|---|---:|---:|---:|---:|
+| A | 9 | 3 | 0 | −35.45 |
+| B | 7 | 0 | 0 | +25.04 |
+| E | 6 | 0 | 0 | +25.00 |
+
+The no-bar qualification reached in 1.025 s. The updated E run fitted
+all 156 frames in which the bar appeared, out of 600 observations. Its
+first fit was at 1.567 s with nine points, 3.558 s before A's first
+contact. The change in E's trajectory also changed its camera view.
+The three cases use a single phase. The per-frame scan and smoke traces
+are in `moving_bar_poke_height.scan.json` and
+`moving_bar_poke_height.checkpoint.json`.
+
+```bash
+NEWTON_VIEWER_PORT=30004 scripts/run_sim_camera_moving_bar_poke_height.sh --replay
+NEWTON_VIEWER_PORT=30004 scripts/run_sim_camera_moving_bar_poke_height.sh --interactive
+```
+
+Start one command, then open <http://localhost:30004>.
+
+1. Replay A and watch the first bar contact near 5.125 s.
+2. Compare B's truth box with E's depth image and its orange observed and blue swept boxes.
+3. In interactive mode, the bar starts at Z=0.20 m. Drag it in XYZ and click **Poke** to extend and retract at its current Y/Z.

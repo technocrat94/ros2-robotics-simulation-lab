@@ -190,6 +190,8 @@ def fit_with_unknown_extent(
     points: np.ndarray,
     capture: fourth.Capture,
     fixed_unknown_top_m: float,
+    *,
+    min_points: int = MIN_POINTS,
 ) -> tuple[dict[str, Any] | None, dict[str, Any]]:
     flags = {
         name: bool(capture.metadata.get("border_touches", {}).get(name, False))
@@ -204,7 +206,7 @@ def fit_with_unknown_extent(
         "world_horizontal_directions": {},
         "border_extension_never_changes_height": True,
     }
-    if len(points) < MIN_POINTS:
+    if len(points) < min_points:
         return None, extension
     low = np.min(points, axis=0) - np.array(
         (FIT_PADDING_XY_M, FIT_PADDING_XY_M, FIT_PADDING_Z_M)

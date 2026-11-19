@@ -9,6 +9,8 @@ from curobo_moving_rod_v4_rules import MEMORY_TTL_S, MAX_UNSEEN_SPEED_MPS
 
 
 class HeightMemory:
+    fit_points = staticmethod(v2.sixth.fit_with_unknown_extent)
+
     def __init__(self, fixed_top):
         self.fixed_top = fixed_top
         self.cloud = v2.TimedPointCloud()
@@ -26,12 +28,12 @@ class HeightMemory:
         points, _ = self.cloud.update(capture, time)
         # Zero suppresses the legacy near-camera extension. Border metadata still
         # drives the existing horizontal extent rule.
-        fresh, _ = v2.sixth.fit_with_unknown_extent(capture.points, capture, 0.)
+        fresh, _ = self.fit_points(capture.points, capture, 0.)
         velocity = np.zeros(3)
         event = dict(time_s=time, fresh_seen=fresh is not None, top_rule=False,
                      growth_rule=False, since_seen_s=None, grown_dims_xy_m=None)
         if fresh is not None:
-            fit, _ = v2.sixth.fit_with_unknown_extent(points, capture, 0.)
+            fit, _ = self.fit_points(points, capture, 0.)
             maximum = float(np.max(capture.points[:, 2]))
             self.highest = maximum if self.highest is None else max(self.highest, maximum)
             cropped = any(capture.metadata.get('border_touches', {}).values())

@@ -29,6 +29,7 @@ def saved_case(config, settings, baseline, mode, worker=None, *, no_rod=False, s
 
 
 def measure(args, baseline, preflight, scene=bar, result=RESULT):
+    print('BAR_SMOKE expected wall time about 1–2 minutes (qualification and A/B/E)', flush=True)
     settings = preflight['frozen_config']
     report = dict(complete=False, scene_status='UNVERIFIED', bar=dict(radius_m=scene.RADIUS,
         length_m=scene.LENGTH, axis='X', start_m=scene.START, motion_axis='XY'[scene.MOTION_AXIS]),
@@ -78,9 +79,11 @@ def measure(args, baseline, preflight, scene=bar, result=RESULT):
     return 0
 
 
-def main(*, scene=bar, result=RESULT, live_class=None):
+def main(*, scene=bar, result=RESULT, live_class=None, scan_heights=None):
     parser = argparse.ArgumentParser(description=__doc__)
     mode = parser.add_mutually_exclusive_group(required=True)
+    if scan_heights is not None:
+        mode.add_argument('--scan-heights', action='store_true')
     mode.add_argument('--smoke', action='store_true')
     mode.add_argument('--replay', action='store_true')
     mode.add_argument('--interactive', action='store_true')
@@ -90,12 +93,15 @@ def main(*, scene=bar, result=RESULT, live_class=None):
     parser.add_argument('--robot-config', type=Path, default=Path.home()/'.cache/ur5_moveit_demo/curobo_v2/ur5_robotiq_curobo.yml')
     parser.add_argument('--newton-python', type=Path, default=Path.home()/'newton_ws/.venv-cpu/bin/python')
     args = parser.parse_args()
-    if args.viewer_smoke and args.smoke:
+    scanning = getattr(args, 'scan_heights', False)
+    if args.viewer_smoke and (args.smoke or scanning):
         parser.error('--viewer-smoke requires replay or interactive')
     preflight = json.loads(v41.PREFLIGHT_FILE.read_text())
     v41.require_preflight(preflight)
     baseline = json.loads(tuned.original.BASELINE_FILE.read_text())
     tuned.original.configure_scene(baseline)
+    if scanning:
+        return scan_heights(args, baseline, preflight)
     if args.smoke:
         return measure(args, baseline, preflight, scene, result)
     from curobo_moving_bar_v5_viewer import watch

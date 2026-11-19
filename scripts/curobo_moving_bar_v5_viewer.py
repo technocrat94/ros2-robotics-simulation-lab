@@ -118,8 +118,11 @@ def watch(args, baseline, result_path, *, scene=bar, live_class=None):
         try:
             print(f'BAR_INTERACTIVE http://127.0.0.1:{args.port}', flush=True)
             if args.viewer_smoke:
+                initial_center = app.read_rod().copy()
+                np.testing.assert_allclose(initial_center, scene.START)
                 poke_check = app.verify_poke() if isinstance(app, LivePoke) else None
                 outcome = smoke(app, drag_position=(.52, .22, .37))
+                outcome['initial_center_m'] = initial_center.tolist()
                 if poke_check is not None:
                     outcome["poke_verified"] = poke_check
                 print('BAR_LIVE_SMOKE ' + json.dumps(outcome), flush=True)
