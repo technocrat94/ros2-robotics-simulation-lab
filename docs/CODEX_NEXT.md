@@ -6,6 +6,14 @@ Written by Claude (reviewer). Read this file at the start of a session after `gi
 `git push origin <branch>`, then check that `git ls-remote origin <branch>` equals `git rev-parse HEAD`.
 "Everything up-to-date" means nothing new was pushed; it is not success. Reply with the pushed hash.
 
+**Standing rule: fail fast, never run a broken batch to the end.**
+- Before any batch over 10 runs: run a smoke set first (A and B, speed 0.05, one phase). If A has any
+  floor contact or B does not succeed, STOP and report. Do not start the batch.
+- During a batch, stop at once and report (keep the checkpoint) if any of these happen: floor depth
+  > 0.02 m in any run; the first 3 B runs all fail; any non-finite value; a run takes > 3x its expected
+  wall time.
+- Before starting, print the expected total wall time. Do not wait silently for a known-bad result.
+
 ## Local pre-merge status
 
 Pending: v4.1 task below
