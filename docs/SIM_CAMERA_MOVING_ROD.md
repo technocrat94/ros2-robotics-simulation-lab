@@ -1155,3 +1155,25 @@ Evidence: moving_rod_v41.preflight.json, moving_rod_v41.old_floor_rescore.{json,
 and moving_rod_v41.cost_check.json. Existing v4 replay displays the old v4 data;
 no v4.1 motion data exist. Resume only after an explicitly authorized geometry or
 endpoint change; the current task's stop rule takes precedence over rerunning.
+
+## v4.1 with the 20 mm endpoint gate
+
+The revised endpoint check passed. Clearance at start, raised start, and goal
+was 27.451, 27.354, and 25.734 mm, respectively. The floor remains a 2 m slab
+with top at z=0. Floor cost and scoring exclude `base_link_inertia` and
+`shoulder_link`. The MPC activation distance remains 30 mm.
+
+No-rod A completed 400 steps over 10.000 simulated seconds. It recorded zero
+floor contacts and 22.909 mm minimum floor clearance. The saved joint trace
+put the tool within 7.600 mm of the target at 7.975 s. The task requires a
+distance of 6 mm or less. At the final step the distance was 55.000 mm.
+
+Qualification failed on goal reach. The ordered gates in `docs/CODEX_NEXT.md`
+stop the experiment here, so there are no A/B smoke or 75-run results for this
+revision. The prior v4 results and the historical floor rescore still describe
+their original runs.
+
+Reproduce the qualification with
+`scripts/run_sim_camera_moving_rod_v41.sh --qualify --save-results`.
+It saves the endpoint report and qualification trace under the
+`moving_rod_v41` prefix. Exit code 2 indicates a failed gate.

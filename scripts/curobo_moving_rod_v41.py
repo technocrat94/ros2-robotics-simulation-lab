@@ -10,6 +10,9 @@ import curobo_moving_rod_v4 as v4
 from curobo_moving_rod_v41_collision import FloorMaskedScene
 
 v2,v3,tuned=v4.v2,v4.v3,v4.tuned
+ENDPOINT_GATE_M = .020
+QUALIFICATION_DURATION_S = 10.0
+QUALIFICATION_FILE = v2.RESULTS_DIR / 'moving_rod_v41.qualification.json'
 FLOOR_EXCLUDED_LINKS={'world','base','base_link','base_link_inertia','shoulder_link'}
 PREFLIGHT_FILE=v2.RESULTS_DIR/'moving_rod_v41.preflight.json'
 RESCORE_FILE=v2.RESULTS_DIR/'moving_rod_v41.old_floor_rescore.json'
@@ -26,9 +29,14 @@ def nonbase_mask(robot):
 
 def require_preflight(report):
     clearance=report.get('endpoint_floor_clearance_m',{})
-    valid=report.get('passed') and set(clearance)=={'start','raised_start','goal'} and all(np.isfinite(v) and v>=.03 for v in clearance.values())
+    valid = (
+        report.get('passed')
+        and report.get('endpoint_gate_m') == ENDPOINT_GATE_M
+        and set(clearance) == {'start', 'raised_start', 'goal'}
+        and all(np.isfinite(value) and value >= ENDPOINT_GATE_M for value in clearance.values())
+    )
     if not valid:
-        raise RuntimeError('STOP: scored endpoint floor clearance is below 0.03 m; goal unchanged; no motion or batch allowed')
+        raise RuntimeError(f'STOP: scored endpoint floor clearance is below {ENDPOINT_GATE_M:.3f} m')
 
 
 def make_mpc(config,settings):
@@ -81,15 +89,15 @@ def preflight(config,save):
         i=indices[int(np.argmin(row[active,2]-row[active,3]))]
         link=next(name for name,idx in cfg.link_name_to_idx_map.items() if idx==ids[i])
         controlling.append(dict(link=link,sphere_index=int(i),sphere_world_m=row[i].tolist()))
-    result=dict(schema='4.1',date='2026-11-19',complete=True,passed=bool(np.isfinite(clearance).all() and np.all(clearance>=.03)),
-        floor_top_m=0.,floor_dims_m=[10.,10.,2.],floor_center_m=[0.,0.,-1.],activation_distance_m=.03,
+    result=dict(schema='4.1',date='2026-11-19',complete=True,passed=bool(np.isfinite(clearance).all() and np.all(clearance>=ENDPOINT_GATE_M)),
+        endpoint_gate_m=ENDPOINT_GATE_M,floor_top_m=0.,floor_dims_m=[10.,10.,2.],floor_center_m=[0.,0.,-1.],activation_distance_m=.03,
         excluded_links_with_spheres=[x['link'] for x in links if x['excluded']],
         excluded_spheres=int(np.sum(~active)),scored_spheres=int(np.sum(active)),
         endpoint_floor_clearance_m=dict(zip(names,map(float,clearance))),controlling_spheres=dict(zip(names,controlling)),
         links=links,goal_unchanged=True,goal_source='unchanged v3 qualified joint state (existing 6 mm tolerance)',
         reference_sha256=hashlib.sha256(v3.REFERENCE_FILE.read_bytes()).hexdigest(),
         robot_config_sha256=ref['robot_config_sha256'],frozen_config=ref['selected_config'],
-        motion_runs=0,no_rod_run='not run: preflight gate',smoke='not run: preflight gate',batch_75='not run: preflight gate')
+        motion_runs=0)
     if save:tuned.save_json(PREFLIGHT_FILE,result)
     print('V41_PREFLIGHT '+json.dumps({k:result[k] for k in ('passed','excluded_links_with_spheres','excluded_spheres','scored_spheres','endpoint_floor_clearance_m')}),flush=True)
     return result
@@ -140,13 +148,72 @@ def rescore(config,save):
     return result
 
 
+def floor_guard(clearance_m):
+    if clearance_m < 0:
+        return f'floor penetration {abs(clearance_m)*1000:.3f} mm'
+    return None
+
+
+def goal_distances(curve):
+    closest = min(curve, key=lambda sample: sample['distance_m'])
+    return dict(
+        initial_goal_distance_m=curve[0]['distance_m'],
+        minimum_goal_distance_m=closest['distance_m'],
+        minimum_goal_distance_time_s=closest['time_s'],
+        final_goal_distance_m=curve[-1]['distance_m'],
+        goal_tolerance_m=v2.sixth.GOAL_TOLERANCE_M,
+    )
+
+
+def qualify(config):
+    report = preflight(config, save=True)
+    require_preflight(report)
+    baseline = json.loads(tuned.original.BASELINE_FILE.read_text())
+    phase = baseline['rod']['regular_initial_x_m']
+    start = np.asarray(baseline['raised_start']['joints_rad'], dtype=np.float32)
+    began = time.monotonic()
+    mpc, _ = make_mpc(config, report['frozen_config'])
+    try:
+        mpc.setup(v4.joint_state(start, np.zeros(6)))
+        case = v4.run_case(
+            mpc, start, 0., False, 'A', None, baseline,
+            duration=QUALIFICATION_DURATION_S, no_rod=True, stop_at_goal=True,
+            floor_mask=nonbase_mask(mpc.kinematics), step_guard=floor_guard,
+        )
+    finally:
+        mpc.destroy()
+    case['summary'].update(initial_x_m=phase, repeat=1, wall_time_s=time.monotonic()-began)
+    summary = case['summary']
+    failure = summary['stop_reason']
+    if failure is None and not summary['survives']:
+        failure = f"Goal not reached within {QUALIFICATION_DURATION_S:g} simulated seconds"
+    result = dict(
+        passed=failure is None, failure=failure, endpoint_gate_m=ENDPOINT_GATE_M,
+        preflight_sha256=hashlib.sha256(PREFLIGHT_FILE.read_bytes()).hexdigest(),
+        goal=goal_distances(case['distance_to_goal']), case=v4.compact_case(case),
+    )
+    tuned.save_json(QUALIFICATION_FILE, result)
+    metrics = {key: summary[key] for key in (
+        'reaches', 'floor_contacts', 'minimum_floor_clearance_m', 'time_to_first_goal_s',
+        'simulated_duration_s', 'wall_time_s',
+    )}
+    print('V41_QUALIFICATION ' + json.dumps(dict(metrics, failure=failure, **result['goal'])), flush=True)
+    return result['passed']
+
+
 def main():
     p=argparse.ArgumentParser()
-    p.add_argument('--rescore',action='store_true')
+    mode = p.add_mutually_exclusive_group()
+    mode.add_argument('--rescore', action='store_true')
+    mode.add_argument('--qualify', action='store_true')
     p.add_argument('--save-results',action='store_true')
     p.add_argument('--robot-config',type=Path,default=Path.home()/'.cache/ur5_moveit_demo/curobo_v2/ur5_robotiq_curobo.yml')
     args=p.parse_args()
     if args.rescore:rescore(args.robot_config,args.save_results);return 0
+    if args.qualify:
+        if not args.save_results:
+            p.error('--qualify requires --save-results to checkpoint preflight and qualification')
+        return 0 if qualify(args.robot_config) else 2
     report=preflight(args.robot_config,args.save_results)
     return 0 if report['passed'] else 2
 

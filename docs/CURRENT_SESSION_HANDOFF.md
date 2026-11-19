@@ -653,3 +653,26 @@ Do not touch unrelated dirty old second/third/fourth/sixth pass results, deleted
 wall PNG or untracked curobo/. Stage explicit paths. Next step is reviewer/user
 decision on endpoint/collision-model geometry; the current task expressly says
 stop instead of launching a broken batch. Exit Codex, codex logout, codex login status.
+
+## v4.1 continuation with the 20 mm gate (task parent c3aae1f)
+
+The updated task authorizes a 20 mm endpoint gate. Start, raised start and
+goal pass at 27.451, 27.354 and 25.734 mm. The accepted slab, sphere exclusions,
+MPC activation distance and frozen tuning carry forward.
+
+The single no-rod A qualification failed goal reach. It completed 400 steps,
+10.000 simulated seconds and 13.50 wall seconds. Floor contacts were zero and
+minimum floor clearance was 22.909 mm. Read-only FK over its saved trace gives
+7.600 mm nearest target error at 7.975 s, above the 6 mm reach tolerance, and
+55.000 mm final error. The qualification exited 2.
+
+The task requires stopping on this outcome. No A/B smoke, batch, viewer, or
+camera worker was started. The updated endpoint report is
+`moving_rod_v41.preflight.json`. `moving_rod_v41.qualification.json` contains the
+trace, summary, goal distances and SHA-256 of the preflight report. The prior
+30 mm outcome remains in commit 8119412 and in the earlier report section.
+
+The qualification entry point is
+`scripts/run_sim_camera_moving_rod_v41.sh --qualify --save-results`.
+Its optional floor mask and step guard reuse the v4 plant. Existing v4 callers
+continue to use the original mask and run length.

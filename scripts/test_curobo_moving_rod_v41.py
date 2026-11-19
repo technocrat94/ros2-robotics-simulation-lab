@@ -7,7 +7,7 @@ import unittest
 import numpy as np
 
 root=Path(__file__).parent
-scope=dict(np=np,FLOOR_EXCLUDED_LINKS={'world','base','base_link','base_link_inertia','shoulder_link'})
+scope=dict(np=np,ENDPOINT_GATE_M=.020,FLOOR_EXCLUDED_LINKS={'world','base','base_link','base_link_inertia','shoulder_link'})
 tree=ast.parse((root/'curobo_moving_rod_v41.py').read_text())
 exec(compile(ast.Module(body=[n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name in ('nonbase_mask','require_preflight')],type_ignores=[]),'v41','exec'),scope)
 
@@ -35,11 +35,18 @@ class V41Contracts(unittest.TestCase):
 
     def test_gate_rejects_failure_subthreshold_and_nonfinite(self):
         gate=scope['require_preflight']
-        for result in (dict(passed=False),dict(passed=True),
-            dict(passed=True,endpoint_floor_clearance_m=dict(start=.03,raised_start=.03,goal=.02999)),
-            dict(passed=True,endpoint_floor_clearance_m=dict(start=.03,raised_start=.03,goal=float('inf')))):
-            with self.assertRaisesRegex(RuntimeError,'STOP'):gate(result)
-        gate(dict(passed=True,endpoint_floor_clearance_m=dict(start=.03,raised_start=.04,goal=.05)))
+        clearances = dict(start=.020, raised_start=.021, goal=.025)
+        passed = dict(passed=True, endpoint_gate_m=.020, endpoint_floor_clearance_m=clearances)
+        for result in (
+            dict(passed, passed=False),
+            dict(passed, endpoint_gate_m=.030),
+            dict(passed, endpoint_floor_clearance_m={}),
+            dict(passed, endpoint_floor_clearance_m=dict(clearances, goal=.01999)),
+            dict(passed, endpoint_floor_clearance_m=dict(clearances, goal=float('inf'))),
+        ):
+            with self.assertRaisesRegex(RuntimeError, 'STOP'):
+                gate(result)
+        gate(passed)
 
     def test_floor_mask_does_not_change_rod_geometry_and_buffers(self):
         cfg=SimpleNamespace(device='cpu')
@@ -55,27 +62,46 @@ class V41Contracts(unittest.TestCase):
         self.assertIsNot(floor_buffer,scene._floor_inputs(state,object())[1])
         np.testing.assert_allclose(scene.get_swept_sphere_distance(state,buffer),[[[.1,.2,.6]]])
 
-    def test_saved_preflight_stops_motion(self):
+    def test_saved_preflight_passes_revised_gate(self):
         p=root.parent/'docs/experiments/sim-camera-curobo/results/moving_rod_v41.preflight.json'
         if not p.exists():self.skipTest('preflight evidence absent')
         r=json.loads(p.read_text())
-        self.assertFalse(r['passed']);self.assertTrue(r['goal_unchanged']);self.assertEqual(r['motion_runs'],0)
+        self.assertTrue(r['passed']);self.assertTrue(r['goal_unchanged']);self.assertEqual(r['motion_runs'],0)
         self.assertEqual(r['excluded_links_with_spheres'],['base_link_inertia','shoulder_link'])
         self.assertEqual((r['excluded_spheres'],r['scored_spheres']),(11,101))
         self.assertEqual(r['floor_dims_m'],[10.,10.,2.]);self.assertEqual(r['floor_center_m'],[0.,0.,-1.])
         for name,clearance in r['endpoint_floor_clearance_m'].items():
-            self.assertLess(clearance,.03);self.assertGreater(clearance,0.)
+            self.assertLess(clearance,.03);self.assertGreaterEqual(clearance,.02)
             self.assertEqual(r['controlling_spheres'][name]['link'],'upper_arm_link')
-        with self.assertRaises(RuntimeError):scope['require_preflight'](r)
+        scope['require_preflight'](r)
 
     def test_real_factory_is_blocked_before_robot_or_mpc_setup(self):
         path=root.parent/'docs/experiments/sim-camera-curobo/results/moving_rod_v41.preflight.json'
         if not path.exists():self.skipTest('preflight evidence absent')
-        env=dict(scope,PREFLIGHT_FILE=path,json=json)
+        class PriorReport:
+            def read_text(self):
+                return json.dumps(dict(json.loads(path.read_text()), endpoint_gate_m=.030))
+
+        env=dict(scope,PREFLIGHT_FILE=PriorReport(),json=json)
         function=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=='make_mpc')
         exec(compile(ast.Module(body=[function],type_ignores=[]),'factory','exec'),env)
         with self.assertRaisesRegex(RuntimeError,'STOP'):
             env['make_mpc'](Path('/not-opened-before-gate'),{})
+
+    def test_saved_qualification_fails_on_goal_tolerance(self):
+        path = root.parent/'docs/experiments/sim-camera-curobo/results/moving_rod_v41.qualification.json'
+        if not path.exists():
+            self.skipTest('qualification evidence absent')
+        report = json.loads(path.read_text())
+        preflight = path.with_name('moving_rod_v41.preflight.json')
+        self.assertEqual(report['preflight_sha256'], hashlib.sha256(preflight.read_bytes()).hexdigest())
+        summary = report['case']['summary']
+        self.assertFalse(report['passed'])
+        self.assertEqual(summary['steps'], 400)
+        self.assertEqual(summary['floor_contacts'], 0)
+        self.assertGreater(summary['minimum_floor_clearance_m'], 0.)
+        self.assertEqual(summary['reaches'], 0)
+        self.assertGreater(report['goal']['minimum_goal_distance_m'], report['goal']['goal_tolerance_m'])
 
     def test_saved_rescore_counts_match_runs_and_sources(self):
         p=root.parent/'docs/experiments/sim-camera-curobo/results/moving_rod_v41.old_floor_rescore.json'

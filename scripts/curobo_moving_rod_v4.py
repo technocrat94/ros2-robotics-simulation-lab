@@ -3,7 +3,7 @@
 from __future__ import annotations
 import argparse, copy, hashlib, json, math, os, tempfile, time
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 import numpy as np
 import torch
 import curobo_moving_rod_v3 as v3
@@ -68,10 +68,12 @@ def make_mpc(config: Path, settings: dict[str, Any]) -> tuple[ModelPredictiveCon
 def run_case(mpc: ModelPredictiveControl, start: np.ndarray, speed: float,
              prediction: bool, mode: str, worker: v2.MovingRodWorker,
              baseline: dict[str, Any], duration: float = 20.,
-             no_rod: bool = False, stop_at_goal: bool = False) -> dict[str, Any]:
-    """Run an ideal joint-velocity plant while previous commands execute during compute."""
+             no_rod: bool = False, stop_at_goal: bool = False, *,
+             floor_mask: np.ndarray | None = None,
+             step_guard: Callable[[float], str | None] | None = None) -> dict[str, Any]:
+    """Run the held-velocity plant, optionally stopping after a scored step."""
     family=mode.split("-")[0]
-    mask=nonbase_mask(mpc.kinematics)
+    mask=nonbase_mask(mpc.kinematics) if floor_mask is None else floor_mask
     floor_top=float(mpc._v4_floor_top)
     rod_active=floor_active=False
     rod_episodes=floor_episodes=floor_samples=0
@@ -118,6 +120,8 @@ def run_case(mpc: ModelPredictiveControl, start: np.ndarray, speed: float,
     near_directions = {"away": 0, "toward": 0, "stationary": 0}
     near_robot_rates, near_relative_rates = [], []
     minimum = math.inf
+    minimum_floor = math.inf
+    stop_reason = None
     reaches = 0
     infeasible = 0
     limit_clamps = 0
@@ -132,6 +136,7 @@ def run_case(mpc: ModelPredictiveControl, start: np.ndarray, speed: float,
 
     def advance(duration: float) -> None:
         nonlocal clock, q, minimum, collision_active, limit_clamps, rod_active, floor_active, rod_episodes, floor_episodes, floor_samples, last_segment_q, last_segment_velocity, last_segment_time
+        nonlocal minimum_floor
         offsets, positions = integrate_command(q, velocity, duration, position_limits)
         if len(offsets) == 0:
             return
@@ -141,6 +146,10 @@ def run_case(mpc: ModelPredictiveControl, start: np.ndarray, speed: float,
         spheres=sphere_series(mpc.kinematics,tensors)
         rod_truth=np.full(len(positions),1000.) if no_rod else cylinder_distances(spheres,xs)
         floor_truth=floor_distances(spheres,mask,floor_top)
+        if step_guard is not None:
+            if not (np.isfinite(floor_truth).all() and np.isfinite(rod_truth).all()):
+                raise RuntimeError("non-finite clearance")
+            minimum_floor = min(minimum_floor, float(np.min(floor_truth)))
         truth=np.minimum(rod_truth,floor_truth)
         stationary_rod=np.full(len(positions)-1,1000.) if no_rod else cylinder_distances(spheres[:-1],xs[1:])
         stationary=np.minimum(stationary_rod,floor_truth[:-1])
@@ -229,6 +238,8 @@ def run_case(mpc: ModelPredictiveControl, start: np.ndarray, speed: float,
         torch.cuda.synchronize()
         solve_s = time.perf_counter()-solve_began
         command_sequence = result.action_sequence.velocity.detach().cpu().numpy().reshape(-1, 6)
+        if step_guard is not None and not np.isfinite(command_sequence).all():
+            raise RuntimeError("non-finite MPC command sequence")
         feasible = bool(result.success.all())
         compute_s = time.perf_counter()-began
         counted_compute = CONTROL_DT
@@ -281,9 +292,15 @@ def run_case(mpc: ModelPredictiveControl, start: np.ndarray, speed: float,
             "observation_time_s": observation_times[-1] if observation_times else None,
         })
         expected_compute = counted_compute
+        if step_guard is not None:
+            if not np.isfinite(tool).all():
+                raise RuntimeError("non-finite tool position")
+            stop_reason = step_guard(minimum_floor)
+            if stop_reason is not None:
+                break
         if stop_at_goal and reached:
             break
-    if not (stop_at_goal and first_reach is not None) and clock < duration - 1e-6:
+    if stop_reason is None and not (stop_at_goal and first_reach is not None) and clock < duration - 1e-6:
         raise RuntimeError(f"MPC clock incomplete: {clock}")
     compute_ms = np.array([c["measured_compute_ms"] for c in cycles])
     solve_ms = np.array([c["solver_ms"] for c in cycles])
@@ -321,6 +338,8 @@ def run_case(mpc: ModelPredictiveControl, start: np.ndarray, speed: float,
         "within_joint_acceleration_limits": bool(np.all(max_acceleration <= np.maximum(np.abs(accel_limits[0]),np.abs(accel_limits[1]))+1e-6)),
         "mpc_horizon_s": horizon_s, "observation_times_s": observation_times,
     }
+    if step_guard is not None:
+        summary.update(minimum_floor_clearance_m=minimum_floor, stop_reason=stop_reason)
     boundary_times = {round(c["sim_time_end_s"],9) for c in cycles} | {0.}
     traces = [p for p in traces if round(p["time_s"],9) in boundary_times]
     return {"summary": summary, "cycles": cycles, "trace": traces,
