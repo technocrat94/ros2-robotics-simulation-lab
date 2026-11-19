@@ -16,23 +16,26 @@ Written by Claude (reviewer). Read this file at the start of a session after `gi
 
 ## Local pre-merge status
 
-Pending: v4.1 continue (20 mm gate)
+Pending: v4.2 task below
 
 ## Working tree note
 
 Leave the deleted 05_c2_tall_wall_refused.png and the untracked curobo/ untouched. Stage files by
 explicit path only. No git clean/reset/restore/stash/add -A.
 
-## Task: v4.1 continue with 20 mm endpoint gate (2026-11-19)
+## Task: v4.2 floor-only activation distance 10 mm (2026-11-19)
 
-8119412 reviewed: exclusion list (base_link_inertia + shoulder_link), 2 m slab and cost checks accepted.
-The 30 mm endpoint gate was Claude's over-strict number. Change it to: every scored sphere at start,
-raised start and goal has floor clearance >= 20 mm (measured 25.7-27.5 mm). Change nothing else.
-Then continue the v4.1 steps in order, with the fail-fast rule at the top of this file:
-1. No-rod A qualification: reaches goal, zero floor contact. If not, stop and report.
-2. Smoke: A and B, speed 0.05, one phase. If A touches floor or B fails, stop and report.
-3. Full v4 batch below (75 runs), same table plus floor-contact runs per group.
-Reply: hash, qualification result, smoke result, table (or where it stopped and why).
+4f25019 reviewed: gate and stop were correct. No-rod A had zero floor contact but never reached the goal
+(best 7.6 mm, end 55 mm). Claude's reading: the goal needs upper_arm_link 25.7 mm above the floor, inside
+the 30 mm activation distance, so floor cost pulls the arm off the goal. The floor is static and known
+exactly, so it does not need the same margin as the rod.
+
+1. In FloorMaskedScene give the floor its own activation distance 0.010 m. Rod stays 0.030 m. Change
+   nothing else (goal, poses, slab, exclusions, MPC settings stay).
+2. Check: floor cost and gradient are exactly zero at start, raised start and goal.
+3. Then the same ordered gates as before: no-rod A qualification (reach <= 6 mm, zero floor contact),
+   smoke A+B at 0.05 one phase, then the 75-run v4 batch. Stop at the first failed gate and report.
+Reply: hash, gate results, table (or where it stopped and why).
 
 ### Spec kept from v4 (unchanged rules)
 : floor, unseen rod top, visible prediction (started 2026-11-19)
