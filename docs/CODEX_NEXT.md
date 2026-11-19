@@ -17,38 +17,31 @@ Written by Claude (reviewer). Read this file at the start of a session after `gi
 
 ## Local pre-merge status
 
-Pending: v5 task below
+Pending: camera tilt coverage test
 
 ## Working tree note
 
 Leave the deleted 05_c2_tall_wall_refused.png and the untracked curobo/ untouched. Stage files by
 explicit path only. No git clean/reset/restore/stash/add -A.
 
-## Task: v5 physically consistent rod height + floor safety plane (2026-11-19)
+## Task: camera tilt coverage test, no MPC (2026-11-19)
 
-d79082a reviewed. E X=0.36 failed because (Claude's trace): the rod starts under the arm, never seen; the
-border rule raised the top to 0.545 m, so the box contained the arm from t=0 (MPC infeasible every step);
-the box grew to ~0.5 m, was dropped at 1.55 s, then the arm moved down fast and could not brake within the
-10 mm floor activation (205 mm deep). The user keeps start/goal near the floor (real task works near it).
+v5 (d37f17b) reviewed and accepted: zero floor contact, B 9/12, E 2/12. Most E rod hits had no box: the rod
+was out of view. Before any new control run, measure how much a camera tilt helps the camera see the rod.
 
-Keep all v4.2 rules except these. New files `*_v5*`.
-1. Height rules (user's design):
-   a. Height memory: keep the highest top ever observed for the rod track; use it while the rod is
-      remembered or out of view.
-   b. Raise to 0.545 m only if the top was never observed AND the box does not overlap the arm's current
-      XY footprint.
-   c. The box may never contain the robot: cap the box top at (lowest scored robot sphere bottom above the
-      box footprint) - 0.02 m. Space the robot occupies is known free.
-2. Start-up look: before t=0 of every E run, take one camera observation from the start pose (no motion,
-   not counted as sim time) so memory starts with what the camera sees. Same for E-nopred.
-3. Floor safety plane (like UR safety planes), in the executor after the MPC command: predict all scored
-   spheres while braking at the joint acceleration limit from the commanded velocity; if any would go
-   below z=0.005 m, scale the command down (bisection on a factor 0..1) until braking stays above.
-   Log how often it acts. MPC floor activation stays 10 mm, rod 30 mm.
-4. Gates as before (preflight, no-rod A reach <= 6 mm with zero floor contact, smoke A+B), then the 75-run
-   v4 batch. Fail-fast rule at top applies.
-Report the v4 table plus floor-contact runs, how often 1b/1c/3 acted, and E collisions with no box /
-uncovered box. Replay and interactive like v4.2. Reply: hash, gates, table, commands.
+0. Viewer bug: Claude pushed dd7ff91 (arrow visibility was numpy.bool_, msgspec crashed the Viser
+   connection on E). Check it, and search v4/v5 viewer and live code for any other numpy scalar passed to
+   Viser (`.visible`, `.value`, colors, positions) and convert to plain Python types. Test E in replay.
+1. Replay only: take the saved v5 B joint traces (all speeds and valid phases) and the true rod positions.
+   At every 30 Hz observation time render the E camera with mount tilt 0, 15, 30, 45 degrees (tilt the
+   camera to look more forward along the tool; tilt override in this script only, do not edit
+   config/sim_camera_mount.yaml). No MPC, no control, robot follows the saved trace.
+2. Per tilt, report: % of frames with a valid rod cluster; % with the rod top seen (cluster clear of the
+   top border); the same two numbers only in the 0.5 s before each closest approach of the rod to the arm
+   (the moment that matters); robot pixels fraction (gripper in view).
+3. Also show it: a replay with a tilt dropdown and the depth image, robot, rod, camera frustum.
+Save `moving_rod_tilt.{json,log}`, add section "Camera tilt coverage" to docs/SIM_CAMERA_MOVING_ROD.md,
+short Chinese table to the zh-TW report. Reply: hash, table, replay command.
 
 ### Spec kept from v4 (unchanged rules)
 : floor, unseen rod top, visible prediction (started 2026-11-19)
