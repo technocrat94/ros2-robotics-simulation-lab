@@ -22,30 +22,29 @@ task; the batch is its own later task after the user says the checkpoint looks r
 
 ## Local pre-merge status
 
-Pending: horizontal bar checkpoint (v6 memory on hold)
+Pending: short bar poke checkpoint (v6 memory on hold)
 
 ## Working tree note
 
 Leave the deleted 05_c2_tall_wall_refused.png and the untracked curobo/ untouched. Stage files by
 explicit path only. No git clean/reset/restore/stash/add -A.
 
-## Task: horizontal bar scene, checkpoint only (2026-11-19)
+## Task: short bar poke scene, checkpoint only (2026-11-19)
 
-User wants an NVIDIA-style demo with a HORIZONTAL bar (like a stick held across), dodged by the arm.
-Camera mount stays fixed. Keep v5 code (floor, safety plane, accel limits, start-up look, gates) and
-dd7ff91 viewer fix (also check other numpy scalars passed to Viser in the files you touch).
+e642907 reviewed by the user: the 0.60 m sweeping bar was unfair (even B failed; nowhere to hide). User's
+choice: a SHORT bar that POKES toward the arm and pulls back, like a person poking with a stick.
+Reuse the e642907 bar code, viewer and rules; change only the scene and motion.
 
-1. New scene option: horizontal bar, radius 0.02 m, length 0.60 m, along world X, centre X=0.50.
-   Scripted motion: the bar moves along Y between 0.05 and 0.55 at height Z=0.35 m, crossing the arm's
-   start-to-goal path (tool goes Y 0.12 -> 0.45). Check A collides; if not, report the nearest
-   height/lane that makes A collide and stop.
-2. E perception: v5 rules, but turn OFF the "raise top to 0.545 m" rule for this bar (it is meant for
-   vertical rods); instead, if the bar cluster touches an image border, extend the box along X to the
-   full 0.60 m bar length centred on the seen part. Log when it fires.
-3. Interactive mode: user drags the bar in X, Y and Z (gizmo), groups A/B/E switch cleanly as before.
-4. Smoke only: B and E, scripted motion, speed 0.10 m/s, 20 s, one start phase. NO batch.
-Reply: hash, smoke results (reach, rod/floor contact, worst clearance), the replay and interactive commands,
-and 3 lines on what the user should look at. Then STOP.
+1. Bar: horizontal, radius 0.02 m, length 0.30 m, axis along world X.
+2. Poke motion (scripted, repeating): the bar starts outside with its inner tip at X=0.85, moves along -X
+   at 0.10 m/s until the inner tip reaches X=0.45 (just past the tool path at X~0.5), holds 0.5 s,
+   retracts along +X at 0.10 m/s to the start, waits 1.0 s, repeats. Lane: Y=0.28, Z=0.35 (between
+   start and goal). Check A hits; if not, report and stop.
+3. E: border extension along X capped to the 0.30 m bar length (not 0.60).
+4. Interactive: drag in X/Y/Z as now; add a button "Poke" that plays one scripted poke from the bar's
+   current Y/Z.
+5. Smoke only: A, B, E, 20 s each. NO batch.
+Reply: hash, smoke table, replay + interactive commands, 3 lines on what to look at. Then STOP.
 
 ### Spec kept from v4 (unchanged rules)
 : floor, unseen rod top, visible prediction (started 2026-11-19)
