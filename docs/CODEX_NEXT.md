@@ -46,6 +46,13 @@ prediction, viewer fixes. Fail-fast rule at the top applies.
    CURRENT Y and Z (Z clamped to 0.15-0.30 m), 0.10 m/s, retract, repeat until pressed again. Works in A/B/E
    and E-nopred; switching stops the old loop as before. Keep the Poke button and XYZ drag.
 4. Replay: group / lane / speed / offset dropdowns, depth panel, boxes, ghost, arrow.
+5. Interactive vertical cylinder (to verify the unseen-top rule): add a second draggable obstacle, a
+   vertical rod (radius 0.025 m, height selectable 0.25 / 0.50 m, standing on the floor), with a toggle to
+   enable it next to the bar. E applies the v5 rod rules to it: height memory, raise to 0.545 m only if the
+   top was never seen AND not under the arm, robot cap. GUI text for the rod: "top seen" / "assumed tall"
+   / "capped by arm", plus the box top height. Small check (not part of the batch): one E run where the
+   rod is placed so only its lower part is in view; confirm the box top becomes 0.545 m, and one where the
+   arm is above it; confirm it is capped. Report both.
 Reply: hash, table, replay + interactive commands, 3 lines on what to watch. Then stop (user will check).
 
 ### Spec kept from v4 (unchanged rules)
