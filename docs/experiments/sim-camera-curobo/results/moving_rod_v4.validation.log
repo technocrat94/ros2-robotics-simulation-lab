@@ -1,0 +1,60 @@
+{
+  "complete": true,
+  "cases": 75,
+  "steps": 60000,
+  "all_passed": true,
+  "joint_position_clamped_intervals": 2380,
+  "floor_contact_episodes": 174,
+  "checks": "v3 fixed clock/command limits/observations, on-off horizon, floor and rod onset counts, top/growth event counters and reach envelope, validity"
+}
+.........
+----------------------------------------------------------------------
+Ran 9 tests in 0.948s
+
+OK
+[python] checked 76/76 files
+[shell] checked 42/42 files
+[yaml] checked 14/14 files
+[json] checked 68/68 files
+[xml] checked 4/4 files
+[license] LICENSE and package.xml files checked
+[gripper] 50 mm / 2.0 mm -> 0.375145 rad, drop 10.578 mm
+[calibration-table] matched 14 C++/CSV rows within 1e-09
+[obstacles] schema and disabled-by-default policy checked
+[pass-policy] obstacle-contact guard unit test run
+[step-c-result] C2 planning-failure classifier unit test run
+[curobo-step-c-result] cuRobo/Newton C1 extractor unit test run
+[step-c-safe-route] Step C scripts preserve the verified safe route
+
+All checks passed.
+Five replay callbacks and prediction display off/on passed.
+Live five switches passed in 21.546202 s; one owned GPU loop; all owned threads/workers exited.
+docs/experiments/sim-camera-curobo/results/moving_rod.json: OK
+docs/experiments/sim-camera-curobo/results/moving_rod_latency.json: OK
+docs/experiments/sim-camera-curobo/results/moving_rod_mpc.json: OK
+docs/experiments/sim-camera-curobo/results/moving_rod_mpc_tuned.json: OK
+docs/experiments/sim-camera-curobo/results/moving_rod_mpc_tuned.reference.json: OK
+docs/experiments/sim-camera-curobo/results/moving_rod_rates.json: OK
+docs/experiments/sim-camera-curobo/results/moving_rod_v2.json: OK
+docs/experiments/sim-camera-curobo/results/moving_rod_v2_scene_search.json: OK
+docs/experiments/sim-camera-curobo/results/moving_rod_v3.json: OK
+docs/experiments/sim-camera-curobo/results/moving_rod_v3.reference.json: OK
+docs/experiments/sim-camera-curobo/results/moving_rod.log: OK
+docs/experiments/sim-camera-curobo/results/moving_rod_latency.log: OK
+docs/experiments/sim-camera-curobo/results/moving_rod_latency.validation.log: OK
+docs/experiments/sim-camera-curobo/results/moving_rod_latency.viewer.log: OK
+docs/experiments/sim-camera-curobo/results/moving_rod_mpc.log: OK
+docs/experiments/sim-camera-curobo/results/moving_rod_mpc.viewer.log: OK
+docs/experiments/sim-camera-curobo/results/moving_rod_mpc_tuned.log: OK
+docs/experiments/sim-camera-curobo/results/moving_rod_mpc_tuned.viewer.log: OK
+docs/experiments/sim-camera-curobo/results/moving_rod_rates.live.log: OK
+docs/experiments/sim-camera-curobo/results/moving_rod_rates.log: OK
+docs/experiments/sim-camera-curobo/results/moving_rod_rates.viewer.log: OK
+docs/experiments/sim-camera-curobo/results/moving_rod_v2.log: OK
+docs/experiments/sim-camera-curobo/results/moving_rod_v3.live.log: OK
+docs/experiments/sim-camera-curobo/results/moving_rod_v3.log: OK
+docs/experiments/sim-camera-curobo/results/moving_rod_v3.validation.log: OK
+docs/experiments/sim-camera-curobo/results/moving_rod_v3.viewer.log: OK
+docs/experiments/sim-camera-curobo/results/moving_rod_v4.json: OK
+docs/experiments/sim-camera-curobo/results/moving_rod_v4.log: OK
+docs/experiments/sim-camera-curobo/results/moving_rod_v4.preflight.json: OK

@@ -519,3 +519,75 @@ No watch mode wrote results; old and new evidence hashes verified unchanged.
 Merged remote 569433e without touching unrelated work. Keep 110 primary cases and 40 extra A runs under extra_A_runs (excluded from all main metrics). Future build loop runs A only on repeat 1, B/E on repeats 1..5; one short completion line per case and final table. Viewer forces repeat 1 for A and disables that repeat selector. Live gate requires 110 primary cases. No B/E result, frozen controller, physical rule or measured trace changed.
 
 Final revised-schema verification: A-only-repeat-1 replay callbacks pass; interactive 110-case gate and lifecycle smoke pass in 17.016493 s. All owned processes exited. Prior evidence unchanged; revised JSON/log/reference hashes unchanged through both checks.
+
+## 2026-11-19 — v4 floor / unknown extent / visible prediction
+
+Started from reviewer task at 99fe38e on experiment/newton-link-depth-camera.
+Implemented only new *_v4* files; imported v3 plant helpers, frozen settings,
+renderer and lifecycle. Old v3/source/library/config/results remain unchanged.
+No ROS, planner, physics stepping, install or active view-seeking behavior.
+
+Floor cuboid: 10×10×0.1 m, top z=0. Base sphere bottom .020 m, no lowering needed.
+Scorer excludes 8 base spheres, includes all other 104, at unchanged 25 ms samples.
+Start / raised-start / v3-qualified goal all have 3.119573 mm floor clearance;
+goal error 4.670254 mm is inside existing 6 mm tolerance. Preflight saved separately.
+Planner uses finite slab; truth is sphere-bottom height relative to ground z=0,
+so underground states remain violations after passing below the slab. This mismatch
+and soft MPC collision costs do not establish a hard no-penetration constraint.
+
+E: fresh valid cluster touches any image border → top at least fixed world .544999945 m;
+not camera-relative. Lost cluster → cached box expands each +/- X/Y side by .20 m/s
+× age, full dimensions +2*.20*age, preserving previous top; drop after 1 s. .20 is
+an explicit assumed max rod speed. No initial box before first confirmed cluster.
+Growth is at 30 Hz observation timestamps; hold last observation/estimate between.
+The original .4+1/30 s sweep remains; nopred groups use the observed box directly.
+No tuning against rod results. Same 25 ms counted/control clock, command speed from
+robot config (~pi rad/s) and command acceleration 10 rad/s², fresh MPC per case.
+
+The original endpoint interpolation is only exact without a joint stop. An incomplete
+first v4 attempt was stopped with SIGINT (owned batch 1552322, worker 1552406 both exited),
+kept only at /tmp/moving_rod_v4_initial_interpolation.* and excluded. Formal batch
+uses exact clip(segment_start_q + held_velocity*elapsed, position_limits) for camera
+poses at n/30; tested with a saturating joint. The v3 plant itself was not changed.
+
+Formal 75 runs complete: 3 speeds ×5 phases × A/B/B-nopred/E/E-nopred ×1 repeat,
+20 s and 800 control steps each, 60,000 total steps. Quiet background checkpointed
+run, one short line/case; no interactive demo while measuring. Validity retains the
+rod-scene test: A must hit the rod; floor contacts also fail a run but cannot validate
+rod placement. No conditions invalid in this batch. Every group/speed has 0/5 success.
+68/75 runs have floor violations, 174 floor onset episodes. E-family rod onsets include
+24 no-box and 2 uncovered-box onsets (observed/remembered AABB, 1 µm tolerance), with
+predicted coverage also saved. Do not describe this as safe motion or proven benefit.
+
+Command delta/speed checks pass, but 56 runs / 2380 intervals use the inherited
+position clamp. Executed-state sampled acceleration peaks at 84.779184 rad/s², above
+the command-change limit. It is an ideal discrete plant, not bounded physical dynamics.
+The report explicitly discloses this and the finite-slab/half-space distinction.
+
+Replay lazily renders only selected cases. Normal startup does not run verification
+or prefilm all 75 cases; --replay --viewer-smoke --duration 1 is explicit validation.
+Orange observed box, blue wireframe sweep, cyan +.43 s ghost at estimated fitted-center,
+green velocity arrow, legend and estimated/true speed. Missing box displays unavailable.
+Checkbox changes display only; nopred groups hide predictive graphics. Changing selection
+stops the old playback. Five group callbacks plus non-vacuous prediction off/on passed.
+Interactive supports all five groups; old loop/worker joins before reset/new thread.
+
+Live smoke A→B→B-nopred→E→E-nopred→A passed in 21.546202 s, five switches,
+max owned GPU loops=1, all reset errors=0, observation counts and command bounds pass.
+E worker records (group,pid,exitcode): [('E', 1557010, 0), ('E-nopred', 1557076, 0)].
+All owned threads/workers/viewers exited. Programmatic GUI/gizmo smoke, not manual acceptance.
+Nine v4 tests (including full 60,000-step data), project CI and evidence hashes checked.
+Evidence: moving_rod_v4.{json,log,preflight.json,validation.log,viewer.log,live.log}.
+
+From ~/ur5_ws/src/ur5_moveit_demo, choose one:
+NEWTON_VIEWER_PORT=30004 scripts/run_sim_camera_moving_rod_v4.sh --replay
+NEWTON_VIEWER_PORT=30004 scripts/run_sim_camera_moving_rod_v4.sh --interactive
+Open http://localhost:30004 after starting (forward that port for remote VS Code).
+These watch commands do not save results; normal interactive uses fixed simulated
+steps and may be slower than wall time. Do not run it during a measurement batch.
+
+Preserve the deleted wall PNG, dirty old second/third/fourth/sixth result pairs and
+untracked curobo checkout. Stage explicit paths only. Next single step: review the
+floor/position-limit failures and E onset coverage table before authorizing another
+controller/model change; do not silently tune or start a new experiment.
+Exit Codex, run codex logout and codex login status, confirm logged out.

@@ -987,3 +987,103 @@ only redundant serialization metadata is omitted, floats stored to eight decimal
 Verification: all 150 replay frame sets and A1/B3/E5 non-main playback callbacks passed; interactive A→E→B→A smoke passed in 16.78 s, at most one GPU loop, all owned workers/threads stopped. This was a programmatic GUI smoke.
 
 Schedule revision: remote commit 569433e arrived after the original 150-run batch had completed. The primary table uses the requested 110 runs (A repeat 1 only); 40 extra A runs are retained under extra_A_runs and excluded. All original 150 runs passed the 120,000-step audit. The primary subset has 88,000 steps. Future batches run 110 cases with one short line per completed case and checkpoints.
+
+## v4
+
+The v3 controller, private robot limits, command acceleration clamp, 25 ms
+control/counted-compute clock, 30 Hz observations, 20 s duration and goal shuttle
+remain frozen. The only model/policy changes are the requested floor and E's
+conservative unknown extent, plus prediction-off ablations. A, B, B-nopred, E,
+E-nopred × speeds .05/.10/.20 × five initial phases × one repeat = 75 runs.
+Each has a fresh MPC and robot/perception state. No rod-based tuning or active
+view-seeking is added; no interactive demo runs during measurement.
+
+The static 10×10×0.1 m floor cuboid has top z=0, matching the rendered floor.
+Base sphere bottom is z=.020 m, so no lowering is needed. Nonbase endpoint
+clearances are 3.120 mm at start, raised start and the v3-qualified goal joint
+state (4.670 mm target error, within the existing 6 mm task tolerance). Truth
+scoring excludes 8 base spheres and includes the other 104 at the unchanged
+25 ms sampling interval. A floor penetration is a collision as well as rod
+contact; success needs zero of either and at least one goal reach.
+
+Fresh valid rod clusters touching any image border extend the fitted top to
+at least the fixed world value .544999945 m, never a camera-relative value.
+While no valid fresh cluster is seen, the last fitted box expands on each
++/- X/Y side by .20 m/s × time since last seen; full X/Y dimensions gain twice
+that amount. .20 is the task's assumed maximum rod speed. Retain the previous
+top and drop the box after 1 s. Before the first valid cluster there is no box.
+Growth is evaluated at the 30 Hz observation timestamps, with the latest box
+and estimated velocity reused between observations, retaining v3's .4+1/30 s
+sweep horizon. Every observation logs rule flags, age, per-side growth and size.
+
+Scene validity preserves the rod placement test: A must hit the rod. Floor
+contact fails the run but cannot validate rod placement. Invalid phases remain
+in JSON and are excluded from every main metric. Floor contacts and E no-box /
+uncovered-box values count onset episodes; 2a/2b count observation events.
+
+| Group | Speed m/s | Success/valid | Collision runs | Worst clearance mm | Floor episodes | 2a/2b events | E rod onsets: no box/uncovered |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| A | 0.05 | 0/5 | 5 | -857.36 | 15 | — | — |
+| B | 0.05 | 0/5 | 5 | -908.52 | 13 | — | — |
+| B-nopred | 0.05 | 0/5 | 5 | -962.30 | 12 | — | — |
+| E | 0.05 | 0/5 | 5 | -987.27 | 7 | 1040/888 | 3/0 |
+| E-nopred | 0.05 | 0/5 | 4 | -984.00 | 12 | 840/806 | 5/0 |
+| A | 0.10 | 0/5 | 5 | -857.36 | 15 | — | — |
+| B | 0.10 | 0/5 | 3 | -861.39 | 4 | — | — |
+| B-nopred | 0.10 | 0/5 | 4 | -980.92 | 8 | — | — |
+| E | 0.10 | 0/5 | 5 | -1002.26 | 17 | 345/849 | 5/0 |
+| E-nopred | 0.10 | 0/5 | 5 | -990.11 | 19 | 624/794 | 4/0 |
+| A | 0.20 | 0/5 | 5 | -857.36 | 15 | — | — |
+| B | 0.20 | 0/5 | 5 | -972.92 | 12 | — | — |
+| B-nopred | 0.20 | 0/5 | 5 | -910.30 | 8 | — | — |
+| E | 0.20 | 0/5 | 5 | -982.62 | 9 | 778/1056 | 3/1 |
+| E-nopred | 0.20 | 0/5 | 5 | -921.92 | 8 | 557/842 | 4/1 |
+
+Across all 75 runs including invalid phases, floor contact occurs in 68
+runs / 174 episodes. E-family rod collision onsets include 24
+without a box and 2 with an observed/remembered box not containing the
+truth cylinder AABB at contact time (1 μm tolerance). Predicted-box coverage is
+also saved per onset. Prediction being enabled is not evidence of safe motion.
+
+Command speed and delta-v/25 ms checks pass. The inherited position clamp is
+used in 56 runs / 2380 intervals; maximum acceleration estimated
+from executed boundary states is 84.779 rad/s², exceeding the 10 rad/s²
+command-change bound. The ideal held-velocity model therefore does not establish
+continuous physical feasibility. Retain the existing noise-free camera, one rod /
+AABB, simulator shape-index mask and forward/downward-view limitations.
+
+Replay now lazily renders only selected cases, rather than prefilming all 75.
+Normal startup does not auto-switch cases. Orange observed/remembered boxes,
+blue swept boxes, cyan +.43 s ghost rods, green estimated-velocity arrows, a
+legend and estimated/true speed text appear in replay and interactive. Replay's
+checkbox affects display only. No-pred groups suppress the predictive graphics.
+Live dragging uses the same floor, memory and command rules, and serializes old
+loop stop/join/worker cleanup before a reset and new group.
+
+Watch one mode at a time; open http://localhost:30004 after startup:
+
+```bash
+cd ~/ur5_ws/src/ur5_moveit_demo
+NEWTON_VIEWER_PORT=30004 scripts/run_sim_camera_moving_rod_v4.sh --replay
+NEWTON_VIEWER_PORT=30004 scripts/run_sim_camera_moving_rod_v4.sh --interactive
+```
+
+Explicit measurement commands:
+
+```bash
+scripts/run_sim_camera_moving_rod_v4.sh --preflight --headless --save-results
+scripts/run_sim_camera_moving_rod_v4.sh --headless --save-results
+```
+
+Headless measurement writes checkpoints and one short line per case, then the
+final table. Evidence is `moving_rod_v4.{json,log,preflight.json}` under the
+existing results directory. The formal batch samples exact clipped held-velocity
+poses at n/30 seconds, including a joint stop. An initial incomplete interpolation
+debug batch was stopped and retained only under /tmp, excluded from all reports.
+Old v3 sources and evidence remain unchanged. Both watch modes reject saving.
+
+The planner floor is a finite 0.1 m slab; truth floor clearance is the nonbase sphere bottom height above z=0 (a ground half-space). Underground states remain violations even after passing below the planner slab. This representation difference and the soft MPC collision costs do not constitute a hard no-penetration constraint.
+
+Watch verification: five non-main replay callbacks and prediction off/on passed; five live switches passed in 21.55 s, maximum one GPU loop, all owned threads/workers stopped. Programmatic GUI smoke only; motion safety failures remain as reported.
+
+The .20 m/s unseen-speed bound is a benchmark assumption; manual dragging is an external input without a drag-speed limiter.
