@@ -1177,3 +1177,37 @@ Reproduce the qualification with
 `scripts/run_sim_camera_moving_rod_v41.sh --qualify --save-results`.
 It saves the endpoint report and qualification trace under the
 `moving_rod_v41` prefix. Exit code 2 indicates a failed gate.
+
+## v4.2 floor activation and batch stop
+
+The floor cost activates within 10 mm. The rod cost retains 30 mm, and
+zero-margin collision queries still use zero. The 2 m slab, link exclusions,
+poses, frozen MPC parameters and 20 mm endpoint gate carry forward.
+
+At start, raised start and goal, both the discrete and swept floor queries
+returned exactly zero cost and zero gradient with the rod disabled. No-rod A
+reached within 3.478 mm in 1.025 simulated seconds with 25.815 mm minimum floor
+clearance and zero floor contact. At 0.05 m/s and initial X=0.36 m, smoke A
+recorded zero floor contacts and five rod collisions. Smoke B reached six
+times without floor or rod contact. Both smoke gates passed.
+
+The batch, estimated at 48 minutes, stopped in its fourth case, E at
+0.05 m/s and X=0.36 m. It first contacted the floor at 1.650 simulated seconds
+and reached 30.673 mm penetration at the next 25 ms checkpoint, crossing the
+20 mm stop threshold. No later cases were scheduled. The partial checkpoint
+contains the following cases. It cannot support a per-group success rate.
+
+| Group | Simulated seconds | Reaches | Rod episodes | Floor episodes | Minimum floor clearance, mm |
+|---|---:|---:|---:|---:|---:|
+| A | 20.000 | 9 | 5 | 0 | 25.634 |
+| B | 20.000 | 6 | 0 | 0 | 25.772 |
+| B-nopred | 20.000 | 4 | 1 | 0 | 9.824 |
+| E (stopped) | 1.675 | 0 | 0 | 1 | -30.673 |
+
+The partial E case recorded 10 image-border height extensions and 30
+lost-view growth events. It had no rod collision onset before stopping.
+
+Evidence is saved as `moving_rod_v42.gates.json` and
+`moving_rod_v42.{json,log}` in the results directory. Run the ordered gates
+with `scripts/run_sim_camera_moving_rod_v42.sh`. The separate `--batch`
+command requires successful gates and an empty batch output path.

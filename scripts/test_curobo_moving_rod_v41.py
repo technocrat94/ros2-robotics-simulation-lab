@@ -14,13 +14,16 @@ exec(compile(ast.Module(body=[n for n in tree.body if isinstance(n,ast.FunctionD
 class FakeScene:
     def __init__(self,data,checker=None,device_cfg=None,scene_model=None):
         self.data,self.checker,self.device_cfg,self.scene_model=data,checker,device_cfg,scene_model
-    def get_sphere_distance(self,state,buffer,*a,**kw):return np.maximum(state.robot_spheres[...,3],0)
+    def get_sphere_distance(self,state,buffer,*args,**kwargs):
+        self.last_activation = kwargs.get('activation_distance', args[1] if len(args) > 1 else None)
+        return np.maximum(state.robot_spheres[...,3],0)
     get_sphere_collision=get_sphere_distance
     get_swept_sphere_distance=get_sphere_distance
     get_swept_sphere_collision=get_sphere_distance
 
 fake_torch=SimpleNamespace(as_tensor=lambda a,**kw:np.asarray(a,dtype=bool),bool=bool,
-    cat=lambda a,dim:np.concatenate(a,axis=dim),where=np.where,ones_like=np.ones_like)
+    cat=lambda a,dim:np.concatenate(a,axis=dim),where=np.where,ones_like=np.ones_like,
+    minimum=np.minimum)
 cscope=dict(SceneCollision=FakeScene,torch=fake_torch,KinematicsState=lambda **kw:SimpleNamespace(**kw),
     CollisionBuffer=SimpleNamespace(from_shape=lambda shape,device:SimpleNamespace(shape=shape)))
 ctree=ast.parse((root/'curobo_moving_rod_v41_collision.py').read_text())
@@ -61,6 +64,22 @@ class V41Contracts(unittest.TestCase):
         self.assertIs(floor_buffer,scene._floor_inputs(state,buffer)[1])
         self.assertIsNot(floor_buffer,scene._floor_inputs(state,object())[1])
         np.testing.assert_allclose(scene.get_swept_sphere_distance(state,buffer),[[[.1,.2,.6]]])
+
+    def test_floor_margin_is_independent_and_preserves_zero_margin_queries(self):
+        cfg = SimpleNamespace(device='cpu', to_device=np.array)
+        floor = FakeScene('floor', device_cfg=cfg)
+        scene = cscope['FloorMaskedScene'](FakeScene('rod', device_cfg=cfg), floor, [True],
+                                          floor_activation_m=.010)
+        state = SimpleNamespace(robot_spheres=np.array([[[[0., 0., .05, .02]]]]))
+        buffer = object()
+        scene.get_sphere_distance(state, buffer, weight=1., activation_distance=np.array([.030]))
+        np.testing.assert_equal(scene.last_activation, [.030])
+        np.testing.assert_equal(floor.last_activation, [.010])
+        scene.get_swept_sphere_distance(state, buffer, 1., np.array([.030]))
+        np.testing.assert_equal(scene.last_activation, [.030])
+        np.testing.assert_equal(floor.last_activation, [.010])
+        scene.get_sphere_collision(state, buffer, 1., np.array([0.]))
+        np.testing.assert_equal(floor.last_activation, [0.])
 
     def test_saved_preflight_passes_revised_gate(self):
         p=root.parent/'docs/experiments/sim-camera-curobo/results/moving_rod_v41.preflight.json'

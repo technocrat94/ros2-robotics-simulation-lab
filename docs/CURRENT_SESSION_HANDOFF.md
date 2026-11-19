@@ -676,3 +676,18 @@ The qualification entry point is
 `scripts/run_sim_camera_moving_rod_v41.sh --qualify --save-results`.
 Its optional floor mask and step guard reuse the v4 plant. Existing v4 callers
 continue to use the original mask and run length.
+
+## v4.2 (task parent 617fc71)
+
+Floor activation capped at 10 mm in FloorMaskedScene, with 30 mm rod
+activation and zero-margin feasibility retained. Endpoint stationary discrete
+and swept cost/gradient checks were exactly zero. The 20 mm endpoint gate,
+no-rod qualification, and smoke A/B all passed. Qualification first reached
+at 1.025 s, 3.478 mm goal error, 25.815 mm minimum floor clearance.
+
+The separately launched guarded batch saved A, B, B-nopred and partial E at
+0.05 m/s, X=.36. E first contacted the floor at 1.650 s and triggered the
+20 mm penetration stop at 1.675 s with 30.673 mm penetration. It exited 2
+and closed the camera worker. No full table or new viewer was produced.
+The checkpoint is moving_rod_v42.json with complete=false, with gate
+evidence in moving_rod_v42.gates.json. Do not overwrite the checkpoint.

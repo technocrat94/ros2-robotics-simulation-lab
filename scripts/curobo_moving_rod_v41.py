@@ -39,7 +39,7 @@ def require_preflight(report):
         raise RuntimeError(f'STOP: scored endpoint floor clearance is below {ENDPOINT_GATE_M:.3f} m')
 
 
-def make_mpc(config,settings):
+def make_mpc(config,settings,*,floor_activation_m=None):
     """Fixed v3 MPC plus two-metre floor, filtered only for floor cost."""
     report=json.loads(PREFLIGHT_FILE.read_text());require_preflight(report)
     if report['robot_config_sha256']!=hashlib.sha256(config.read_bytes()).hexdigest() or settings!=report['frozen_config'] or report['reference_sha256']!=hashlib.sha256(v3.REFERENCE_FILE.read_bytes()).hexdigest():
@@ -52,7 +52,7 @@ def make_mpc(config,settings):
         squared_l2_regularization_weight=[.01,settings['acceleration_regularization'],10.,0.,0.],
         non_terminal_tool_pose_weight_factor=settings['non_terminal_tool_pose_weight_factor'])
     active=nonbase_mask(SimpleNamespace(kinematics_config=robot_cfg.kinematics.kinematics_config))
-    scene=FloorMaskedScene.create(cfg.core_cfg.scene_collision_cfg,active)
+    scene=FloorMaskedScene.create(cfg.core_cfg.scene_collision_cfg,active,floor_activation_m=floor_activation_m)
     mpc=tuned.ModelPredictiveControl(cfg,scene_collision_checker=scene)
     mpc._v4_floor_top=0.
     return mpc,dict(floor_dims_m=[10.,10.,2.],floor_center_m=[0.,0.,-1.],floor_top_m=0.,
