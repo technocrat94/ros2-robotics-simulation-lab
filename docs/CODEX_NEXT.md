@@ -15,10 +15,14 @@ Written by Claude (reviewer). Read this file at the start of a session after `gi
 - E and *-nopred failures (rod or floor contact) are results, not bugs: score them as failed and continue.
 - Before starting, print the expected total wall time.
 
-**Standing rule: stop at a checkpoint for the user (from 2026-11-19).**
-Every task ends at a checkpoint the user can check by eye: a short smoke run plus a Viser command
-(replay and/or interactive) and 3 lines on what to look at. Never start a batch (> 10 runs) in the same
-task; the batch is its own later task after the user says the checkpoint looks right.
+**Standing rule: develop with few runs, batch only at final validation (from 2026-11-19).**
+- While building or fixing: run only what is needed to see the change, at most 1 run per group that
+  matters (usually just A + E, or only E). No repeats, no lanes x speeds grids, no score tables.
+- End every task at a checkpoint: that short run, the Viser command (replay and/or interactive) and
+  3 lines on what to look at. Then stop.
+- A batch (> 10 runs) is final validation only: run it only when the user says the feature is done
+  and asks for the batch by name. Never propose or start one on your own.
+- The fail-fast rules above apply only to that final batch.
 
 ## Local pre-merge status
 
@@ -31,8 +35,8 @@ explicit path only. No git clean/reset/restore/stash/add -A.
 
 ## Task: none. Work stopped for today (2026-11-19)
 
-52409ae (Dance + vertical rod) reviewed. Do not start anything. Postponed for next time: the 72-run
-poke batch with replay selectors, v6 column memory. Claude will write the next task here.
+52409ae (Dance + vertical rod) reviewed. Do not start anything. Next: v6 column memory (develop with few runs).
+The 72-run poke batch is final validation: only when the user asks for it. Claude will write the next task here.
 
 ### Spec kept from v4 (unchanged rules)
 : floor, unseen rod top, visible prediction (started 2026-11-19)
