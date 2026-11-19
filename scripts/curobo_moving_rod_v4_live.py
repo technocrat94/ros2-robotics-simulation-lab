@@ -27,6 +27,9 @@ class LiveGroups(OriginalLiveGroups):
     worker_type = LiveCameraWorker
     truth_clearance = staticmethod(cylinder_clearance)
 
+    def before_obstacle_step(self):
+        """Allow scene-specific scripted motion before sampling the gizmo."""
+
     def truth_box(self, center):
         return {"center_m":center.tolist(),"dims_m":[2*v2.ROD_RADIUS_M,2*v2.ROD_RADIUS_M,v2.ROD_TOP_M]}
 
@@ -154,6 +157,7 @@ class LiveGroups(OriginalLiveGroups):
                     self.state_text.value = "running"
                     while not stop.is_set():
                         tick = time.monotonic()
+                        self.before_obstacle_step()
                         center = self.read_rod()
                         true_velocity=(center-previous_true_center)/v3.CONTROL_DT
                         previous_true_center=center.copy()

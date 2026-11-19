@@ -41,14 +41,15 @@ def start_viewer(config: Path, results: dict[str, Any], frames: dict[str, list[d
     predicted = server.scene.add_box("/predicted/box", dimensions=(.01,.01,.01), color=(80,150,255), opacity=.85, wireframe=True)
     first = next(iter(frames))
     panel = server.gui.add_image(frames[first][0]["depth"], label="Live simulated depth")
-    phase_key = "initial_x_m" if obstacle is None else "initial_y_m"
+    axis = "XY"[0 if obstacle is None else obstacle.MOTION_AXIS]
+    phase_key = f"initial_{axis.lower()}_m"
     index = {(c["summary"]["mode"], c["summary"]["rod_speed_mps"], c["summary"][phase_key], c["summary"]["repeat"]): n
              for n,c in results["cases"].items()}
     group_select = server.gui.add_dropdown("Case", options=groups, initial_value=groups[0])
     speed_options = ("0.05", "0.10", "0.20") if obstacle is None else ("0.10",)
-    phase_options = tuple(f"{x:.2f}" for x in PHASES) if obstacle is None else (f"{obstacle.START[1]:.2f}",)
+    phase_options = tuple(f"{x:.2f}" for x in PHASES) if obstacle is None else (f"{obstacle.START[obstacle.MOTION_AXIS]:.2f}",)
     speed_select = server.gui.add_dropdown("Speed m/s", options=speed_options, initial_value=speed_options[0])
-    phase_select = server.gui.add_dropdown("Initial X m" if obstacle is None else "Initial Y m",
+    phase_select = server.gui.add_dropdown(f"Initial {axis} m",
                                            options=phase_options, initial_value=phase_options[0])
     repeat_select = server.gui.add_dropdown("Repeat",options=("1",),initial_value="1")
     joint_speed = server.gui.add_text("Joint command speed","",disabled=True)

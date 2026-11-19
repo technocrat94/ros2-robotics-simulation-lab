@@ -745,3 +745,19 @@ passed, along with A/B/E replay and prediction toggle, XYZ drag and
 A/B/E live switching. All owned viewer procedures stopped. The next
 batch requires the user's review of this checkpoint as directed in
 CODEX_NEXT.md. The report includes the two viewing commands.
+
+## v5 short-bar poke (task parent a43e451)
+
+Completed only the requested checkpoint. Kept the v5 camera, plant, floor
+plane and controller. The X-aligned 0.30 m bar's inner tip moves from
+X=.85 to .45 at .10 m/s, holds .5 s, retracts and waits 1 s at fixed
+Y=.28/Z=.35. E uses a .30 m X extent for border extensions. The interactive
+Poke button runs one 9.5 simulated second cycle at the selected Y/Z.
+
+No-rod qualified at 1.025 s. All three scripted cases completed 20 s. A/B/E
+had 9/3/9 reaches, 3/0/3 bar episodes and zero floor contacts. Minimum
+clearances -57.931/+11.533/-57.931 mm. E had zero valid fits in 600 frames
+and zero border extensions. All three E collision onsets had no box.
+Data: moving_bar_poke_v5.checkpoint.json. CI, 18 related tests, saved trace
+checks, three replay selections, prediction toggle, XYZ drag, single poke
+and A/B/E switching passed. The viewer processes exited. No batch started.

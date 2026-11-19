@@ -325,3 +325,26 @@ NEWTON_VIEWER_PORT=30004 scripts/run_sim_camera_moving_bar_v5.sh --interactive
 1. 回放切 A，確認紅色橫桿保持水平、沿 Y 穿過手臂路徑。
 2. 切 B 和 E，對照橘色觀測盒、藍色預測盒，以及 E 的深度影像與盒消失時機。
 3. 互動沿 X、Y、Z 拖桿並切換 A/B/E，確認橫桿不旋轉，舊控制迴圈先停止。
+
+## v5 短桿伸縮 checkpoint
+
+橫桿沿世界 X 軸，長 0.30 m、半徑 20 mm。固定 Y=0.28 m、Z=0.35 m。內端尖端從 X=0.85 m 以 0.10 m/s 伸至 0.45 m，停 0.5 秒後等速收回，等待 1.0 秒再重複。桿中心從 X=1.00 m 行進至 0.60 m，每週期 9.5 秒。沿用原相機與 v5 控制設定，E 的影像邊界延長長度為 0.30 m。
+
+無桿資格檢查於 1.025 秒到達，A 確認碰撞場景有效。以下是單相位 checkpoint。
+
+| 組別 | 模擬時間 s | 到達 | 撞桿 | 碰地 | 最差淨空 mm |
+|---|---:|---:|---:|---:|---:|
+| A | 20 | 9 | 3 | 0 | −57.931 |
+| B | 20 | 3 | 0 | 0 | +11.533 |
+| E | 20 | 9 | 3 | 0 | −57.931 |
+
+E 的 600 筆觀測均未產生有效盒。邊界延長觸發 0 次，3 次撞桿起始均無盒。資料在 `moving_bar_poke_v5.checkpoint.json`。
+
+```bash
+NEWTON_VIEWER_PORT=30004 scripts/run_sim_camera_moving_bar_poke_v5.sh --replay
+NEWTON_VIEWER_PORT=30004 scripts/run_sim_camera_moving_bar_poke_v5.sh --interactive
+```
+
+1. 回放選 A，確認短桿尖端伸到 X=0.45 m，停留後縮回。
+2. 切 B／E，對照 B 的避讓和預測盒、E 的深度與空盒。
+3. 互動拖曳 XYZ，再按 **Poke**，確認沿目前 Y/Z 完成一次伸縮。

@@ -8,7 +8,7 @@ class PredictionVisuals:
         server.scene.add_box('/truth/floor',dimensions=(10.,10.,floor_thickness),position=(0.,0.,floor_top-floor_thickness/2),color=(120,130,140),opacity=.18)
         server.gui.add_markdown('All groups retain the floor; A has no rod obstacle. **Legend:** gray = floor; orange = observed/remembered box; blue = swept MPC box; cyan ghost = estimate at +0.43 s; green arrow = estimated velocity. Display toggle does not change control.')
         self.visible=server.gui.add_checkbox('Show prediction',initial_value=True)
-        self.direction = 0 if obstacle is None else 1
+        self.direction = 0 if obstacle is None else obstacle.MOTION_AXIS
         rotation = (1.,0.,0.,0.) if obstacle is None else obstacle.ROTATION_WXYZ
         radius, length = (.025,.25) if obstacle is None else (obstacle.RADIUS,obstacle.LENGTH)
         self.ghost=server.scene.add_cylinder('/prediction/ghost',radius=radius,height=length,wxyz=rotation,color=(40,235,235),opacity=.35,visible=False)

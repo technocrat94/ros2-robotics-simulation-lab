@@ -7,6 +7,7 @@ import numpy as np
 from curobo_moving_rod_v5_rules import HeightMemory
 from curobo_moving_rod_live import LiveCameraWorker
 
+MOTION_AXIS = 1
 RADIUS = .020
 LENGTH = .60
 START = (.50, .05, .35)
@@ -24,19 +25,19 @@ def center(y):
     return (START[0], float(y), START[2])
 
 
-def fit_at_center(position):
-    return {'center_m': list(map(float, position)), 'dims_m': [LENGTH, 2*RADIUS, 2*RADIUS]}
+def fit_at_center(position, *, length=LENGTH):
+    return {'center_m': list(map(float, position)), 'dims_m': [length, 2*RADIUS, 2*RADIUS]}
 
 
 def fit(y):
     return fit_at_center(center(y))
 
 
-def clearances(spheres, centers):
+def clearances(spheres, centers, *, length=LENGTH):
     """Sphere-to-finite-cylinder signed clearance, with the cylinder on X."""
     relative = spheres[..., :3]-np.asarray(centers)[:, None, :]
     radial = np.linalg.norm(relative[..., 1:], axis=-1)-RADIUS
-    axial = np.abs(relative[..., 0])-LENGTH/2
+    axial = np.abs(relative[..., 0])-length/2
     pair = np.stack((radial, axial), axis=-1)
     signed = np.linalg.norm(np.maximum(pair, 0.), axis=-1)+np.minimum(np.max(pair, axis=-1), 0.)
     return np.min(signed-spheres[..., 3], axis=-1)
@@ -47,15 +48,20 @@ def distances(spheres, ys):
 
 
 def covers(box, y):
+    return covers_fit(box, fit(y))
+
+
+def covers_fit(box, truth):
     if box is None:
         return False
-    truth = fit(y)
     c, d = np.asarray(box['center_m']), np.asarray(box['dims_m'])
     tc, td = np.asarray(truth['center_m']), np.asarray(truth['dims_m'])
     return bool(np.all(c-d/2 <= tc-td/2+1e-6) and np.all(c+d/2 >= tc+td/2-1e-6))
 
 
 class BarMemory(HeightMemory):
+    length = LENGTH
+
     def __init__(self, _fixed_top):
         super().__init__(0.)
         self.border_length_events = 0
@@ -67,7 +73,7 @@ class BarMemory(HeightMemory):
         if extended:
             # Center on the visible cluster rather than its previously padded box.
             box['center_m'][0] = float((capture.points[:, 0].min()+capture.points[:, 0].max())/2)
-            box['dims_m'][0] = LENGTH
+            box['dims_m'][0] = self.length
             self.last_box = copy.deepcopy(box)
             self.border_length_events += 1
         event['bar_border_length_extended'] = bool(extended)
@@ -75,8 +81,11 @@ class BarMemory(HeightMemory):
 
 
 class BarWorker(LiveCameraWorker):
+    length = LENGTH
+    center = staticmethod(center)
+
     def scene_args(self):
-        return ['--horizontal-bar']
+        return ['--horizontal-bar', '--bar-length', str(self.length)]
 
     def capture(self, q, y):
-        return self.capture_xy(np.asarray(q), np.asarray(center(y)))
+        return self.capture_xy(np.asarray(q), np.asarray(self.center(y)))

@@ -1338,3 +1338,32 @@ NEWTON_VIEWER_PORT=30004 scripts/run_sim_camera_moving_bar_v5.sh --interactive
 1. Replay A to see the horizontal bar cross the arm's path on Y.
 2. Compare B's truth box with E's depth-derived observed and predicted boxes.
 3. Use the XYZ drag handles and alternate A/B/E in interactive mode.
+
+## v5 short-bar poke checkpoint
+
+The 0.30 m bar has a 20 mm radius and runs along world X at Y=0.28 m and
+Z=0.35 m. Its inner tip travels from X=0.85 m to 0.45 m at 0.10 m/s,
+holds for 0.5 s, retracts at 0.10 m/s and waits for 1.0 s. The center
+travels from X=1.00 m to 0.60 m. The period is 9.5 s. The mount and v5
+controller settings carry forward. Image-border extension sets the fresh
+box's X width to 0.30 m. The no-rod qualification reached in 1.025 s.
+
+| Mode | Simulated seconds | Reaches | Bar episodes | Floor episodes | Worst clearance mm |
+|---|---:|---:|---:|---:|---:|
+| A | 20 | 9 | 3 | 0 | -57.931 |
+| B | 20 | 3 | 0 | 0 | 11.533 |
+| E | 20 | 9 | 3 | 0 | -57.931 |
+
+A confirmed the lane intersects the arm. E generated no valid fresh fit
+in 600 observations, including its startup frame. It therefore had zero
+border extensions and no box at all three bar collision onsets. These
+results are from one checkpoint phase. Data: `moving_bar_poke_v5.checkpoint.json`.
+
+```bash
+NEWTON_VIEWER_PORT=30004 scripts/run_sim_camera_moving_bar_poke_v5.sh --replay
+NEWTON_VIEWER_PORT=30004 scripts/run_sim_camera_moving_bar_poke_v5.sh --interactive
+```
+
+1. In replay, watch the inner tip extend to X=0.45 m, hold and retract.
+2. Compare B's avoidance and boxes against E's depth and empty fit.
+3. In interactive mode, drag in XYZ, then select Poke and watch one cycle at the selected Y/Z.

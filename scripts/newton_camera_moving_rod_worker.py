@@ -53,6 +53,7 @@ class MovingRodCamera:
         mount: camera_common.MountConfig,
         device_name: str,
         horizontal_bar: bool = False,
+        bar_length: float = .60,
     ):
         self.horizontal_bar = horizontal_bar
         newton.use_coord_layout_targets = True
@@ -74,7 +75,7 @@ class MovingRodCamera:
             xform=(wp.transform((0., 0., 0.), wp.quat_from_axis_angle(wp.vec3(0., 1., 0.), np.pi/2))
                    if horizontal_bar else wp.transform_identity()),
             radius=.020 if horizontal_bar else ROD_RADIUS_M,
-            half_height=.30 if horizontal_bar else 0.5 * ROD_TOP_M,
+            half_height=bar_length/2 if horizontal_bar else 0.5 * ROD_TOP_M,
             color=(0.9, 0.25, 0.15),
             label="moving_rod_shape",
         )
@@ -218,11 +219,14 @@ def main() -> None:
     parser.add_argument("--rod-y", type=float, default=ROD_Y_M)
     parser.add_argument("--rod-top", type=float, default=ROD_TOP_M)
     parser.add_argument("--horizontal-bar", action="store_true")
+    parser.add_argument("--bar-length", type=float, default=.60)
     args = parser.parse_args()
+    if args.horizontal_bar and (not np.isfinite(args.bar_length) or args.bar_length <= 0):
+        parser.error("--bar-length must be finite and positive")
     globals().update(ROD_Y_M=args.rod_y, ROD_TOP_M=args.rod_top,
                      ROD_CENTER_Z_M=args.rod_top / 2)
     mount, _ = camera_common.read_mount_config(args.mount_config)
-    scene = MovingRodCamera(args.urdf, mount, args.device, args.horizontal_bar)
+    scene = MovingRodCamera(args.urdf, mount, args.device, args.horizontal_bar, args.bar_length)
     print(
         "NEWTON_MOVING_ROD_WORKER_READY "
         + json.dumps(

@@ -16,23 +16,27 @@ SPEED = .10
 GROUPS = ('A', 'B', 'E')
 
 
-def saved_case(config, settings, baseline, mode, worker=None, *, no_rod=False):
-    memory = bar.BarMemory(0.) if mode == 'E' else None
+def saved_case(config, settings, baseline, mode, worker=None, *, no_rod=False, scene=bar):
+    memory = scene.BarMemory(0.) if mode == 'E' else None
     outcome = base.run_case(
         config, settings, baseline, mode, worker=worker, speed=SPEED, no_rod=no_rod,
         guard=lambda d: base.floor_stop_reason(mode, d),
-        height_memory=memory, plane_factory=FloorPlane, obstacle=bar,
+        height_memory=memory, plane_factory=FloorPlane, obstacle=scene,
     )
     summary = outcome['case']['summary']
-    summary.update(initial_x_m=bar.START[0], initial_y_m=bar.START[1], repeat=1)
+    summary.update(initial_x_m=scene.START[0], initial_y_m=scene.START[1], repeat=1)
     return outcome
 
 
-def measure(args, baseline, preflight):
+def measure(args, baseline, preflight, scene=bar, result=RESULT):
     settings = preflight['frozen_config']
-    report = dict(complete=False, scene_status='UNVERIFIED', bar=dict(radius_m=bar.RADIUS,
-        length_m=bar.LENGTH, axis='X', start_m=bar.START, y_limits_m=[bar.Y_MIN, bar.Y_MAX]),
+    report = dict(complete=False, scene_status='UNVERIFIED', bar=dict(radius_m=scene.RADIUS,
+        length_m=scene.LENGTH, axis='X', start_m=scene.START, motion_axis='XY'[scene.MOTION_AXIS]),
         preflight=preflight, cases={})
+    if hasattr(scene, "MOTION"):
+        report["bar"].update(scene.MOTION)
+    else:
+        report["bar"]["y_limits_m"] = [scene.Y_MIN, scene.Y_MAX]
     mpc, _ = v41.make_mpc(args.robot_config, settings, floor_activation_m=base.FLOOR_ACTIVATION_M)
     try:
         costs = base.endpoint_costs(mpc, baseline)
@@ -41,26 +45,27 @@ def measure(args, baseline, preflight):
     report['endpoint_costs'] = costs
     if any(v != 0. for methods in costs.values() for values in methods.values() for v in values.values()):
         raise RuntimeError('endpoint floor cost or gradient is nonzero')
-    qualification = saved_case(args.robot_config, settings, baseline, 'A', no_rod=True)
+    qualification = saved_case(args.robot_config, settings, baseline, 'A', no_rod=True, scene=scene)
     report['qualification'] = qualification
-    tuned.save_json(RESULT, report)
+    tuned.save_json(result, report)
     print('BAR_QUALIFICATION', qualification['passed'],
           qualification['case']['summary']['time_to_first_goal_s'], flush=True)
     if not qualification['passed']:
         return 2
     with tempfile.TemporaryDirectory(prefix='bar-v5-') as temp:
-        worker = bar.BarWorker(args.newton_python, Path(temp))
+        worker = scene.BarWorker(args.newton_python, Path(temp))
         try:
             for mode in GROUPS:
-                name = f'Bar {mode} 0.10 m/s Y=0.05'
-                outcome = saved_case(args.robot_config, settings, baseline, mode, worker)
+                axis = scene.MOTION_AXIS
+                name = f'Bar {mode} 0.10 m/s {"XY"[axis]}={scene.START[axis]:.2f}'
+                outcome = saved_case(args.robot_config, settings, baseline, mode, worker, scene=scene)
                 case = outcome['case']
                 summary = case['summary']
                 report['cases'][name] = case
                 if mode == 'A':
                     report['scene_status'] = 'VALID_SCENE' if summary['rod_collisions'] else 'INVALID_SCENE'
                 summary['scene_status'] = report['scene_status']
-                tuned.save_json(RESULT, report)
+                tuned.save_json(result, report)
                 print(f"BAR_CASE {mode} reaches={summary['reaches']} bar={summary['rod_collisions']} "
                       f"floor={summary['floor_contacts']} clearance={summary['minimum_true_clearance_m']:.6f} "
                       f"border={summary.get('bar_border_length_extensions', 0)}", flush=True)
@@ -69,11 +74,11 @@ def measure(args, baseline, preflight):
         finally:
             worker.close()
     report['complete'] = True
-    tuned.save_json(RESULT, report)
+    tuned.save_json(result, report)
     return 0
 
 
-def main():
+def main(*, scene=bar, result=RESULT, live_class=None):
     parser = argparse.ArgumentParser(description=__doc__)
     mode = parser.add_mutually_exclusive_group(required=True)
     mode.add_argument('--smoke', action='store_true')
@@ -92,9 +97,9 @@ def main():
     baseline = json.loads(tuned.original.BASELINE_FILE.read_text())
     tuned.original.configure_scene(baseline)
     if args.smoke:
-        return measure(args, baseline, preflight)
+        return measure(args, baseline, preflight, scene, result)
     from curobo_moving_bar_v5_viewer import watch
-    return watch(args, baseline, RESULT)
+    return watch(args, baseline, result, scene=scene, live_class=live_class)
 
 
 if __name__ == '__main__':
