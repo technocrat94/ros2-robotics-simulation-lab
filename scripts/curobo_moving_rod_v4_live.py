@@ -25,10 +25,14 @@ class LiveGroups(OriginalLiveGroups):
     group_options = v4.GROUPS
     obstacle = None
     worker_type = LiveCameraWorker
+    show_prediction_legend = True
     truth_clearance = staticmethod(cylinder_clearance)
 
     def before_obstacle_step(self, tool, sim_clock):
         """Allow scene-specific scripted motion before sampling the gizmo."""
+
+    def update_bar_boxes(self, observed, predicted, velocity):
+        """Publish controller box diagnostics to interested viewers."""
 
     def publish_camera_capture(self, capture, points):
         """Publish the matching optical pose, point cloud and depth image as one observation."""
@@ -56,7 +60,7 @@ class LiveGroups(OriginalLiveGroups):
             self.predicted.opacity=.85
             self.graphics=PredictionVisuals(self.server,preflight["floor_top_m"],
                                             floor_thickness=preflight.get("floor_dims_m",[10.,10.,.1])[2],
-                                            obstacle=self.obstacle)
+                                            obstacle=self.obstacle, show_legend=self.show_prediction_legend)
             self.speed_text=self.server.gui.add_text("Joint command speed","",disabled=True)
             self.server.gui.add_markdown(f"{self.version}: 25 ms simulated clock, 30 Hz observations, config speed/acceleration bounds. Floor contact is scored. Dragging is external input.")
         except BaseException:
@@ -217,6 +221,7 @@ class LiveGroups(OriginalLiveGroups):
                                 mpc.kinematics, q, mask)
                             record["top_rule_events"] = memory.top_events
                             record["box_cap_actions"] = memory.cap_events
+                        self.update_bar_boxes(fit, predicted, estimate)
                         if extra is not None:
                             extra.update(mpc, family, q, mask, horizon+1/v3.OBS_HZ if prediction else 0.)
                         tuned.update_box(mpc,predicted)

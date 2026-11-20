@@ -24,6 +24,12 @@ MOVING_MEMORY_S = WINDOW_S
 COLORS = {'STATIC': (150, 80, 230), 'MOVING': (240, 200, 30)}
 # The predicted (swept) box stops this far from the arm's current spheres.
 SWEEP_GAP_M = .02
+BAR_COLOR = (235, 55, 45)
+ROD_COLOR = (200, 110, 52)
+OBSERVED_COLOR = (255, 145, 35)
+SWEEP_COLOR = (80, 150, 255)
+FOOTPRINT_COLOR = (45, 185, 200)
+DEPTH_MAX_RANGE_M = 1000.  # Newton RenderConfig default; live frames carry the configured range.
 LEGEND = '''**說明 Legend**
 - 紅色圓柱 = 真的橫棒、棕色圓柱 = 真的直圓柱（只有我們看得到，E 不知道）
 - 灰色 = 地板
@@ -33,7 +39,8 @@ LEGEND = '''**說明 Legend**
 - 紫色填色 = 記憶：靜止物（離開視野也一直記著）
 - 黃色填色 = 記憶：移動物（離開視野 0.5 s 後刪掉）
 - 相機視野錐 + 彩色點 = 手上相機現在拍到的東西
-- 手臂外面一圈 = cuRobo 碰撞球 + 30 mm 安全距離，所以看起來比盒子大'''
+- 淺青綠色地板線框及淡色填面 = 相機視野投影
+- 手臂外面一圈 = cuRobo 碰撞球 + 30 mm 安全距離，所以看起來比盒子大（勾選 Show arm margin）'''
 SAMPLE_OFFSETS = np.array([*product((-.5, .5), repeat=3), (0., 0., 0.)])
 # Carving lattice: 5 x 5 x 3 samples over the box, each cleared only by depth seen past it.
 CARVE_OFFSETS = np.array(list(product(np.linspace(-.5, .5, 5), np.linspace(-.5, .5, 5), (-.5, 0., .5))))
@@ -41,6 +48,8 @@ ROOT = Path(__file__).resolve().parents[1]
 CHECKPOINT = ROOT/'docs/experiments/sim-camera-curobo/results/v6_memory_checkpoint.json.gz'
 CONTROL_DT = .025
 INTERACTIVE_SMOKE_S = 10.
+DRAG_SMOKE_S = 2.
+DRAG_SPEED_MPS = .30
 SOFA_ROD_XY = (.78, .52)
 REPLAY_SIZE_LIMIT = 20_000_000
 
@@ -53,6 +62,7 @@ class DepthFrame:
     intrinsics: tuple[float, float, float, float]
     origin: np.ndarray
     rotation: np.ndarray
+    range_m: float = DEPTH_MAX_RANGE_M
 
     def free(self, xyz):
         """Per point: True only if the camera saw past it (in image, not robot, depth beyond)."""
@@ -213,7 +223,8 @@ def renderer():
         metadata = dict(border_touches=capture['border_touches'],
                         border_pixel_counts=capture['border_pixel_counts'],
                         bar_pixels=capture['rod_pixels'],
-                        rod_borders=capture.get('vertical_border_counts'), vertical_pixels=vertical_pixels)
+                        rod_borders=capture.get('vertical_border_counts'), vertical_pixels=vertical_pixels,
+                        range_m=scene.sensor.default_render_config.max_distance)
         print('NEWTON_MOVING_ROD_WORKER_RESPONSE '+json.dumps(metadata), flush=True)
 
 
@@ -234,9 +245,11 @@ class CameraMemory:
         self.last_event = {}
         self.current = None
         self.display_boxes = (None, None)
+        self.sweep_fraction = None
 
     def boxes(self, raw, velocity, horizon, robot, q, mask):
         observed, predicted, raised, capped = self.policy.boxes(raw, velocity, horizon, robot, q, mask)
+        self.sweep_fraction = None
         if observed is not None and predicted is not None and horizon:
             import torch
             from curobo_moving_rod_v4 import sphere_series
@@ -387,6 +400,78 @@ def paint(handle, label, box, event):
         handle.dimensions = tuple(box['dims_m'])
 
 
+def prediction_readout(observed, predicted, axis, estimate, truth, fraction):
+    return dict(observed_length_m=None if observed is None else observed['dims_m'][axis],
+                predicted_length_m=None if predicted is None else predicted['dims_m'][axis],
+                estimated_speed_mps=None if estimate is None else float(np.linalg.norm(estimate)),
+                true_speed_mps=None if truth is None else float(np.linalg.norm(truth)),
+                sweep_kept_fraction=fraction)
+
+
+def readout_text(readout):
+    def value(key, unit):
+        number = readout[key]
+        return '—' if number is None else f'{number:.3f} {unit}'
+    fraction = readout['sweep_kept_fraction']
+    kept = '—' if fraction is None else f'{fraction:.1%}'
+    return (f"Observed {value('observed_length_m', 'm')} · Predicted {value('predicted_length_m', 'm')} · "
+            f"Estimated {value('estimated_speed_mps', 'm/s')} · True {value('true_speed_mps', 'm/s')} · "
+            f"Kept {kept}")
+
+
+def floor_footprint(origin, rotation, intrinsics, width, height, range_m):
+    """Intersect the four optical corner rays with the floor, bounded by ray range."""
+    fx, fy, cx, cy = intrinsics
+    pixels = np.asarray([[0., 0.], [width, 0.], [width, height], [0., height]])
+    rays = np.column_stack(((pixels-[cx, cy])/[fx, fy], np.ones(4))) @ rotation.T
+    rays /= np.linalg.norm(rays, axis=1)[:, None]
+    distances = np.full(4, float(range_m))
+    down = rays[:, 2] < -1e-9
+    distances[down] = np.clip(-origin[2]/rays[down, 2], 0., range_m)
+    floor = np.asarray(origin)+rays*distances[:, None]
+    floor[:, 2] = 0.
+    return floor.astype(np.float32)
+
+
+class CameraFootprint:
+    def __init__(self, scene):
+        self.outline = scene.add_line_segments('/camera/footprint/outline', np.zeros((4, 2, 3)),
+                                               FOOTPRINT_COLOR, line_width=1.5, visible=False)
+        self.fill = scene.add_mesh_simple('/camera/footprint/fill', np.zeros((4, 3)),
+                                         np.array([[0, 1, 2], [0, 2, 3]]), color=FOOTPRINT_COLOR,
+                                         opacity=.13, side='double', cast_shadow=False, receive_shadow=False,
+                                         visible=False)
+
+    def show(self, vertices):
+        lifted = vertices.copy()
+        lifted[:, 2] += .002  # Display offset for the z=0 floor surface.
+        self.outline.points = np.stack((lifted, np.roll(lifted, -1, axis=0)), axis=1)
+        self.fill.vertices = lifted
+        self.outline.visible = self.fill.visible = True
+
+
+class ArmMargin:
+    def __init__(self, server):
+        self.toggle = server.gui.add_checkbox('Show arm margin', initial_value=False)
+        self.outline = server.scene.add_line_segments('/robot_margin', np.zeros((1, 2, 3)),
+                                                     (190, 195, 205), line_width=.7, visible=False)
+        self.toggle.on_update(lambda _event: self.hide_if_disabled())
+        angle = np.linspace(0., 2*np.pi, 17)
+        circle = np.column_stack((np.cos(angle), np.sin(angle), np.zeros(len(angle))))
+        self.circles = np.stack((circle, circle[:, [2, 0, 1]], circle[:, [1, 2, 0]]))
+
+    def hide_if_disabled(self):
+        if not self.toggle.value:
+            self.outline.visible = False
+
+    def show(self, spheres):
+        spheres = np.asarray(spheres)
+        spheres = spheres[spheres[:, 3] > 0.]
+        rings = spheres[:, None, None, :3]+(spheres[:, None, None, 3:4]+.03)*self.circles
+        self.outline.points = np.stack((rings[..., :-1, :], rings[..., 1:, :]), axis=-2).reshape(-1, 2, 3)
+        self.outline.visible = len(spheres) > 0
+
+
 def demo_types():
     """Load cuRobo only in the controller process."""
     import subprocess
@@ -420,7 +505,7 @@ def demo_types():
             with np.load(output) as arrays:
                 pose = arrays['pose']
                 frame = DepthFrame(arrays['depth'], arrays['robot_mask'], tuple(arrays['intrinsics']),
-                                   pose[:3], arrays['rotation'])
+                                   pose[:3], arrays['rotation'], metadata['range_m'])
                 bar_pixels = metadata['bar_pixels']
                 camera = v2.sixth.fourth.Capture(
                     q, arrays['points'], pose,
@@ -478,34 +563,46 @@ def demo_types():
             bar = app.bar_memory if family == 'E' else None
             recording = app.recording and family == app.checkpoint_mode
             tracks = {}
-            for name, memory in (('bar', bar), ('rod', self.memory if family == 'E' else None)):
+            bar_center = app.read_rod().copy()
+            rod_center = None if self.pose is None else np.array([*self.pose[:2], self.pose[2]/2])
+            bar_velocity = app.obstacle_velocity('bar', bar_center)
+            rod_velocity = app.obstacle_velocity('rod', rod_center)
+            for name, memory, axis, truth in (
+                ('bar', bar, 0, bar_velocity),
+                ('rod', self.memory if family == 'E' else None, 2, rod_velocity),
+            ):
                 box = None if memory is None else memory.current
                 event = {} if memory is None else memory.last_event
                 paint(*app.memory_handles[name], box, event)
+                observed, predicted = (None, None) if memory is None else memory.display_boxes
+                velocity = None if memory is None or memory.current is None else memory.track.velocity
+                if family == 'B':
+                    if name == 'bar':
+                        observed, predicted, velocity = app.bar_boxes
+                    elif rod_center is not None:
+                        observed = predicted = dict(center_m=rod_center.tolist(), dims_m=[.05, .05, self.pose[2]])
+                        velocity = truth
+                fraction = None if memory is None else memory.sweep_fraction
+                readout = prediction_readout(observed, predicted, axis, velocity, truth, fraction)
+                app.readout_handles[name].value = readout_text(readout)
                 if recording:
-                    observed, predicted = (None, None) if memory is None else memory.display_boxes
-                    if family == 'B' and name == 'rod':
-                        x, y, height = self.pose
-                        observed = predicted = dict(center_m=[x, y, height/2], dims_m=[.05, .05, height])
                     tracks[name] = dict(box=box, event=event, observed=observed, predicted=predicted,
-                                        velocity_mps=([0.]*3 if memory is None else memory.track.velocity.tolist()))
+                                        velocity_mps=([0.]*3 if velocity is None else velocity.tolist()),
+                                        readout=readout)
             if recording:
                 app.active_mask = mask
-                bar_center = app.read_rod().copy()
-                true_velocity = (np.zeros(3) if app.last_bar is None else
-                                 (bar_center-app.last_bar)/CONTROL_DT)
-                app.last_bar = bar_center
                 app.rows.append(dict(time_s=round(app.clock, 3), q=q.tolist(), bar=bar_center.tolist(),
                                      rod=self.pose, tracks=tracks, camera_index=len(app.camera_frames)-1,
-                                     true_bar_velocity_mps=true_velocity.tolist(), horizon_s=horizon))
+                                     true_bar_velocity_mps=bar_velocity.tolist(), horizon_s=horizon))
 
     class V6Live(LiveDance):
         worker_type = V6Worker
         version = 'v6 object memory'
+        show_prediction_legend = False
 
         def __init__(self, args, baseline, checkpoint=None, mode='E'):
-            self.recording = checkpoint is not None
-            self.camera_smoke = args.viewer_smoke and not self.recording
+            self.camera_smoke = args.viewer_smoke and checkpoint is None
+            self.recording = checkpoint is not None or self.camera_smoke
             self.initial_group = 'A' if self.recording or self.camera_smoke else 'E'
             self.camera_signatures = {name: set() for name in ('frustum', 'points', 'depth')}
             self.displayed_camera_frames = 0
@@ -516,7 +613,7 @@ def demo_types():
             self.active_poke = None
             self.rows = []
             self.camera_frames = []
-            self.last_bar = None
+            self.drag_origin = None
             self.first_unseen = None
             self.goal_entries = 0
             self.at_goal = False
@@ -528,10 +625,18 @@ def demo_types():
             super().__init__(args, baseline)
 
         def obstacle_handles(self, scene_api):
+            self.server.gui.add_markdown(LEGEND)
             handles = super().obstacle_handles(scene_api)
+            handles[0].color = BAR_COLOR
+            self.vertical.rod.color = ROD_COLOR
+            self.vertical.observed.color = OBSERVED_COLOR
+            self.vertical.predicted.color = SWEEP_COLOR
             self.vertical.observed.wireframe = True
             self.vertical.gizmo.position = (*SOFA_ROD_XY, 0.)
-            self.server.gui.add_markdown(LEGEND)
+            self.footprint = CameraFootprint(scene_api)
+            self.arm_margin = ArmMargin(self.server)
+            self.readout_handles = {name: self.server.gui.add_text(f'{name.title()} prediction', '—', disabled=True)
+                                    for name in ('bar', 'rod')}
             self.memory_handles = {
                 name: (
                     scene_api.add_box(f'/v6/{name}', dimensions=(.01,)*3, opacity=.48, visible=False),
@@ -542,6 +647,10 @@ def demo_types():
 
         def extra_obstacle(self):
             self.observed.wireframe = True
+            self.observed.color = OBSERVED_COLOR
+            self.predicted.color = SWEEP_COLOR
+            self.footprint.outline.visible = self.footprint.fill.visible = False
+            self.last_positions = {}
             with self.poke_lock:
                 self.dance_started = None
                 self.active_poke = None
@@ -549,8 +658,38 @@ def demo_types():
             self.active_vertical = V6Vertical(self)
             return self.active_vertical
 
+        def update_bar_boxes(self, observed, predicted, velocity):
+            self.bar_boxes = observed, predicted, velocity
+
+        def obstacle_velocity(self, name, center):
+            if center is None:
+                self.last_positions.pop(name, None)
+                return None
+            prior = self.last_positions.get(name)
+            self.last_positions[name] = center
+            return np.zeros(3) if prior is None else (center-prior)/CONTROL_DT
+
+        def smoke_drag(self, sim_clock):
+            if self.drag_origin is None:
+                self.toggle_dance()
+                frame = self.last_depth_frame
+                forward = frame.rotation[:, 2]
+                distance = (.20-frame.origin[2])/min(forward[2], -.05)
+                anchor = frame.origin+max(0., distance)*forward
+                # Sweep across a point near the centre of the camera's view at bar height.
+                self.drag_origin = np.array([np.clip(anchor[0], .35, .85),
+                                             np.clip(anchor[1], .05, .45)-.30, .20])
+                self.last_positions.pop('bar', None)
+            elapsed = sim_clock-INTERACTIVE_SMOKE_S
+            self.gizmo.position = tuple(self.drag_origin+[0., DRAG_SPEED_MPS*elapsed, 0.])
+            self.active_poke = None
+
         def publish_camera_capture(self, capture, points):
             super().publish_camera_capture(capture, points)
+            frame = capture.camera.metadata['depth_frame']
+            height, width = frame.depth.shape
+            self.footprint.show(floor_footprint(frame.origin, frame.rotation, frame.intrinsics,
+                                                width, height, frame.range_m))
             if self.displayed_camera_frames == 0:
                 print(f'V6_CAMERA_READY {self.current["group"]} http://127.0.0.1:{self.args.port}', flush=True)
             self.displayed_camera_frames += 1
@@ -596,19 +735,22 @@ def demo_types():
 
         def before_obstacle_step(self, tool, sim_clock):
             self.clock = sim_clock
-            self.move_dance(tool, sim_clock)
-            if (self.camera_smoke and self.current['group'] == 'E'
-                    and sim_clock >= INTERACTIVE_SMOKE_S-CONTROL_DT-1e-9):
-                self.stop_event.set()
+            if self.camera_smoke and self.current['group'] == 'E' and sim_clock >= INTERACTIVE_SMOKE_S-1e-9:
+                self.smoke_drag(sim_clock)
+            else:
+                self.move_dance(tool, sim_clock)
             if self.recording and self.current['group'] == self.checkpoint_mode:
                 near_goal = np.linalg.norm(tool-self.goal) <= v2.sixth.GOAL_TOLERANCE_M
                 self.goal_entries += int(near_goal and not self.at_goal)
                 self.at_goal = near_goal
-                if sim_clock >= self.args.sim_seconds-base.v4.CONTROL_DT-1e-9:
+                duration = INTERACTIVE_SMOKE_S+DRAG_SMOKE_S if self.camera_smoke else self.args.sim_seconds
+                if sim_clock >= duration-CONTROL_DT-1e-9:
                     self.stop_event.set()
 
         def truth_clearance(self, spheres, center):
             clearance = super().truth_clearance(spheres, center)
+            if self.arm_margin.toggle.value:
+                self.arm_margin.show(spheres)
             if self.recording and self.current['group'] == self.checkpoint_mode:
                 rod = self.active_vertical.clearance(spheres)
                 floor = np.min(spheres[self.active_mask, 2]-spheres[self.active_mask, 3])
@@ -635,7 +777,8 @@ def camera_sample(capture, time_s, matrix_to_wxyz):
     return dict(time_s=time_s, position_m=frame.origin.tolist(),
                 wxyz=matrix_to_wxyz(frame.rotation).tolist(),
                 fov_rad=float(2*np.arctan(height/(2*frame.intrinsics[1]))),
-                aspect=width/height, points_m=points.tolist(),
+                aspect=width/height, points_m=points.tolist(), intrinsics=list(frame.intrinsics),
+                depth_size=[width, height], range_m=frame.range_m,
                 depth_shape=preview.shape, depth_zlib=encoded)
 
 
@@ -763,11 +906,14 @@ def replay(types, args, cases):
     try:
         if server._websock_server._port != args.port:
             raise RuntimeError(f'viewer port {args.port} occupied')
-        graphics = PredictionVisuals(server, 0., obstacle=types.scene)
+        server.gui.add_markdown(LEGEND)
+        graphics = PredictionVisuals(server, 0., obstacle=types.scene, show_legend=False)
+        arm_margin = ArmMargin(server)
         bar = server.scene.add_cylinder('/truth/bar', radius=types.scene.RADIUS, height=types.scene.LENGTH,
-                                         wxyz=types.scene.ROTATION_WXYZ, color=(235, 55, 45))
-        rod = server.scene.add_cylinder('/truth/rod', radius=.025, height=.50, color=(235, 55, 45))
-        selector = server.gui.add_dropdown('Checkpoint', options=tuple(cases), initial_value=next(iter(cases)))
+                                         wxyz=types.scene.ROTATION_WXYZ, color=BAR_COLOR)
+        rod = server.scene.add_cylinder('/truth/rod', radius=.025, height=.50, color=ROD_COLOR)
+        initial_case = 'Dance + drag' if 'Dance + drag' in cases else next(iter(cases))
+        selector = server.gui.add_dropdown('Checkpoint', options=tuple(cases), initial_value=initial_case)
         max_time = max(case['frames'][-1]['time_s'] for case in cases.values())
         slider = server.gui.add_slider('Simulated time s', min=0., max=max_time, step=CONTROL_DT, initial_value=0.)
         play = server.gui.add_button('Play')
@@ -776,7 +922,9 @@ def replay(types, args, cases):
             server.scene.add_box(f'/v6/{name}', dimensions=(.01,)*3, opacity=.48, visible=False),
             server.gui.add_text(f'{name.title()} memory', '—', disabled=True),
         ) for name in ('bar', 'rod')}
-        server.gui.add_markdown(LEGEND)
+        readouts = {name: server.gui.add_text(f'{name.title()} prediction', '—', disabled=True)
+                    for name in handles}
+        footprint = CameraFootprint(server.scene)
         first_camera = cases[selector.value]['camera_frames'][0]
         frustum = server.scene.add_camera_frustum('/camera/live', fov=first_camera['fov_rad'],
                                                   aspect=first_camera['aspect'], scale=.13)
@@ -788,7 +936,7 @@ def replay(types, args, cases):
             outlines[name] = tuple(
                 server.scene.add_box(f'/{kind}/{name}', dimensions=(.01,)*3, color=color,
                                      opacity=.85, wireframe=True, visible=False)
-                for kind, color in (('observed', (255, 145, 35)), ('predicted', (80, 150, 255)))
+                for kind, color in (('observed', OBSERVED_COLOR), ('predicted', SWEEP_COLOR))
             )
         displayed_camera = None
 
@@ -798,7 +946,11 @@ def replay(types, args, cases):
             row = case['frames'][min(round(slider.value/CONTROL_DT), len(case['frames'])-1)]
             # Record and replay the world pose actually used by the live MPC.
             q = np.asarray(row['q'], dtype=np.float32)
-            viewer.set_joint_state(types.v2.sixth.arm_state(q).squeeze(0))
+            state = types.v2.sixth.arm_state(q).squeeze(0)
+            viewer.set_joint_state(state)
+            if arm_margin.toggle.value:
+                spheres = viewer._kinematics.compute_kinematics(state).robot_spheres
+                arm_margin.show(spheres.detach().cpu().numpy().reshape(-1, 4))
             bar.position = tuple(row['bar'])
             rod.visible = row['rod'] is not None
             if row['rod'] is not None:
@@ -811,9 +963,22 @@ def replay(types, args, cases):
                 frustum.position, frustum.wxyz = tuple(camera['position_m']), tuple(camera['wxyz'])
                 cloud.points = np.asarray(camera['points_m'], dtype=np.float32).reshape(-1, 3)
                 panel.image = decode_depth(camera)
+                width, height = camera.get('depth_size', [panel.image.shape[1], panel.image.shape[0]])
+                focal = height/(2*np.tan(camera['fov_rad']/2))
+                intrinsics = camera.get('intrinsics', (focal, focal, width/2, height/2))
+                rotation = types.v2.sixth.fourth.wxyz_matrix(np.asarray(camera['wxyz']))
+                footprint.show(floor_footprint(np.asarray(camera['position_m']), rotation, intrinsics,
+                                               width, height, camera.get('range_m', DEPTH_MAX_RANGE_M)))
                 displayed_camera = token
             for name, track in row['tracks'].items():
                 paint(*handles[name], track['box'], track['event'])
+                readout = track.get('readout')
+                if readout is None:
+                    truth = row['true_bar_velocity_mps'] if name == 'bar' else (None if row['rod'] is None else np.zeros(3))
+                    estimate = track['velocity_mps'] if track['observed'] is not None else None
+                    readout = prediction_readout(track['observed'], track['predicted'], 0 if name == 'bar' else 2,
+                                                 estimate, truth, None)
+                readouts[name].value = readout_text(readout)
                 for key, handle in zip(('observed', 'predicted'), outlines[name]):
                     fit = track[key]
                     handle.visible = fit is not None and (key == 'observed' or graphics.visible.value)
@@ -856,9 +1021,19 @@ def replay(types, args, cases):
         selector.on_update(selected)
         slider.on_update(show)
         graphics.visible.on_update(show)
+        arm_margin.toggle.on_update(show)
         play.on_click(run)
         show()
         if args.viewer_smoke:
+            assert footprint.outline.visible and footprint.fill.visible
+            assert footprint.outline.points.shape == (4, 2, 3)
+            assert tuple(footprint.fill.color) == FOOTPRINT_COLOR
+            assert tuple(bar.color) == BAR_COLOR and tuple(rod.color) == ROD_COLOR
+            assert all(tuple(o.color) == OBSERVED_COLOR and tuple(p.color) == SWEEP_COLOR
+                       for o, p in outlines.values())
+            arm_margin.toggle.value = True
+            assert arm_margin.outline.visible
+            arm_margin.toggle.value = False
             for name, case in cases.items():
                 selector.value = name
                 focus = 'rod' if case['frames'][0]['rod'] is not None else 'bar'
@@ -896,6 +1071,18 @@ def replay(types, args, cases):
         server.stop()
 
 
+def phase_metrics(rows):
+    values = [row['tracks']['bar']['readout'] for row in rows]
+    ratios = [v['predicted_length_m']/v['observed_length_m'] for v in values
+              if v['predicted_length_m'] is not None and v['observed_length_m']]
+    errors = [abs(v['estimated_speed_mps']-v['true_speed_mps']) for v in values
+              if v['estimated_speed_mps'] is not None and v['true_speed_mps'] is not None]
+    return dict(max_length_ratio=max(ratios, default=None), max_speed_error_mps=max(errors, default=None),
+                ratio_samples=len(ratios), speed_samples=len(errors),
+                max_true_speed_mps=max((v['true_speed_mps'] for v in values
+                                        if v['true_speed_mps'] is not None), default=None))
+
+
 def verify_interactive_camera(app):
     from curobo_moving_bar_poke_demo import wait_for_demo
 
@@ -903,20 +1090,32 @@ def verify_interactive_camera(app):
     app.toggle_dance()
     app.vertical.enabled.value = True
     wait_for_demo(app, lambda: True if app.current['group'] == 'E' and
-                  app.current['state'] == 'stopped' else None, '10 seconds of live E camera', timeout=150.)
+                  app.current['state'] == 'stopped' else None, 'live E Dance and drag', timeout=150.)
     app.thread.join(timeout=5.)
     run = app.current
     changes = {name: len(values) for name, values in app.camera_signatures.items()}
+    dance = [row for row in app.rows if row['time_s'] < INTERACTIVE_SMOKE_S]
+    drag = [row for row in app.rows if row['time_s'] >= INTERACTIVE_SMOKE_S]
+    metrics = {'dance': phase_metrics(dance), 'drag': phase_metrics(drag)}
     report = dict(duration_s=run['sim_time_s'], captures=app.displayed_camera_frames,
                   cloud_frames=app.displayed_cloud_frames, distinct=changes,
-                  dance=app.dancing, rod=app.vertical.enabled.value, worker_stopped=run['worker_stopped'])
+                  phases=metrics, worker_stopped=run['worker_stopped'])
     if (app.thread.is_alive() or run['error'] or not run['worker_stopped']
-            or not np.isclose(run['sim_time_s'], INTERACTIVE_SMOKE_S)
-            or not all(handle.visible for handle in (app.frustum, app.points, app.depth))
-            or not app.dancing or not app.vertical.enabled.value
-            or not app.displayed_cloud_frames or min(changes.values()) < 2):
+            or not np.isclose(run['sim_time_s'], INTERACTIVE_SMOKE_S+DRAG_SMOKE_S)
+            or not all(handle.visible for handle in (app.frustum, app.points, app.depth,
+                                                     app.footprint.outline, app.footprint.fill))
+            or not app.vertical.enabled.value or not app.pokes or app.drag_origin is None
+            or len(dance) != round(INTERACTIVE_SMOKE_S/CONTROL_DT)
+            or len(drag) != round(DRAG_SMOKE_S/CONTROL_DT)
+            or not app.displayed_cloud_frames or min(changes.values()) < 2
+            or not all(np.isclose(row['tracks']['bar']['readout']['true_speed_mps'], DRAG_SPEED_MPS)
+                       for row in drag[1:])):
         raise RuntimeError(f'Live camera smoke failed: {report}')
     print('V6_INTERACTIVE_SMOKE '+json.dumps(report), flush=True)
+    summary = dict(mode='E', contacts=app.contacts, reaches=app.goal_entries,
+                   minimum_clearance_m=float(app.minimum), duration_s=run['sim_time_s'], phases=metrics)
+    return dict(summary=summary, frames=app.rows, camera_frames=app.camera_frames,
+                observations=app.bar_memory.events, pokes=app.pokes)
 
 
 def main():
@@ -979,7 +1178,11 @@ def main():
         try:
             print(f'V6_INTERACTIVE http://127.0.0.1:{args.port}', flush=True)
             if args.viewer_smoke:
-                verify_interactive_camera(app)
+                case = verify_interactive_camera(app)
+                with gzip.open(args.checkpoint, 'rt') as stream:
+                    cases = json.load(stream)
+                cases['Dance + drag'] = case
+                write_checkpoint(args.checkpoint, cases)
             else:
                 types.base.wait_for_viewer(args.duration)
         finally:

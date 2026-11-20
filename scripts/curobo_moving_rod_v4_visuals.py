@@ -3,10 +3,11 @@ import numpy as np
 
 
 class PredictionVisuals:
-    def __init__(self,server,floor_top,*,floor_thickness=.1,obstacle=None):
+    def __init__(self,server,floor_top,*,floor_thickness=.1,obstacle=None,show_legend=True):
         self.server=server
         server.scene.add_box('/truth/floor',dimensions=(10.,10.,floor_thickness),position=(0.,0.,floor_top-floor_thickness/2),color=(120,130,140),opacity=.18)
-        server.gui.add_markdown('All groups retain the floor; A has no rod obstacle. **Legend:** gray = floor; orange = observed/remembered box; blue = swept MPC box; cyan ghost = estimate at +0.43 s; green arrow = estimated velocity. Display toggle does not change control.')
+        if show_legend:
+            server.gui.add_markdown('All groups retain the floor; A has no rod obstacle. **Legend:** gray = floor; orange = observed/remembered box; blue = swept MPC box; cyan ghost = estimate at +0.43 s; green arrow = estimated velocity. Display toggle does not change control.')
         self.visible=server.gui.add_checkbox('Show prediction',initial_value=True)
         self.direction = 0 if obstacle is None else obstacle.MOTION_AXIS
         rotation = (1.,0.,0.,0.) if obstacle is None else obstacle.ROTATION_WXYZ

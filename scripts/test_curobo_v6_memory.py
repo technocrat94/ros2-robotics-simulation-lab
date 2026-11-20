@@ -4,7 +4,7 @@ import unittest
 import numpy as np
 
 from curobo_v6_memory import (
-    clip_sweep, box_sphere_distance,
+    clip_sweep, box_sphere_distance, floor_footprint, prediction_readout,
     DepthFrame, ObjectMemory, path_target, summarize_pokes, tip_projection, visible_path_target,
 )
 
@@ -18,6 +18,36 @@ def frame(depth=0., mask=None, origin=(0., 0., 0.), rotation=None):
                       np.zeros((100, 100), dtype=bool) if mask is None else mask,
                       (50., 50., 50., 50.), np.asarray(origin),
                       np.eye(3) if rotation is None else rotation)
+
+
+class ViewerGeometry(unittest.TestCase):
+    def test_footprint_intersects_the_floor_from_optical_corner_rays(self):
+        downward = np.diag([1., -1., -1.])
+        result = floor_footprint(np.array([1., 2., 2.]), downward, (50., 50., 50., 50.), 100, 100, 10.)
+        np.testing.assert_allclose(result, [[-1., 4., 0.], [3., 4., 0.], [3., 0., 0.], [-1., 0., 0.]])
+
+    def test_footprint_projects_the_range_endpoint_when_no_ground_hit_is_available(self):
+        origin = np.array([0., 0., 2.])
+        intrinsics = (50., 50., 50., 50.)
+        expected_xy = np.array([[-1., -1.], [1., -1.], [1., 1.], [-1., 1.]])/np.sqrt(3)
+        for rotation in (np.eye(3), np.diag([1., -1., -1.])):
+            expected = expected_xy*np.sign(rotation.diagonal()[:2])
+            result = floor_footprint(origin, rotation, intrinsics, 100, 100, 1.)
+            np.testing.assert_allclose(result[:, :2], expected)
+            np.testing.assert_array_equal(result[:, 2], 0.)
+
+    def test_readout_uses_object_axis_and_motion_magnitudes(self):
+        observed = {'dims_m': [.30, .04, .04]}
+        predicted = {'dims_m': [.36, .06, .05]}
+        bar = prediction_readout(observed, predicted, 0, [.03, .04, 0.], [0., .30, 0.], .5)
+        rod = prediction_readout(observed, predicted, 2, None, None, None)
+        self.assertEqual(bar['observed_length_m'], .30)
+        self.assertEqual(bar['predicted_length_m'], .36)
+        self.assertAlmostEqual(bar['estimated_speed_mps'], .05)
+        self.assertAlmostEqual(bar['true_speed_mps'], .30)
+        self.assertEqual(bar['sweep_kept_fraction'], .5)
+        self.assertEqual(rod['predicted_length_m'], .05)
+        self.assertIsNone(rod['estimated_speed_mps'])
 
 
 class DanceGeometry(unittest.TestCase):
