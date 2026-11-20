@@ -33,24 +33,21 @@ No pending task
 Leave the deleted 05_c2_tall_wall_refused.png and the untracked curobo/ untouched. Stage files by
 explicit path only. No git clean/reset/restore/stash/add -A.
 
-## Task: v7 — make "seen empty" actually clear, and stop erasing the bar near the arm (2 runs) — 2026-11-20
+## Task: v7 — test ONE change: RobotSegmenter erases the bar (2 runs) — 2026-11-20
 
-3f91a1d reviewed. B (no decay) had 0 contacts, but the retracted tip voxels were NEVER cleared (130/130
-still there after 4.57 s): B is "keep forever", partly safe only because of phantoms. Two causes in our code:
-1. Floor pixels are set to depth 0 (`z <= .012` -> 0). Depth 0 is skipped by integration, so rays that hit
-   the floor carve no free space. Behind the bar there is mostly floor, so the vacated space is never
-   "seen empty". Fix: do not zero floor pixels; for display keep them, for mapping replace each floor pixel's
-   depth by the depth where that ray reaches z = -0.20 m (a fake surface 20 cm under the floor; clip to
-   depth_maximum). The ray then carves all free space above the floor and adds no surface near the arm.
-   Make sure the ESDF/collision still has no voxels at z > -0.15 from the floor.
-2. RobotSegmenter default distance_threshold = 0.05 m erases every depth point within 5 cm of the arm
-   spheres, so the bar disappears exactly when it gets close (A: fixed-camera bar pixels 1774 -> 1302 at the
-   closest approach). Use distance_threshold = 0.015 (sphere fit + depth noise).
-Keep decay 1.0 / frustum 1.0 (config B). Runs, 1 each:
-- Empty scene 10 s, both cameras: voxels within 5 cm of the arm (must stay ~0), reaches, reversals.
-- Dance 6 s, both cameras: contacts, reaches, min clearance, retracted-tip voxels cleared and max stale
-  time (target: cleared within ~0.3 s of being seen through), bar pixels before/after RobotSegmenter at the
-  closest approach.
+User's hypothesis, supported by the 3c680c4 data: at the contact the ESDF at the contact sphere stayed
+stuck at ~0.08 m while the true clearance went 0.07 -> 0 m. That plateau = RobotSegmenter's default
+distance_threshold 0.05 m (every depth point within 5 cm of the arm spheres is erased as "robot") + sphere
+radius + 3 cm ESDF voxels. The bar is long and the rest of it stayed mapped; only the part next to the arm
+was erased (A: fixed-camera bar pixels 1774 -> 1302 at the closest approach).
+Change ONLY this: RobotSegmenter distance_threshold 0.05 -> 0.015. Everything else back to the original
+v7 settings (decay_factor 0.3, frustum 1.0, floor handling unchanged); undo the 3f91a1d default switch to
+config B. Runs, 1 each, both cameras:
+- Empty scene 10 s: voxels within 5 cm of the arm (must stay ~0 = arm not mapped as obstacle), reaches,
+  reversals.
+- Dance 6 s: contacts, reaches, min clearance; table every 0.1 s over the 1 s before the closest approach:
+  ESDF at the closest sphere vs true clearance (they should now track each other), bar pixels before/after
+  RobotSegmenter.
 Commit, push, leave --interactive running (both cameras), URL + 3 lines. Stop. Do not do "Next time".
 
 ### Next time (user: postpone, display only)
