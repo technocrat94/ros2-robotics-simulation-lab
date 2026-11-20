@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import argparse
+import base64
 from collections import deque
 from dataclasses import dataclass
 from itertools import product
 import json
 from pathlib import Path
 import sys
+import zlib
 
 import numpy as np
 
@@ -21,7 +23,9 @@ SAMPLE_OFFSETS = np.array([*product((-.5, .5), repeat=3), (0., 0., 0.)])
 # Carving lattice: 5 x 5 x 3 samples over the box, each cleared only by depth seen past it.
 CARVE_OFFSETS = np.array(list(product(np.linspace(-.5, .5, 5), np.linspace(-.5, .5, 5), (-.5, 0., .5))))
 ROOT = Path(__file__).resolve().parents[1]
-CHECKPOINT = ROOT.parents[1]/'v6-memory-checkpoint.json.gz'
+CHECKPOINT = ROOT/'docs/experiments/sim-camera-curobo/results/v6_memory_checkpoint.json.gz'
+CONTROL_DT = .025
+REPLAY_SIZE_LIMIT = 20_000_000
 
 
 @dataclass
@@ -176,14 +180,18 @@ def renderer():
         arrays = dict(points=capture['points'], pose=transform, preview=capture['depth_preview'],
                       depth=scene.depth.numpy()[0, 0], robot_mask=shape_ids < scene.robot_shape_count,
                       intrinsics=intrinsics, rotation=optical_to_world)
+        vertical_pixels = None
         if request['rod'] is not None:
             arrays['rod_points'] = capture['vertical_points']
+            _, vertical_shape = scene.vertical_bodies[request['rod'][2]]
+            depth = arrays['depth']
+            vertical_pixels = int(np.count_nonzero((shape_ids == vertical_shape) & np.isfinite(depth) & (depth > 0.)))
         # Uncompressed transport avoids recompressing the full sensor image on every observation.
         np.savez(request['output'], **arrays)
         metadata = dict(border_touches=capture['border_touches'],
                         border_pixel_counts=capture['border_pixel_counts'],
                         rod_pixels=capture['rod_pixels'],
-                        rod_borders=capture.get('vertical_border_counts'))
+                        rod_borders=capture.get('vertical_border_counts'), vertical_pixels=vertical_pixels)
         print('NEWTON_MOVING_ROD_WORKER_RESPONSE '+json.dumps(metadata), flush=True)
 
 
@@ -203,6 +211,12 @@ class CameraMemory:
         self.events = [] if record else deque(maxlen=300)
         self.last_event = {}
         self.current = None
+        self.display_boxes = (None, None)
+
+    def boxes(self, *args):
+        observed, predicted, raised, capped = self.policy.boxes(*args)
+        self.display_boxes = observed, predicted
+        return observed, predicted, raised, capped
 
     def __getattr__(self, name):
         return getattr(self.policy, name)
@@ -215,7 +229,7 @@ class CameraMemory:
             center = self.center_from_points(capture.points, center)
         current, velocity, event = self.track.observe(fresh, center, capture.metadata['depth_frame'], time_s)
         self.current = current
-        self.last_event = {**v5, **event}
+        self.last_event = {**v5, **event, 'obstacle_pixels': capture.metadata['rod_pixels']}
         self.growth_events += int(event['growth_rule'])
         self.events.append(self.last_event)
         return current, velocity, capture.points, self.last_event
@@ -293,7 +307,7 @@ def demo_types():
                     vertical = v2.sixth.fourth.Capture(
                         q, arrays['rod_points'], pose,
                         dict(depth_frame=frame, border_touches={k: v > 0 for k, v in borders.items()},
-                             border_pixel_counts=borders),
+                             border_pixel_counts=borders, rod_pixels=metadata['vertical_pixels']),
                     )
                 return v2.RodCapture(camera, arrays['preview'], vertical)
 
@@ -310,22 +324,46 @@ def demo_types():
         def measure_center(self, points, fallback):
             return standing_center(points, fallback, self.pose[2])
 
+        def capture(self, worker, q, center, time_s):
+            capture = super().capture(worker, q, center, time_s)
+            if self.app.recording:
+                self.app.camera_frames.append(camera_sample(capture, time_s, v2.sixth.fourth.matrix_to_wxyz))
+                if self.app.checkpoint == 'Sofa':
+                    self.check_sofa_capture(capture.vertical_camera, time_s)
+            return capture
+
+        def check_sofa_capture(self, camera, time_s):
+            pixels = camera.metadata['rod_pixels']
+            if time_s == 0.:
+                if not self.memory.last_event['fresh_seen'] or not pixels:
+                    raise RuntimeError('Sofa did not produce a rod observation at startup')
+                print(f'V6_SOFA seen at startup ({pixels} pixels)', flush=True)
+            elif not pixels and self.app.first_unseen is None:
+                self.app.first_unseen = time_s
+                print(f'V6_SOFA first unseen at {time_s:.3f} simulated seconds', flush=True)
+
         def update(self, mpc, family, q, mask, horizon):
             super().update(mpc, family, q, mask, horizon)
             app = self.app
-            app.observed.opacity = 0. if family == 'E' else .42
-            self.controls.observed.opacity = app.observed.opacity
             bar = app.bar_memory if family == 'E' else None
             tracks = {}
             for name, memory in (('bar', bar), ('rod', self.memory if family == 'E' else None)):
                 box = None if memory is None else memory.current
                 event = {} if memory is None else memory.last_event
                 paint(*app.memory_handles[name], box, event)
-                tracks[name] = dict(box=box, event=event)
+                if app.recording:
+                    observed, predicted = (None, None) if memory is None else memory.display_boxes
+                    tracks[name] = dict(box=box, event=event, observed=observed, predicted=predicted,
+                                        velocity_mps=([0.]*3 if memory is None else memory.track.velocity.tolist()))
             if app.recording and family == 'E':
                 app.active_mask = mask
-                app.rows.append(dict(time_s=round(app.clock, 3), q=q.tolist(), bar=app.read_rod().tolist(),
-                                     rod=self.pose, tracks=tracks))
+                bar_center = app.read_rod().copy()
+                true_velocity = (np.zeros(3) if app.last_bar is None else
+                                 (bar_center-app.last_bar)/CONTROL_DT)
+                app.last_bar = bar_center
+                app.rows.append(dict(time_s=round(app.clock, 3), q=q.tolist(), bar=bar_center.tolist(),
+                                     rod=self.pose, tracks=tracks, camera_index=len(app.camera_frames)-1,
+                                     true_bar_velocity_mps=true_velocity.tolist(), horizon_s=horizon))
 
     class V6Live(LiveDance):
         worker_type = V6Worker
@@ -335,6 +373,9 @@ def demo_types():
             self.recording = checkpoint is not None
             self.checkpoint = checkpoint
             self.rows = []
+            self.camera_frames = []
+            self.last_bar = None
+            self.first_unseen = None
             self.goal_entries = 0
             self.at_goal = False
             self.minimum = np.inf
@@ -346,6 +387,8 @@ def demo_types():
 
         def obstacle_handles(self, scene_api):
             handles = super().obstacle_handles(scene_api)
+            self.vertical.observed.wireframe = True
+            self.server.gui.add_markdown('Memory fill: blue = STATIC, orange = MOVING. Orange outline = observed box.')
             self.memory_handles = {
                 name: (
                     scene_api.add_box(f'/v6/{name}', dimensions=(.01,)*3, opacity=.48, visible=False),
@@ -354,15 +397,16 @@ def demo_types():
             }
             return handles
 
-        def camera_memory(self, fixed_top):
-            self.bar_memory = CameraMemory(LowerPokeMemory(fixed_top), record=self.recording)
-            return self.bar_memory
-
         def extra_obstacle(self):
+            self.observed.wireframe = True
             with self.poke_lock:
                 self.dance_started = None
             self.active_vertical = V6Vertical(self)
             return self.active_vertical
+
+        def camera_memory(self, fixed_top):
+            self.bar_memory = CameraMemory(LowerPokeMemory(fixed_top), record=self.recording)
+            return self.bar_memory
 
         def before_obstacle_step(self, tool, sim_clock):
             self.clock = sim_clock
@@ -390,6 +434,47 @@ def demo_types():
     return SimpleNamespace(Live=V6Live, Worker=V6Worker, v2=v2, base=base, scene=scene)
 
 
+def camera_sample(capture, time_s, matrix_to_wxyz):
+    """Store the actual Newton observation without the clearance-only pixel mask."""
+    frame = capture.camera.metadata['depth_frame']
+    points = capture.camera.points
+    if capture.vertical_camera is not None:
+        points = np.concatenate((points, capture.vertical_camera.points))
+    preview = capture.depth_preview
+    encoded = base64.b64encode(zlib.compress(preview.tobytes())).decode('ascii')
+    height, width = frame.depth.shape
+    return dict(time_s=time_s, position_m=frame.origin.tolist(),
+                wxyz=matrix_to_wxyz(frame.rotation).tolist(),
+                fov_rad=float(2*np.arctan(height/(2*frame.intrinsics[1]))),
+                aspect=width/height, points_m=points.tolist(),
+                depth_shape=preview.shape, depth_zlib=encoded)
+
+
+def decode_depth(frame):
+    raw = zlib.decompress(base64.b64decode(frame['depth_zlib']))
+    return np.frombuffer(raw, dtype=np.uint8).reshape(frame['depth_shape'])
+
+
+def write_checkpoint(path, cases):
+    import gzip
+
+    def write(payload):
+        with gzip.open(tmp, 'wt') as stream:
+            json.dump(payload, stream, separators=(',', ':'), allow_nan=False)
+
+    tmp = path.with_suffix('.tmp')
+    write(cases)
+    if tmp.stat().st_size > REPLAY_SIZE_LIMIT:
+        # 30 Hz observations become 10 Hz; keep control poses and events intact.
+        thinned = {
+            name: dict(case, camera_frames=case['camera_frames'][::3],
+                       frames=[dict(row, camera_index=row['camera_index']//3) for row in case['frames']])
+            for name, case in cases.items()
+        }
+        write(thinned)
+    tmp.replace(path)
+
+
 def checkpoint_run(types, args, baseline, name):
     from curobo_moving_bar_poke_demo import wait_for_demo
 
@@ -412,14 +497,16 @@ def checkpoint_run(types, args, baseline, name):
         losses = [event for event in events if event['retained'] and not event['fresh_seen']]
         clears = [event for i, event in enumerate(events)
                   if event['cleared_by'] != 'none' and (i == 0 or events[i-1]['cleared_by'] == 'none')]
-        summary = dict(contacts=app.contacts, reaches=app.goal_entries, minimum_clearance_m=float(app.minimum),
+        summary = dict(first_unseen_s=app.first_unseen, contacts=app.contacts, reaches=app.goal_entries, minimum_clearance_m=float(app.minimum),
                        observed_frames=sum(event['fresh_seen'] for event in events),
                        moving_frames=sum(event['class'] == 'MOVING' for event in events),
                        max_retained_static_age_s=max((e['since_seen_s'] for e in losses if e['class'] == 'STATIC'),
                                                      default=0.),
                        clears=clears, duration_s=app.current['sim_time_s'])
         print(f'V6_{name.upper()} '+json.dumps(summary), flush=True)
-        return dict(summary=summary, frames=app.rows, observations=events)
+        if name == 'Sofa' and app.first_unseen is None:
+            raise RuntimeError('Sofa stayed in the camera view for the entire checkpoint')
+        return dict(summary=summary, frames=app.rows, camera_frames=app.camera_frames, observations=events)
     finally:
         if not app.closed:
             app.close()
@@ -430,6 +517,7 @@ def replay(types, args, cases):
 
     from curobo.types import ContentPath
     from curobo.viewer import ViserVisualizer
+    from curobo_moving_rod_v4_visuals import PredictionVisuals
 
     types.base.v41.v3.check_viewer_port(args.port)
     viewer = ViserVisualizer(content_path=ContentPath(robot_config_file=str(args.robot_config)),
@@ -440,25 +528,39 @@ def replay(types, args, cases):
     try:
         if server._websock_server._port != args.port:
             raise RuntimeError(f'viewer port {args.port} occupied')
-        server.scene.add_box('/truth/floor', dimensions=(3., 3., .05),
-                                     position=(0., 0., -.025), color=(120, 130, 140), opacity=.20)
+        graphics = PredictionVisuals(server, 0., obstacle=types.scene)
         bar = server.scene.add_cylinder('/truth/bar', radius=types.scene.RADIUS, height=types.scene.LENGTH,
                                          wxyz=types.scene.ROTATION_WXYZ, color=(235, 55, 45))
         rod = server.scene.add_cylinder('/truth/rod', radius=.025, height=.50, color=(235, 55, 45))
         selector = server.gui.add_dropdown('Checkpoint', options=tuple(cases), initial_value=next(iter(cases)))
         max_time = max(case['frames'][-1]['time_s'] for case in cases.values())
-        slider = server.gui.add_slider('Simulated time s', min=0., max=max_time, step=.025, initial_value=0.)
+        slider = server.gui.add_slider('Simulated time s', min=0., max=max_time, step=CONTROL_DT, initial_value=0.)
         play = server.gui.add_button('Play')
         status = server.gui.add_text('Result', '', disabled=True)
         handles = {name: (
             server.scene.add_box(f'/v6/{name}', dimensions=(.01,)*3, opacity=.48, visible=False),
             server.gui.add_text(f'{name.title()} memory', '—', disabled=True),
         ) for name in ('bar', 'rod')}
-        server.gui.add_markdown('Blue = STATIC. Orange = MOVING.')
+        server.gui.add_markdown('Memory fill: blue = STATIC, orange = MOVING. Orange outline = observed box.')
+        first_camera = cases[selector.value]['camera_frames'][0]
+        frustum = server.scene.add_camera_frustum('/camera/live', fov=first_camera['fov_rad'],
+                                                  aspect=first_camera['aspect'], scale=.13)
+        cloud = server.scene.add_point_cloud('/camera/points', points=np.zeros((0, 3)),
+                                             colors=(220, 0, 220), point_size=.011)
+        panel = server.gui.add_image(decode_depth(first_camera), label='Simulated depth')
+        outlines = {}
+        for name in handles:
+            outlines[name] = tuple(
+                server.scene.add_box(f'/{kind}/{name}', dimensions=(.01,)*3, color=color,
+                                     opacity=.85, wireframe=True, visible=False)
+                for kind, color in (('observed', (255, 145, 35)), ('predicted', (80, 150, 255)))
+            )
+        displayed_camera = None
 
         def show(_event=None):
+            nonlocal displayed_camera
             case = cases[selector.value]
-            row = case['frames'][min(round(slider.value/.025), len(case['frames'])-1)]
+            row = case['frames'][min(round(slider.value/CONTROL_DT), len(case['frames'])-1)]
             # Record and replay the world pose actually used by the live MPC.
             q = np.asarray(row['q'], dtype=np.float32)
             viewer.set_joint_state(types.v2.sixth.arm_state(q).squeeze(0))
@@ -468,8 +570,33 @@ def replay(types, args, cases):
                 x, y, height = row['rod']
                 rod.height = height
                 rod.position = (x, y, height/2)
+            token = selector.value, row['camera_index']
+            if token != displayed_camera:
+                camera = case['camera_frames'][row['camera_index']]
+                frustum.position, frustum.wxyz = tuple(camera['position_m']), tuple(camera['wxyz'])
+                cloud.points = np.asarray(camera['points_m'], dtype=np.float32).reshape(-1, 3)
+                panel.image = decode_depth(camera)
+                displayed_camera = token
             for name, track in row['tracks'].items():
                 paint(*handles[name], track['box'], track['event'])
+                for key, handle in zip(('observed', 'predicted'), outlines[name]):
+                    fit = track[key]
+                    handle.visible = fit is not None and (key == 'observed' or graphics.visible.value)
+                    if fit is not None:
+                        handle.position = tuple(fit['center_m'])
+                        handle.dimensions = tuple(fit['dims_m'])
+            focus = 'rod' if row['rod'] is not None else 'bar'
+            if focus == 'rod':
+                graphics.ghost.height, graphics.ghost.radius = rod.height, rod.radius
+                graphics.ghost.wxyz = (1., 0., 0., 0.)
+                truth = np.zeros(3)
+            else:
+                graphics.ghost.height, graphics.ghost.radius = bar.height, bar.radius
+                graphics.ghost.wxyz = types.scene.ROTATION_WXYZ
+                truth = row['true_bar_velocity_mps']
+            track = row['tracks'][focus]
+            graphics.update(track['observed'], track['velocity_mps'], truth, row['horizon_s'],
+                            row['horizon_s'] > 0., outlines[focus][1])
             summary = case['summary']
             status.value = f"{summary['reaches']} reaches · {sum(summary['contacts'].values())} contacts"
 
@@ -485,7 +612,7 @@ def replay(types, args, cases):
             try:
                 name = selector.value
                 for row in cases[name]['frames']:
-                    if stop.wait(.025) or selector.value != name:
+                    if stop.wait(CONTROL_DT) or selector.value != name:
                         break
                     slider.value = row['time_s']
             finally:
@@ -493,13 +620,30 @@ def replay(types, args, cases):
 
         selector.on_update(selected)
         slider.on_update(show)
+        graphics.visible.on_update(show)
         play.on_click(run)
         show()
         if args.viewer_smoke:
             for name, case in cases.items():
                 selector.value = name
+                focus = 'rod' if name == 'Sofa' else 'bar'
+                visible_row = next(row for row in case['frames'] if row['tracks'][focus]['observed'])
+                slider.value = visible_row['time_s']
+                assert len(cloud.points) and outlines[focus][0].visible
+                assert outlines[focus][1].visible and graphics.ghost.visible
+                graphics.visible.value = False
+                assert not outlines[focus][1].visible and not graphics.ghost.visible
+                graphics.visible.value = True
+                assert outlines[focus][1].visible and graphics.ghost.visible
                 slider.value = case['frames'][-1]['time_s']
                 assert slider.value > 0. and selector.value == name
+            car = cases['Car']
+            with_arrow = next(row for row in car['frames'] if row['tracks']['bar']['observed']
+                              and np.linalg.norm(row['tracks']['bar']['velocity_mps']) > 1e-9)
+            selector.value = 'Car'
+            slider.value = with_arrow['time_s']
+            assert graphics.arrow.visible
+            print('V6_REPLAY_SMOKE camera, boxes, prediction toggle and arrow passed', flush=True)
         print(f'V6_REPLAY http://127.0.0.1:{args.port}', flush=True)
         types.base.wait_for_viewer(args.duration)
     finally:
@@ -542,10 +686,7 @@ def main():
         cases = {}
         for name in ('Car', 'Sofa'):
             cases[name] = checkpoint_run(types, args, baseline, name)
-            tmp = args.checkpoint.with_suffix('.tmp')
-            with gzip.open(tmp, 'wt') as stream:
-                json.dump(cases, stream, separators=(',', ':'), allow_nan=False)
-            tmp.replace(args.checkpoint)
+            write_checkpoint(args.checkpoint, cases)
         print(f'V6_CHECKPOINT {args.checkpoint}', flush=True)
     else:
         app = types.Live(args, baseline)
