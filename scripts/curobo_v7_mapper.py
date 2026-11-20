@@ -25,8 +25,8 @@ BASE_LINK = 'base_link_inertia'
 DEPTH_MIN, DEPTH_MAX = .15, 2.
 TSDF_SIZE, ESDF_SIZE = .005, .03
 FRAME_RATE, CONTROL_DT = 30, .025
-DURATION = 10.
-BAR_TIP_INNER_X, BAR_STROKE_M, BAR_SPEED_MPS = .50, .125, .10
+DURATION = 15.
+BAR_TIP_INNER_X, BAR_STROKE_M, BAR_SPEED_MPS = .50, .25, .10
 START_TOOL_M = (.50, -.05, .25)
 RESULTS_DIR = ROOT/'docs/experiments/sim-camera-curobo/results'
 STRAIGHT_PATH_FILE = RESULTS_DIR/'v7_reachable_path_preflight.json'
@@ -325,8 +325,8 @@ def build_mpc(settings, robot_cfg, grid):
     return ModelPredictiveControl(cfg, scene_collision_checker=checker), mask
 
 
-def bar_position(clock, lane):
-    stroke_time = BAR_STROKE_M/BAR_SPEED_MPS
+def bar_position(clock, lane, *, stroke_m=BAR_STROKE_M):
+    stroke_time = stroke_m/BAR_SPEED_MPS
     phase = clock % (2*stroke_time)
     tip = BAR_TIP_INNER_X+BAR_SPEED_MPS*abs(stroke_time-phase)
     return np.array([tip+BAR_LENGTH_M/2, *lane])
@@ -899,12 +899,13 @@ def run(args, stream):
             sampled_spheres = np.concatenate(sweep)
             np.savez_compressed(args.save_a_sweep,
                                 time_s=np.arange(len(sampled_spheres))*CONTROL_DT,
-                                spheres=sampled_spheres)
+                                spheres=sampled_spheres, duration_s=duration, stroke_m=BAR_STROKE_M)
         arrays = np.asarray(timings)
         result = dict(mode=args.mode, cameras=None if mapping is None else args.cameras,
                       seconds=step*CONTROL_DT, rgbd_batches=0 if mapping is None else len(timings),
                       max_bar_speed_mps=max_bar_speed, closest_truth=closest_truth,
                     contacts=contacts, reaches=reaches, minimum_clearance_m=min_clearance,
+                    first_reach_s=arrival_times[0] if arrival_times else None,
                     integrate_ms=dict(mean=float(arrays[:, 0].mean()), p95=float(np.percentile(arrays[:, 0], 95))),
                     esdf_ms=dict(mean=float(arrays[:, 1].mean()), p95=float(np.percentile(arrays[:, 1], 95))),
                     decay=probe.result(duration), max_direction_reversals_per_joint_in_half_second=peak_flips,
@@ -969,7 +970,7 @@ def print_diagnosis(payload):
 
 
 def compare_decay(args):
-    print('V7_DECAY three 10-second reciprocating-bar runs; estimated wall time 2–4 minutes', flush=True)
+    print('V7_DECAY three 15-second reciprocating-bar runs; estimated wall time 2–4 minutes', flush=True)
     cases = {}
     for name, knobs in DECAY_CONFIGS.items():
         print(f'V7_DECAY start {name}: decay={knobs[0]:.1f} frustum={knobs[1]:.1f}', flush=True)
@@ -996,7 +997,7 @@ def compare_decay(args):
 
 
 def segmentation_checkpoint(args):
-    print('V7_SEGMENTATION both cameras: 10 s empty + 10 s reciprocating bar; estimated wall time 2–3 minutes', flush=True)
+    print('V7_SEGMENTATION both cameras: 10 s empty + 15 s reciprocating bar; estimated wall time 2–3 minutes', flush=True)
     empty_args = argparse.Namespace(**(vars(args) | dict(diagnosis=True)))
     empty = run_mode(empty_args)
     near_counts = [frame['voxels_within_50mm_of_arm'] for frame in empty['frames']]
@@ -1123,7 +1124,7 @@ def closest_bar_pixels(robot, stream, closest):
 def fair_checkpoint(args):
     truth = json.loads(args.fair_checkpoint.read_text())
     if truth['mode'] != 'B' or truth['rgbd_batches'] != 0 or truth['seconds'] != DURATION:
-        raise RuntimeError('expected a 10 s camera-free B result')
+        raise RuntimeError('expected a 15 s camera-free B result')
     if truth['reaches'] < 1 or any(truth['contacts'].values()) or truth['minimum_clearance_m'] < .02:
         raise RuntimeError('B did not pass; stop before the perception tests')
     print('V7_FAIR E empty + E reciprocating bar; estimated wall time 2–3 minutes', flush=True)
@@ -1234,10 +1235,13 @@ def lane_checkpoint(args):
 def search_bar_lanes(path):
     with np.load(path) as sweep:
         times, spheres = sweep['time_s'], sweep['spheres']
-    expected = np.arange(round(DURATION/CONTROL_DT)+1)*CONTROL_DT
+        # Archived A sweeps predate metadata and used the original 10 s / 0.125 m stroke.
+        duration = float(sweep['duration_s']) if 'duration_s' in sweep else 10.
+        stroke = float(sweep['stroke_m']) if 'stroke_m' in sweep else .125
+    expected = np.arange(round(duration/CONTROL_DT)+1)*CONTROL_DT
     if times.shape != expected.shape or not np.allclose(times, expected) or not np.isfinite(spheres).all():
-        raise ValueError('expected a complete finite 10 s A sweep')
-    centers = np.stack([bar_position(t, (0., 0.)) for t in times])
+        raise ValueError('expected a complete finite A sweep')
+    centers = np.stack([bar_position(t, (0., 0.), stroke_m=stroke) for t in times])
     rows = []
     for z_cm in range(12, 31):
         for y_cm in range(20, 37, 2):
@@ -1345,8 +1349,8 @@ def main():
                       help='Run E empty and reciprocating bar after a passing B result')
     mode.add_argument('--calibrate-segmenter', action='store_true', help='Measure the segmentation threshold')
     mode.add_argument('--segmentation-checkpoint', action='store_true', help='Run one dual-camera empty scene and reciprocating-bar run')
-    mode.add_argument('--decay-comparison', action='store_true', help='Compare three 10 s dual-camera reciprocating-bar runs')
-    mode.add_argument('--bar-forensics', action='store_true', help='Record one 10 s dual-camera reciprocating-bar run')
+    mode.add_argument('--decay-comparison', action='store_true', help='Compare three 15 s dual-camera reciprocating-bar runs')
+    mode.add_argument('--bar-forensics', action='store_true', help='Record one 15 s dual-camera reciprocating-bar run')
     parser.add_argument('--port', type=int, default=int(os.environ.get('NEWTON_VIEWER_PORT', '30018')))
     parser.add_argument('--robot-config', type=Path,
                         default=Path.home()/'.cache/ur5_moveit_demo/curobo_v2/ur5_robotiq_curobo.yml')
