@@ -33,20 +33,12 @@ No pending task
 Leave the deleted 05_c2_tall_wall_refused.png and the untracked curobo/ untouched. Stage files by
 explicit path only. No git clean/reset/restore/stash/add -A.
 
-## Task: v7 diagnosis 2 — the MPC, not perception (A/B, ~10 min) — 2026-11-20
+## Task: none. Waiting for the user's interactive check of v7 (2026-11-20)
 
-b2143dc reviewed. Perception is fine: empty scene keeps <= 8 voxels, 0 voxels within 5 cm of the arm
-(RobotSegmenter works); alignment median 6 mm, p95 16 mm; floor ~0 voxels. BUT the arm still thrashes in
-the EMPTY scene: joint reversals from 0.17 s, peak 7 per 0.5 s, 0 reaches, goal error stays 0.21-0.23 m.
-v4/v5/v6 reach this same goal with the same robot and settings. So the v7 MPC construction or control loop
-differs. Find it with A/B runs in the empty scene, 10 s each, no perception changes:
-- A: v7 loop, MPC from `curobo_moving_rod_v41.make_mpc(config, frozen_config, floor_activation_m=.01)`
-  (cuboid scene, no voxel grid, no mapper updates).
-- B: v7 loop, v7 `build_mpc` (voxel scene) but never call `update_features` after setup.
-- C: v7 as is (reference, already measured).
-Report reaches and peak reversals for A/B/C. Then fix only the part that differs (in curobo_v7_mapper.py),
-rerun the empty scene (fixed and both) + one Dance run with both cameras, report contacts/reaches/
-reversals, commit, push, leave --interactive running (both cameras), URL + 3 lines. Stop.
+af0bac8 reviewed. Root cause of the thrashing: RobotSegmenter captured the shared Kinematics buffers in a
+CUDA graph; the clearance scoring reallocated them with another batch size, so replays read stale
+buffers. Fix: the segmenter has its own Kinematics. Empty scene now: 3 reaches, 2 returns, peak 1 reversal
+(fixed and both). Dance 6 s with both cameras: 1 reach, 1 bar contact (open). Do not start anything.
 
 ### Previous v7 task (kept for reference)
 #### v7 = follow NVIDIA's official cuRobo pipeline with a fixed camera (checkpoint only) — 2026-11-20
