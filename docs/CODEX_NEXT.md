@@ -33,29 +33,11 @@ No pending task
 Leave the deleted 05_c2_tall_wall_refused.png and the untracked curobo/ untouched. Stage files by
 explicit path only. No git clean/reset/restore/stash/add -A.
 
-## Task: v6 bar velocity from the visible end, not the visible centre (~10 min) — 2026-11-20
+## Task: none. Waiting for the user's interactive check (2026-11-20)
 
-USER REPORT: the bar was NOT dragged and Dance was not moving it, yet the predicted box was long. Likely the
-same cause: the camera moves with the arm, so the crop edge slides over a still bar and its visible centre
-looks like it moves.
-
-77d2e52 reviewed (readouts, floor footprint, legend: good). Finding from the Dance + drag data: while the
-bar slides into view, the estimated speed is about half the true speed (-0.05 vs -0.10 m/s), then jumps
-to -0.16 when it leaves. Cause: the track uses the centre of the VISIBLE part; while more bar enters the
-image, that centre moves at half speed. Also the length-ratio readout only checks the longest side; a
-sideways drag at 0.3 m/s widens the box in Y from 0.07 to 0.20 m and the readout misses it.
-Do (no rule changes besides this):
-1. For the bar track, measure motion from the bar end that does NOT touch the image border (use the
-   existing border metadata + camera pose to find which end is cropped). If both ends are cropped, the
-   motion along the bar axis cannot be measured: use only the motion across the axis (along-axis = 0).
-   If neither end is cropped, use the centre. Camera-agnostic: no Newton shape ids, no known start.
-   GPU-free tests: (a) bar sliding in at 0.10 m/s, half cropped -> 0.10 +- 0.01 m/s;
-   (b) USER-REPORTED CASE: bar standing still, half cropped, camera moving 0.3 m/s along the bar (the arm
-   moves, so the crop edge slides over the bar) -> speed < 0.02 m/s and class STATIC.
-2. Readout: show predicted/observed size per axis (X, Y, Z), not only the longest side.
-3. Add a 'still bar' phase to --interactive --viewer-smoke: Dance off, bar parked half in view while the
-   arm moves; report its estimated speed (must be < 0.02 m/s). Rerun --interactive --viewer-smoke (Dance + drag + still) and report per phase: mean and max |est - true| speed,
-   max per-axis size ratio. Commit, push, leave --interactive running, URL + 3 lines to look at. Stop.
+d24d0a8 reviewed: bar velocity from the uncropped end. Dance mean speed error 0.002 m/s (was ~0.05);
+still half-cropped bar while the arm moves: speed 0, STATIC in all 20 seen frames; 0 contacts, 3 reaches.
+Sideways drag at 0.3 m/s widens the box 3x in Y, which is the correct prediction. Do not start anything.
 
 ### Spec kept from v4 (unchanged rules)
 : floor, unseen rod top, visible prediction (started 2026-11-19)
