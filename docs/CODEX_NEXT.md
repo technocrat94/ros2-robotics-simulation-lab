@@ -59,18 +59,20 @@ Do (user decision: finish v7 today, no demo fallback):
    closest bar approach, how many bar pixels lie within that threshold of the arm. Save the calibration to
    docs/experiments/sim-camera-curobo/results/v7_segmenter_calibration.json.
    Decay 0.3 / frustum 1.0 and floor handling as in original v7.
-4. Interactive (user request), like the v6 interactive: GUI selector for mode B / E (switch without
-   restarting), Dance on/off button, single Poke button, draggable bar and vertical-rod gizmos, rod on/off,
-   both cameras on in E, live status (mode, contacts, reaches, min clearance). Same scene rules as above
-   (no teleport, bar z 0.20 by default; dragging may move it anywhere).
+4. Display only (user request, small): do NOT draw the ESDF slice at all (remove it from the viewer).
+   In the camera depth panels draw removed pixels WHITE instead of black.
 Runs, 1 each, both cameras for E: (0) calibration above, (a) E empty scene 10 s with the measured threshold, (b) B Dance 6 s, (c) E Dance 6 s.
 SUCCESS (user's definition): the arm goes from the start (left, tool y ~0.12) to the goal (right, y ~0.45)
 without touching the bar = >= 1 reach AND 0 bar contacts in the run.
 Pass: (a) <= 5 voxels near the arm and peak reversals <= 2; (b) B succeeds (if B fails, the scene is still
 unfair: report and stop, do not touch perception); (c) E succeeds. Report a table plus, for any E contact,
-the forensic classification. Commit, push, leave --interactive running (starts in E, both cameras), URL + 3 lines. Stop. Do not do "Next time".
+the forensic classification. Commit, push, leave the existing --interactive running (E, both cameras; no new interactive features), URL + 3 lines. Stop. Do not do "Next time".
 
-### Next time (user: postpone, display only)
+### Next time (user: postpone)
+0. Interactive, like the v6 interactive: GUI selector for mode B / E (switch without
+   restarting), Dance on/off button, single Poke button, draggable bar and vertical-rod gizmos, rod on/off,
+   both cameras on in E, live status (mode, contacts, reaches, min clearance). Same scene rules as above
+   (no teleport, bar z 0.20 by default; dragging may move it anywhere).
 a. The red area is the reference example's ESDF slice: red = far from anything, and with nothing observed
    it is the 10000 m "no site" value, so the whole plane goes red. Hide it by default behind a GUI checkbox
    "顯示距離切片 (ESDF)"; when shown, clip the colour at 0.30 m so only near-obstacle distances are coloured;
