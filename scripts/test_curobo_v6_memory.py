@@ -3,7 +3,9 @@ import unittest
 
 import numpy as np
 
-from curobo_v6_memory import DepthFrame, ObjectMemory, path_target, tip_projection, visible_path_target
+from curobo_v6_memory import (
+    DepthFrame, ObjectMemory, path_target, summarize_pokes, tip_projection, visible_path_target,
+)
 
 
 def box(x=0., y=0., z=.5, size=.10):
@@ -50,6 +52,20 @@ class VisibleDance(unittest.TestCase):
     def test_no_target_when_the_camera_sees_no_part_of_the_path(self):
         camera = self.down_camera((3., 3., .45))
         self.assertIsNone(visible_path_target(np.array([.5, .12, .50]), [.5, .45, .24], camera))
+
+
+    def test_poke_report_attributes_late_clear_to_last_sighting(self):
+        pokes = [{'start_s': 0.}, {'start_s': 3.}]
+        frames = [
+            dict(time_s=2.8, obstacle_pixels=120, fresh_seen=True, **{'class': 'MOVING'}),
+            dict(time_s=2.9, obstacle_pixels=5, fresh_seen=False, **{'class': 'MOVING'}),
+        ]
+        clears = [dict(time_s=3.3, since_seen_s=.5, cleared_by='moved_on')]
+        summarize_pokes(pokes, frames, clears)
+        self.assertEqual(pokes[0]['class_while_seen'], {'STATIC': 0, 'MOVING': 1})
+        self.assertEqual(pokes[0]['visible_without_fit_frames'], 1)
+        self.assertEqual(pokes[0]['clears'], [{'time_s': 3.3, 'cleared_by': 'moved_on'}])
+        self.assertEqual(pokes[1]['clears'], [])
 
 
 class MemoryRules(unittest.TestCase):

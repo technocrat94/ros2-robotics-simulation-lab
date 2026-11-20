@@ -306,6 +306,8 @@ def tip_projection(frame, tip):
 
 
 def record_poke_frame(poke, frame, time_s, pixels):
+    if not poke['aimed_in_view']:
+        return
     if pixels:
         intervals = poke['seen_intervals_s']
         if intervals and time_s-intervals[-1][1] <= 1/30+1e-8:
@@ -488,6 +490,7 @@ def demo_types():
             with self.poke_lock:
                 self.dance_started = None
                 self.active_poke = None
+                self.last_depth_frame = None
             self.active_vertical = V6Vertical(self)
             return self.active_vertical
 
@@ -513,6 +516,8 @@ def demo_types():
                                                 peak_projection=None, seen_intervals_s=[])
                         if self.recording:
                             self.pokes.append(self.active_poke)
+                        if visible is None:
+                            print('V6_POKE_SKIPPED '+json.dumps(self.active_poke), flush=True)
                     if not self.active_poke.get('aimed_in_view', True):
                         # The camera sees no part of the path: park the bar and log it, never poke blind.
                         self.gizmo.position = (2., .28, .20)
@@ -591,6 +596,24 @@ def write_checkpoint(path, cases):
     tmp.replace(path)
 
 
+def summarize_pokes(pokes, observations, clears):
+    """Attribute a clear to the poke that supplied the last sighting."""
+    for i, poke in enumerate(pokes):
+        lower = poke['start_s']-1e-9
+        upper = pokes[i+1]['start_s']-1e-9 if i+1 < len(pokes) else float('inf')
+        seen = [event for event in observations
+                if lower <= event['time_s'] < upper and event['obstacle_pixels'] > 0]
+        poke['class_while_seen'] = {kind: sum(
+            event['fresh_seen'] and event['class'] == kind for event in seen)
+            for kind in COLORS}
+        poke['visible_without_fit_frames'] = sum(not event['fresh_seen'] for event in seen)
+        poke['clears'] = [
+            dict(cleared_by=event['cleared_by'], time_s=event['time_s']) for event in clears
+            if event['since_seen_s'] is not None
+            and lower <= event['time_s']-event['since_seen_s'] < upper
+        ]
+
+
 def checkpoint_run(types, args, baseline, name, mode='E', *, rod_xy=SOFA_ROD_XY):
     from curobo_moving_bar_poke_demo import wait_for_demo
 
@@ -622,6 +645,7 @@ def checkpoint_run(types, args, baseline, name, mode='E', *, rod_xy=SOFA_ROD_XY)
                        clears=clears, duration_s=app.current['sim_time_s'])
         print(f'V6_RESULT {name} {mode} '+json.dumps(summary), flush=True)
         if name == 'Car':
+            summarize_pokes(app.pokes, events, clears)
             for poke in app.pokes:
                 print('V6_CAR_POKE '+json.dumps(poke), flush=True)
         if name == 'Sofa' and mode == 'E' and app.first_unseen is None:
@@ -814,12 +838,15 @@ def main():
     parser.add_argument('--port', type=int, default=int(os.environ.get('NEWTON_VIEWER_PORT', '30006')))
     parser.add_argument('--duration', type=float, default=0., help='Viewer wall-time limit in seconds')
     parser.add_argument('--sim-seconds', type=float, default=9., help='Simulated seconds per checkpoint')
+    parser.add_argument('--car-only', action='store_true', help='Refresh Car E and retain the saved Sofa cases')
     parser.add_argument('--viewer-smoke', action='store_true')
     parser.add_argument('--checkpoint', type=Path, default=CHECKPOINT)
     parser.add_argument('--robot-config', type=Path,
                         default=Path.home()/'.cache/ur5_moveit_demo/curobo_v2/ur5_robotiq_curobo.yml')
     parser.add_argument('--newton-python', type=Path, default=Path.home()/'newton_ws/.venv-cpu/bin/python')
     args = parser.parse_args()
+    if args.car_only and not args.smoke:
+        parser.error('--car-only requires --smoke')
     if args.viewer_smoke and not args.replay:
         parser.error('--viewer-smoke requires --replay')
     if not np.isfinite(args.sim_seconds) or args.sim_seconds < 3.:
@@ -833,7 +860,16 @@ def main():
     baseline = json.loads(types.base.tuned.original.BASELINE_FILE.read_text())
     types.base.tuned.original.configure_scene(baseline)
     types.base.v41.v3.check_viewer_port(args.port)
-    if args.smoke:
+    if args.car_only:
+        with gzip.open(args.checkpoint, 'rt') as stream:
+            cases = json.load(stream)
+        if not {'Car', 'Sofa B', 'Sofa'} <= cases.keys():
+            parser.error('--car-only requires a complete Car and Sofa checkpoint')
+        print('V6_CHECKPOINT Car E only; estimated wall time 1 minute', flush=True)
+        cases['Car'] = checkpoint_run(types, args, baseline, 'Car')
+        write_checkpoint(args.checkpoint, cases)
+        print(f'V6_CHECKPOINT {args.checkpoint}', flush=True)
+    elif args.smoke:
         print('V6_CHECKPOINT Car E, Sofa B and Sofa E; estimated wall time 2–4 minutes', flush=True)
         cases = {'Car': checkpoint_run(types, args, baseline, 'Car')}
         write_checkpoint(args.checkpoint, cases)
