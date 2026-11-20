@@ -48,6 +48,9 @@ of unknown meaning, (3) the camera images are very dark.
    it is the 10000 m "no site" value, so the whole plane goes red. Hide it by default behind a GUI checkbox
    "顯示距離切片 (ESDF)"; when shown, clip the colour at 0.30 m so only near-obstacle distances are coloured;
    legend line: 藍 = 障礙物內部, 白 = 貼近障礙物, 紅 = 遠離 (>= 0.30 m).
+   The user saw it lying ON THE FLOOR (our grid_center is z = 0, so the example puts the slice at z = 0,
+   and the floor is removed from the map, so it is all "far"). When shown, put it at a GUI slider height,
+   default 0.20 m (bar height), never at the floor.
 3. Dark images: Newton renders RGB without lights (load_textures=False). RGB is not used for mapping.
    For display only, brighten it (normalise per frame) or replace the RGB panel with a shaded depth
    image; say which.
