@@ -33,25 +33,21 @@ No pending task
 Leave the deleted 05_c2_tall_wall_refused.png and the untracked curobo/ untouched. Stage files by
 explicit path only. No git clean/reset/restore/stash/add -A.
 
-## Task: v6 interactive — prediction readout + legend check (~10 min) — 2026-11-20
+## Task: v6 bar velocity from the visible end, not the visible centre (~10 min) — 2026-11-20
 
-d3e2978 reviewed (camera view is back). User report: the predicted box looks >= 1.5x the bar length after
-the bar moves, and the arm thrashes when the box is pushed onto it; colours were confusing.
-Claude changed scripts/curobo_v6_memory.py (20 GPU-free tests pass; do not change these rules):
-- `clip_sweep`: the swept (MPC) box stops 2 cm before the arm's current spheres (CameraMemory.boxes).
-- Memory fills are now purple = STATIC, yellow = MOVING (blue/orange were already used); full Chinese
-  legend `LEGEND` in the GUI.
-Do:
-1. Add a live GUI readout per obstacle: observed length, predicted length, estimated speed, true speed
-   (from the gizmo/dance motion), sweep kept fraction. Same numbers per frame in the replay rows.
-1b. Camera footprint on the floor (user request): every frame, cast the 4 image-corner rays from the
-   camera, intersect with z = 0 (clip at the depth max range), and draw that quadrilateral on the floor
-   as a thin outline + faint fill. Add it to the legend. Same in --replay.
-2. Check the legend shows at the top of the GUI in --interactive and --replay, and every listed colour
-   matches what is drawn (fix colours to match the legend, not the other way round).
-3. --interactive --viewer-smoke: Dance 10 s, then drag-like motion of the bar at 0.3 m/s for 2 s; print
-   max predicted/observed length ratio and max |estimated - true| speed for both. No batch.
-4. Commit, push, leave --interactive running for the user, give the URL + 3 lines on what to look at. Stop.
+77d2e52 reviewed (readouts, floor footprint, legend: good). Finding from the Dance + drag data: while the
+bar slides into view, the estimated speed is about half the true speed (-0.05 vs -0.10 m/s), then jumps
+to -0.16 when it leaves. Cause: the track uses the centre of the VISIBLE part; while more bar enters the
+image, that centre moves at half speed. Also the length-ratio readout only checks the longest side; a
+sideways drag at 0.3 m/s widens the box in Y from 0.07 to 0.20 m and the readout misses it.
+Do (no rule changes besides this):
+1. For the bar track, measure motion from the bar end that does NOT touch the image border (use the
+   existing border metadata + camera pose to find which end is cropped). If both ends are cropped, keep
+   the last velocity; if neither, use the centre. Camera-agnostic: no Newton shape ids, no known start.
+   Add a GPU-free test: a bar sliding in at 0.10 m/s, half cropped, gives 0.10 +- 0.01 m/s.
+2. Readout: show predicted/observed size per axis (X, Y, Z), not only the longest side.
+3. Rerun --interactive --viewer-smoke (Dance + drag) and report per phase: mean and max |est - true| speed,
+   max per-axis size ratio. Commit, push, leave --interactive running, URL + 3 lines to look at. Stop.
 
 ### Spec kept from v4 (unchanged rules)
 : floor, unseen rod top, visible prediction (started 2026-11-19)
