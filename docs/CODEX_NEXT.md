@@ -38,9 +38,10 @@ explicit path only. No git clean/reset/restore/stash/add -A.
 f3f7b5e reviewed. User: in --interactive the arm flickers/thrashes, and only one camera was visible.
 The v7 run skipped the empty-scene check (our group A rule). Before changing anything, find which layer
 breaks. Do not tune parameters in this task.
-1. Print at start and in the GUI status which cameras are on (fixed / fixed+wrist). The launcher default
-   must be both. In the GUI, both frustums must be visible (wrist frustum scale large enough to see).
-2. EMPTY scene (no bar, no rod), `--cameras fixed` then `--cameras both`, 10 s each, reach goal and back.
+USER DECISION: one camera only = the fixed camera. Make `--cameras fixed` the default; leave the wrist
+camera code path in place but unused (no wrist frustum/panels in the GUI by default).
+1. Print at start and in the GUI status which camera is on.
+2. EMPTY scene (no bar, no rod), `--cameras fixed`, 10 s, reach goal and back.
    Per camera frame log: occupied voxels within 0.05 m of any robot sphere (= the arm left in the map),
    min ESDF distance at the robot spheres, total occupied voxels, joint direction reversals per 0.5 s.
 3. Alignment: with the bar parked still in view of the fixed camera (arm still), median and p95 distance
