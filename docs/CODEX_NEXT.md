@@ -33,7 +33,25 @@ No pending task
 Leave the deleted 05_c2_tall_wall_refused.png and the untracked curobo/ untouched. Stage files by
 explicit path only. No git clean/reset/restore/stash/add -A.
 
-## Task: v7 — measured arm mask per part + MPC reaction distance (3 runs) — 2026-11-20
+## Task: v7 — place the bar ON the arm's path by computation, then B/E (gate first) — 2026-11-20
+
+838b298 reviewed: gate A failed correctly. With the bar ignored, the arm passed 20.6 mm from it (t = 1.45 s,
+bar tip x 0.52, y 0.28, z 0.15): the arm goes above the bar, so z 0.15 is too low to be in the way.
+Do not guess a new spot. Compute it from the recorded A trajectory (no new run needed for the search):
+1. Save A's swept robot spheres for the whole 10 s run (the run is deterministic).
+2. Grid search lanes offline against that sweep: y in [0.20, 0.36] step 0.02, z in [0.12, 0.30] step 0.01, same
+   reciprocating bar (tip in to x 0.50, out 0.125 m, 0.10 m/s, x axis, starts outer). For each lane compute
+   A's signed clearance to the moving bar over time. Choose the LOWEST z (user wants it low) whose minimum
+   clearance <= -0.02 m (clearly in the way), tie-break y closest to 0.28. Save the table.
+3. Rerun A on that lane to confirm it touches the bar (gate). If not, report and stop.
+4. Then the rest of the previous task on that lane, unchanged: E empty 10 s both cameras (arm mask check),
+   B 10 s (success + min clearance >= 0.02 m), E 10 s both cameras (success). Arm mask 15 mm + URDF base volume,
+   obstacle activation 0.07 m, RGB brightened, no ESDF slice, white removed pixels.
+Report the chosen lane + the 4 results. Commit, push, leave the existing --interactive running (E, both
+cameras, this lane), URL + 3 lines. Stop. Do not do "Next time".
+
+### Previous task (kept for reference)
+#### v7 — measured arm mask per part + MPC reaction distance (3 runs) — 2026-11-20
 
 91af079 reviewed. Scene is fair (B succeeded), E empty passed, display fixes done. Two findings:
 1. Calibration: every MOVING link sticks out of its spheres by <= 15 mm (upper_arm max 14.9 mm, forearm 13.0,
