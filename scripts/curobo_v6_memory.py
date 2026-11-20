@@ -145,7 +145,10 @@ class ObjectMemory:
         elapsed = time_s-oldest
         if elapsed > 0.:
             displacement = center-reference
-            self.kind = 'STATIC' if np.linalg.norm(displacement) < STATIC_DISTANCE_M else 'MOVING'
+            # Speed, not distance: a short track (< 0.5 s seen) must not look static just because it
+            # had little time to move. 0.02 m per 0.5 s = 0.04 m/s.
+            speed = np.linalg.norm(displacement)/elapsed
+            self.kind = 'STATIC' if speed < STATIC_DISTANCE_M/WINDOW_S else 'MOVING'
             self.velocity = displacement/elapsed if self.kind == 'MOVING' else np.zeros(3)
         elif self.box is None:
             self.kind = 'STATIC'
@@ -266,6 +269,31 @@ def path_target(tool, goal):
     return target
 
 
+def visible_path_target(tool, goal, frame, margin=.10):
+    """Nearest point on the tool -> goal path, at or below path_target height, whose bar tip and the
+    first 5 cm of bar behind it (+X) project inside the image with a margin. None if the camera sees
+    no part of the path: then this poke would test nothing, so it is skipped."""
+    tool = np.asarray(tool, dtype=float)
+    delta = np.asarray(goal, dtype=float)-tool
+    distance = float(np.linalg.norm(delta))
+    height, width = frame.depth.shape
+    low = np.array([margin*width, margin*height])
+    high = np.array([(1-margin)*width, (1-margin)*height])
+    for along in np.arange(.05, max(distance, .05)+1e-9, .01):
+        point = tool+delta*min(1., along/max(distance, 1e-9))
+        for z in np.arange(min(point[2], tool[2]-.12), .15-1e-9, -.01):
+            tip = np.array([point[0], point[1], z])
+            ok = True
+            for sample in (tip, tip+[.05, 0., 0.]):
+                inside, xy = tip_projection(frame, sample)
+                if not inside or np.any(np.asarray(xy) < low) or np.any(np.asarray(xy) > high):
+                    ok = False
+                    break
+            if ok:
+                return tip
+    return None
+
+
 def tip_projection(frame, tip):
     optical = (np.asarray(tip)-frame.origin) @ frame.rotation
     if not np.isfinite(optical).all() or optical[2] <= 0.:
@@ -371,6 +399,7 @@ def demo_types():
 
         def capture(self, worker, q, center, time_s):
             capture = super().capture(worker, q, center, time_s)
+            self.app.last_depth_frame = capture.camera.metadata['depth_frame']
             poke = self.app.active_poke
             if poke is not None and time_s >= poke['start_s']-1e-9:
                 metadata = capture.camera.metadata
@@ -470,13 +499,24 @@ def demo_types():
             with self.poke_lock:
                 if self.dancing:
                     if self.dance_started is None or sim_clock-self.dance_started >= DANCE_PERIOD_S-1e-9:
+                        frame = getattr(self, 'last_depth_frame', None)
+                        if frame is None:
+                            # No camera image yet: wait for the first one before aiming.
+                            self.gizmo.position = (2., .28, .20)
+                            return
                         self.dance_started = sim_clock
-                        self.dance_target = path_target(tool, self.goal)
+                        visible = visible_path_target(tool, self.goal, frame)
+                        self.dance_target = path_target(tool, self.goal) if visible is None else visible
                         self.active_poke = dict(start_s=sim_clock, target_m=self.dance_target.tolist(),
+                                                aimed_in_view=visible is not None,
                                                 closest_time_s=sim_clock+DANCE_TRAVEL_M/DANCE_SPEED_MPS,
                                                 peak_projection=None, seen_intervals_s=[])
                         if self.recording:
                             self.pokes.append(self.active_poke)
+                    if not self.active_poke.get('aimed_in_view', True):
+                        # The camera sees no part of the path: park the bar and log it, never poke blind.
+                        self.gizmo.position = (2., .28, .20)
+                        return
                     position = dance_center(self.dance_target, sim_clock-self.dance_started)
                     self.gizmo.position = (*position[:2], self.dance_target[2])
                     return

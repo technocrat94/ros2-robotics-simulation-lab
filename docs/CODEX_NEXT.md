@@ -33,30 +33,23 @@ No pending task
 Leave the deleted 05_c2_tall_wall_refused.png and the untracked curobo/ untouched. Stage files by
 explicit path only. No git clean/reset/restore/stash/add -A.
 
-## Task: v6 rerun 2 (checkpoint only, ~10 min) — 2026-11-20
+## Task: v6 Car rerun 3 (checkpoint only, ~5 min) — 2026-11-20
 
-3b6a1aa reviewed; camera layers are back, thanks. Findings from the checkpoint file:
-- Car: the bar was seen only 0.03-0.47 s. Its MOVING box then slid at constant velocity for 8.5 s straight
-  through the workspace (x 0.57 -> -0.55), a phantom that pushed the arm; the real bar's later pokes were
-  never seen and E hit it twice (min clearance -43 mm).
-- Sofa: STATIC box kept for 8.6 s as intended, but 0 reaches.
-- `obstacle_pixels` is always 0 for the bar (wrong metadata key).
-- Car scene bug (found by the user): Dance aims the bar tip at the gripper itself (`dance_center` uses the
-  tool x/y/z). The camera looks down, so a bar at the camera's own height is never in view. That tests
-  nothing. Fix in a v6-only Dance (do not change curobo_moving_bar_poke_demo.py): aim at the arm's PATH,
-  i.e. the point 0.15 m ahead of the tool on the straight line tool -> goal (the goal if closer), with
-  z = clip(that z, 0.15, tool z - 0.12) so it is below the camera. Log per poke whether the tip at its
-  closest point projects inside the depth image.
-Claude changed one rule (11 GPU-free tests pass): a MOVING box out of view is kept only for MOVING_MEMORY_S
-(= the 0.5 s velocity window), then cleared_by `moved_on`. STATIC is unchanged. Do not change rules. Do:
-1. Fix the bar `obstacle_pixels` log.
-2. Rerun `--smoke` (Car E, Sofa E) and add one Sofa B run (truth box) to check the goal is reachable
-   with the rod there. If Sofa B also has 0 reaches, move the rod (still seen at start, leaves the view)
-   until B reaches, then rerun Sofa E.
-3. Report per run: contacts, reaches, min clearance, cleared_by events with times; for Car also each
-   poke's target, whether it was in view, and its seen interval. If a poke is aimed at the path but never
-   seen, report it (do not tune it away).
-4. Replay + interactive commands, 3 lines on what to look at. Commit, push, stop.
+2cdc6de reviewed. Sofa is done: B 3 reaches, E 3 reaches, 0 contacts, STATIC box kept while out of view.
+Car still failed (3 bar contacts). Two causes, both fixed by Claude in scripts/curobo_v6_memory.py
+(16 GPU-free tests pass; do not change these rules):
+- The targets (z ~0.38) were only ~6 cm below the camera and ~16 cm sideways, so outside the image; every
+  poke reported in_image false and the bar was only seen when it hit the lens. New `visible_path_target`:
+  the nearest point on the tool -> goal path, at or below the old height, whose tip and the 5 cm behind it
+  project inside the image with a 10% margin. If none, the poke is skipped (bar parked, aimed_in_view
+  false). The first poke waits for the first camera image.
+- Classification used distance over a short track: seen 0.2 s at 0.1 m/s = 2 cm, so it was called STATIC
+  and kept as a phantom for 7 s. Now speed: STATIC only if < 0.04 m/s.
+Do:
+1. Rerun Car E only (Sofa stays as is in the checkpoint file).
+2. Report: contacts, reaches, min clearance; per poke: target, aimed_in_view, seen intervals, class
+   while seen, cleared_by and its time.
+3. Replay + interactive commands, 3 lines on what to look at. Commit, push, stop.
 
 ### Spec kept from v4 (unchanged rules)
 : floor, unseen rod top, visible prediction (started 2026-11-19)

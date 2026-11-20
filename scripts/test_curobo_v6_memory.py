@@ -3,7 +3,7 @@ import unittest
 
 import numpy as np
 
-from curobo_v6_memory import DepthFrame, ObjectMemory, path_target, tip_projection
+from curobo_v6_memory import DepthFrame, ObjectMemory, path_target, tip_projection, visible_path_target
 
 
 def box(x=0., y=0., z=.5, size=.10):
@@ -33,7 +33,33 @@ class DanceGeometry(unittest.TestCase):
         self.assertEqual(tip_projection(camera, [1., 0., -.5]), (False, None))
 
 
+class VisibleDance(unittest.TestCase):
+    def down_camera(self, origin):
+        # Optical +Z = world -Z (looking straight down), as on the wrist mount.
+        rotation = np.array([[0., 1., 0.], [1., 0., 0.], [0., 0., -1.]])
+        return frame(5., origin=origin, rotation=rotation)
+
+    def test_target_is_inside_the_view_and_below_the_camera(self):
+        camera = self.down_camera((.6, .12, .45))
+        tip = visible_path_target(np.array([.5, .12, .50]), [.5, .45, .24], camera)
+        self.assertIsNotNone(tip)
+        self.assertLess(tip[2], .45-.1)
+        inside, _ = tip_projection(camera, tip)
+        self.assertTrue(inside)
+
+    def test_no_target_when_the_camera_sees_no_part_of_the_path(self):
+        camera = self.down_camera((3., 3., .45))
+        self.assertIsNone(visible_path_target(np.array([.5, .12, .50]), [.5, .45, .24], camera))
+
+
 class MemoryRules(unittest.TestCase):
+    def test_short_fast_track_is_moving_not_static(self):
+        track = ObjectMemory()
+        self.observed(track, 0., box())
+        _, _, event = self.observed(track, .1, box(x=.01))   # 1 cm in 0.1 s = 0.1 m/s
+        self.assertEqual(event['class'], 'MOVING')
+
+
     def observed(self, track, time, value):
         return track.observe(value, value['center_m'], frame(), time)
 
