@@ -67,7 +67,8 @@ b. Dark images: Newton renders RGB without lights (load_textures=False). RGB is 
    For display only, brighten it (normalise per frame) or replace the RGB panel with a shaded depth
    image; say which.
 c. Per camera show TWO depth panels side by side: "原始深度" (raw, whole scene) and "建圖用深度" (after
-   depth limits, floor removal and RobotSegmenter; black = removed pixels). Legend says what black means.
+   depth limits, floor removal and RobotSegmenter). Removed pixels are drawn WHITE, not black (user request);
+   legend says white = removed (floor, arm, too near/far).
 
 ### Previous v7 task (kept for reference)
 #### v7 = follow NVIDIA's official cuRobo pipeline with a fixed camera (checkpoint only) — 2026-11-20
