@@ -33,7 +33,22 @@ No pending task
 Leave the deleted 05_c2_tall_wall_refused.png and the untracked curobo/ untouched. Stage files by
 explicit path only. No git clean/reset/restore/stash/add -A.
 
-## Task: v7 — bar in the MIDDLE of the path, not at the goal; then B/E — 2026-11-20
+## Task: v7 — longer low straight path, bar exactly on it (TIME LIMIT 10 min) — 2026-11-20
+
+User: make the path longer and make sure the bar is on it. Keep everything else from 4fbf078.
+1. Start and goal tool poses: same tool orientation as now, x = 0.50, z = 0.25, start y = 0.00, goal y = 0.50
+   (0.50 m straight, low). Start joints by cuRobo IK seeded from the current raised_start; check every
+   non-excluded sphere >= 0.02 m above the floor at both poses. If IK fails, stop and report.
+2. Bar exactly on that line: lane y = 0.25 (midpoint), z = 0.25, x axis, tip reciprocating x 0.50 <-> 0.625 at
+   0.10 m/s (the tool line is x = 0.50, so the inner tip crosses it). >= 0.10 m from start and goal by
+   construction (0.25 m).
+3. Gates in order, stop at the first failure: A (must touch), B 10 s (success + min clearance >= 0.02 m),
+   E 10 s both cameras (success). Skip E empty (mask unchanged, passed in 4fbf078).
+4. Short table, commit, push, leave the existing --interactive running (E, both cameras), URL + 3 lines.
+If any step takes > 3 min, stop and report where.
+
+### Previous task (kept for reference)
+#### v7 — bar in the MIDDLE of the path, not at the goal; then B/E — 2026-11-20
 
 4fbf078 reviewed. Search worked; the rule picked y 0.36, z 0.23, which A hits at 1.33 s right before arriving:
 the bar sits next to the goal (goal tool y ~0.45, z ~0.24), so it blocks the goal itself and B could not
