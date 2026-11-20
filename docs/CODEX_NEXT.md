@@ -33,7 +33,22 @@ No pending task
 Leave the deleted 05_c2_tall_wall_refused.png and the untracked curobo/ untouched. Stage files by
 explicit path only. No git clean/reset/restore/stash/add -A.
 
-## Task: v7 interactive does not move — make it move and verify (TIME LIMIT 10 min) — 2026-11-20
+## Task: v7 — the arm goes once and never comes back (diagnose + fix, TIME LIMIT 15 min) — 2026-11-20
+
+2ceb256 reviewed (viewer moves on 30006). User: the arm goes left -> right once and never returns. The data agree:
+every long-retract run (A, B, E) has reaches = 1 and no return in 15 s.
+1. Measure, 30 s each, record tool distance to the current target every 0.1 s, reaches, returns, trip times:
+   A0 (no bar) and B (truth bar). Mark where it stalls (distance plateau) and the bar phase at that time.
+2. Classify: A0 does not return -> the start pose as a goal is the problem (orientation/branch/joint limit of
+   `initial`, tolerance); A0 returns but B does not -> stuck on the return side of the bar (local minimum or the bar
+   timing seen from the other side).
+3. Fix only what the data show (no tuning of perception). Target: B and E both do >= 2 reaches and >= 2 returns
+   in 30 s with 0 bar/floor contacts. Report the table (A0, B, E).
+4. Commit, push, restart --interactive on 30006 (E, both cameras) and confirm from a second process that the arm
+   returns at least once (tool distance to start < tolerance). URL + 3 lines.
+
+### Previous task (kept for reference)
+#### v7 interactive does not move — make it move and verify (TIME LIMIT 10 min) — 2026-11-20
 
 User: the viewer you left running shows a robot that does not move. The default port in curobo_v7_mapper.py is
 30018 (the user usually opens 30006), so they may be looking at an old stopped viewer, or the live loop stalls.
