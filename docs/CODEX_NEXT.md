@@ -33,12 +33,26 @@ No pending task
 Leave the deleted 05_c2_tall_wall_refused.png and the untracked curobo/ untouched. Stage files by
 explicit path only. No git clean/reset/restore/stash/add -A.
 
-## Task: none. Waiting for the user's interactive check of v7 (2026-11-20)
+## Task: v7 — why it still hits the bar + two display fixes (measure first, ~10 min) — 2026-11-20
 
-af0bac8 reviewed. Root cause of the thrashing: RobotSegmenter captured the shared Kinematics buffers in a
-CUDA graph; the clearance scoring reallocated them with another batch size, so replays read stale
-buffers. Fix: the segmenter has its own Kinematics. Empty scene now: 3 reaches, 2 returns, peak 1 reversal
-(fixed and both). Dance 6 s with both cameras: 1 reach, 1 bar contact (open). Do not start anything.
+af0bac8 fixed the thrashing. User report from --interactive: (1) it still hits the bar, (2) a big red area
+of unknown meaning, (3) the camera images are very dark.
+1. Contact forensics, no tuning: rerun the 6 s Dance with both cameras. For every bar contact log, at the
+   contact time and at 0.1 s steps over the 1.0 s before it: bar pixels in each camera, occupied voxels
+   within 3 cm of the true bar, the ESDF value at the contact sphere centre, the arm sphere speed toward the
+   bar, and the time the bar was first in any camera image. Classify each contact as NOT_SEEN (no pixels),
+   SEEN_NOT_MAPPED (pixels but no voxels), MAPPED_LATE (voxels appeared < 0.3 s before contact) or
+   MAPPED_BUT_HIT (voxels present >= 0.3 s). Note: v7 has no prediction (the NVIDIA pipeline is purely
+   reactive); say if that is the reason.
+2. The red area is the reference example's ESDF slice: red = far from anything, and with nothing observed
+   it is the 10000 m "no site" value, so the whole plane goes red. Hide it by default behind a GUI checkbox
+   "顯示距離切片 (ESDF)"; when shown, clip the colour at 0.30 m so only near-obstacle distances are coloured;
+   legend line: 藍 = 障礙物內部, 白 = 貼近障礙物, 紅 = 遠離 (>= 0.30 m).
+3. Dark images: Newton renders RGB without lights (load_textures=False). RGB is not used for mapping.
+   For display only, brighten it (normalise per frame) or replace the RGB panel with a shaded depth
+   image; say which.
+4. Report the contact classification table, commit, push, leave --interactive running (both cameras),
+   URL + 3 lines. Stop.
 
 ### Previous v7 task (kept for reference)
 #### v7 = follow NVIDIA's official cuRobo pipeline with a fixed camera (checkpoint only) — 2026-11-20
