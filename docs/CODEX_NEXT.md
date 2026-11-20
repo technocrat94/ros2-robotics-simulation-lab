@@ -33,30 +33,32 @@ No pending task
 Leave the deleted 05_c2_tall_wall_refused.png and the untracked curobo/ untouched. Stage files by
 explicit path only. No git clean/reset/restore/stash/add -A.
 
-## Task: v7 fixed (eye-to-hand) camera + wrist camera, measured (checkpoint only) — 2026-11-20
+## Task: v7 = follow NVIDIA's official cuRobo pipeline with a fixed camera (checkpoint only) — 2026-11-20
 
-Decision (user + senior): add a fixed camera; keep the wrist camera. Stop patching wrist-only partial-view
-guesses. Keep all v6 rules (STATIC/MOVING memory, carving, moved_on 0.5 s, clip_sweep 2 cm, speed class).
-Placement is a placeholder until the lab gives the real one: put it in a NEW file
-`config/sim_fixed_camera.yaml` (do not touch sim_camera_mount.yaml):
-  position (0.50, -0.70, 1.00) m, looking at (0.50, 0.25, 0.15), same intrinsics/resolution as the wrist
-  camera (D435-like). The bar parks at +X, so this side view does not block its path.
-New files only: scripts/curobo_v7_two_cameras.py (+ tests), scripts/run_sim_camera_v7.sh.
-1. Render the fixed camera in the same Newton scene (second SensorTiledCamera view or second camera in the
-   same sensor), robot mask per camera.
-2. Fusion, camera-agnostic: each object's observed box is fitted from the union of both clouds; the old
-   border "extend to full bar length" guess applies only if every camera that sees the object has it
-   cropped. Velocity from a camera that sees the object uncropped (fixed first), else the wrist
-   end-tracking. Carving: a sample is free if ANY camera sees past it (and it is not robot in that camera).
-3. Measure prediction quality against truth (sim only, for evaluation, never fed to control): every frame
-   store the predicted object centre for t + horizon; when that time comes, error = |predicted - true|.
-   Also store protrusion = how far the observed box sticks out beyond the true bar along its axis.
-4. Viewer (--interactive and --replay): second frustum + its floor footprint + second depth panel,
-   points coloured per camera, legend updated; readout adds prediction error and protrusion.
-5. Checkpoint, 2 runs only, same scripted Dance + drag + still sequence: `--cameras wrist` and
-   `--cameras both`. Report for each: contacts, reaches, min clearance, prediction error mean/max (and where
-   the max happens), protrusion mean/max, % frames the bar is seen by each camera. No batch.
-6. Commit, push, leave --interactive --cameras both running, URL + 3 lines to look at. Stop.
+The user does not want us to invent this. cuRobo ships an official example that does exactly this (not
+nvblox; cuRobo's own warp mapper): `curobo/examples/reference/live_volumetric_mapping_mpc.py`
+(github.com/NVlabs/curobo). Pipeline there: fixed RGB-D camera -> `FilterDepth` -> `Mapper`
+(`MapperCfg`: voxel_size 0.005, esdf_voxel_size 0.03, truncation 4 x voxel, decay_factor 0.3,
+num_cameras) -> `mapper.integrate(CameraObservation)` every frame -> `mapper.compute_esdf()` ->
+`ModelPredictiveControlCfg.create(scene_model=Scene(voxel=[voxel_grid]), ...)`. Robot pixels are removed
+with `curobo/_src/perception/robot_segmenter.py` (`RobotSegmenter`, robot spheres vs depth points).
+Multi-camera: `num_cameras` + stacked CameraObservation (see curobo/tests/_src/perception/mapper/test_multi_camera.py).
+Step 0 (stop if it fails): in the school env, check `from curobo.perception import Mapper, MapperCfg, FilterDepth`
+and `RobotSegmenter` import. If missing, STOP and report the local cuRobo version; do not install or update
+anything and do not touch curobo/.
+Then copy that example's structure as closely as possible; only replace the RealSense input with our
+Newton render. New files only: scripts/curobo_v7_mapper.py, scripts/run_sim_camera_v7.sh,
+config/sim_fixed_camera.yaml (placeholder pose: position (0.50, -0.70, 1.00), looking at (0.50, 0.25, 0.15),
+same intrinsics as the wrist camera; do not touch sim_camera_mount.yaml).
+1. Inputs: fixed camera (+ wrist camera as the 2nd camera, num_cameras=2). Robot removed by RobotSegmenter
+   (not Newton shape ids). Same UR5 MPC settings as v6 (our robot yml, v3 fixed rules), scene = mapper voxel
+   grid + the floor cuboid. Keep NVIDIA's defaults; list every value you had to change and why.
+2. Same scenes as v6: Dance bar (aimed at visible path) and the still vertical rod (Sofa). No v6 box rules.
+3. Viewer like the example (ESDF slice / occupied voxels) + both frustums, floor footprints, depth panels,
+   legend.
+4. Checkpoint, 2 runs only (E, Dance+still sequence): `--cameras fixed` and `--cameras both`. Report:
+   contacts, reaches, min clearance, integrate ms, esdf ms, how long a voxel stays after the bar leaves
+   (decay), and whether the arm thrashes. Commit, push, leave --interactive running, URL + 3 lines. Stop.
 
 ### Spec kept from v4 (unchanged rules)
 : floor, unseen rod top, visible prediction (started 2026-11-19)
