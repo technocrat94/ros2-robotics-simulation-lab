@@ -6,6 +6,7 @@ Pipeline reference: NVlabs/cuRobo, curobo/examples/reference/live_volumetric_map
 from __future__ import annotations
 
 import argparse
+from bisect import bisect_left, bisect_right
 import json
 import os
 from pathlib import Path
@@ -26,6 +27,7 @@ DANCE_END, DURATION = 6., 9.
 DIAGNOSIS_S = 10.
 ESDF_NO_SITE_M = 1e4
 DIAGNOSIS_FILE = ROOT/'docs/experiments/sim-camera-curobo/results/v7_diagnosis.json'
+FORENSICS_FILE = DIAGNOSIS_FILE.with_name('v7_bar_forensics.json')
 CAMERA_LABELS = ('固定相機', '手上相機')
 PARK = np.array([2., .28, .20])
 SOFA = (.78, .52, .50)
@@ -41,7 +43,7 @@ def camera_basis(config):
 
 
 def render_worker(mode):
-    """Read raw Newton RGB-D without requesting shape IDs."""
+    """Render RGB-D, with a separate ground-truth count for forensics only."""
     import newton_camera_moving_rod_worker as source
 
     mount, _ = source.camera_common.read_mount_config(ROOT/'config/sim_camera_mount.yaml')
@@ -63,7 +65,8 @@ def render_worker(mode):
         if request.get('shutdown'):
             return
         scene._assign_pose(np.asarray(request['q'], dtype=np.float32), *request['bar'], request['rod'])
-        depths, rgbs, poses = [], [], []
+        depths, rgbs, poses, bar_pixels = [], [], [], []
+        shape_image = scene.shape_index if request.get('count_bar_pixels') else None
         scene.camera_transforms.assign(fixed_transform)
         for i in range(1 if mode == 'fixed' else 2):
             if i:
@@ -71,8 +74,10 @@ def render_worker(mode):
                                  inputs=[scene.state.body_q, scene.parent, scene.camera_local],
                                  outputs=[scene.camera_transforms], device=scene.device)
             scene.sensor.update(scene.state, scene.camera_transforms, scene.rays,
-                                forward_depth_image=scene.depth, color_image=color)
+                                forward_depth_image=scene.depth, color_image=color, shape_index_image=shape_image)
             source.wp.synchronize_device(scene.device)
+            if shape_image is not None:
+                bar_pixels.append(int(np.count_nonzero(shape_image.numpy()[0, 0] == scene.rod_shape)))
             depths.append(scene.depth.numpy()[0, 0].copy())
             rgba = color.numpy()[0, 0]
             rgbs.append(np.stack([(rgba >> shift) & 255 for shift in (0, 8, 16)], axis=-1).astype(np.uint8))
@@ -80,13 +85,18 @@ def render_worker(mode):
             rotation = source.camera_common.quaternion_xyzw_to_matrix(pose[3:]) @ convention
             orientation = source.camera_common.matrix_to_quaternion_xyzw(rotation)
             poses.append([*pose[:3], orientation[3], *orientation[:3]])
-        np.savez(request['output'], depth=depths, rgb=rgbs, poses=poses)
+        arrays = dict(depth=depths, rgb=rgbs, poses=poses)
+        if shape_image is not None:
+            arrays['bar_pixels'] = bar_pixels
+        np.savez(request['output'], **arrays)
         print('V7_FRAME', flush=True)
 
 
 class NewtonStream:
     def __init__(self, args, directory):
         self.output = directory/'rgbd.npz'
+        self.count_bar_pixels = args.bar_forensics
+        self.bar_pixels = None
         self.process = subprocess.Popen(
             [str(args.newton_python), str(Path(__file__).resolve()), '--renderer', args.cameras],
             cwd=ROOT, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
@@ -109,10 +119,13 @@ class NewtonStream:
 
     def capture(self, q, bar, rod):
         self.process.stdin.write(json.dumps(dict(q=q.tolist(), bar=bar.tolist(), rod=rod,
+                                                 count_bar_pixels=self.count_bar_pixels,
                                                  output=str(self.output)))+'\n')
         self.process.stdin.flush()
         self.read('V7_FRAME')
         with np.load(self.output) as arrays:
+            if self.count_bar_pixels:
+                self.bar_pixels = arrays['bar_pixels'].tolist()
             return arrays['depth'], arrays['rgb'], arrays['poses']
 
     def close(self):
@@ -361,6 +374,105 @@ class DecayProbe:
                     else end-self.left_at)
 
 
+class BarForensics:
+    """Keep the camera frames and motion segments needed for causal contact samples."""
+
+    def __init__(self):
+        self.frames = []
+        self.motion = []
+        self.contacts = []
+
+    def observe(self, clock, available_at, bar, pixels, mapping, grid):
+        points = mapping.occupied.centers.cpu().numpy()
+        near = np.count_nonzero(cylinder_sdf(points, bar, 0, .30, .02) <= .03)
+        self.frames.append((clock, dict(zip(('fixed', 'wrist'), pixels, strict=True)), int(near),
+                            grid.feature_tensor.cpu(), grid.pose[:3], grid.voxel_size, available_at))
+
+    def record_motion(self, clock, spheres, bar, new_contact):
+        self.motion.append((clock, spheres, bar.copy()))
+        if new_contact:
+            gaps = cylinder_sdf(spheres[..., :3], bar, 0, .30, .02)-spheres[..., 3]
+            crosses = (gaps[0] >= 0.) & (gaps[-1] < 0.)
+            if np.any(gaps[0] < 0.):
+                fraction, index = 0., int(np.argmin(gaps[0]))
+            else:
+                candidates = np.flatnonzero(crosses)
+                fractions = gaps[0, candidates] / (gaps[0, candidates]-gaps[-1, candidates])
+                first = int(np.argmin(fractions))
+                fraction, index = float(fractions[first]), int(candidates[first])
+            self.contacts.append((clock+fraction*CONTROL_DT, index))
+
+    @staticmethod
+    def esdf_at(point, field, origin, voxel_size):
+        import torch
+        from torch.nn.functional import grid_sample
+
+        half = (np.asarray(field.shape)-1)*voxel_size/2
+        coord = (point-np.asarray(origin))/half
+        if np.any(np.abs(coord) > 1.):
+            return None
+        sample = torch.tensor(coord[::-1].copy(), dtype=torch.float32).reshape(1, 1, 1, 1, 3)
+        return float(grid_sample(field[None, None].float(), sample, align_corners=True).item())
+
+    def report(self, result):
+        frame_times = [frame[0] for frame in self.frames]
+        available_times = [frame[-1] for frame in self.frames]
+        motion_times = [entry[0] for entry in self.motion]
+        first_seen = next((t for t, pixels, *_ in self.frames if any(pixels.values())), None)
+        contacts = []
+        for contact_time, sphere_index in self.contacts:
+            rows = []
+            for offset in range(10, -1, -1):
+                t = contact_time-offset/10
+                if t < 0.:
+                    continue
+                frame_idx = bisect_right(available_times, t+1e-9)-1
+                frame_time, pixels, near, field, origin, voxel_size, ready = self.frames[frame_idx]
+                motion_idx = bisect_right(motion_times, t+1e-9)-1
+                clock, spheres, bar = self.motion[motion_idx]
+                ends = spheres[[0, -1], sphere_index, :3]
+                point = ends[0]+np.clip((t-clock)/CONTROL_DT, 0., 1.)*(ends[1]-ends[0])
+                # Estimate local closing speed along the cylinder SDF normal.
+                sweep = (ends[1]-ends[0])/2
+                speed = -np.diff(cylinder_sdf(np.stack((point-sweep, point+sweep)), bar, 0, .30, .02))[0]/CONTROL_DT
+                rows.append(dict(time_s=t, camera_frame_s=frame_time, map_available_s=ready, bar_pixels=pixels,
+                                 occupied_voxels_within_30mm=near,
+                                 esdf_at_sphere_center_m=self.esdf_at(point, field, origin, voxel_size),
+                                 arm_speed_toward_bar_mps=float(speed),
+                                 sphere_radius_m=float(spheres[0, sphere_index, 3]),
+                                 true_sphere_clearance_m=float(cylinder_sdf(point, bar, 0, .30, .02)
+                                                               -spheres[0, sphere_index, 3])))
+            first_in_window = bisect_left(frame_times, rows[0]['camera_frame_s'])
+            window = self.frames[first_in_window:frame_idx+1]
+            first_mapped = next((t for t, _, near, *_ in window if near), None)
+            # Include the start of a continuous mapping interval crossing the window boundary.
+            if first_mapped == frame_times[first_in_window]:
+                while first_in_window and self.frames[first_in_window-1][2]:
+                    first_in_window -= 1
+                first_mapped = frame_times[first_in_window]
+            lead = None if first_mapped is None else contact_time-first_mapped
+            if not any(any(pixels.values()) for _, pixels, *_ in window):
+                classification = 'NOT_SEEN'
+            elif lead is None:
+                classification = 'SEEN_NOT_MAPPED'
+            elif lead < .3-1e-9:
+                classification = 'MAPPED_LATE'
+            else:
+                classification = 'MAPPED_BUT_HIT'
+            contacts.append(dict(time_s=contact_time, sphere_index=sphere_index,
+                                 first_visible_s=first_seen, first_mapped_s=first_mapped,
+                                 mapped_lead_s=lead, classification=classification, samples=rows))
+        return dict(run=result, contact_episodes=contacts,
+                    method=dict(camera_hz=FRAME_RATE, sample_period_s=.1, history_s=1.,
+                                nearby_voxel_distance_m=.03, mapped_late_threshold_s=.3,
+                                no_site_esdf_value_m=ESDF_NO_SITE_M, prediction=False,
+                                alignment='latest camera frame processed by the control loop at or before each sample',
+                                visibility='Newton shape-index count, diagnostics only',
+                                mapping='first near-bar voxel in the one-second window or earlier if continuous',
+                                contact='first crossing of zero clearance within a held control step',
+                                speed='positive when the sphere moves toward the bar at its sampled pose'))
+
+
 class MappingView:
     def __init__(self, args, mapping):
         from curobo.types import ContentPath
@@ -468,8 +580,11 @@ def run(args, stream):
     tool = start.copy()
     sequence = None if args.diagnosis else Sequence(mapping)
     bar, rod = (PARK.copy(), None) if sequence is None else sequence.pose(0., tool, target)
+    forensics = BarForensics() if args.bar_forensics else None
     depth, rgb, poses = stream.capture(q, bar, rod)
     grid, integrate_ms, esdf_ms = mapping.observe(depth, rgb, poses, state)
+    if forensics is not None:
+        forensics.observe(0., 0., bar, stream.bar_pixels, mapping, grid)
     print(f'V7_MAPPED {args.cameras} occupied={len(mapping.occupied)} integrate={integrate_ms:.1f} '
           f'esdf={esdf_ms:.1f}', flush=True)
     mpc, mask = build_mpc(preflight['frozen_config'], robot_cfg, grid)
@@ -505,6 +620,8 @@ def run(args, stream):
         peak_flips = 0
         frames = 0
         duration = DIAGNOSIS_S if args.diagnosis else DURATION
+        if forensics is not None:
+            duration = DANCE_END
         if args.diagnosis:
             measurements.append(empty_frame(0., mapping, grid, robot, state, flips))
         while args.interactive or step < round(duration/CONTROL_DT):
@@ -523,6 +640,8 @@ def run(args, stream):
                 grid, integrate_ms, esdf_ms = mapping.observe(depth, rgb, poses, observed_state)
                 if args.diagnosis:
                     measurements.append(empty_frame(frame_time, mapping, grid, robot, observed_state, flips))
+                if forensics is not None:
+                    forensics.observe(frame_time, clock, observed_bar, stream.bar_pixels, mapping, grid)
                 if voxel_data.features.data_ptr() != grid.feature_tensor.data_ptr():
                     voxel_data.update_features(grid.feature_tensor.reshape(-1, 1), grid.name)
                 if not args.interactive:
@@ -561,6 +680,8 @@ def run(args, stream):
             if rod is not None:
                 clearances['rod'] = cylinder_clearance(spheres, (*rod[:2], rod[2]/2), 2, rod[2], .025)
             current = {name for name, value in clearances.items() if value < 0.}
+            if forensics is not None:
+                forensics.record_motion(clock, spheres, bar, 'bar' in current-touched)
             for name in current-touched:
                 contacts[name] += 1
             touched = current
@@ -592,12 +713,13 @@ def run(args, stream):
                                                    Sequence(mapping).pose(0., start, target)[0])
                         if args.cameras == 'fixed' else None)
         arrays = np.asarray(timings)
-        return dict(cameras=args.cameras, seconds=step*CONTROL_DT, rgbd_batches=len(timings),
+        result = dict(cameras=args.cameras, seconds=step*CONTROL_DT, rgbd_batches=len(timings),
                     contacts=contacts, reaches=reaches, minimum_clearance_m=min_clearance,
                     integrate_ms=dict(mean=float(arrays[:, 0].mean()), p95=float(np.percentile(arrays[:, 0], 95))),
                     esdf_ms=dict(mean=float(arrays[:, 1].mean()), p95=float(np.percentile(arrays[:, 1], 95))),
-                    decay=probe.result(DURATION), max_direction_reversals_per_joint_in_half_second=peak_flips,
+                    decay=probe.result(duration), max_direction_reversals_per_joint_in_half_second=peak_flips,
                     thrash_detected=peak_flips >= 3)
+        return forensics.report(result) if forensics is not None else result
     finally:
         if view is not None:
             view.server.stop()
@@ -659,11 +781,14 @@ def main():
     mode.add_argument('--smoke', action='store_true')
     mode.add_argument('--diagnosis', action='store_true', help='Measure fixed and both in empty scenes, then save diagnostics')
     mode.add_argument('--interactive', action='store_true')
+    mode.add_argument('--bar-forensics', action='store_true', help='Record one 6 s dual-camera Dance')
     parser.add_argument('--port', type=int, default=int(os.environ.get('NEWTON_VIEWER_PORT', '30018')))
     parser.add_argument('--robot-config', type=Path,
                         default=Path.home()/'.cache/ur5_moveit_demo/curobo_v2/ur5_robotiq_curobo.yml')
     parser.add_argument('--newton-python', type=Path, default=Path.home()/'newton_ws/.venv-cpu/bin/python')
     args = parser.parse_args()
+    if args.bar_forensics and args.cameras != 'both':
+        parser.error('--bar-forensics requires --cameras both')
     if args.interactive:
         from curobo_moving_rod_v3 import check_viewer_port
         check_viewer_port(args.port)
@@ -672,7 +797,12 @@ def main():
             diagnose(args)
         else:
             result = run_mode(args)
-            if result is not None:
+            if args.bar_forensics:
+                tmp = FORENSICS_FILE.with_suffix('.tmp')
+                tmp.write_text(json.dumps(result, indent=2, allow_nan=False)+'\n')
+                tmp.replace(FORENSICS_FILE)
+                print(f'V7_FORENSICS saved {FORENSICS_FILE.relative_to(ROOT)}', flush=True)
+            elif result is not None:
                 print('V7_RESULT '+json.dumps(result, allow_nan=False), flush=True)
     except KeyboardInterrupt:
         return
