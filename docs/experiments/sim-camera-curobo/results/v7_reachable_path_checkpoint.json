@@ -1,0 +1,156 @@
+{
+  "scene": {
+    "start_m": [
+      0.5,
+      -0.05,
+      0.25
+    ],
+    "goal_m": [
+      0.4869999885559082,
+      0.4099999964237213,
+      0.2630000114440918
+    ],
+    "bar_lane_y_m": 0.17999999821186066,
+    "bar_center_z_m": 0.2565000057220459,
+    "tip_inner_x_m": 0.5,
+    "tip_outer_x_m": 0.625
+  },
+  "gates": {
+    "A0": {
+      "passed": true,
+      "mode": "A0",
+      "cameras": null,
+      "seconds": 10.0,
+      "rgbd_batches": 0,
+      "max_bar_speed_mps": 0.0,
+      "closest_truth": null,
+      "contacts": {
+        "bar": 0,
+        "rod": 0,
+        "floor": 0
+      },
+      "reaches": 1,
+      "minimum_clearance_m": 0.008369237184524536,
+      "integrate_ms": {
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "esdf_ms": {
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "decay": {
+        "voxel_m": null,
+        "left_at_s": null,
+        "cleared_at_s": null,
+        "delay_s": null,
+        "still_occupied_after_s": null
+      },
+      "max_direction_reversals_per_joint_in_half_second": 1,
+      "thrash_detected": false
+    },
+    "A": {
+      "passed": true,
+      "mode": "A",
+      "cameras": null,
+      "seconds": 10.0,
+      "rgbd_batches": 0,
+      "max_bar_speed_mps": 0.10000000000000231,
+      "closest_truth": {
+        "time_s": 8.525,
+        "clearance_m": -0.04366749351462828,
+        "sphere_index": 87,
+        "q_rad": [
+          -2.6784068333916378,
+          -2.8198072046972804,
+          0.16640453804284336,
+          1.1093361729523172,
+          4.797994320653378,
+          -2.6169395687989896
+        ],
+        "bar_center_m": [
+          0.6725,
+          0.17999999821186066,
+          0.2565000057220459
+        ],
+        "rod": null
+      },
+      "contacts": {
+        "bar": 1,
+        "rod": 0,
+        "floor": 0
+      },
+      "reaches": 1,
+      "minimum_clearance_m": -0.04366749351462828,
+      "integrate_ms": {
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "esdf_ms": {
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "decay": {
+        "voxel_m": null,
+        "left_at_s": null,
+        "cleared_at_s": null,
+        "delay_s": null,
+        "still_occupied_after_s": null
+      },
+      "max_direction_reversals_per_joint_in_half_second": 1,
+      "thrash_detected": false
+    },
+    "B": {
+      "passed": false,
+      "mode": "B",
+      "cameras": null,
+      "seconds": 10.0,
+      "rgbd_batches": 0,
+      "max_bar_speed_mps": 0.10000000000000231,
+      "closest_truth": {
+        "time_s": 0.45000000000000007,
+        "clearance_m": 0.04099168498875384,
+        "sphere_index": 87,
+        "q_rad": [
+          -2.639301847107709,
+          -2.083922573644668,
+          -1.2377715319395068,
+          1.7987597153522077,
+          4.65738962162286,
+          -2.7117248889058825
+        ],
+        "bar_center_m": [
+          0.73,
+          0.17999999821186066,
+          0.2565000057220459
+        ],
+        "rod": null
+      },
+      "contacts": {
+        "bar": 0,
+        "rod": 0,
+        "floor": 0
+      },
+      "reaches": 0,
+      "minimum_clearance_m": 0.012566715478897095,
+      "integrate_ms": {
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "esdf_ms": {
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "decay": {
+        "voxel_m": null,
+        "left_at_s": null,
+        "cleared_at_s": null,
+        "delay_s": null,
+        "still_occupied_after_s": null
+      },
+      "max_direction_reversals_per_joint_in_half_second": 2,
+      "thrash_detected": false
+    }
+  },
+  "stopped_at": "B"
+}

@@ -27,11 +27,9 @@ TSDF_SIZE, ESDF_SIZE = .005, .03
 FRAME_RATE, CONTROL_DT = 30, .025
 DURATION = 10.
 BAR_TIP_INNER_X, BAR_STROKE_M, BAR_SPEED_MPS = .50, .125, .10
-BAR_LANE_Y, BAR_HEIGHT_M = .25, .25
-START_TOOL_M = (.50, .00, .25)
-GOAL_TOOL_M = (.50, .50, .25)
+START_TOOL_M = (.50, -.05, .25)
 RESULTS_DIR = ROOT/'docs/experiments/sim-camera-curobo/results'
-STRAIGHT_PATH_FILE = RESULTS_DIR/'v7_straight_path_preflight.json'
+STRAIGHT_PATH_FILE = RESULTS_DIR/'v7_reachable_path_preflight.json'
 BAR_LENGTH_M, BAR_RADIUS_M = .30, .02
 OBSTACLE_ACTIVATION_M = .07
 FLOOR_ACTIVATION_M = .01
@@ -327,11 +325,11 @@ def build_mpc(settings, robot_cfg, grid):
     return ModelPredictiveControl(cfg, scene_collision_checker=checker), mask
 
 
-def bar_position(clock):
+def bar_position(clock, lane):
     stroke_time = BAR_STROKE_M/BAR_SPEED_MPS
     phase = clock % (2*stroke_time)
     tip = BAR_TIP_INNER_X+BAR_SPEED_MPS*abs(stroke_time-phase)
-    return np.array([tip+BAR_LENGTH_M/2, BAR_LANE_Y, BAR_HEIGHT_M])
+    return np.array([tip+BAR_LENGTH_M/2, *lane])
 
 
 def update_truth_bar(mpc, bar):
@@ -711,20 +709,23 @@ def run(args, stream):
     if not path_preflight['passed'] or path_preflight['robot_config_sha256'] != preflight['robot_config_sha256']:
         raise RuntimeError('straight path IK preflight has not passed for this robot')
     endpoints = path_preflight['endpoints']
-    if (tuple(endpoints['start']['target_m']), tuple(endpoints['goal']['target_m'])) != (START_TOOL_M, GOAL_TOOL_M):
-        raise RuntimeError('straight path IK preflight targets have changed')
+    if path_preflight['reference_sha256'] != hashlib.sha256(v41.v3.REFERENCE_FILE.read_bytes()).hexdigest():
+        raise RuntimeError('straight path reference has changed')
+    if tuple(endpoints['start']['target_m']) != START_TOOL_M:
+        raise RuntimeError('straight path start has changed')
+    lane = path_preflight['bar_lane_yz_m']
     q = np.asarray(endpoints['start']['joints_rad'], dtype=np.float32)
     start_q = q.copy()
     velocity = np.zeros(6)
     state = tuned.joint_state(q, velocity)
     template = v2.sixth.goal_from_scene()
     initial = straight_goal(template, START_TOOL_M)
-    goal = straight_goal(template, GOAL_TOOL_M)
+    goal = template
     target = goal.position.detach().cpu().numpy().reshape(-1, 3)[0]
     start = v2.sixth.fourth.tool_position(robot, state.position)
     tool = start.copy()
-    has_bar = not (args.diagnosis or args.calibrate_segmenter)
-    bar = bar_position(0.) if has_bar else PARK
+    has_bar = not (args.diagnosis or args.calibrate_segmenter or args.mode == 'A0')
+    bar = bar_position(0., lane) if has_bar else PARK
     truth_obstacle = args.mode == 'B' and has_bar
     forensics = BarForensics() if args.bar_forensics else None
     if mapping is None:
@@ -789,7 +790,7 @@ def run(args, stream):
             clock = step*CONTROL_DT
             began = time.monotonic()
             if has_bar:
-                bar = bar_position(clock)
+                bar = bar_position(clock, lane)
             if step:
                 max_bar_speed = max(max_bar_speed, float(np.linalg.norm(bar-previous_bar))/CONTROL_DT)
             if mapping is None:
@@ -846,20 +847,19 @@ def run(args, stream):
             spheres = sphere_series(robot, torch.as_tensor(path, device='cuda', dtype=torch.float32))
             if args.save_a_sweep is not None:
                 sweep.append(spheres if step == 0 else spheres[1:])
-            bar_end = bar_position(clock+CONTROL_DT) if has_bar else bar
+            bar_end = bar_position(clock+CONTROL_DT, lane) if has_bar else bar
             bar_path = np.stack((bar, bar_end))
             bar_gaps = cylinder_sdf(spheres[..., :3], bar_path[:, None, :], 0,
                                     BAR_LENGTH_M, BAR_RADIUS_M)-spheres[..., 3]
             endpoint, sphere = np.unravel_index(np.argmin(bar_gaps), bar_gaps.shape)
             bar_gap = float(bar_gaps[endpoint, sphere])
-            if closest_truth is None or bar_gap < closest_truth['clearance_m']:
+            if has_bar and (closest_truth is None or bar_gap < closest_truth['clearance_m']):
                 closest_truth = dict(time_s=clock+endpoint*CONTROL_DT, clearance_m=bar_gap,
                                      sphere_index=int(sphere), q_rad=path[endpoint].tolist(),
                                      bar_center_m=bar_path[endpoint].tolist(), rod=None)
-            clearances = {
-                'bar': bar_gap,
-                'floor': float(np.min(floor_distances(spheres, mask, 0.))),
-            }
+            clearances = {'floor': float(np.min(floor_distances(spheres, mask, 0.)))}
+            if has_bar:
+                clearances['bar'] = bar_gap
             current = {name for name, value in clearances.items() if value < 0.}
             if forensics is not None:
                 forensics.record_motion(clock, spheres, bar_path, bar_gaps, 'bar' in current-touched)
@@ -893,7 +893,7 @@ def run(args, stream):
                         peak_joint_reversals_in_half_s=peak_flips,
                         alignment=static_alignment(stream, mapping, start_q,
                                                    tuned.joint_state(start_q, np.zeros(6)),
-                                                   bar_position(BAR_STROKE_M/BAR_SPEED_MPS))
+                                                   bar_position(BAR_STROKE_M/BAR_SPEED_MPS, lane))
                         if args.cameras == 'fixed' else None)
         if sweep:
             sampled_spheres = np.concatenate(sweep)
@@ -917,8 +917,8 @@ def run(args, stream):
 
 
 def run_mode(args):
-    if args.mode in ('A', 'B'):
-        scene = 'bar ignored' if args.mode == 'A' else 'truth cuboid'
+    if args.mode in ('A0', 'A', 'B'):
+        scene = {'A0': 'no bar', 'A': 'bar ignored', 'B': 'truth cuboid'}[args.mode]
         print(f'V7_MODE {args.mode} {scene}; no cameras or mapper', flush=True)
         return run(args, None)
     print('V7_CAMERAS '+json.dumps(CAMERA_LABELS[:1 if args.cameras == 'fixed' else 2],
@@ -1195,7 +1195,8 @@ def lane_checkpoint(args):
     if confirmed['mode'] != 'A' or confirmed['seconds'] != DURATION or confirmed['contacts']['bar'] < 1:
         raise RuntimeError('a passing confirmed A run is required')
     print('V7_LANE base verification, E empty, B and E; estimated wall time 3–5 minutes', flush=True)
-    payload = dict(lane_y_m=BAR_LANE_Y, lane_z_m=BAR_HEIGHT_M, confirmed_A=confirmed,
+    lane_y, lane_z = json.loads(STRAIGHT_PATH_FILE.read_text())['bar_lane_yz_m']
+    payload = dict(lane_y_m=lane_y, lane_z_m=lane_z, confirmed_A=confirmed,
                    robot_mask_distance_m=ROBOT_MASK_DISTANCE, obstacle_activation_m=OBSTACLE_ACTIVATION_M,
                    floor_activation_m=FLOOR_ACTIVATION_M)
     write_json(FAIR_SCENE_FILE, payload)
@@ -1236,7 +1237,7 @@ def search_bar_lanes(path):
     expected = np.arange(round(DURATION/CONTROL_DT)+1)*CONTROL_DT
     if times.shape != expected.shape or not np.allclose(times, expected) or not np.isfinite(spheres).all():
         raise ValueError('expected a complete finite 10 s A sweep')
-    centers = np.stack([bar_position(t) for t in times])
+    centers = np.stack([bar_position(t, (0., 0.)) for t in times])
     rows = []
     for z_cm in range(12, 31):
         for y_cm in range(20, 37, 2):
@@ -1273,40 +1274,53 @@ def straight_path_preflight(args):
     tuned.original.configure_scene(baseline)
     robot_cfg, _ = v2.sixth.limited_robot_cfg(args.robot_config, v2.sixth.CAMERA_FRONT_SEED)
     template = v2.sixth.goal_from_scene()
-    seed = np.asarray(baseline['raised_start']['joints_rad'], dtype=np.float32)
+    goal_xyz = template.position.detach().cpu().reshape(-1, 3)[0].numpy()
+    lane = ((np.asarray(START_TOOL_M)+goal_xyz)/2)[1:]
+    ref_path = v41.v3.REFERENCE_FILE
+    reference = json.loads(ref_path.read_text())
+    goal_q = np.asarray(reference['attempts'][-1]['case']['trace'][-1]['q'], dtype=np.float32)
     report = dict(passed=False, robot_config_sha256=hashlib.sha256(args.robot_config.read_bytes()).hexdigest(),
+                  reference_sha256=hashlib.sha256(ref_path.read_bytes()).hexdigest(),
                   orientation_wxyz=template.quaternion.detach().cpu().reshape(-1, 4)[0].tolist(),
-                  raised_start_seed_rad=seed.tolist(), endpoints={})
+                  bar_lane_yz_m=lane.tolist(), endpoints={})
     ik = InverseKinematics(InverseKinematicsCfg.create(robot=robot_cfg,
                                                       position_tolerance=.001, orientation_tolerance=.01))
     try:
         mask = v41.nonbase_mask(ik.kinematics)
-        for name, xyz in (('start', START_TOOL_M), ('goal', GOAL_TOOL_M)):
-            goal = straight_goal(template, xyz)
-            seed_state = tuned.joint_state(seed, np.zeros(6))
-            result = ik.solve_pose(goal, current_state=seed_state)
-            entry = dict(target_m=xyz, ik_success=bool(result.success.item()))
-            report['endpoints'][name] = entry
-            if not entry['ik_success']:
-                report['failure'] = f'{name} IK failed'
-                break
-            solution = result.js_solution.reorder(seed_state.joint_names)
-            q = solution.position.detach().cpu().numpy().reshape(-1, len(seed))[0]
-            state = tuned.joint_state(q, np.zeros(6))
-            actual = ik.kinematics.compute_kinematics(state)
-            spheres = actual.robot_spheres.detach().cpu().numpy().reshape(-1, 4)
+
+        def measure(q, xyz):
+            state = ik.kinematics.compute_kinematics(tuned.joint_state(q, np.zeros(6)))
+            spheres = state.robot_spheres.detach().cpu().numpy().reshape(-1, 4)
             active = spheres[mask & (spheres[:, 3] > 0.)]
-            floor = float(np.min(active[:, 2]-active[:, 3]))
-            distance = min(float(cylinder_sdf(np.asarray(xyz), bar_position(t), 0, BAR_LENGTH_M, BAR_RADIUS_M))
-                           for t in (0., BAR_STROKE_M/BAR_SPEED_MPS))
-            entry.update(joints_rad=q.tolist(), position_error_m=float(result.position_error.item()),
-                         floor_clearance_m=floor, min_bar_clearance_m=distance, scored_spheres=len(active))
-            if not np.isfinite(floor) or floor < v41.ENDPOINT_GATE_M or distance < .10:
-                report['failure'] = f'{name} did not meet endpoint floor or bar clearance'
-                break
-            seed = q
-        else:
-            report['passed'] = True
+            return dict(joints_rad=q.tolist(), target_m=list(map(float, xyz)),
+                        floor_clearance_m=float(np.min(active[:, 2]-active[:, 3])),
+                        scored_spheres=len(active))
+
+        report['endpoints']['goal'] = measure(goal_q, goal_xyz)
+        desired = straight_goal(template, START_TOOL_M)
+        seed_state = tuned.joint_state(goal_q, np.zeros(6))
+        result = ik.solve_pose(desired, current_state=seed_state, return_seeds=ik.config.num_seeds)
+        solutions = result.js_solution.reorder(seed_state.joint_names).position.detach().cpu().numpy().reshape(-1, 6)
+        converged = result.success.detach().cpu().numpy().reshape(-1)
+        deltas = np.abs(solutions-goal_q)
+        same_branch = (deltas < 2.).all(axis=1) & (solutions[:, 2]*goal_q[2] > 0.)
+        ranked = np.argsort(np.linalg.norm(deltas, axis=1))
+        report['converged_start_candidates'] = int(converged.sum())
+        report['same_branch_start_candidates'] = int((converged & same_branch).sum())
+        report['failure'] = 'no converged start on the validated goal branch with 20 mm floor clearance'
+        for index in ranked[converged[ranked] & same_branch[ranked]]:
+            entry = measure(solutions[index], START_TOOL_M)
+            if entry['floor_clearance_m'] < v41.ENDPOINT_GATE_M:
+                continue
+            entry.update(position_error_m=float(result.position_error[0, index].item()),
+                         joint_delta_from_goal_rad=deltas[index].tolist())
+            report['endpoints']['start'] = entry
+            if report['endpoints']['goal']['floor_clearance_m'] >= v41.ENDPOINT_GATE_M:
+                report['passed'] = True
+                report.pop('failure')
+            else:
+                report['failure'] = 'validated goal did not meet 20 mm floor clearance'
+            break
     finally:
         ik.destroy()
     write_json(STRAIGHT_PATH_FILE, report)
@@ -1317,7 +1331,7 @@ def straight_path_preflight(args):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--mode', choices=('A', 'B', 'E'), default='E')
+    parser.add_argument('--mode', choices=('A0', 'A', 'B', 'E'), default='E')
     parser.add_argument('--cameras', choices=('fixed', 'both'), default='both')
     mode = parser.add_mutually_exclusive_group(required=True)
     mode.add_argument('--path-preflight', action='store_true', help='Solve and verify both straight-path endpoints')
@@ -1342,7 +1356,7 @@ def main():
     if args.save_a_sweep is not None and (args.mode != 'A' or not args.smoke):
         parser.error('--save-a-sweep requires --mode A --smoke')
     if args.mode != 'E' and not args.smoke:
-        parser.error('--mode A and --mode B require --smoke')
+        parser.error('--mode A0, A and B require --smoke')
     if (args.bar_forensics or args.decay_comparison or args.segmentation_checkpoint or args.calibrate_segmenter or args.fair_checkpoint or args.lane_checkpoint) and args.cameras != 'both':
         parser.error('Dance checkpoints require --cameras both')
     if args.interactive:
