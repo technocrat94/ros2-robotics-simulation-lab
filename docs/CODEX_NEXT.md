@@ -33,7 +33,22 @@ No pending task
 Leave the deleted 05_c2_tall_wall_refused.png and the untracked curobo/ untouched. Stage files by
 explicit path only. No git clean/reset/restore/stash/add -A.
 
-## Task: v7 — longer path that the arm can actually drive (TIME LIMIT 10 min) — 2026-11-20
+## Task: v7 — let the arm pass when the bar pulls back (TIME LIMIT 10 min) — 2026-11-20
+
+45d92d6 reviewed. The path works (A0 reaches, no thrash), the bar is in the way (A touches), but B never
+reaches: it stops in front of the bar (min 12.6 mm, 0 contacts). That is the MPC local minimum: with a 0.4 s
+horizon it will not take a detour that first moves away from the goal. User decision: option A today (pass by
+timing); planner + MPC (going over the bar) is the next step.
+Do, keep everything else from 45d92d6:
+1. Longer retract: inner tip x 0.50 <-> 0.75 (stroke 0.25 m) at 0.10 m/s, so when out the gap to the tool line
+   (0.25 m) exceeds gripper radius + obstacle activation 0.07 m + margin.
+2. Gates in order, stop at the first failure: A (bar ignored, must touch), B (success + min clearance
+   >= 0.02 m), E both cameras (success). A0 already passed, skip it. Run 15 s each (one full in/out = 5 s).
+3. Short table (contacts, reaches, min clearance, time of first reach), commit, push, leave the existing
+   --interactive running (E, both cameras), URL + 3 lines. If any step takes > 3 min, stop and report where.
+
+### Previous task (kept for reference)
+#### v7 — longer path that the arm can actually drive (TIME LIMIT 10 min) — 2026-11-20
 
 326c25d reviewed. The new goal (0.50, 0.50, 0.25) is the problem, not the bar: even A (bar ignored) reached 0
 times and thrashed, and B reached 0 times. IK solved the goal on a different arm branch (joint 1: start -2.92 vs
