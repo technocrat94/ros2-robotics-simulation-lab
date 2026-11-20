@@ -49,6 +49,7 @@ CHECKPOINT = ROOT/'docs/experiments/sim-camera-curobo/results/v6_memory_checkpoi
 CONTROL_DT = .025
 INTERACTIVE_SMOKE_S = 10.
 DRAG_SMOKE_S = 2.
+STILL_SMOKE_S = 2.
 DRAG_SPEED_MPS = .30
 SOFA_ROD_XY = (.78, .52)
 REPLAY_SIZE_LIMIT = 20_000_000
@@ -168,7 +169,8 @@ class ObjectMemory:
             oldest = cutoff
         elapsed = time_s-oldest
         if elapsed > 0.:
-            displacement = center-reference
+            # An unobserved axis contributes no displacement.
+            displacement = np.where(np.isfinite(center) & np.isfinite(reference), center-reference, 0.)
             # Speed, not distance: a short track (< 0.5 s seen) must not look static just because it
             # had little time to move. 0.02 m per 0.5 s = 0.04 m/s.
             speed = np.linalg.norm(displacement)/elapsed
@@ -235,10 +237,11 @@ class FreshPoints:
 
 class CameraMemory:
     """Reuse v5 fitting and height rules with a v6 world-space track."""
-    def __init__(self, policy, center_from_points=None, *, record=False):
+    def __init__(self, policy, center_from_points=None, *, record=False, bar_geometry=None):
         self.policy = policy
         self.policy.cloud = FreshPoints()
         self.center_from_points = center_from_points
+        self.bar_geometry = bar_geometry
         self.track = ObjectMemory()
         self.growth_events = 0
         self.events = [] if record else deque(maxlen=300)
@@ -266,11 +269,19 @@ class CameraMemory:
         fit, _, _, v5 = self.policy.observe(capture, time_s)
         fresh = fit if v5['fresh_seen'] else None
         center = None if fresh is None else fresh['center_m']
-        if fresh is not None and self.center_from_points is not None:
-            center = self.center_from_points(capture.points, center)
-        current, velocity, event = self.track.observe(fresh, center, capture.metadata['depth_frame'], time_s)
+        cropped = None
+        frame = capture.metadata['depth_frame']
+        if fresh is not None:
+            if self.bar_geometry is not None:
+                center, cropped = bar_tracking_center(
+                    capture.points, frame, capture.metadata['border_touches'], *self.bar_geometry)
+            elif self.center_from_points is not None:
+                center = self.center_from_points(capture.points, center)
+        current, velocity, event = self.track.observe(fresh, center, frame, time_s)
         self.current = current
         self.last_event = {**v5, **event, 'obstacle_pixels': capture.metadata['obstacle_pixels']}
+        if cropped is not None:
+            self.last_event['cropped_bar_ends'] = cropped
         self.growth_events += int(event['growth_rule'])
         self.events.append(self.last_event)
         return current, velocity, capture.points, self.last_event
@@ -304,6 +315,49 @@ def clip_sweep(observed, predicted, spheres, gap=SWEEP_GAP_M):
         lo, hi = (mid, hi) if box_sphere_distance(*box_at(mid), spheres) >= gap else (lo, mid)
     low, high = box_at(lo)
     return dict(predicted, center_m=((low+high)/2).tolist(), dims_m=(high-low).tolist()), lo
+
+
+def bar_tracking_center(points, frame, borders, length, radius):
+    """Find a world-space centre reference from the measured axial end or ends."""
+    low, high = np.min(points, axis=0), np.max(points, axis=0)
+    center = (low+high)/2
+    # A circular fit keeps the transverse centre stable as the visible curved surface changes.
+    side = points[(points[:, 0] > low[0]+.003) & (points[:, 0] < high[0]-.003), 1:]
+    if len(side) >= 3:
+        mean = side.mean(axis=0)
+        local = side-mean
+        matrix = np.column_stack((2*local, np.ones(len(local))))
+        solution, _, rank, _ = np.linalg.lstsq(matrix, np.sum(local**2, axis=1), rcond=None)
+        radius_sq = np.sum(solution[:2]**2)+solution[2]
+        if rank == 3 and (.8*radius)**2 <= radius_sq <= (1.2*radius)**2:
+            center[1:] = mean+solution[:2]
+
+    cropped = [False, False]  # negative-X and positive-X ends
+    fx, fy, cx, cy = frame.intrinsics
+    height, width = frame.depth.shape
+    normals = {'left': (fx, 0., cx), 'right': (-fx, 0., width-cx),
+               'top': (0., fy, cy), 'bottom': (0., -fy, height-cy)}
+    if high[0]-low[0] < length-.004:
+        for name, optical_normal in normals.items():
+            if not borders.get(name):
+                continue
+            normal = frame.rotation @ optical_normal
+            normal /= np.linalg.norm(normal)
+            if abs(normal[0]) < .05:
+                continue
+            end = int(normal[0] < 0.)
+            cap = np.array([(low, high)[end][0], *center[1:]])
+            # The inward frustum plane grazes the circular rim at the cropped end.
+            rim_gap = np.dot(normal, cap-frame.origin)-radius*np.linalg.norm(normal[1:])
+            if rim_gap <= .008*abs(normal[0])+.003:
+                cropped[end] = True
+    if all(cropped):
+        center[0] = np.nan
+    elif cropped[0]:
+        center[0] = high[0]-length/2
+    elif cropped[1]:
+        center[0] = low[0]+length/2
+    return center, cropped
 
 
 def standing_center(points, fallback, height):
@@ -368,6 +422,26 @@ def tip_projection(frame, tip):
     return inside, xy.tolist()
 
 
+def choose_still_bar(frame, length):
+    """Set a stationary smoke fixture with one axial end in the current view."""
+    forward = frame.rotation[:, 2]
+    distance = (.20-frame.origin[2])/min(forward[2], -.05)
+    anchor = frame.origin+max(0., distance)*forward
+    y = float(np.clip(anchor[1], .05, .45))
+    offsets = np.linspace(-length/2, length/2, 31)
+    best = None
+    for x in np.linspace(.35, .90, 111):
+        visible = [tip_projection(frame, [x+offset, y, .20])[0] for offset in offsets]
+        if visible[0] != visible[-1]:
+            score = abs(sum(visible)-len(offsets)/2)
+            # Prefer the farther positive-X fixture at an equivalent crop.
+            if best is None or (score, -x) < best[0]:
+                best = ((score, -x), (float(x), y, .20))
+    if best is None:
+        raise RuntimeError('No partly visible position for the still-bar smoke')
+    return best[1]
+
+
 def record_poke_frame(poke, frame, time_s, pixels):
     if not poke['aimed_in_view']:
         return
@@ -400,9 +474,13 @@ def paint(handle, label, box, event):
         handle.dimensions = tuple(box['dims_m'])
 
 
-def prediction_readout(observed, predicted, axis, estimate, truth, fraction):
-    return dict(observed_length_m=None if observed is None else observed['dims_m'][axis],
-                predicted_length_m=None if predicted is None else predicted['dims_m'][axis],
+def prediction_readout(observed, predicted, estimate, truth, fraction):
+    sizes = (None if observed is None else observed['dims_m'],
+             None if predicted is None else predicted['dims_m'])
+    observed_size, predicted_size = sizes
+    ratio = None if any(size is None for size in sizes) else [
+        p/o if o > 0. else None for o, p in zip(observed_size, predicted_size)]
+    return dict(observed_size_m=observed_size, predicted_size_m=predicted_size, size_ratio_xyz=ratio,
                 estimated_speed_mps=None if estimate is None else float(np.linalg.norm(estimate)),
                 true_speed_mps=None if truth is None else float(np.linalg.norm(truth)),
                 sweep_kept_fraction=fraction)
@@ -414,9 +492,14 @@ def readout_text(readout):
         return '—' if number is None else f'{number:.3f} {unit}'
     fraction = readout['sweep_kept_fraction']
     kept = '—' if fraction is None else f'{fraction:.1%}'
-    return (f"Observed {value('observed_length_m', 'm')} · Predicted {value('predicted_length_m', 'm')} · "
-            f"Estimated {value('estimated_speed_mps', 'm/s')} · True {value('true_speed_mps', 'm/s')} · "
-            f"Kept {kept}")
+    def axes(key, unit):
+        numbers = readout[key]
+        if numbers is None:
+            return '—'
+        return '/'.join('—' if number is None else f'{number:.3f}' for number in numbers)+unit
+    return (f"XYZ Observed {axes('observed_size_m', ' m')} · Predicted {axes('predicted_size_m', ' m')} · "
+            f"Ratio {axes('size_ratio_xyz', '×')} · Estimated {value('estimated_speed_mps', 'm/s')} · "
+            f"True {value('true_speed_mps', 'm/s')} · Kept {kept}")
 
 
 def floor_footprint(origin, rotation, intrinsics, width, height, range_m):
@@ -567,9 +650,9 @@ def demo_types():
             rod_center = None if self.pose is None else np.array([*self.pose[:2], self.pose[2]/2])
             bar_velocity = app.obstacle_velocity('bar', bar_center)
             rod_velocity = app.obstacle_velocity('rod', rod_center)
-            for name, memory, axis, truth in (
-                ('bar', bar, 0, bar_velocity),
-                ('rod', self.memory if family == 'E' else None, 2, rod_velocity),
+            for name, memory, truth in (
+                ('bar', bar, bar_velocity),
+                ('rod', self.memory if family == 'E' else None, rod_velocity),
             ):
                 box = None if memory is None else memory.current
                 event = {} if memory is None else memory.last_event
@@ -583,7 +666,7 @@ def demo_types():
                         observed = predicted = dict(center_m=rod_center.tolist(), dims_m=[.05, .05, self.pose[2]])
                         velocity = truth
                 fraction = None if memory is None else memory.sweep_fraction
-                readout = prediction_readout(observed, predicted, axis, velocity, truth, fraction)
+                readout = prediction_readout(observed, predicted, velocity, truth, fraction)
                 app.readout_handles[name].value = readout_text(readout)
                 if recording:
                     tracks[name] = dict(box=box, event=event, observed=observed, predicted=predicted,
@@ -614,6 +697,7 @@ def demo_types():
             self.rows = []
             self.camera_frames = []
             self.drag_origin = None
+            self.still_center = None
             self.first_unseen = None
             self.goal_entries = 0
             self.at_goal = False
@@ -684,6 +768,16 @@ def demo_types():
             self.gizmo.position = tuple(self.drag_origin+[0., DRAG_SPEED_MPS*elapsed, 0.])
             self.active_poke = None
 
+        def smoke_still(self):
+            if self.still_center is None:
+                frame = self.last_depth_frame
+                self.still_center = choose_still_bar(frame, scene.LENGTH)
+                self.last_positions.pop('bar', None)
+                self.bar_memory.track = ObjectMemory()
+                self.bar_memory.current = None
+                print('V6_STILL_BAR '+json.dumps(self.still_center), flush=True)
+            self.gizmo.position = self.still_center
+
         def publish_camera_capture(self, capture, points):
             super().publish_camera_capture(capture, points)
             frame = capture.camera.metadata['depth_frame']
@@ -700,7 +794,8 @@ def demo_types():
                 self.camera_signatures['depth'].add(hash(self.depth.image.tobytes()))
 
         def camera_memory(self, fixed_top):
-            self.bar_memory = CameraMemory(LowerPokeMemory(fixed_top), record=self.recording)
+            self.bar_memory = CameraMemory(LowerPokeMemory(fixed_top), record=self.recording,
+                                           bar_geometry=(scene.LENGTH, scene.RADIUS))
             return self.bar_memory
 
         def move_dance(self, tool, sim_clock):
@@ -736,14 +831,17 @@ def demo_types():
         def before_obstacle_step(self, tool, sim_clock):
             self.clock = sim_clock
             if self.camera_smoke and self.current['group'] == 'E' and sim_clock >= INTERACTIVE_SMOKE_S-1e-9:
-                self.smoke_drag(sim_clock)
+                if sim_clock >= INTERACTIVE_SMOKE_S+DRAG_SMOKE_S-1e-9:
+                    self.smoke_still()
+                else:
+                    self.smoke_drag(sim_clock)
             else:
                 self.move_dance(tool, sim_clock)
             if self.recording and self.current['group'] == self.checkpoint_mode:
                 near_goal = np.linalg.norm(tool-self.goal) <= v2.sixth.GOAL_TOLERANCE_M
                 self.goal_entries += int(near_goal and not self.at_goal)
                 self.at_goal = near_goal
-                duration = INTERACTIVE_SMOKE_S+DRAG_SMOKE_S if self.camera_smoke else self.args.sim_seconds
+                duration = INTERACTIVE_SMOKE_S+DRAG_SMOKE_S+STILL_SMOKE_S if self.camera_smoke else self.args.sim_seconds
                 if sim_clock >= duration-CONTROL_DT-1e-9:
                     self.stop_event.set()
 
@@ -912,7 +1010,8 @@ def replay(types, args, cases):
         bar = server.scene.add_cylinder('/truth/bar', radius=types.scene.RADIUS, height=types.scene.LENGTH,
                                          wxyz=types.scene.ROTATION_WXYZ, color=BAR_COLOR)
         rod = server.scene.add_cylinder('/truth/rod', radius=.025, height=.50, color=ROD_COLOR)
-        initial_case = 'Dance + drag' if 'Dance + drag' in cases else next(iter(cases))
+        initial_case = next((name for name in ('Dance + drag + still', 'Dance + drag')
+                             if name in cases), next(iter(cases)))
         selector = server.gui.add_dropdown('Checkpoint', options=tuple(cases), initial_value=initial_case)
         max_time = max(case['frames'][-1]['time_s'] for case in cases.values())
         slider = server.gui.add_slider('Simulated time s', min=0., max=max_time, step=CONTROL_DT, initial_value=0.)
@@ -973,11 +1072,12 @@ def replay(types, args, cases):
             for name, track in row['tracks'].items():
                 paint(*handles[name], track['box'], track['event'])
                 readout = track.get('readout')
-                if readout is None:
+                if readout is None or 'size_ratio_xyz' not in readout:
                     truth = row['true_bar_velocity_mps'] if name == 'bar' else (None if row['rod'] is None else np.zeros(3))
                     estimate = track['velocity_mps'] if track['observed'] is not None else None
-                    readout = prediction_readout(track['observed'], track['predicted'], 0 if name == 'bar' else 2,
-                                                 estimate, truth, None)
+                    previous = readout or {}
+                    readout = prediction_readout(track['observed'], track['predicted'], estimate, truth,
+                                                 previous.get('sweep_kept_fraction'))
                 readouts[name].value = readout_text(readout)
                 for key, handle in zip(('observed', 'predicted'), outlines[name]):
                     fit = track[key]
@@ -1073,14 +1173,14 @@ def replay(types, args, cases):
 
 def phase_metrics(rows):
     values = [row['tracks']['bar']['readout'] for row in rows]
-    ratios = [v['predicted_length_m']/v['observed_length_m'] for v in values
-              if v['predicted_length_m'] is not None and v['observed_length_m']]
+    ratios = [v['size_ratio_xyz'] for v in values if v['size_ratio_xyz'] is not None]
     errors = [abs(v['estimated_speed_mps']-v['true_speed_mps']) for v in values
               if v['estimated_speed_mps'] is not None and v['true_speed_mps'] is not None]
-    return dict(max_length_ratio=max(ratios, default=None), max_speed_error_mps=max(errors, default=None),
-                ratio_samples=len(ratios), speed_samples=len(errors),
-                max_true_speed_mps=max((v['true_speed_mps'] for v in values
-                                        if v['true_speed_mps'] is not None), default=None))
+    return dict(max_size_ratio_xyz=[max((r[i] for r in ratios if r[i] is not None), default=None)
+                                    for i in range(3)],
+                mean_speed_error_mps=None if not errors else sum(errors)/len(errors),
+                max_speed_error_mps=max(errors, default=None),
+                ratio_samples=len(ratios), speed_samples=len(errors))
 
 
 def verify_interactive_camera(app):
@@ -1095,18 +1195,29 @@ def verify_interactive_camera(app):
     run = app.current
     changes = {name: len(values) for name, values in app.camera_signatures.items()}
     dance = [row for row in app.rows if row['time_s'] < INTERACTIVE_SMOKE_S]
-    drag = [row for row in app.rows if row['time_s'] >= INTERACTIVE_SMOKE_S]
-    metrics = {'dance': phase_metrics(dance), 'drag': phase_metrics(drag)}
+    still_start = INTERACTIVE_SMOKE_S+DRAG_SMOKE_S
+    drag = [row for row in app.rows if INTERACTIVE_SMOKE_S <= row['time_s'] < still_start]
+    still = [row for row in app.rows if row['time_s'] >= still_start]
+    metrics = {'dance': phase_metrics(dance), 'drag': phase_metrics(drag), 'still': phase_metrics(still)}
+    cropped_still = [event for event in app.bar_memory.events
+                     if event['time_s'] >= still_start and event['fresh_seen']
+                     and sum(event.get('cropped_bar_ends', [])) == 1]
     report = dict(duration_s=run['sim_time_s'], captures=app.displayed_camera_frames,
                   cloud_frames=app.displayed_cloud_frames, distinct=changes,
-                  phases=metrics, worker_stopped=run['worker_stopped'])
+                  phases=metrics, still_cropped_frames=len(cropped_still),
+                  still_center_m=app.still_center, worker_stopped=run['worker_stopped'])
     if (app.thread.is_alive() or run['error'] or not run['worker_stopped']
-            or not np.isclose(run['sim_time_s'], INTERACTIVE_SMOKE_S+DRAG_SMOKE_S)
+            or not np.isclose(run['sim_time_s'], still_start+STILL_SMOKE_S)
             or not all(handle.visible for handle in (app.frustum, app.points, app.depth,
                                                      app.footprint.outline, app.footprint.fill))
             or not app.vertical.enabled.value or not app.pokes or app.drag_origin is None
             or len(dance) != round(INTERACTIVE_SMOKE_S/CONTROL_DT)
             or len(drag) != round(DRAG_SMOKE_S/CONTROL_DT)
+            or len(still) != round(STILL_SMOKE_S/CONTROL_DT) or len(cropped_still) < 2
+            or any(row['tracks']['bar']['readout']['true_speed_mps'] != 0. for row in still)
+            or np.allclose(still[0]['q'], still[-1]['q'])
+            or metrics['still']['max_speed_error_mps'] is None
+            or metrics['still']['max_speed_error_mps'] >= .02
             or not app.displayed_cloud_frames or min(changes.values()) < 2
             or not all(np.isclose(row['tracks']['bar']['readout']['true_speed_mps'], DRAG_SPEED_MPS)
                        for row in drag[1:])):
@@ -1181,7 +1292,7 @@ def main():
                 case = verify_interactive_camera(app)
                 with gzip.open(args.checkpoint, 'rt') as stream:
                     cases = json.load(stream)
-                cases['Dance + drag'] = case
+                cases['Dance + drag + still'] = case
                 write_checkpoint(args.checkpoint, cases)
             else:
                 types.base.wait_for_viewer(args.duration)

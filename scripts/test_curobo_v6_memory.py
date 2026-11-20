@@ -4,7 +4,7 @@ import unittest
 import numpy as np
 
 from curobo_v6_memory import (
-    clip_sweep, box_sphere_distance, floor_footprint, prediction_readout,
+    clip_sweep, box_sphere_distance, floor_footprint, prediction_readout, bar_tracking_center,
     DepthFrame, ObjectMemory, path_target, summarize_pokes, tip_projection, visible_path_target,
 )
 
@@ -39,15 +39,58 @@ class ViewerGeometry(unittest.TestCase):
     def test_readout_uses_object_axis_and_motion_magnitudes(self):
         observed = {'dims_m': [.30, .04, .04]}
         predicted = {'dims_m': [.36, .06, .05]}
-        bar = prediction_readout(observed, predicted, 0, [.03, .04, 0.], [0., .30, 0.], .5)
-        rod = prediction_readout(observed, predicted, 2, None, None, None)
-        self.assertEqual(bar['observed_length_m'], .30)
-        self.assertEqual(bar['predicted_length_m'], .36)
+        bar = prediction_readout(observed, predicted, [.03, .04, 0.], [0., .30, 0.], .5)
+        rod = prediction_readout(observed, predicted, None, None, None)
+        self.assertEqual(bar['observed_size_m'], [.30, .04, .04])
+        self.assertEqual(bar['predicted_size_m'], [.36, .06, .05])
+        np.testing.assert_allclose(bar['size_ratio_xyz'], [1.2, 1.5, 1.25])
         self.assertAlmostEqual(bar['estimated_speed_mps'], .05)
         self.assertAlmostEqual(bar['true_speed_mps'], .30)
         self.assertEqual(bar['sweep_kept_fraction'], .5)
-        self.assertEqual(rod['predicted_length_m'], .05)
+        self.assertEqual(rod['predicted_size_m'][2], .05)
         self.assertIsNone(rod['estimated_speed_mps'])
+
+
+class BarEndTracking(unittest.TestCase):
+    def observe_bar(self, track, time, x, camera_x, width=100, y=0.):
+        height, focal = 100, 100.
+        origin = np.array([camera_x, 0., .70])
+        camera = DepthFrame(np.zeros((height, width)), np.zeros((height, width), dtype=bool),
+                            (focal, focal, width/2, height/2), origin, np.diag([1., -1., -1.]))
+        half_view = width*.50/(2*focal)
+        low, high = max(x-.15, camera_x-half_view), min(x+.15, camera_x+half_view)
+        angles = np.linspace(0., 2*np.pi, 16, endpoint=False)
+        points = np.array([[px, y+.02*np.cos(a), .20+.02*np.sin(a)]
+                           for px in np.linspace(low, high, 20) for a in angles])
+        center, cropped = bar_tracking_center(points, camera,
+                                             {'left': low>x-.15, 'right': high<x+.15}, .30, .02)
+        _, velocity, event = track.observe(box(x=x), center, camera, time)
+        return velocity, event['class'], cropped
+
+    def test_half_cropped_bar_moving_at_point_one_meter_per_second(self):
+        track = ObjectMemory()
+        for time in np.linspace(0., .5, 16):
+            velocity, kind, cropped = self.observe_bar(track, time, .40+.10*time, .65)
+            self.assertEqual(cropped, [True, False])
+            if time:
+                self.assertAlmostEqual(velocity[0], .10, delta=.01)
+                self.assertEqual(kind, 'MOVING')
+
+    def test_still_bar_while_camera_shifts_crop_at_point_three_meter_per_second(self):
+        track = ObjectMemory()
+        for time in np.linspace(0., .35, 15):
+            velocity, kind, cropped = self.observe_bar(track, time, .40, .65+.30*time)
+            self.assertEqual(cropped, [True, False])
+            self.assertLess(np.linalg.norm(velocity), .02)
+            self.assertEqual(kind, 'STATIC')
+
+    def test_two_cropped_ends_drop_only_inferred_axial_motion(self):
+        track = ObjectMemory()
+        self.observe_bar(track, 0., .40, .40, width=40)
+        velocity, kind, cropped = self.observe_bar(track, .1, .41, .41, width=40, y=.01)
+        self.assertEqual(cropped, [True, True])
+        np.testing.assert_allclose(velocity, [0., .10, 0.], atol=1e-8)
+        self.assertEqual(kind, 'MOVING')
 
 
 class DanceGeometry(unittest.TestCase):
