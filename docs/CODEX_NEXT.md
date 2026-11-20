@@ -39,9 +39,11 @@ explicit path only. No git clean/reset/restore/stash/add -A.
 1. Calibration: every MOVING link sticks out of its spheres by <= 15 mm (upper_arm max 14.9 mm, forearm 13.0,
    gripper links <= 4). The 51 mm max comes ONLY from ur/base_link_inertia (the fixed base, poorly covered by
    spheres). Using the overall max (51 mm) erased the bar again (fixed bar px 1125 -> 963 at the contact).
-   Fix: distance_threshold = 0.015 (moving links, measured); remove the fixed base separately with a static
-   world-frame box = bounding box of the calibration's base_link_inertia pixels + 1 cm (the base never moves,
-   same on the real robot). Save the box in the calibration json.
+   Fix: distance_threshold = 0.015 (moving links, measured). The fixed base is removed by COMPUTED geometry,
+   not a hand-made box: take ur/base_link_inertia's collision/visual geometry from the robot URDF at its
+   fixed world pose, use its bounding cylinder/box + 1 cm, and drop depth points inside it each frame (the base
+   never moves; same on the real robot). Verify with the calibration pixels: 0 base pixels left outside.
+   Save the computed base volume in the calibration json.
 2. Perception is now correct: in the 1 s before the E contact the ESDF matched the truth within ~1 cm
    (0.138/0.138, 0.087/0.094, 0.039/0.037 m) while the ARM drove toward the bar at 0.40-0.48 m/s. B passed only
    by 1.1 cm at the same moment (4.93 s). So it is control: MPC feels obstacles only within
@@ -49,6 +51,9 @@ explicit path only. No git clean/reset/restore/stash/add -A.
    Required distance = closing speed x reaction time + bar travel over the horizon
    = 0.5 m/s x (1/30 + 0.025) s + 0.10 m/s x 0.43 s ~= 0.072 -> use 0.07 m for obstacles. Keep the floor's
    own activation at 0.01 (FloorMaskedScene) unchanged.
+3. Display (user: do it now): the RGB panels are dark because Newton renders without lights/textures.
+   Make them readable for display only (per-frame normalisation / gamma, or a simple headlight if Newton's
+   sensor supports it). Does not affect mapping.
 Runs, 1 each: (a) E empty 10 s both cameras (arm mask check), (b) B Dance 6 s, (c) E Dance 6 s both cameras.
 SUCCESS as before (start -> goal, 0 bar contacts). Pass: (a) <= 5 voxels near the arm, reversals <= 2;
 (b) success and min clearance >= 0.02 m; (c) success. If (b) fails, stop and report (control, not perception).
