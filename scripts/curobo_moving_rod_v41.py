@@ -39,7 +39,8 @@ def require_preflight(report):
         raise RuntimeError(f'STOP: scored endpoint floor clearance is below {ENDPOINT_GATE_M:.3f} m')
 
 
-def make_mpc(config,settings,*,floor_activation_m=None,additional_boxes=()):
+def make_mpc(config,settings,*,floor_activation_m=None,additional_boxes=(),
+             obstacle_activation_m=.03):
     """Fixed v3 MPC plus two-metre floor, filtered only for floor cost."""
     report=json.loads(PREFLIGHT_FILE.read_text());require_preflight(report)
     if report['robot_config_sha256']!=hashlib.sha256(config.read_bytes()).hexdigest() or settings!=report['frozen_config'] or report['reference_sha256']!=hashlib.sha256(v3.REFERENCE_FILE.read_bytes()).hexdigest():
@@ -50,7 +51,8 @@ def make_mpc(config,settings,*,floor_activation_m=None,additional_boxes=()):
     cfg=tuned.ModelPredictiveControlCfg.create(robot=robot_cfg,
         scene_model={'cuboid': cuboids},
         optimization_dt=settings.get('optimization_dt',tuned.OPTIMIZATION_DT),interpolation_steps=4,use_cuda_graph=True,
-        optimizer_collision_activation_distance=.03,warm_start_optimization_num_iters=200,cold_start_optimization_num_iters=300,
+        optimizer_collision_activation_distance=obstacle_activation_m,
+        warm_start_optimization_num_iters=200,cold_start_optimization_num_iters=300,
         squared_l2_regularization_weight=[.01,settings['acceleration_regularization'],10.,0.,0.],
         non_terminal_tool_pose_weight_factor=settings['non_terminal_tool_pose_weight_factor'])
     active=nonbase_mask(SimpleNamespace(kinematics_config=robot_cfg.kinematics.kinematics_config))

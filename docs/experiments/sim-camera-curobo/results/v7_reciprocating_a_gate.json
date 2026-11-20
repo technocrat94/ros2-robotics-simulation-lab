@@ -1,0 +1,71 @@
+{
+  "scene": {
+    "axis": "x",
+    "tip_inner_x_m": 0.5,
+    "tip_outer_x_m": 0.625,
+    "lane_y_m": 0.28,
+    "center_z_m": 0.15,
+    "bar_length_m": 0.3,
+    "speed_mps": 0.1,
+    "starts_outer": true
+  },
+  "mode_A": {
+    "mode": "A",
+    "cameras": null,
+    "seconds": 10.0,
+    "rgbd_batches": 0,
+    "max_bar_speed_mps": 0.10000000000000231,
+    "closest_truth": {
+      "time_s": 1.45,
+      "clearance_m": 0.02064175845053374,
+      "sphere_index": 108,
+      "q_rad": [
+        -2.3356735110282907,
+        -2.3379951725713917,
+        -0.7315047075739128,
+        1.5930088564287874,
+        4.727721393108368,
+        -2.2352326440624877
+      ],
+      "bar_center_m": [
+        0.67,
+        0.28,
+        0.15
+      ],
+      "rod": null
+    },
+    "contacts": {
+      "bar": 0,
+      "rod": 0,
+      "floor": 0
+    },
+    "reaches": 3,
+    "minimum_clearance_m": 0.02064175845053374,
+    "integrate_ms": {
+      "mean": 0.0,
+      "p95": 0.0
+    },
+    "esdf_ms": {
+      "mean": 0.0,
+      "p95": 0.0
+    },
+    "decay": {
+      "voxel_m": null,
+      "left_at_s": null,
+      "cleared_at_s": null,
+      "delay_s": null,
+      "still_occupied_after_s": null
+    },
+    "max_direction_reversals_per_joint_in_half_second": 1,
+    "thrash_detected": false
+  },
+  "gate_passed": false,
+  "required_bar_contacts": "at least one",
+  "obstacle_activation_m": 0.07,
+  "floor_activation_m": 0.01,
+  "stopped_before": [
+    "E empty",
+    "B reciprocating bar",
+    "E reciprocating bar"
+  ]
+}
