@@ -42,20 +42,41 @@ class MemoryRules(unittest.TestCase):
         self.assertEqual(event['since_seen_s'], 12.)
         self.assertEqual(event['cleared_by'], 'none')
 
-    def test_moving_propagation_applies_total_age_and_only_grows_xy(self):
+    def test_moving_toward_robot_propagates_and_grows_xy(self):
         track = ObjectMemory()
-        self.observed(track, 0., box())
-        self.observed(track, .5, box(x=.05))
+        self.observed(track, 0., box(x=1.))
+        self.observed(track, .5, box(x=.95))
         for time in (.7, 1.):
             actual, velocity, event = track.observe(None, None, frame(), time)
             age = time-.5
-            np.testing.assert_allclose(actual['center_m'], [.05+.1*age, 0., .5])
+            np.testing.assert_allclose(actual['center_m'], [.95-.1*age, 0., .5])
             np.testing.assert_allclose(actual['dims_m'], [.1+.4*age, .1+.4*age, .1])
-            np.testing.assert_allclose(velocity, [.1, 0., 0.])
+            np.testing.assert_allclose(velocity, [-.1, 0., 0.])
             self.assertEqual(event['class'], 'MOVING')
             self.assertTrue(event['growth_rule'])
 
-    def test_seen_empty_requires_all_nine_clear_pixels(self):
+    def test_moving_away_keeps_size_and_never_balloons(self):
+        track = ObjectMemory()
+        self.observed(track, 0., box(x=.5))
+        self.observed(track, .5, box(x=.55))
+        for time in (1., 2., 4.):
+            actual, _, event = track.observe(None, None, frame(), time)
+            np.testing.assert_allclose(actual['dims_m'], [.1, .1, .1])
+            np.testing.assert_allclose(actual['center_m'], [.55+.1*(time-.5), 0., .5])
+            self.assertTrue(event['moving_away'])
+            self.assertFalse(event['growth_rule'])
+
+    def test_carving_removes_only_the_part_seen_empty(self):
+        track = ObjectMemory()
+        self.observed(track, 0., box(size=.4))
+        image = frame(2.)
+        image.depth[:, :50] = 0.     # left half of the image: no evidence
+        actual, _, event = track.observe(None, None, image, 1.)
+        self.assertEqual(event['cleared_by'], 'none')
+        self.assertLess(actual['dims_m'][0], .4)
+        self.assertLess(actual['center_m'][0], 0.)
+
+    def test_box_stays_while_any_part_lacks_empty_evidence(self):
         track = ObjectMemory()
         obstacle = box()
         self.observed(track, 0., obstacle)
@@ -66,14 +87,28 @@ class MemoryRules(unittest.TestCase):
         unknown = frame(2.)
         unknown.depth[50, 50] = np.inf
         for t, image in enumerate((occluded, blocking, unknown, frame(2., origin=(.9, 0., 0.))), 1):
-            actual, _, event = track.observe(None, None, image, t)
-            self.assertEqual(actual, obstacle)
+            single = ObjectMemory()
+            self.observed(single, 0., obstacle)
+            actual, _, event = single.observe(None, None, image, t)
+            self.assertIsNotNone(actual)
             self.assertEqual(event['cleared_by'], 'none')
         actual, _, event = track.observe(None, None, frame(2.), 5.)
         self.assertIsNone(actual)
         self.assertEqual(event['cleared_by'], 'seen_empty')
         _, _, event = self.observed(track, 6., obstacle)
         self.assertEqual(event['cleared_by'], 'none')
+
+    def test_evidence_accumulates_across_frames(self):
+        track = ObjectMemory()
+        self.observed(track, 0., box())
+        first = frame(2.)
+        first.robot_mask[50, 50] = True          # the centre is hidden behind the arm
+        actual, _, _ = track.observe(None, None, first, 1.)
+        self.assertIsNotNone(actual)
+        self.assertLess(actual['dims_m'][0], .1)  # the rest was carved away
+        actual, _, event = track.observe(None, None, frame(2.), 2.)
+        self.assertIsNone(actual)
+        self.assertEqual(event['cleared_by'], 'seen_empty')
 
     def test_moving_track_can_clear_from_observed_empty_depth(self):
         track = ObjectMemory()

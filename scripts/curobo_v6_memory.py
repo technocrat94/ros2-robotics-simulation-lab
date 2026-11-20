@@ -19,6 +19,8 @@ EMPTY_MARGIN_M = .03
 REACH_M = 1.
 COLORS = {'STATIC': (65, 135, 245), 'MOVING': (255, 145, 35)}
 SAMPLE_OFFSETS = np.array([*product((-.5, .5), repeat=3), (0., 0., 0.)])
+# Carving lattice: 5 x 5 x 3 samples over the box, each cleared only by depth seen past it.
+CARVE_OFFSETS = np.array(list(product(np.linspace(-.5, .5, 5), np.linspace(-.5, .5, 5), (-.5, 0., .5))))
 ROOT = Path(__file__).resolve().parents[1]
 CHECKPOINT = ROOT.parents[1]/'v6-memory-checkpoint.json.gz'
 
@@ -32,21 +34,42 @@ class DepthFrame:
     origin: np.ndarray
     rotation: np.ndarray
 
+    def free(self, xyz):
+        """Per point: True only if the camera saw past it (in image, not robot, depth beyond)."""
+        optical = (np.asarray(xyz, dtype=float)-self.origin) @ self.rotation
+        z = optical[:, 2]
+        result = np.zeros(len(optical), dtype=bool)
+        ok = np.isfinite(optical).all(axis=1) & (z > 0.)
+        if not ok.any():
+            return result
+        fx, fy, cx, cy = self.intrinsics
+        uv = np.full((len(optical), 2), -1.)
+        uv[ok] = optical[ok, :2]/z[ok, None]*[fx, fy]+[cx, cy]
+        height, width = self.depth.shape
+        ok &= np.all(uv >= 0., axis=1) & (uv[:, 0] < width) & (uv[:, 1] < height)
+        x, y = np.floor(uv[ok]).astype(int).T
+        depth = self.depth[y, x]
+        result[ok] = ~self.robot_mask[y, x] & np.isfinite(depth) & (depth > z[ok]+EMPTY_MARGIN_M)
+        return result
+
     def proves_empty(self, box):
         xyz = np.asarray(box['center_m']) + SAMPLE_OFFSETS*np.asarray(box['dims_m'])
-        optical = (xyz-self.origin) @ self.rotation
-        z = optical[:, 2]
-        if not np.isfinite(optical).all() or np.any(z <= 0.):
-            return False
-        fx, fy, cx, cy = self.intrinsics
-        uv = optical[:, :2]/z[:, None]*[fx, fy]+[cx, cy]
-        height, width = self.depth.shape
-        if np.any(uv < 0.) or np.any(uv >= [width, height]):
-            return False
-        x, y = np.floor(uv).astype(int).T
-        depth = self.depth[y, x]
-        return bool(np.all(~self.robot_mask[y, x] & np.isfinite(depth) &
-                           (depth > z+EMPTY_MARGIN_M)))
+        return bool(self.free(xyz).all())
+
+    def carve(self, box):
+        """Remove the parts of a box the camera saw as empty; None when nothing is left."""
+        center, dims = np.asarray(box['center_m'], dtype=float), np.asarray(box['dims_m'], dtype=float)
+        samples = center+CARVE_OFFSETS*dims
+        free = self.free(samples)
+        if not free.any():
+            return box
+        left = samples[~free]
+        if not len(left):
+            return None
+        cell = dims/np.array([4., 4., 2.])
+        low = np.maximum(left.min(axis=0)-cell/2, center-dims/2)
+        high = np.minimum(left.max(axis=0)+cell/2, center+dims/2)
+        return dict(box, center_m=((low+high)/2).tolist(), dims_m=(high-low).tolist())
 
 
 class ObjectMemory:
@@ -60,32 +83,45 @@ class ObjectMemory:
         self.velocity = np.zeros(3)
         self.cleared_by = 'none'
         self.last_event = {}
+        self.updated = None
 
     def observe(self, box, center, frame, time_s):
         if box is not None:
             self._seen(box, center, time_s)
         age = None if self.last_seen is None else max(0., time_s-self.last_seen)
-        current = self.box
+        growing = False
         if box is None and self.box is not None:
+            # The remembered box is a running state: propagate, then carve with this frame's depth.
+            dt = max(0., time_s-self.updated)
+            center = np.asarray(self.box['center_m'], dtype=float)
+            dims = np.asarray(self.box['dims_m'], dtype=float)
             if self.kind == 'MOVING':
-                current = dict(self.box,
-                               center_m=(np.asarray(self.box['center_m'])+self.velocity*age).tolist(),
-                               dims_m=(np.asarray(self.box['dims_m'])+2*GROWTH_MPS*age*np.array([1., 1., 0.])).tolist())
-            if frame.proves_empty(current):
+                # Leaving (velocity points away from the robot): keep the predicted box, no growth.
+                # Heading in: grow at the worst-case speed, so it can only shrink by depth evidence.
+                growing = not self.moving_away(center)
+                center = center+self.velocity*dt
+                if growing:
+                    dims = dims+2*GROWTH_MPS*dt*np.array([1., 1., 0.])
+            self.box = frame.carve(dict(self.box, center_m=center.tolist(), dims_m=dims.tolist()))
+            self.updated = time_s
+            if self.box is None:
                 self._clear('seen_empty')
             elif self.kind == 'MOVING':
-                delta = np.abs(np.asarray(current['center_m'])-self.base_origin)
-                nearest = np.maximum(delta-np.asarray(current['dims_m'])/2, 0.)
+                delta = np.abs(np.asarray(self.box['center_m'])-self.base_origin)
+                nearest = np.maximum(delta-np.asarray(self.box['dims_m'])/2, 0.)
                 if np.linalg.norm(nearest) > REACH_M:
                     self._clear('out_of_reach')
-            if self.box is None:
-                current = None
+        current = None if self.box is None else dict(self.box)
         self.last_event = {'time_s': time_s, 'class': self.kind, 'since_seen_s': age,
                            'cleared_by': self.cleared_by, 'fresh_seen': box is not None,
-                           'retained': current is not None,
-                           'top_rule': False, 'growth_rule': bool(
-                               box is None and current is not None and self.kind == 'MOVING')}
+                           'retained': current is not None, 'top_rule': False,
+                           'moving_away': bool(self.kind == 'MOVING' and current is not None and not growing
+                                               and box is None),
+                           'growth_rule': bool(box is None and current is not None and growing)}
         return current, self.velocity.copy(), self.last_event
+
+    def moving_away(self, center):
+        return float(np.dot(self.velocity[:2], center[:2]-self.base_origin[:2])) > 0.
 
     def _seen(self, box, center, time_s):
         center = np.array(center, dtype=float)
@@ -109,6 +145,7 @@ class ObjectMemory:
             self.kind = 'STATIC'
         self.box = dict(center_m=list(box['center_m']), dims_m=list(box['dims_m']))
         self.last_seen = time_s
+        self.updated = time_s
         self.cleared_by = 'none'
 
     def _clear(self, reason):
@@ -208,7 +245,8 @@ def memory_label(event):
     age = event.get('since_seen_s')
     kind = event.get('class') or '—'
     age_text = '—' if age is None else f'{age:.2f} s'
-    return f"{kind} · age {age_text} · {event.get('cleared_by', 'none')}"
+    motion = ' · leaving' if event.get('moving_away') else (' · heading in' if event.get('growth_rule') else '')
+    return f"{kind}{motion} · age {age_text} · {event.get('cleared_by', 'none')}"
 
 
 def paint(handle, label, box, event):

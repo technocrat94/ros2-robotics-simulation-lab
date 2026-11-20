@@ -33,33 +33,22 @@ No pending task
 Leave the deleted 05_c2_tall_wall_refused.png and the untracked curobo/ untouched. Stage files by
 explicit path only. No git clean/reset/restore/stash/add -A.
 
-## Task: v6 memory by object type (checkpoint only, ~15 min) — 2026-11-20
+## Task: v6 rerun after Claude's memory fix (checkpoint only, ~10 min) — 2026-11-20
 
-Goal: replace the fixed 1 s TTL with two kinds of memory. Build on `curobo_moving_rod_v5_rules.HeightMemory`
-and the Dance demo (`curobo_moving_bar_poke_demo.py`). New files only: `scripts/curobo_v6_memory.py`
-(+ tests), launcher `scripts/run_sim_camera_v6_memory.sh`. Keep the code camera-agnostic (it must only use
-the capture: points, depth image, intrinsics, camera pose, robot mask), because the camera will later move
-to an eye-to-hand mount.
-
-Rules:
-1. Classify each obstacle while seen: centre moved < 0.02 m over the last 0.5 s -> STATIC, else MOVING.
-   Re-classify every frame it is seen (a moving thing that stops becomes STATIC and vice versa).
-2. STATIC out of view: keep the last box as it is, no growth, no TTL.
-3. MOVING out of view: move the last box along its last velocity for the time since seen, grow XY by
-   0.2 m/s x age (same as v5).
-4. Delete a box only when (a) seen empty: its 8 corners + centre all project inside the image and the depth
-   there is > sample distance + 0.03 m, and the pixel is not robot (robot pixels are occlusion, not free);
-   or (b) MOVING only: the predicted box is fully outside 1.0 m from the robot base.
-5. No other expiry. Log per frame: class, since_seen_s, cleared_by (seen_empty / out_of_reach / none).
-
-Viewer: STATIC box blue, MOVING box orange, label with class + age + cleared_by.
-
-Checkpoint (E only, 1 run each, no batch):
-- Car: Dance poke bar. After it retracts, its box disappears (seen_empty or out_of_reach).
-- Sofa: vertical rod fixed at a spot that is seen at start and leaves the view during the reach. Its box
-  stays (STATIC) until the camera looks there again and sees it empty, or never if the rod is still there.
-- Report the two runs (contacts, reaches, min clearance), then give the replay + interactive commands and
-  3 lines on what to look at. Push and stop.
+a46a39a reviewed. Bug: a MOVING box out of view grew 0.4 m/s forever (bar retracted at 0.1 m/s, box 2.3 m
+wide after 5 s) and "seen empty" needed all 9 samples inside the image, so a large box never cleared.
+Claude fixed `ObjectMemory`/`DepthFrame` in scripts/curobo_v6_memory.py (10 GPU-free tests pass):
+- carving: 5x5x3 samples per box, each removed only when depth is seen past it; evidence accumulates
+  across frames; the box shrinks to what is left, deleted when nothing is left.
+- MOVING leaving (velocity points away from the robot base): predicted along velocity, no growth.
+  MOVING heading in: grows 0.2 m/s and only shrinks by carving. Label shows "leaving"/"heading in".
+Do not change these rules. Do:
+1. Save the checkpoint inside the repo: docs/experiments/sim-camera-curobo/results/v6_memory_checkpoint.json.gz
+   (it was outside the repo, so it could not be reviewed). If > 20 MB, thin frames to 10 Hz.
+2. Run `--smoke` (Car + Sofa, E only). For Sofa, first confirm the rod spot is seen at start AND leaves the
+   view during the reach (print the first unseen time); if it never leaves the view, move it until it does.
+3. Report per run: contacts, reaches, min clearance, max bar box width, cleared_by events with times.
+4. Give the replay + interactive commands and 3 lines on what to look at. Commit, push, stop.
 
 ### Spec kept from v4 (unchanged rules)
 : floor, unseen rod top, visible prediction (started 2026-11-19)
