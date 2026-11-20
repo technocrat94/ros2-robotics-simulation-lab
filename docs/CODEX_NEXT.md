@@ -33,11 +33,17 @@ No pending task
 Leave the deleted 05_c2_tall_wall_refused.png and the untracked curobo/ untouched. Stage files by
 explicit path only. No git clean/reset/restore/stash/add -A.
 
-## Task: none. Waiting for the user's Viser check of v6 (2026-11-20)
+## Task: fix v6 interactive mode (user cannot open it) — 2026-11-20
 
-06eeb17 reviewed. v6 checkpoint passes: Car E 0 contacts (+25.9 mm), pokes 1 and 3 seen and cleared by
-moved_on 0.53 s after leaving view, poke 2 skipped (no visible path point); Sofa B/E 3 reaches, 0 contacts.
-Known small issue: at the bar's turnaround it reads STATIC for 1-2 frames. Do not start anything.
+The user ran `NEWTON_VIEWER_PORT=30006 scripts/run_sim_camera_v6_memory.sh --interactive` and cannot see
+the viewer. --smoke and --replay worked, so suspect the recording=False path in V6Live/V6Vertical.
+1. Stop only your own viewer/curobo processes on port 30006 first (pgrep -u "$USER"); never others'.
+2. Run `--interactive --duration 60` and save the log. Fix every exception or hang.
+3. Add `--viewer-smoke` support for --interactive: in-process, select E, press Dance, enable the vertical
+   rod, run 10 simulated s, assert the camera frustum/points/depth panel and the v6 memory boxes update
+   and no exception; then exit. It must pass.
+4. Report what was broken (1-2 lines), the interactive command and 3 lines on what to look at.
+   Commit, push, stop. Leave the viewer running for the user at the end.
 
 ### Spec kept from v4 (unchanged rules)
 : floor, unseen rod top, visible prediction (started 2026-11-19)
