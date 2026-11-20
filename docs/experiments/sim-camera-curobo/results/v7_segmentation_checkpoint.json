@@ -1,0 +1,1266 @@
+{
+  "robot_mask_distance_m": 0.015,
+  "decay_factor": 0.3,
+  "frustum_decay_factor": 1.0,
+  "floor_handling": "original floor-pixel rejection",
+  "empty": {
+    "seconds": 10.0,
+    "frames": 300,
+    "reaches": 1,
+    "returns": 0,
+    "contacts": {
+      "bar": 0,
+      "rod": 0,
+      "floor": 0
+    },
+    "peak_reversals_in_half_s": 5,
+    "max_voxels_within_50mm": 227,
+    "frames_with_near_arm_voxels": 292
+  },
+  "empty_near_arm_counts": [
+    0,
+    0,
+    0,
+    1,
+    1,
+    0,
+    2,
+    2,
+    0,
+    4,
+    6,
+    7,
+    7,
+    10,
+    12,
+    20,
+    22,
+    33,
+    38,
+    45,
+    47,
+    54,
+    58,
+    63,
+    65,
+    67,
+    72,
+    74,
+    74,
+    77,
+    80,
+    81,
+    83,
+    84,
+    86,
+    85,
+    84,
+    89,
+    91,
+    90,
+    90,
+    94,
+    95,
+    98,
+    99,
+    100,
+    101,
+    101,
+    100,
+    99,
+    101,
+    101,
+    102,
+    104,
+    106,
+    107,
+    109,
+    109,
+    112,
+    116,
+    117,
+    117,
+    119,
+    122,
+    131,
+    134,
+    136,
+    141,
+    134,
+    88,
+    4,
+    0,
+    0,
+    0,
+    3,
+    15,
+    35,
+    81,
+    120,
+    128,
+    136,
+    139,
+    139,
+    139,
+    148,
+    164,
+    172,
+    176,
+    177,
+    178,
+    182,
+    185,
+    187,
+    191,
+    191,
+    193,
+    195,
+    195,
+    192,
+    194,
+    196,
+    202,
+    205,
+    206,
+    206,
+    203,
+    198,
+    202,
+    205,
+    200,
+    200,
+    200,
+    200,
+    200,
+    200,
+    199,
+    201,
+    201,
+    201,
+    202,
+    201,
+    201,
+    201,
+    202,
+    203,
+    204,
+    204,
+    204,
+    204,
+    204,
+    204,
+    203,
+    203,
+    202,
+    204,
+    201,
+    200,
+    198,
+    200,
+    199,
+    195,
+    193,
+    191,
+    184,
+    182,
+    180,
+    177,
+    176,
+    173,
+    173,
+    172,
+    172,
+    167,
+    165,
+    165,
+    164,
+    166,
+    167,
+    172,
+    172,
+    172,
+    173,
+    173,
+    175,
+    176,
+    177,
+    180,
+    184,
+    184,
+    188,
+    191,
+    192,
+    191,
+    194,
+    196,
+    200,
+    199,
+    200,
+    203,
+    206,
+    213,
+    213,
+    214,
+    212,
+    208,
+    200,
+    202,
+    202,
+    198,
+    198,
+    198,
+    195,
+    194,
+    194,
+    192,
+    197,
+    195,
+    195,
+    191,
+    191,
+    191,
+    191,
+    191,
+    193,
+    195,
+    195,
+    195,
+    203,
+    213,
+    224,
+    227,
+    223,
+    217,
+    209,
+    202,
+    202,
+    200,
+    197,
+    197,
+    192,
+    187,
+    184,
+    180,
+    178,
+    174,
+    161,
+    158,
+    140,
+    131,
+    79,
+    12,
+    14,
+    15,
+    12,
+    18,
+    76,
+    95,
+    108,
+    124,
+    115,
+    115,
+    113,
+    106,
+    100,
+    99,
+    94,
+    89,
+    84,
+    83,
+    76,
+    67,
+    56,
+    40,
+    32,
+    14,
+    11,
+    16,
+    20,
+    25,
+    33,
+    38,
+    42,
+    44,
+    46,
+    52,
+    57,
+    62,
+    68,
+    85,
+    41,
+    33,
+    53,
+    107,
+    121,
+    125,
+    127,
+    131,
+    134,
+    140,
+    148,
+    153,
+    159,
+    164,
+    172,
+    173,
+    175,
+    177,
+    180,
+    185,
+    184,
+    189,
+    191,
+    192,
+    191,
+    195,
+    200,
+    202,
+    201,
+    201,
+    203
+  ],
+  "dance": {
+    "run": {
+      "cameras": "both",
+      "seconds": 6.0,
+      "rgbd_batches": 180,
+      "contacts": {
+        "bar": 1,
+        "rod": 0,
+        "floor": 0
+      },
+      "reaches": 1,
+      "minimum_clearance_m": -0.006894665039082695,
+      "integrate_ms": {
+        "mean": 1.3937614056178265,
+        "p95": 1.604877645149827
+      },
+      "esdf_ms": {
+        "mean": 1.6869775511117444,
+        "p95": 0.4892299417406308
+      },
+      "decay": {
+        "voxel_m": [
+          0.5374999642372131,
+          0.1525000035762787,
+          0.3824999928474426
+        ],
+        "left_at_s": 1.8,
+        "cleared_at_s": 1.8,
+        "delay_s": 0.0,
+        "still_occupied_after_s": null
+      },
+      "max_direction_reversals_per_joint_in_half_second": 3,
+      "thrash_detected": true
+    },
+    "contact_episodes": [
+      {
+        "time_s": 3.199178155724204,
+        "sphere_index": 102,
+        "first_visible_s": 0.0,
+        "first_mapped_s": 0.0,
+        "mapped_lead_s": 3.199178155724204,
+        "classification": "MAPPED_BUT_HIT",
+        "samples": [
+          {
+            "time_s": 2.199178155724204,
+            "camera_frame_s": 2.1666666666666665,
+            "map_available_s": 2.1750000000000003,
+            "bar_pixels": {
+              "fixed": 2031,
+              "wrist": 0
+            },
+            "bar_pixel_stages": {
+              "raw": {
+                "fixed": 2031,
+                "wrist": 0
+              },
+              "within_depth_limits": {
+                "fixed": 2031,
+                "wrist": 0
+              },
+              "after_depth_filter": {
+                "fixed": 1738,
+                "wrist": 0
+              },
+              "after_robot_segmenter": {
+                "fixed": 1738,
+                "wrist": 0
+              },
+              "used_for_mapping": {
+                "fixed": 1738,
+                "wrist": 0
+              }
+            },
+            "occupied_voxels_within_30mm": 1572,
+            "sphere_index": 102,
+            "esdf_at_sphere_center_m": 0.40423887968063354,
+            "esdf_surface_clearance_m": 0.3873884230852127,
+            "arm_speed_toward_bar_mps": -0.42948032626009214,
+            "sphere_radius_m": 0.016850456595420837,
+            "true_sphere_clearance_m": 0.37019870023404144
+          },
+          {
+            "time_s": 2.299178155724204,
+            "camera_frame_s": 2.2666666666666666,
+            "map_available_s": 2.275,
+            "bar_pixels": {
+              "fixed": 2033,
+              "wrist": 0
+            },
+            "bar_pixel_stages": {
+              "raw": {
+                "fixed": 2033,
+                "wrist": 0
+              },
+              "within_depth_limits": {
+                "fixed": 2033,
+                "wrist": 0
+              },
+              "after_depth_filter": {
+                "fixed": 1742,
+                "wrist": 0
+              },
+              "after_robot_segmenter": {
+                "fixed": 1742,
+                "wrist": 0
+              },
+              "used_for_mapping": {
+                "fixed": 1742,
+                "wrist": 0
+              }
+            },
+            "occupied_voxels_within_30mm": 1574,
+            "sphere_index": 102,
+            "esdf_at_sphere_center_m": 0.4357324540615082,
+            "esdf_surface_clearance_m": 0.41888199746608734,
+            "arm_speed_toward_bar_mps": -0.3218575537698687,
+            "sphere_radius_m": 0.016850456595420837,
+            "true_sphere_clearance_m": 0.4159631117836478
+          },
+          {
+            "time_s": 2.3991781557242042,
+            "camera_frame_s": 2.3666666666666667,
+            "map_available_s": 2.375,
+            "bar_pixels": {
+              "fixed": 2034,
+              "wrist": 0
+            },
+            "bar_pixel_stages": {
+              "raw": {
+                "fixed": 2034,
+                "wrist": 0
+              },
+              "within_depth_limits": {
+                "fixed": 2034,
+                "wrist": 0
+              },
+              "after_depth_filter": {
+                "fixed": 1745,
+                "wrist": 0
+              },
+              "after_robot_segmenter": {
+                "fixed": 1745,
+                "wrist": 0
+              },
+              "used_for_mapping": {
+                "fixed": 1745,
+                "wrist": 0
+              }
+            },
+            "occupied_voxels_within_30mm": 1572,
+            "sphere_index": 102,
+            "esdf_at_sphere_center_m": 0.44235140085220337,
+            "esdf_surface_clearance_m": 0.42550094425678253,
+            "arm_speed_toward_bar_mps": -0.1882419565191018,
+            "sphere_radius_m": 0.016850456595420837,
+            "true_sphere_clearance_m": 0.4472096919212897
+          },
+          {
+            "time_s": 2.499178155724204,
+            "camera_frame_s": 2.466666666666667,
+            "map_available_s": 2.475,
+            "bar_pixels": {
+              "fixed": 2036,
+              "wrist": 0
+            },
+            "bar_pixel_stages": {
+              "raw": {
+                "fixed": 2036,
+                "wrist": 0
+              },
+              "within_depth_limits": {
+                "fixed": 2036,
+                "wrist": 0
+              },
+              "after_depth_filter": {
+                "fixed": 1747,
+                "wrist": 0
+              },
+              "after_robot_segmenter": {
+                "fixed": 1747,
+                "wrist": 0
+              },
+              "used_for_mapping": {
+                "fixed": 1747,
+                "wrist": 0
+              }
+            },
+            "occupied_voxels_within_30mm": 1571,
+            "sphere_index": 102,
+            "esdf_at_sphere_center_m": 0.458062082529068,
+            "esdf_surface_clearance_m": 0.44121162593364716,
+            "arm_speed_toward_bar_mps": -0.03744698282858616,
+            "sphere_radius_m": 0.016850456595420837,
+            "true_sphere_clearance_m": 0.4655107014234504
+          },
+          {
+            "time_s": 2.599178155724204,
+            "camera_frame_s": 2.566666666666667,
+            "map_available_s": 2.575,
+            "bar_pixels": {
+              "fixed": 2033,
+              "wrist": 0
+            },
+            "bar_pixel_stages": {
+              "raw": {
+                "fixed": 2033,
+                "wrist": 0
+              },
+              "within_depth_limits": {
+                "fixed": 2033,
+                "wrist": 0
+              },
+              "after_depth_filter": {
+                "fixed": 1749,
+                "wrist": 0
+              },
+              "after_robot_segmenter": {
+                "fixed": 1749,
+                "wrist": 0
+              },
+              "used_for_mapping": {
+                "fixed": 1749,
+                "wrist": 0
+              }
+            },
+            "occupied_voxels_within_30mm": 1570,
+            "sphere_index": 102,
+            "esdf_at_sphere_center_m": 0.4772036075592041,
+            "esdf_surface_clearance_m": 0.46035315096378326,
+            "arm_speed_toward_bar_mps": 0.1080125336351534,
+            "sphere_radius_m": 0.016850456595420837,
+            "true_sphere_clearance_m": 0.4623315502539574
+          },
+          {
+            "time_s": 2.699178155724204,
+            "camera_frame_s": 2.6666666666666665,
+            "map_available_s": 2.6750000000000003,
+            "bar_pixels": {
+              "fixed": 2033,
+              "wrist": 0
+            },
+            "bar_pixel_stages": {
+              "raw": {
+                "fixed": 2033,
+                "wrist": 0
+              },
+              "within_depth_limits": {
+                "fixed": 2033,
+                "wrist": 0
+              },
+              "after_depth_filter": {
+                "fixed": 1749,
+                "wrist": 0
+              },
+              "after_robot_segmenter": {
+                "fixed": 1749,
+                "wrist": 0
+              },
+              "used_for_mapping": {
+                "fixed": 1749,
+                "wrist": 0
+              }
+            },
+            "occupied_voxels_within_30mm": 1570,
+            "sphere_index": 102,
+            "esdf_at_sphere_center_m": 0.4551858901977539,
+            "esdf_surface_clearance_m": 0.43833543360233307,
+            "arm_speed_toward_bar_mps": 0.30471492578805437,
+            "sphere_radius_m": 0.016850456595420837,
+            "true_sphere_clearance_m": 0.43950678441678326
+          },
+          {
+            "time_s": 2.799178155724204,
+            "camera_frame_s": 2.7666666666666666,
+            "map_available_s": 2.7750000000000004,
+            "bar_pixels": {
+              "fixed": 2033,
+              "wrist": 0
+            },
+            "bar_pixel_stages": {
+              "raw": {
+                "fixed": 2033,
+                "wrist": 0
+              },
+              "within_depth_limits": {
+                "fixed": 2033,
+                "wrist": 0
+              },
+              "after_depth_filter": {
+                "fixed": 1749,
+                "wrist": 0
+              },
+              "after_robot_segmenter": {
+                "fixed": 1749,
+                "wrist": 0
+              },
+              "used_for_mapping": {
+                "fixed": 1749,
+                "wrist": 0
+              }
+            },
+            "occupied_voxels_within_30mm": 1570,
+            "sphere_index": 102,
+            "esdf_at_sphere_center_m": 0.41856175661087036,
+            "esdf_surface_clearance_m": 0.4017113000154495,
+            "arm_speed_toward_bar_mps": 0.38839874362114113,
+            "sphere_radius_m": 0.016850456595420837,
+            "true_sphere_clearance_m": 0.4023326638547791
+          },
+          {
+            "time_s": 2.8991781557242042,
+            "camera_frame_s": 2.8666666666666667,
+            "map_available_s": 2.875,
+            "bar_pixels": {
+              "fixed": 2033,
+              "wrist": 0
+            },
+            "bar_pixel_stages": {
+              "raw": {
+                "fixed": 2033,
+                "wrist": 0
+              },
+              "within_depth_limits": {
+                "fixed": 2033,
+                "wrist": 0
+              },
+              "after_depth_filter": {
+                "fixed": 1749,
+                "wrist": 0
+              },
+              "after_robot_segmenter": {
+                "fixed": 1749,
+                "wrist": 0
+              },
+              "used_for_mapping": {
+                "fixed": 1749,
+                "wrist": 0
+              }
+            },
+            "occupied_voxels_within_30mm": 1570,
+            "sphere_index": 102,
+            "esdf_at_sphere_center_m": 0.3738606572151184,
+            "esdf_surface_clearance_m": 0.35701020061969757,
+            "arm_speed_toward_bar_mps": 0.4270064090196768,
+            "sphere_radius_m": 0.016850456595420837,
+            "true_sphere_clearance_m": 0.3570757893327692
+          },
+          {
+            "time_s": 2.999178155724204,
+            "camera_frame_s": 2.966666666666667,
+            "map_available_s": 2.975,
+            "bar_pixels": {
+              "fixed": 2033,
+              "wrist": 0
+            },
+            "bar_pixel_stages": {
+              "raw": {
+                "fixed": 2033,
+                "wrist": 0
+              },
+              "within_depth_limits": {
+                "fixed": 2033,
+                "wrist": 0
+              },
+              "after_depth_filter": {
+                "fixed": 1749,
+                "wrist": 0
+              },
+              "after_robot_segmenter": {
+                "fixed": 1749,
+                "wrist": 0
+              },
+              "used_for_mapping": {
+                "fixed": 1749,
+                "wrist": 0
+              }
+            },
+            "occupied_voxels_within_30mm": 1570,
+            "sphere_index": 102,
+            "esdf_at_sphere_center_m": 0.32466429471969604,
+            "esdf_surface_clearance_m": 0.3078138381242752,
+            "arm_speed_toward_bar_mps": 0.5491479800733612,
+            "sphere_radius_m": 0.016850456595420837,
+            "true_sphere_clearance_m": 0.3071089377660664
+          },
+          {
+            "time_s": 3.099178155724204,
+            "camera_frame_s": 3.066666666666667,
+            "map_available_s": 3.075,
+            "bar_pixels": {
+              "fixed": 2496,
+              "wrist": 88861
+            },
+            "bar_pixel_stages": {
+              "raw": {
+                "fixed": 2496,
+                "wrist": 88861
+              },
+              "within_depth_limits": {
+                "fixed": 2496,
+                "wrist": 0
+              },
+              "after_depth_filter": {
+                "fixed": 2189,
+                "wrist": 0
+              },
+              "after_robot_segmenter": {
+                "fixed": 2189,
+                "wrist": 0
+              },
+              "used_for_mapping": {
+                "fixed": 2189,
+                "wrist": 0
+              }
+            },
+            "occupied_voxels_within_30mm": 1697,
+            "sphere_index": 102,
+            "esdf_at_sphere_center_m": 0.08967602252960205,
+            "esdf_surface_clearance_m": 0.07282556593418121,
+            "arm_speed_toward_bar_mps": 0.54418627055234,
+            "sphere_radius_m": 0.016850456595420837,
+            "true_sphere_clearance_m": 0.04938321195778422
+          },
+          {
+            "time_s": 3.199178155724204,
+            "camera_frame_s": 3.1666666666666665,
+            "map_available_s": 3.1750000000000003,
+            "bar_pixels": {
+              "fixed": 2488,
+              "wrist": 137418
+            },
+            "bar_pixel_stages": {
+              "raw": {
+                "fixed": 2488,
+                "wrist": 137418
+              },
+              "within_depth_limits": {
+                "fixed": 2488,
+                "wrist": 0
+              },
+              "after_depth_filter": {
+                "fixed": 2182,
+                "wrist": 0
+              },
+              "after_robot_segmenter": {
+                "fixed": 2175,
+                "wrist": 0
+              },
+              "used_for_mapping": {
+                "fixed": 2175,
+                "wrist": 0
+              }
+            },
+            "occupied_voxels_within_30mm": 1682,
+            "sphere_index": 102,
+            "esdf_at_sphere_center_m": 0.037746332585811615,
+            "esdf_surface_clearance_m": 0.020895875990390778,
+            "arm_speed_toward_bar_mps": 0.08905722308512595,
+            "sphere_radius_m": 0.016850456595420837,
+            "true_sphere_clearance_m": -0.00010577203029744214
+          }
+        ]
+      }
+    ],
+    "closest_bar_approach": {
+      "time_s": 3.225,
+      "camera_frame_s": 3.2,
+      "map_available_s": 3.2,
+      "bar_pixels": {
+        "fixed": 2496,
+        "wrist": 100036
+      },
+      "bar_pixel_stages": {
+        "raw": {
+          "fixed": 2496,
+          "wrist": 100036
+        },
+        "within_depth_limits": {
+          "fixed": 2496,
+          "wrist": 0
+        },
+        "after_depth_filter": {
+          "fixed": 2189,
+          "wrist": 0
+        },
+        "after_robot_segmenter": {
+          "fixed": 2117,
+          "wrist": 0
+        },
+        "used_for_mapping": {
+          "fixed": 2117,
+          "wrist": 0
+        }
+      },
+      "occupied_voxels_within_30mm": 1665,
+      "sphere_index": 107,
+      "esdf_at_sphere_center_m": 0.042409442365169525,
+      "esdf_surface_clearance_m": 0.021989889442920685,
+      "arm_speed_toward_bar_mps": -0.021775614159656384,
+      "sphere_radius_m": 0.02041955292224884,
+      "true_sphere_clearance_m": -0.006894665039082695
+    },
+    "closest_bar_approach_history": [
+      {
+        "time_s": 2.225,
+        "camera_frame_s": 2.2,
+        "map_available_s": 2.2,
+        "bar_pixels": {
+          "fixed": 2023,
+          "wrist": 0
+        },
+        "bar_pixel_stages": {
+          "raw": {
+            "fixed": 2023,
+            "wrist": 0
+          },
+          "within_depth_limits": {
+            "fixed": 2023,
+            "wrist": 0
+          },
+          "after_depth_filter": {
+            "fixed": 1745,
+            "wrist": 0
+          },
+          "after_robot_segmenter": {
+            "fixed": 1745,
+            "wrist": 0
+          },
+          "used_for_mapping": {
+            "fixed": 1745,
+            "wrist": 0
+          }
+        },
+        "occupied_voxels_within_30mm": 1571,
+        "sphere_index": 107,
+        "esdf_at_sphere_center_m": 0.42501670122146606,
+        "esdf_surface_clearance_m": 0.4045971482992172,
+        "arm_speed_toward_bar_mps": -0.3615613905242987,
+        "sphere_radius_m": 0.02041955292224884,
+        "true_sphere_clearance_m": 0.3932507976578305
+      },
+      {
+        "time_s": 2.325,
+        "camera_frame_s": 2.3,
+        "map_available_s": 2.3000000000000003,
+        "bar_pixels": {
+          "fixed": 2026,
+          "wrist": 0
+        },
+        "bar_pixel_stages": {
+          "raw": {
+            "fixed": 2026,
+            "wrist": 0
+          },
+          "within_depth_limits": {
+            "fixed": 2026,
+            "wrist": 0
+          },
+          "after_depth_filter": {
+            "fixed": 1747,
+            "wrist": 0
+          },
+          "after_robot_segmenter": {
+            "fixed": 1747,
+            "wrist": 0
+          },
+          "used_for_mapping": {
+            "fixed": 1747,
+            "wrist": 0
+          }
+        },
+        "occupied_voxels_within_30mm": 1582,
+        "sphere_index": 107,
+        "esdf_at_sphere_center_m": 0.43378332257270813,
+        "esdf_surface_clearance_m": 0.4133637696504593,
+        "arm_speed_toward_bar_mps": -0.2244303038223583,
+        "sphere_radius_m": 0.02041955292224884,
+        "true_sphere_clearance_m": 0.4354257314020041
+      },
+      {
+        "time_s": 2.425,
+        "camera_frame_s": 2.4,
+        "map_available_s": 2.4000000000000004,
+        "bar_pixels": {
+          "fixed": 2026,
+          "wrist": 0
+        },
+        "bar_pixel_stages": {
+          "raw": {
+            "fixed": 2026,
+            "wrist": 0
+          },
+          "within_depth_limits": {
+            "fixed": 2026,
+            "wrist": 0
+          },
+          "after_depth_filter": {
+            "fixed": 1747,
+            "wrist": 0
+          },
+          "after_robot_segmenter": {
+            "fixed": 1747,
+            "wrist": 0
+          },
+          "used_for_mapping": {
+            "fixed": 1747,
+            "wrist": 0
+          }
+        },
+        "occupied_voxels_within_30mm": 1584,
+        "sphere_index": 107,
+        "esdf_at_sphere_center_m": 0.4302986264228821,
+        "esdf_surface_clearance_m": 0.40987907350063324,
+        "arm_speed_toward_bar_mps": -0.10006082770168678,
+        "sphere_radius_m": 0.02041955292224884,
+        "true_sphere_clearance_m": 0.4637413979125525
+      },
+      {
+        "time_s": 2.5250000000000004,
+        "camera_frame_s": 2.5,
+        "map_available_s": 2.5,
+        "bar_pixels": {
+          "fixed": 2033,
+          "wrist": 0
+        },
+        "bar_pixel_stages": {
+          "raw": {
+            "fixed": 2033,
+            "wrist": 0
+          },
+          "within_depth_limits": {
+            "fixed": 2033,
+            "wrist": 0
+          },
+          "after_depth_filter": {
+            "fixed": 1749,
+            "wrist": 0
+          },
+          "after_robot_segmenter": {
+            "fixed": 1749,
+            "wrist": 0
+          },
+          "used_for_mapping": {
+            "fixed": 1749,
+            "wrist": 0
+          }
+        },
+        "occupied_voxels_within_30mm": 1589,
+        "sphere_index": 107,
+        "esdf_at_sphere_center_m": 0.4929269552230835,
+        "esdf_surface_clearance_m": 0.47250740230083466,
+        "arm_speed_toward_bar_mps": 0.0378375609047743,
+        "sphere_radius_m": 0.02041955292224884,
+        "true_sphere_clearance_m": 0.4757618195072367
+      },
+      {
+        "time_s": 2.625,
+        "camera_frame_s": 2.6,
+        "map_available_s": 2.6,
+        "bar_pixels": {
+          "fixed": 2033,
+          "wrist": 0
+        },
+        "bar_pixel_stages": {
+          "raw": {
+            "fixed": 2033,
+            "wrist": 0
+          },
+          "within_depth_limits": {
+            "fixed": 2033,
+            "wrist": 0
+          },
+          "after_depth_filter": {
+            "fixed": 1749,
+            "wrist": 0
+          },
+          "after_robot_segmenter": {
+            "fixed": 1749,
+            "wrist": 0
+          },
+          "used_for_mapping": {
+            "fixed": 1749,
+            "wrist": 0
+          }
+        },
+        "occupied_voxels_within_30mm": 1570,
+        "sphere_index": 107,
+        "esdf_at_sphere_center_m": 0.4845639169216156,
+        "esdf_surface_clearance_m": 0.46414436399936676,
+        "arm_speed_toward_bar_mps": 0.21023599941842885,
+        "sphere_radius_m": 0.02041955292224884,
+        "true_sphere_clearance_m": 0.46627190060315304
+      },
+      {
+        "time_s": 2.725,
+        "camera_frame_s": 2.7,
+        "map_available_s": 2.7,
+        "bar_pixels": {
+          "fixed": 2033,
+          "wrist": 0
+        },
+        "bar_pixel_stages": {
+          "raw": {
+            "fixed": 2033,
+            "wrist": 0
+          },
+          "within_depth_limits": {
+            "fixed": 2033,
+            "wrist": 0
+          },
+          "after_depth_filter": {
+            "fixed": 1749,
+            "wrist": 0
+          },
+          "after_robot_segmenter": {
+            "fixed": 1749,
+            "wrist": 0
+          },
+          "used_for_mapping": {
+            "fixed": 1749,
+            "wrist": 0
+          }
+        },
+        "occupied_voxels_within_30mm": 1570,
+        "sphere_index": 107,
+        "esdf_at_sphere_center_m": 0.45801085233688354,
+        "esdf_surface_clearance_m": 0.4375912994146347,
+        "arm_speed_toward_bar_mps": 0.3531462350427339,
+        "sphere_radius_m": 0.02041955292224884,
+        "true_sphere_clearance_m": 0.43911365635599153
+      },
+      {
+        "time_s": 2.825,
+        "camera_frame_s": 2.8,
+        "map_available_s": 2.8000000000000003,
+        "bar_pixels": {
+          "fixed": 2033,
+          "wrist": 0
+        },
+        "bar_pixel_stages": {
+          "raw": {
+            "fixed": 2033,
+            "wrist": 0
+          },
+          "within_depth_limits": {
+            "fixed": 2033,
+            "wrist": 0
+          },
+          "after_depth_filter": {
+            "fixed": 1749,
+            "wrist": 0
+          },
+          "after_robot_segmenter": {
+            "fixed": 1749,
+            "wrist": 0
+          },
+          "used_for_mapping": {
+            "fixed": 1749,
+            "wrist": 0
+          }
+        },
+        "occupied_voxels_within_30mm": 1570,
+        "sphere_index": 107,
+        "esdf_at_sphere_center_m": 0.4193520247936249,
+        "esdf_surface_clearance_m": 0.39893247187137604,
+        "arm_speed_toward_bar_mps": 0.4643590196247005,
+        "sphere_radius_m": 0.02041955292224884,
+        "true_sphere_clearance_m": 0.4003151550078773
+      },
+      {
+        "time_s": 2.9250000000000003,
+        "camera_frame_s": 2.9,
+        "map_available_s": 2.9000000000000004,
+        "bar_pixels": {
+          "fixed": 2033,
+          "wrist": 0
+        },
+        "bar_pixel_stages": {
+          "raw": {
+            "fixed": 2033,
+            "wrist": 0
+          },
+          "within_depth_limits": {
+            "fixed": 2033,
+            "wrist": 0
+          },
+          "after_depth_filter": {
+            "fixed": 1749,
+            "wrist": 0
+          },
+          "after_robot_segmenter": {
+            "fixed": 1749,
+            "wrist": 0
+          },
+          "used_for_mapping": {
+            "fixed": 1749,
+            "wrist": 0
+          }
+        },
+        "occupied_voxels_within_30mm": 1570,
+        "sphere_index": 107,
+        "esdf_at_sphere_center_m": 0.37613463401794434,
+        "esdf_surface_clearance_m": 0.3557150810956955,
+        "arm_speed_toward_bar_mps": 0.46434857986210165,
+        "sphere_radius_m": 0.02041955292224884,
+        "true_sphere_clearance_m": 0.35626222342514885
+      },
+      {
+        "time_s": 3.025,
+        "camera_frame_s": 3.0,
+        "map_available_s": 3.0,
+        "bar_pixels": {
+          "fixed": 2496,
+          "wrist": 21765
+        },
+        "bar_pixel_stages": {
+          "raw": {
+            "fixed": 2496,
+            "wrist": 21765
+          },
+          "within_depth_limits": {
+            "fixed": 2496,
+            "wrist": 0
+          },
+          "after_depth_filter": {
+            "fixed": 2189,
+            "wrist": 0
+          },
+          "after_robot_segmenter": {
+            "fixed": 2189,
+            "wrist": 0
+          },
+          "used_for_mapping": {
+            "fixed": 2189,
+            "wrist": 0
+          }
+        },
+        "occupied_voxels_within_30mm": 1686,
+        "sphere_index": 107,
+        "esdf_at_sphere_center_m": 0.14267632365226746,
+        "esdf_surface_clearance_m": 0.12225677073001862,
+        "arm_speed_toward_bar_mps": 0.5347509104348236,
+        "sphere_radius_m": 0.02041955292224884,
+        "true_sphere_clearance_m": 0.10446228469494813
+      },
+      {
+        "time_s": 3.125,
+        "camera_frame_s": 3.1,
+        "map_available_s": 3.1,
+        "bar_pixels": {
+          "fixed": 2490,
+          "wrist": 128187
+        },
+        "bar_pixel_stages": {
+          "raw": {
+            "fixed": 2490,
+            "wrist": 128187
+          },
+          "within_depth_limits": {
+            "fixed": 2490,
+            "wrist": 0
+          },
+          "after_depth_filter": {
+            "fixed": 2184,
+            "wrist": 0
+          },
+          "after_robot_segmenter": {
+            "fixed": 2184,
+            "wrist": 0
+          },
+          "used_for_mapping": {
+            "fixed": 2184,
+            "wrist": 0
+          }
+        },
+        "occupied_voxels_within_30mm": 1676,
+        "sphere_index": 107,
+        "esdf_at_sphere_center_m": 0.08834802359342575,
+        "esdf_surface_clearance_m": 0.06792847067117691,
+        "arm_speed_toward_bar_mps": 0.5150697575927112,
+        "sphere_radius_m": 0.02041955292224884,
+        "true_sphere_clearance_m": 0.03938945293759594
+      },
+      {
+        "time_s": 3.225,
+        "camera_frame_s": 3.2,
+        "map_available_s": 3.2,
+        "bar_pixels": {
+          "fixed": 2496,
+          "wrist": 100036
+        },
+        "bar_pixel_stages": {
+          "raw": {
+            "fixed": 2496,
+            "wrist": 100036
+          },
+          "within_depth_limits": {
+            "fixed": 2496,
+            "wrist": 0
+          },
+          "after_depth_filter": {
+            "fixed": 2189,
+            "wrist": 0
+          },
+          "after_robot_segmenter": {
+            "fixed": 2117,
+            "wrist": 0
+          },
+          "used_for_mapping": {
+            "fixed": 2117,
+            "wrist": 0
+          }
+        },
+        "occupied_voxels_within_30mm": 1665,
+        "sphere_index": 107,
+        "esdf_at_sphere_center_m": 0.042409442365169525,
+        "esdf_surface_clearance_m": 0.021989889442920685,
+        "arm_speed_toward_bar_mps": -0.021775614159656384,
+        "sphere_radius_m": 0.02041955292224884,
+        "true_sphere_clearance_m": -0.006894665039082695
+      }
+    ],
+    "retracted_tip": {
+      "voxels_at_extended_tip": 130,
+      "vacated_voxels": 130,
+      "cleared_voxels": 130,
+      "censored_voxels": 0,
+      "max_stale_s": 0.0
+    },
+    "method": {
+      "camera_hz": 30,
+      "sample_period_s": 0.1,
+      "history_s": 1.0,
+      "nearby_voxel_distance_m": 0.03,
+      "mapped_late_threshold_s": 0.3,
+      "no_site_esdf_value_m": 10000.0,
+      "prediction": false,
+      "alignment": "latest camera frame processed by the control loop at or before each sample",
+      "visibility": "Newton shape-index count, diagnostics only",
+      "mapping": "first near-bar voxel in the one-second window or earlier if continuous",
+      "contact": "first crossing of zero clearance within a held control step",
+      "speed": "positive when the sphere moves toward the bar at its sampled pose"
+    }
+  }
+}

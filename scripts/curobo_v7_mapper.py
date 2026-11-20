@@ -30,7 +30,9 @@ DIAGNOSIS_FILE = ROOT/'docs/experiments/sim-camera-curobo/results/v7_diagnosis.j
 FORENSICS_FILE = DIAGNOSIS_FILE.with_name('v7_bar_forensics.json')
 DECAY_COMPARISON_FILE = DIAGNOSIS_FILE.with_name('v7_decay_comparison.json')
 DECAY_CONFIGS = {'A': (.3, 1.), 'B': (1., 1.), 'C': (1., .3)}
-DEFAULT_DECAY = DECAY_CONFIGS['B']
+DEFAULT_DECAY = DECAY_CONFIGS['A']
+ROBOT_MASK_DISTANCE = .015
+SEGMENTATION_CHECKPOINT_FILE = DIAGNOSIS_FILE.with_name('v7_segmentation_checkpoint.json')
 CAMERA_LABELS = ('固定相機', '手上相機')
 PARK = np.array([2., .28, .20])
 SOFA = (.78, .52, .50)
@@ -165,7 +167,8 @@ class LiveMapping:
                                   bilateral_kernel_size=3)
         # The segmenter captures the single-pose kinematics buffers in a CUDA graph.
         # Scoring batches whole motion segments and reallocates its own buffers.
-        self.segmenter = RobotSegmenter(Kinematics(robot.config), ops_dtype=torch.float32)
+        self.segmenter = RobotSegmenter(Kinematics(robot.config), distance_threshold=ROBOT_MASK_DISTANCE,
+                                        ops_dtype=torch.float32)
         cfg = MapperCfg(
             voxel_size=TSDF_SIZE, esdf_voxel_size=ESDF_SIZE,
             extent_meters_xyz=(2., 2., 2.), extent_esdf_meters_xyz=(2., 2., 2.),
@@ -537,7 +540,16 @@ class BarForensics:
         t = clock+sample_index*CONTROL_DT
         frame_idx = bisect_right(available_times, clock+1e-9)-1
         closest = self.sample(t, sphere_index, frame_idx, motion_idx)
+        closest_history = []
+        for offset in range(10, 0, -1):
+            sample_time = t-offset/10
+            if sample_time >= 0.:
+                frame = bisect_right(available_times, sample_time+1e-9)-1
+                motion = bisect_right(motion_times, sample_time+1e-9)-1
+                closest_history.append(self.sample(sample_time, sphere_index, frame, motion))
+        closest_history.append(closest)
         return dict(run=result, contact_episodes=contacts, closest_bar_approach=closest,
+                    closest_bar_approach_history=closest_history,
                     retracted_tip=self.retraction.result(frame_times[-1]),
                     method=dict(camera_hz=FRAME_RATE, sample_period_s=.1, history_s=1.,
                                 nearby_voxel_distance_m=.03, mapped_late_threshold_s=.3,
@@ -663,7 +675,7 @@ def run(args, stream):
     if forensics is not None:
         forensics.observe(0., 0., bar, mapping, grid)
     print(f'V7_MAPPED {args.cameras} decay={args.decay[0]:.1f} frustum={args.decay[1]:.1f} '
-          f'occupied={len(mapping.occupied)} integrate={integrate_ms:.1f} '
+          f'robot_mask_m={ROBOT_MASK_DISTANCE:.3f} occupied={len(mapping.occupied)} integrate={integrate_ms:.1f} '
           f'esdf={esdf_ms:.1f}', flush=True)
     mpc, mask = build_mpc(preflight['frozen_config'], robot_cfg, grid)
     view = None
@@ -879,6 +891,31 @@ def compare_decay(args):
     print(f'V7_DECAY selected={selected} saved {DECAY_COMPARISON_FILE.relative_to(ROOT)}', flush=True)
 
 
+def segmentation_checkpoint(args):
+    print('V7_SEGMENTATION both cameras: 10 s empty + 6 s Dance; estimated wall time 2–3 minutes', flush=True)
+    empty_args = argparse.Namespace(**(vars(args) | dict(diagnosis=True)))
+    empty = run_mode(empty_args)
+    near_counts = [frame['voxels_within_50mm_of_arm'] for frame in empty['frames']]
+    empty_summary = dict(seconds=empty['seconds'], frames=len(near_counts),
+                         reaches=empty['reaches'], returns=empty['returns'], contacts=empty['contacts'],
+                         peak_reversals_in_half_s=empty['peak_joint_reversals_in_half_s'],
+                         max_voxels_within_50mm=max(near_counts),
+                         frames_with_near_arm_voxels=sum(count > 0 for count in near_counts))
+    print('V7_SEGMENTATION empty '+json.dumps(empty_summary), flush=True)
+
+    dance_args = argparse.Namespace(**(vars(args) | dict(bar_forensics=True)))
+    dance = run_mode(dance_args)
+    print('V7_SEGMENTATION Dance '+json.dumps(dict(contacts=dance['run']['contacts'],
+          reaches=dance['run']['reaches'], closest=dance['closest_bar_approach'])), flush=True)
+    payload = dict(robot_mask_distance_m=ROBOT_MASK_DISTANCE, decay_factor=args.decay[0],
+                   frustum_decay_factor=args.decay[1], floor_handling='original floor-pixel rejection',
+                   empty=empty_summary, empty_near_arm_counts=near_counts, dance=dance)
+    tmp = SEGMENTATION_CHECKPOINT_FILE.with_suffix('.tmp')
+    tmp.write_text(json.dumps(payload, indent=2, allow_nan=False)+'\n')
+    tmp.replace(SEGMENTATION_CHECKPOINT_FILE)
+    print(f'V7_SEGMENTATION saved {SEGMENTATION_CHECKPOINT_FILE.relative_to(ROOT)}', flush=True)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--cameras', choices=('fixed', 'both'), default='both')
@@ -886,6 +923,7 @@ def main():
     mode.add_argument('--smoke', action='store_true')
     mode.add_argument('--diagnosis', action='store_true', help='Measure fixed and both in empty scenes, then save diagnostics')
     mode.add_argument('--interactive', action='store_true')
+    mode.add_argument('--segmentation-checkpoint', action='store_true', help='Run one dual-camera empty scene and Dance')
     mode.add_argument('--decay-comparison', action='store_true', help='Compare three 6 s dual-camera Dance runs')
     mode.add_argument('--bar-forensics', action='store_true', help='Record one 6 s dual-camera Dance')
     parser.add_argument('--port', type=int, default=int(os.environ.get('NEWTON_VIEWER_PORT', '30018')))
@@ -894,14 +932,16 @@ def main():
     parser.add_argument('--newton-python', type=Path, default=Path.home()/'newton_ws/.venv-cpu/bin/python')
     args = parser.parse_args()
     args.decay = DEFAULT_DECAY
-    if (args.bar_forensics or args.decay_comparison) and args.cameras != 'both':
-        parser.error('Dance diagnostics require --cameras both')
+    if (args.bar_forensics or args.decay_comparison or args.segmentation_checkpoint) and args.cameras != 'both':
+        parser.error('Dance checkpoints require --cameras both')
     if args.interactive:
         from curobo_moving_rod_v3 import check_viewer_port
         check_viewer_port(args.port)
     try:
         if args.diagnosis:
             diagnose(args)
+        elif args.segmentation_checkpoint:
+            segmentation_checkpoint(args)
         elif args.decay_comparison:
             compare_decay(args)
         else:
