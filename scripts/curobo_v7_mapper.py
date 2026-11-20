@@ -770,7 +770,7 @@ def run(args, stream):
         measurements = []
         touched = set()
         contacts = dict(bar=0, rod=0, floor=0)
-        min_clearance = float('inf')
+        min_clearance = min_floor_clearance = float('inf')
         timings = [(integrate_ms, esdf_ms)]
         probe = DecayProbe()
         flips = [list() for _ in range(6)]
@@ -867,6 +867,7 @@ def run(args, stream):
                 contacts[name] += 1
             touched = current
             min_clearance = min(min_clearance, *clearances.values())
+            min_floor_clearance = min(min_floor_clearance, clearances['floor'])
             if not args.interactive:
                 for j, speed_j in enumerate(velocity):
                     if goal_reached and not args.diagnosis:
@@ -888,7 +889,8 @@ def run(args, stream):
             return dict(cameras=args.cameras, seconds=step*CONTROL_DT, contacts=contacts,
                         reaches=reaches, returns=returns, arrival_times_s=arrival_times,
                         return_times_s=return_times, min_goal_error_m=best_goal_error,
-                        minimum_clearance_m=min_clearance, frames=measurements,
+                        minimum_clearance_m=min_clearance, floor_min_clearance_m=min_floor_clearance,
+                        bar_min_clearance_m=None, frames=measurements,
                         max_voxels_near_arm=max(f['voxels_within_50mm_of_arm'] for f in measurements),
                         peak_joint_reversals_in_half_s=peak_flips,
                         alignment=static_alignment(stream, mapping, start_q,
@@ -905,6 +907,8 @@ def run(args, stream):
                       seconds=step*CONTROL_DT, rgbd_batches=0 if mapping is None else len(timings),
                       max_bar_speed_mps=max_bar_speed, closest_truth=closest_truth,
                     contacts=contacts, reaches=reaches, minimum_clearance_m=min_clearance,
+                    bar_min_clearance_m=None if closest_truth is None else closest_truth['clearance_m'],
+                    floor_min_clearance_m=min_floor_clearance,
                     first_reach_s=arrival_times[0] if arrival_times else None,
                     integrate_ms=dict(mean=float(arrays[:, 0].mean()), p95=float(np.percentile(arrays[:, 0], 95))),
                     esdf_ms=dict(mean=float(arrays[:, 1].mean()), p95=float(np.percentile(arrays[:, 1], 95))),
@@ -1125,7 +1129,8 @@ def fair_checkpoint(args):
     truth = json.loads(args.fair_checkpoint.read_text())
     if truth['mode'] != 'B' or truth['rgbd_batches'] != 0 or truth['seconds'] != DURATION:
         raise RuntimeError('expected a 15 s camera-free B result')
-    if truth['reaches'] < 1 or any(truth['contacts'].values()) or truth['minimum_clearance_m'] < .02:
+    bar_min = truth['closest_truth']['clearance_m']
+    if truth['reaches'] < 1 or any(truth['contacts'].values()) or bar_min < .02:
         raise RuntimeError('B did not pass; stop before the perception tests')
     print('V7_FAIR E empty + E reciprocating bar; estimated wall time 2–3 minutes', flush=True)
     empty = run_mode(argparse.Namespace(**(vars(args) | dict(diagnosis=True))))
@@ -1213,7 +1218,8 @@ def lane_checkpoint(args):
     write_json(FAIR_SCENE_FILE, payload)
 
     truth = run_mode(argparse.Namespace(**(vars(args) | dict(mode='B', smoke=True))))
-    truth['passed'] = truth['reaches'] >= 1 and not any(truth['contacts'].values()) and truth['minimum_clearance_m'] >= .02
+    truth['passed'] = (truth['reaches'] >= 1 and not any(truth['contacts'].values())
+                       and truth['bar_min_clearance_m'] >= .02)
     payload['B'] = truth
     print('V7_LANE B '+json.dumps(truth), flush=True)
     if not truth['passed']:
@@ -1351,6 +1357,7 @@ def main():
     mode.add_argument('--segmentation-checkpoint', action='store_true', help='Run one dual-camera empty scene and reciprocating-bar run')
     mode.add_argument('--decay-comparison', action='store_true', help='Compare three 15 s dual-camera reciprocating-bar runs')
     mode.add_argument('--bar-forensics', action='store_true', help='Record one 15 s dual-camera reciprocating-bar run')
+    parser.add_argument('--forensics-output', type=Path, default=FORENSICS_FILE)
     parser.add_argument('--port', type=int, default=int(os.environ.get('NEWTON_VIEWER_PORT', '30018')))
     parser.add_argument('--robot-config', type=Path,
                         default=Path.home()/'.cache/ur5_moveit_demo/curobo_v2/ur5_robotiq_curobo.yml')
@@ -1386,10 +1393,8 @@ def main():
         else:
             result = run_mode(args)
             if args.bar_forensics:
-                tmp = FORENSICS_FILE.with_suffix('.tmp')
-                tmp.write_text(json.dumps(result, indent=2, allow_nan=False)+'\n')
-                tmp.replace(FORENSICS_FILE)
-                print(f'V7_FORENSICS saved {FORENSICS_FILE.relative_to(ROOT)}', flush=True)
+                write_json(args.forensics_output, result)
+                print(f'V7_FORENSICS saved {args.forensics_output}', flush=True)
             elif result is not None:
                 print('V7_RESULT '+json.dumps(result, allow_nan=False), flush=True)
     except KeyboardInterrupt:

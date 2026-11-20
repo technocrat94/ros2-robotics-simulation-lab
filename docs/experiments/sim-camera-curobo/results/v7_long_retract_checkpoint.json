@@ -69,10 +69,12 @@
         "still_occupied_after_s": null
       },
       "max_direction_reversals_per_joint_in_half_second": 1,
-      "thrash_detected": false
+      "thrash_detected": false,
+      "bar_min_clearance_m": -0.04366749351462828,
+      "floor_min_clearance_m": null
     },
     "B": {
-      "passed": false,
+      "passed": true,
       "mode": "B",
       "cameras": null,
       "seconds": 15.0,
@@ -121,13 +123,33 @@
         "still_occupied_after_s": null
       },
       "max_direction_reversals_per_joint_in_half_second": 2,
-      "thrash_detected": false
+      "thrash_detected": false,
+      "bar_min_clearance_m": 0.05283768699394317,
+      "floor_min_clearance_m": 0.008457735180854797
+    },
+    "E": {
+      "passed": true,
+      "report": "v7_long_retract_e.json",
+      "seconds": 15.0,
+      "cameras": "both",
+      "contacts": {
+        "bar": 0,
+        "rod": 0,
+        "floor": 0
+      },
+      "reaches": 1,
+      "first_reach_s": 6.7250000000000005,
+      "bar_min_clearance_m": 0.03429261263026247,
+      "floor_min_clearance_m": 0.008458137512207031
     }
   },
-  "stopped_at": "B",
-  "B_gate_minimum_clearance_m": 0.02,
   "minimum_clearance_includes": [
     "bar",
     "floor"
-  ]
+  ],
+  "prior_gate_decision": {
+    "stopped_at": "B",
+    "compared_clearance": "overall"
+  },
+  "B_gate_bar_min_clearance_m": 0.02
 }
