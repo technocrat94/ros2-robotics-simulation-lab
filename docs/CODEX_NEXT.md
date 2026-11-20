@@ -33,7 +33,26 @@ No pending task
 Leave the deleted 05_c2_tall_wall_refused.png and the untracked curobo/ untouched. Stage files by
 explicit path only. No git clean/reset/restore/stash/add -A.
 
-## Task: v7 — longer low straight path, bar exactly on it (TIME LIMIT 10 min) — 2026-11-20
+## Task: v7 — longer path that the arm can actually drive (TIME LIMIT 10 min) — 2026-11-20
+
+326c25d reviewed. The new goal (0.50, 0.50, 0.25) is the problem, not the bar: even A (bar ignored) reached 0
+times and thrashed, and B reached 0 times. IK solved the goal on a different arm branch (joint 1: start -2.92 vs
+goal +0.63 rad, elbow flipped): 0.707 m from the base with the gripper pointing down is at the edge of the
+comfortable workspace, so MPC cannot drive there.
+Do:
+1. Goal = the original, validated v4-v7 goal (unchanged scene goal, tool ~ (0.50, 0.45, 0.24)).
+   Start = tool (0.50, -0.05, 0.25), same orientation: path ~0.50 m, low and straight.
+   Start joints by IK seeded from the validated goal joints (v3 REFERENCE trace end) so both ends are on the SAME
+   branch: every joint |start - goal| < 2.0 rad and the same elbow sign. Floor clearance >= 0.02 m. Else stop.
+2. Bar on the line: lane y = midpoint of start/goal tool y (~0.20), z = midpoint tool z (~0.245), x axis, inner
+   tip x 0.50 <-> 0.625 at 0.10 m/s.
+3. Gates in order, stop at the first failure: A0 = no bar at all, must reach >= 1 and not thrash (the path itself
+   works); A = bar ignored, must touch; B (success + min clearance >= 0.02 m); E both cameras (success).
+4. Short table, commit, push, leave the existing --interactive running (E, both cameras), URL + 3 lines.
+If any step takes > 3 min, stop and report where.
+
+### Previous task (kept for reference)
+#### v7 — longer low straight path, bar exactly on it (TIME LIMIT 10 min) — 2026-11-20
 
 User: make the path longer and make sure the bar is on it. Keep everything else from 4fbf078.
 1. Start and goal tool poses: same tool orientation as now, x = 0.50, z = 0.25, start y = 0.00, goal y = 0.50
