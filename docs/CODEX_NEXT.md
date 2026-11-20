@@ -33,19 +33,27 @@ No pending task
 Leave the deleted 05_c2_tall_wall_refused.png and the untracked curobo/ untouched. Stage files by
 explicit path only. No git clean/reset/restore/stash/add -A.
 
-## Task: v7 — why it still hits the bar (measure only, ~10 min) — 2026-11-20
+## Task: v7 — keep what the cameras cannot see (3 short runs) — 2026-11-20
 
-af0bac8 fixed the thrashing. User report from --interactive: (1) it still hits the bar, (2) a big red area
-of unknown meaning, (3) the camera images are very dark.
-1. Contact forensics, no tuning: rerun the 6 s Dance with both cameras. For every bar contact log, at the
-   contact time and at 0.1 s steps over the 1.0 s before it: bar pixels in each camera, occupied voxels
-   within 3 cm of the true bar, the ESDF value at the contact sphere centre, the arm sphere speed toward the
-   bar, and the time the bar was first in any camera image. Classify each contact as NOT_SEEN (no pixels),
-   SEEN_NOT_MAPPED (pixels but no voxels), MAPPED_LATE (voxels appeared < 0.3 s before contact) or
-   MAPPED_BUT_HIT (voxels present >= 0.3 s). Note: v7 has no prediction (the NVIDIA pipeline is purely
-   reactive); say if that is the reason.
-2. Report the contact classification table, commit, push, leave --interactive running (both cameras),
-   URL + 3 lines. Stop. Do NOT do the "Next time" items below.
+3c680c4 reviewed. The single contact (3.875 s) is labelled MAPPED_BUT_HIT, but the samples show the map
+did NOT have the bar where the arm touched it: ESDF at the contact sphere stayed ~0.08 m while the true
+clearance went 0.13 -> 0 m, and voxels near the bar fell 1830 -> 1503 as the arm closed in. The part of the
+bar next to the arm vanished from the map. Likely causes:
+- decay_factor 0.3 multiplies ALL voxel weights every frame (cuRobo MapperCfg doc: "applied to ALL
+  voxels"), so anything not re-seen for a few frames disappears;
+- the arm blocks the fixed camera there, and the wrist camera is closer than depth_minimum 0.15 m and/or
+  RobotSegmenter erases bar pixels that touch the arm.
+cuRobo has the knobs: `decay_factor` (all voxels) and `frustum_decay_factor` (only blocks inside a camera
+frustum; not occlusion-aware). TSDF integration already clears space the camera sees through.
+Run the same 6 s Dance, both cameras, 3 configs, 1 run each:
+- A: as now (decay 0.3, frustum 1.0)
+- B: decay 1.0, frustum 1.0 (no decay: only "seen empty" clears, the user's rule)
+- C: decay 1.0, frustum 0.3
+For each: contacts, reaches, min clearance; at the closest approach the ESDF at the closest sphere vs the
+true clearance; how long bar voxels stay after the bar retracts out of the path; and at contact (if any)
+how many true-bar pixels each camera had before vs after RobotSegmenter and depth limits.
+Pick the best config by: 0 contacts first, then shortest stale time. Make it the default, list the change,
+commit, push, leave --interactive running (both cameras), URL + 3 lines. Stop. Do not do "Next time".
 
 ### Next time (user: postpone, display only)
 a. The red area is the reference example's ESDF slice: red = far from anything, and with nothing observed
