@@ -33,11 +33,30 @@ No pending task
 Leave the deleted 05_c2_tall_wall_refused.png and the untracked curobo/ untouched. Stage files by
 explicit path only. No git clean/reset/restore/stash/add -A.
 
-## Task: none. Waiting for the user's interactive check (2026-11-20)
+## Task: v7 fixed (eye-to-hand) camera + wrist camera, measured (checkpoint only) — 2026-11-20
 
-d24d0a8 reviewed: bar velocity from the uncropped end. Dance mean speed error 0.002 m/s (was ~0.05);
-still half-cropped bar while the arm moves: speed 0, STATIC in all 20 seen frames; 0 contacts, 3 reaches.
-Sideways drag at 0.3 m/s widens the box 3x in Y, which is the correct prediction. Do not start anything.
+Decision (user + senior): add a fixed camera; keep the wrist camera. Stop patching wrist-only partial-view
+guesses. Keep all v6 rules (STATIC/MOVING memory, carving, moved_on 0.5 s, clip_sweep 2 cm, speed class).
+Placement is a placeholder until the lab gives the real one: put it in a NEW file
+`config/sim_fixed_camera.yaml` (do not touch sim_camera_mount.yaml):
+  position (0.50, -0.70, 1.00) m, looking at (0.50, 0.25, 0.15), same intrinsics/resolution as the wrist
+  camera (D435-like). The bar parks at +X, so this side view does not block its path.
+New files only: scripts/curobo_v7_two_cameras.py (+ tests), scripts/run_sim_camera_v7.sh.
+1. Render the fixed camera in the same Newton scene (second SensorTiledCamera view or second camera in the
+   same sensor), robot mask per camera.
+2. Fusion, camera-agnostic: each object's observed box is fitted from the union of both clouds; the old
+   border "extend to full bar length" guess applies only if every camera that sees the object has it
+   cropped. Velocity from a camera that sees the object uncropped (fixed first), else the wrist
+   end-tracking. Carving: a sample is free if ANY camera sees past it (and it is not robot in that camera).
+3. Measure prediction quality against truth (sim only, for evaluation, never fed to control): every frame
+   store the predicted object centre for t + horizon; when that time comes, error = |predicted - true|.
+   Also store protrusion = how far the observed box sticks out beyond the true bar along its axis.
+4. Viewer (--interactive and --replay): second frustum + its floor footprint + second depth panel,
+   points coloured per camera, legend updated; readout adds prediction error and protrusion.
+5. Checkpoint, 2 runs only, same scripted Dance + drag + still sequence: `--cameras wrist` and
+   `--cameras both`. Report for each: contacts, reaches, min clearance, prediction error mean/max (and where
+   the max happens), protrusion mean/max, % frames the bar is seen by each camera. No batch.
+6. Commit, push, leave --interactive --cameras both running, URL + 3 lines to look at. Stop.
 
 ### Spec kept from v4 (unchanged rules)
 : floor, unseen rod top, visible prediction (started 2026-11-19)
