@@ -64,8 +64,10 @@ Do (user decision: finish v7 today, no demo fallback):
    both cameras on in E, live status (mode, contacts, reaches, min clearance). Same scene rules as above
    (no teleport, bar z 0.20 by default; dragging may move it anywhere).
 Runs, 1 each, both cameras for E: (0) calibration above, (a) E empty scene 10 s with the measured threshold, (b) B Dance 6 s, (c) E Dance 6 s.
-Pass: (a) <= 5 voxels near the arm and peak reversals <= 2; (b) 0 contacts (if B hits, the scene is still
-unfair: report and stop, do not touch perception); (c) 0 contacts. Report a table plus, for any E contact,
+SUCCESS (user's definition): the arm goes from the start (left, tool y ~0.12) to the goal (right, y ~0.45)
+without touching the bar = >= 1 reach AND 0 bar contacts in the run.
+Pass: (a) <= 5 voxels near the arm and peak reversals <= 2; (b) B succeeds (if B fails, the scene is still
+unfair: report and stop, do not touch perception); (c) E succeeds. Report a table plus, for any E contact,
 the forensic classification. Commit, push, leave --interactive running (starts in E, both cameras), URL + 3 lines. Stop. Do not do "Next time".
 
 ### Next time (user: postpone, display only)
