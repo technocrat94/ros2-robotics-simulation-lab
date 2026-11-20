@@ -33,19 +33,22 @@ No pending task
 Leave the deleted 05_c2_tall_wall_refused.png and the untracked curobo/ untouched. Stage files by
 explicit path only. No git clean/reset/restore/stash/add -A.
 
-## Task: v6 interactive shows no camera view — 2026-11-20
+## Task: v6 interactive — prediction readout + legend check (~10 min) — 2026-11-20
 
-Clarified by the user: `--interactive` opens and runs, but the camera view is missing (no camera frustum,
-no camera points, no depth panel). `--replay` has them (lines ~697-764 of curobo_v6_memory.py). The live
-path (V6Live / V6Worker.capture_xy, which builds its own RodCapture) probably no longer feeds the live
-viewer's camera layers the way curobo_moving_bar_poke_demo.py does.
-1. Stop only your own viewer/curobo processes on port 30006 first (pgrep -u "$USER"); never others'.
-2. Make --interactive show the same camera layers as the poke_height interactive demo, updated every frame,
-   plus the v6 memory boxes. Reuse existing code.
-3. Add `--viewer-smoke` for --interactive: select E, press Dance, enable the vertical rod, 10 simulated s;
-   assert the frustum pose, camera points and depth panel change between frames, no exception; exit.
-4. Report what was broken (1-2 lines). Commit, push, then leave --interactive running for the user and
-   give the URL + 3 lines on what to look at. Stop.
+d3e2978 reviewed (camera view is back). User report: the predicted box looks >= 1.5x the bar length after
+the bar moves, and the arm thrashes when the box is pushed onto it; colours were confusing.
+Claude changed scripts/curobo_v6_memory.py (20 GPU-free tests pass; do not change these rules):
+- `clip_sweep`: the swept (MPC) box stops 2 cm before the arm's current spheres (CameraMemory.boxes).
+- Memory fills are now purple = STATIC, yellow = MOVING (blue/orange were already used); full Chinese
+  legend `LEGEND` in the GUI.
+Do:
+1. Add a live GUI readout per obstacle: observed length, predicted length, estimated speed, true speed
+   (from the gizmo/dance motion), sweep kept fraction. Same numbers per frame in the replay rows.
+2. Check the legend shows at the top of the GUI in --interactive and --replay, and every listed colour
+   matches what is drawn (fix colours to match the legend, not the other way round).
+3. --interactive --viewer-smoke: Dance 10 s, then drag-like motion of the bar at 0.3 m/s for 2 s; print
+   max predicted/observed length ratio and max |estimated - true| speed for both. No batch.
+4. Commit, push, leave --interactive running for the user, give the URL + 3 lines on what to look at. Stop.
 
 ### Spec kept from v4 (unchanged rules)
 : floor, unseen rod top, visible prediction (started 2026-11-19)

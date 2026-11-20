@@ -20,7 +20,20 @@ EMPTY_MARGIN_M = .03
 REACH_M = 1.
 # A moving object's velocity is measured over WINDOW_S; predicting it further than that is guessing.
 MOVING_MEMORY_S = WINDOW_S
-COLORS = {'STATIC': (65, 135, 245), 'MOVING': (255, 145, 35)}
+# Memory fills use colours no other layer uses (blue = MPC box, orange = observed box elsewhere).
+COLORS = {'STATIC': (150, 80, 230), 'MOVING': (240, 200, 30)}
+# The predicted (swept) box stops this far from the arm's current spheres.
+SWEEP_GAP_M = .02
+LEGEND = '''**說明 Legend**
+- 紅色圓柱 = 真的橫棒、棕色圓柱 = 真的直圓柱（只有我們看得到，E 不知道）
+- 灰色 = 地板
+- 橘色線框 = 相機現在看到的盒子
+- 藍色線框 = MPC 真正要躲的盒子（看到的盒子 + 0.43 s 預測，停在手臂前 2 cm）
+- 青色半透明 = 預測 0.43 s 後物體的位置；綠色箭頭 = 估計速度
+- 紫色填色 = 記憶：靜止物（離開視野也一直記著）
+- 黃色填色 = 記憶：移動物（離開視野 0.5 s 後刪掉）
+- 相機視野錐 + 彩色點 = 手上相機現在拍到的東西
+- 手臂外面一圈 = cuRobo 碰撞球 + 30 mm 安全距離，所以看起來比盒子大'''
 SAMPLE_OFFSETS = np.array([*product((-.5, .5), repeat=3), (0., 0., 0.)])
 # Carving lattice: 5 x 5 x 3 samples over the box, each cleared only by depth seen past it.
 CARVE_OFFSETS = np.array(list(product(np.linspace(-.5, .5, 5), np.linspace(-.5, .5, 5), (-.5, 0., .5))))
@@ -222,8 +235,14 @@ class CameraMemory:
         self.current = None
         self.display_boxes = (None, None)
 
-    def boxes(self, *args):
-        observed, predicted, raised, capped = self.policy.boxes(*args)
+    def boxes(self, raw, velocity, horizon, robot, q, mask):
+        observed, predicted, raised, capped = self.policy.boxes(raw, velocity, horizon, robot, q, mask)
+        if observed is not None and predicted is not None and horizon:
+            import torch
+            from curobo_moving_rod_v4 import sphere_series
+
+            spheres = sphere_series(robot, torch.as_tensor(q[None], device='cuda', dtype=torch.float32))[0, mask]
+            predicted, self.sweep_fraction = clip_sweep(observed, predicted, spheres)
         self.display_boxes = observed, predicted
         return observed, predicted, raised, capped
 
@@ -242,6 +261,36 @@ class CameraMemory:
         self.growth_events += int(event['growth_rule'])
         self.events.append(self.last_event)
         return current, velocity, capture.points, self.last_event
+
+
+def box_sphere_distance(low, high, spheres):
+    spheres = np.asarray(spheres, dtype=float).reshape(-1, 4)
+    gap = np.maximum(np.maximum(low-spheres[:, :3], spheres[:, :3]-high), 0.)
+    return float(np.min(np.linalg.norm(gap, axis=1)-spheres[:, 3])) if len(spheres) else np.inf
+
+
+def clip_sweep(observed, predicted, spheres, gap=SWEEP_GAP_M):
+    """Shorten the swept box so it stops `gap` before the arm's current spheres.
+    MPC treats boxes as static over its horizon, so a swept box that already covers the arm means
+    'the arm is inside an obstacle' and the gradients make it thrash. Returns (box, fraction kept)."""
+    def bounds(box):
+        c, d = np.asarray(box['center_m'], dtype=float), np.asarray(box['dims_m'], dtype=float)
+        return c-d/2, c+d/2
+    o_low, o_high = bounds(observed)
+    p_low, p_high = bounds(predicted)
+
+    def box_at(f):
+        return o_low+(p_low-o_low)*f, o_high+(p_high-o_high)*f
+    if box_sphere_distance(*box_at(1.), spheres) >= gap:
+        return predicted, 1.
+    if box_sphere_distance(o_low, o_high, spheres) < gap:
+        return dict(observed), 0.
+    lo, hi = 0., 1.
+    for _ in range(20):
+        mid = (lo+hi)/2
+        lo, hi = (mid, hi) if box_sphere_distance(*box_at(mid), spheres) >= gap else (lo, mid)
+    low, high = box_at(lo)
+    return dict(predicted, center_m=((low+high)/2).tolist(), dims_m=(high-low).tolist()), lo
 
 
 def standing_center(points, fallback, height):
@@ -482,7 +531,7 @@ def demo_types():
             handles = super().obstacle_handles(scene_api)
             self.vertical.observed.wireframe = True
             self.vertical.gizmo.position = (*SOFA_ROD_XY, 0.)
-            self.server.gui.add_markdown('Memory fill: blue = STATIC, orange = MOVING. Orange outline = observed box.')
+            self.server.gui.add_markdown(LEGEND)
             self.memory_handles = {
                 name: (
                     scene_api.add_box(f'/v6/{name}', dimensions=(.01,)*3, opacity=.48, visible=False),
@@ -727,7 +776,7 @@ def replay(types, args, cases):
             server.scene.add_box(f'/v6/{name}', dimensions=(.01,)*3, opacity=.48, visible=False),
             server.gui.add_text(f'{name.title()} memory', '—', disabled=True),
         ) for name in ('bar', 'rod')}
-        server.gui.add_markdown('Memory fill: blue = STATIC, orange = MOVING. Orange outline = observed box.')
+        server.gui.add_markdown(LEGEND)
         first_camera = cases[selector.value]['camera_frames'][0]
         frustum = server.scene.add_camera_frustum('/camera/live', fov=first_camera['fov_rad'],
                                                   aspect=first_camera['aspect'], scale=.13)

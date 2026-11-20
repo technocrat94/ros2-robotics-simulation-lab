@@ -4,6 +4,7 @@ import unittest
 import numpy as np
 
 from curobo_v6_memory import (
+    clip_sweep, box_sphere_distance,
     DepthFrame, ObjectMemory, path_target, summarize_pokes, tip_projection, visible_path_target,
 )
 
@@ -33,6 +34,30 @@ class DanceGeometry(unittest.TestCase):
         self.assertEqual(tip_projection(camera, [1., 0., .5]), (True, [50., 50.]))
         self.assertFalse(tip_projection(camera, [2., 0., .5])[0])
         self.assertEqual(tip_projection(camera, [1., 0., -.5]), (False, None))
+
+
+class SweepClip(unittest.TestCase):
+    observed = dict(center_m=[.5, 0., .2], dims_m=[.1, .1, .1])
+    predicted = dict(center_m=[.4, 0., .2], dims_m=[.3, .1, .1])   # swept 0.2 m toward -X
+
+    def test_far_arm_keeps_the_full_sweep(self):
+        box, kept = clip_sweep(self.observed, self.predicted, [[-1., 0., .2, .05]])
+        self.assertEqual(kept, 1.)
+        self.assertEqual(box, self.predicted)
+
+    def test_sweep_stops_two_centimetres_before_the_arm(self):
+        sphere = [[.3, 0., .2, .05]]                     # arm surface at x = 0.35
+        box, kept = clip_sweep(self.observed, self.predicted, sphere)
+        self.assertTrue(0. < kept < 1.)
+        low = np.asarray(box['center_m'])-np.asarray(box['dims_m'])/2
+        high = np.asarray(box['center_m'])+np.asarray(box['dims_m'])/2
+        self.assertAlmostEqual(box_sphere_distance(low, high, sphere), .02, places=4)
+        self.assertAlmostEqual(high[0], .55)               # the observed far side is untouched
+
+    def test_observed_box_already_near_arm_is_not_swept(self):
+        box, kept = clip_sweep(self.observed, self.predicted, [[.43, 0., .2, .01]])
+        self.assertEqual(kept, 0.)
+        self.assertEqual(box, self.observed)
 
 
 class VisibleDance(unittest.TestCase):
