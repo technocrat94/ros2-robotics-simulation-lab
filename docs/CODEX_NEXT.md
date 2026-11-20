@@ -33,25 +33,23 @@ No pending task
 Leave the deleted 05_c2_tall_wall_refused.png and the untracked curobo/ untouched. Stage files by
 explicit path only. No git clean/reset/restore/stash/add -A.
 
-## Task: v6 rerun after Claude's memory fix (checkpoint only, ~10 min) — 2026-11-20
+## Task: v6 rerun 2 (checkpoint only, ~10 min) — 2026-11-20
 
-a46a39a reviewed. Bug: a MOVING box out of view grew 0.4 m/s forever (bar retracted at 0.1 m/s, box 2.3 m
-wide after 5 s) and "seen empty" needed all 9 samples inside the image, so a large box never cleared.
-Claude fixed `ObjectMemory`/`DepthFrame` in scripts/curobo_v6_memory.py (10 GPU-free tests pass):
-- carving: 5x5x3 samples per box, each removed only when depth is seen past it; evidence accumulates
-  across frames; the box shrinks to what is left, deleted when nothing is left.
-- No growth at all (user's rule): out of view, STATIC keeps its box; MOVING keeps its size and only its
-  position is predicted along the last velocity. Label shows "leaving"/"heading in".
-Do not change these rules. Do:
-0. The v6 viewer lost the camera view. Replay AND interactive must show everything the poke_height
-   replay shows (camera frustum, camera points, depth panel, observed + predicted box, arrow), plus the
-   v6 blue/orange memory boxes. Reuse the existing viewer code; record camera pose + points per frame.
-1. Save the checkpoint inside the repo: docs/experiments/sim-camera-curobo/results/v6_memory_checkpoint.json.gz
-   (it was outside the repo, so it could not be reviewed). If > 20 MB, thin frames to 10 Hz.
-2. Run `--smoke` (Car + Sofa, E only). For Sofa, first confirm the rod spot is seen at start AND leaves the
-   view during the reach (print the first unseen time); if it never leaves the view, move it until it does.
-3. Report per run: contacts, reaches, min clearance, cleared_by events with times.
-4. Give the replay + interactive commands and 3 lines on what to look at. Commit, push, stop.
+3b6a1aa reviewed; camera layers are back, thanks. Findings from the checkpoint file:
+- Car: the bar was seen only 0.03-0.47 s. Its MOVING box then slid at constant velocity for 8.5 s straight
+  through the workspace (x 0.57 -> -0.55), a phantom that pushed the arm; the real bar's later pokes were
+  never seen and E hit it twice (min clearance -43 mm).
+- Sofa: STATIC box kept for 8.6 s as intended, but 0 reaches.
+- `obstacle_pixels` is always 0 for the bar (wrong metadata key).
+Claude changed one rule (11 GPU-free tests pass): a MOVING box out of view is kept only for MOVING_MEMORY_S
+(= the 0.5 s velocity window), then cleared_by `moved_on`. STATIC is unchanged. Do not change rules. Do:
+1. Fix the bar `obstacle_pixels` log.
+2. Rerun `--smoke` (Car E, Sofa E) and add one Sofa B run (truth box) to check the goal is reachable
+   with the rod there. If Sofa B also has 0 reaches, move the rod (still seen at start, leaves the view)
+   until B reaches, then rerun Sofa E.
+3. Report per run: contacts, reaches, min clearance, cleared_by events with times; for Car also the seen
+   intervals of each poke.
+4. Replay + interactive commands, 3 lines on what to look at. Commit, push, stop.
 
 ### Spec kept from v4 (unchanged rules)
 : floor, unseen rod top, visible prediction (started 2026-11-19)

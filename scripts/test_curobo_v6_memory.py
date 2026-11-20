@@ -60,12 +60,28 @@ class MemoryRules(unittest.TestCase):
         track = ObjectMemory()
         self.observed(track, 0., box(x=.5))
         self.observed(track, .5, box(x=.55))
-        for time in (1., 2., 4.):
+        for time in (.6, .8, 1.):
             actual, _, event = track.observe(None, None, frame(), time)
             np.testing.assert_allclose(actual['dims_m'], [.1, .1, .1])
             np.testing.assert_allclose(actual['center_m'], [.55+.1*(time-.5), 0., .5])
             self.assertTrue(event['moving_away'])
             self.assertFalse(event['growth_rule'])
+
+    def test_moving_box_is_dropped_after_its_measurement_window(self):
+        track = ObjectMemory()
+        self.observed(track, 0., box(x=1.))
+        self.observed(track, .5, box(x=.95))
+        actual, _, _ = track.observe(None, None, frame(), 1.)
+        self.assertIsNotNone(actual)
+        actual, _, event = track.observe(None, None, frame(), 1.05)
+        self.assertIsNone(actual)
+        self.assertEqual(event['cleared_by'], 'moved_on')
+        # A static object is never dropped by time.
+        still = ObjectMemory()
+        self.observed(still, 0., box())
+        self.observed(still, .5, box())
+        actual, _, _ = still.observe(None, None, frame(), 60.)
+        self.assertIsNotNone(actual)
 
     def test_carving_removes_only_the_part_seen_empty(self):
         track = ObjectMemory()

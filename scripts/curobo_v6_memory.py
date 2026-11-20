@@ -18,6 +18,8 @@ WINDOW_S = .5
 STATIC_DISTANCE_M = .02
 EMPTY_MARGIN_M = .03
 REACH_M = 1.
+# A moving object's velocity is measured over WINDOW_S; predicting it further than that is guessing.
+MOVING_MEMORY_S = WINDOW_S
 COLORS = {'STATIC': (65, 135, 245), 'MOVING': (255, 145, 35)}
 SAMPLE_OFFSETS = np.array([*product((-.5, .5), repeat=3), (0., 0., 0.)])
 # Carving lattice: 5 x 5 x 3 samples over the box, each cleared only by depth seen past it.
@@ -106,6 +108,8 @@ class ObjectMemory:
             self.updated = time_s
             if self.box is None:
                 self._clear('seen_empty')
+            elif self.kind == 'MOVING' and age > MOVING_MEMORY_S+1e-9:
+                self._clear('moved_on')
             elif self.kind == 'MOVING':
                 delta = np.abs(np.asarray(self.box['center_m'])-self.base_origin)
                 nearest = np.maximum(delta-np.asarray(self.box['dims_m'])/2, 0.)
