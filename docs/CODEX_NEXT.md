@@ -41,14 +41,21 @@ explicit path only. No git clean/reset/restore/stash/add -A.
   never seen and E hit it twice (min clearance -43 mm).
 - Sofa: STATIC box kept for 8.6 s as intended, but 0 reaches.
 - `obstacle_pixels` is always 0 for the bar (wrong metadata key).
+- Car scene bug (found by the user): Dance aims the bar tip at the gripper itself (`dance_center` uses the
+  tool x/y/z). The camera looks down, so a bar at the camera's own height is never in view. That tests
+  nothing. Fix in a v6-only Dance (do not change curobo_moving_bar_poke_demo.py): aim at the arm's PATH,
+  i.e. the point 0.15 m ahead of the tool on the straight line tool -> goal (the goal if closer), with
+  z = clip(that z, 0.15, tool z - 0.12) so it is below the camera. Log per poke whether the tip at its
+  closest point projects inside the depth image.
 Claude changed one rule (11 GPU-free tests pass): a MOVING box out of view is kept only for MOVING_MEMORY_S
 (= the 0.5 s velocity window), then cleared_by `moved_on`. STATIC is unchanged. Do not change rules. Do:
 1. Fix the bar `obstacle_pixels` log.
 2. Rerun `--smoke` (Car E, Sofa E) and add one Sofa B run (truth box) to check the goal is reachable
    with the rod there. If Sofa B also has 0 reaches, move the rod (still seen at start, leaves the view)
    until B reaches, then rerun Sofa E.
-3. Report per run: contacts, reaches, min clearance, cleared_by events with times; for Car also the seen
-   intervals of each poke.
+3. Report per run: contacts, reaches, min clearance, cleared_by events with times; for Car also each
+   poke's target, whether it was in view, and its seen interval. If a poke is aimed at the path but never
+   seen, report it (do not tune it away).
 4. Replay + interactive commands, 3 lines on what to look at. Commit, push, stop.
 
 ### Spec kept from v4 (unchanged rules)
