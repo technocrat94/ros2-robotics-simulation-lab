@@ -33,7 +33,7 @@ No pending task
 Leave the deleted 05_c2_tall_wall_refused.png and the untracked curobo/ untouched. Stage files by
 explicit path only. No git clean/reset/restore/stash/add -A.
 
-## Task: v7 — why it still hits the bar + two display fixes (measure first, ~10 min) — 2026-11-20
+## Task: v7 — why it still hits the bar (measure only, ~10 min) — 2026-11-20
 
 af0bac8 fixed the thrashing. User report from --interactive: (1) it still hits the bar, (2) a big red area
 of unknown meaning, (3) the camera images are very dark.
@@ -44,15 +44,20 @@ of unknown meaning, (3) the camera images are very dark.
    SEEN_NOT_MAPPED (pixels but no voxels), MAPPED_LATE (voxels appeared < 0.3 s before contact) or
    MAPPED_BUT_HIT (voxels present >= 0.3 s). Note: v7 has no prediction (the NVIDIA pipeline is purely
    reactive); say if that is the reason.
-2. The red area is the reference example's ESDF slice: red = far from anything, and with nothing observed
+2. Report the contact classification table, commit, push, leave --interactive running (both cameras),
+   URL + 3 lines. Stop. Do NOT do the "Next time" items below.
+
+### Next time (user: postpone, display only)
+a. The red area is the reference example's ESDF slice: red = far from anything, and with nothing observed
    it is the 10000 m "no site" value, so the whole plane goes red. Hide it by default behind a GUI checkbox
    "顯示距離切片 (ESDF)"; when shown, clip the colour at 0.30 m so only near-obstacle distances are coloured;
    legend line: 藍 = 障礙物內部, 白 = 貼近障礙物, 紅 = 遠離 (>= 0.30 m).
-3. Dark images: Newton renders RGB without lights (load_textures=False). RGB is not used for mapping.
+   The user saw it lying ON THE FLOOR (our grid_center is z = 0, so the example puts the slice at z = 0,
+   and the floor is removed from the map, so it is all "far"). When shown, put it at a GUI slider height,
+   default 0.20 m (bar height), never at the floor.
+b. Dark images: Newton renders RGB without lights (load_textures=False). RGB is not used for mapping.
    For display only, brighten it (normalise per frame) or replace the RGB panel with a shaded depth
    image; say which.
-4. Report the contact classification table, commit, push, leave --interactive running (both cameras),
-   URL + 3 lines. Stop.
 
 ### Previous v7 task (kept for reference)
 #### v7 = follow NVIDIA's official cuRobo pipeline with a fixed camera (checkpoint only) — 2026-11-20
