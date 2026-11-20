@@ -1,0 +1,4 @@
+# Newton world frame, meters. Intrinsics match config/sim_camera_mount.yaml's simulated wrist stream.
+position_m: [0.50, -0.70, 1.00]
+look_at_m: [0.50, 0.25, 0.15]
+up: [0.0, 0.0, 1.0]
