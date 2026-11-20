@@ -33,7 +33,22 @@ No pending task
 Leave the deleted 05_c2_tall_wall_refused.png and the untracked curobo/ untouched. Stage files by
 explicit path only. No git clean/reset/restore/stash/add -A.
 
-## Task: v7 — place the bar ON the arm's path by computation, then B/E (gate first) — 2026-11-20
+## Task: v7 — bar in the MIDDLE of the path, not at the goal; then B/E — 2026-11-20
+
+4fbf078 reviewed. Search worked; the rule picked y 0.36, z 0.23, which A hits at 1.33 s right before arriving:
+the bar sits next to the goal (goal tool y ~0.45, z ~0.24), so it blocks the goal itself and B could not
+reach (0 reaches, 3 contacts). That is an unfair scene, not a control/perception failure.
+Lane table: in the middle of the path (y 0.24-0.34) the arm never goes below ~0.24 m, so the lowest
+obstructing bar there is z ~0.25 (y 0.28: z 0.25, clearance -0.021 m).
+Do:
+1. Lane: y = 0.28, z = 0.25 (lowest obstructing in the middle of the path, from the table). Add a check: the
+   bar (any phase) stays >= 0.10 m from the goal tool position and from the start tool position.
+2. Gate A on this lane (must touch). Then E empty 10 s (both cameras), B 10 s (success + min clearance >= 0.02 m),
+   E 10 s (success). Same settings as 4fbf078. Stop at the first failed gate and report.
+Commit, push, leave the existing --interactive running (E, both cameras, this lane), URL + 3 lines. Stop.
+
+### Previous task (kept for reference)
+#### v7 — place the bar ON the arm's path by computation, then B/E (gate first) — 2026-11-20
 
 838b298 reviewed: gate A failed correctly. With the bar ignored, the arm passed 20.6 mm from it (t = 1.45 s,
 bar tip x 0.52, y 0.28, z 0.15): the arm goes above the bar, so z 0.15 is too low to be in the way.
