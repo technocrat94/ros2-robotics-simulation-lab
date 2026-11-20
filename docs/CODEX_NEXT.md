@@ -33,40 +33,27 @@ No pending task
 Leave the deleted 05_c2_tall_wall_refused.png and the untracked curobo/ untouched. Stage files by
 explicit path only. No git clean/reset/restore/stash/add -A.
 
-## Task: v7 — fair scene first, then perception (3 runs) — 2026-11-20
+## Task: v7 — measured arm mask per part + MPC reaction distance (3 runs) — 2026-11-20
 
-184e7ab reviewed. Segmenter 0.015: the bar is no longer erased (2189 -> 2175 px) and ESDF tracks truth within
-2-3 cm, but the arm leaks into the map in the empty scene (227 voxels near the arm, 292/300 frames, 5 reversals).
-The contact itself came from the SCENE, not perception:
-- `Sequence.pose` picks the Dance target with `visible_path_target(..., self.fixed)`. The fixed camera sees
-  almost everything, so it always picks the path point nearest the tool at the highest allowed z
-  (tool z - 0.12 ~ 0.38 m): right in front of the arm.
-- At each new period the bar TELEPORTS to its new start (fixed bar pixels jump 2033 -> 2496 at 3.0 s): a 30 cm
-  bar appears ~10 cm from the arm while the arm moves 0.54 m/s toward it.
-- v7 never ran group B (truth obstacle), so we could not tell "scene impossible" from "map wrong".
-Do (user decision: finish v7 today, no demo fallback):
-1. Scene: target xy = the point 0.15 m ahead of the tool on the straight tool -> goal line; bar height LOW:
-   z = 0.20 m (user: lower; same height as the v6 poke that B and E both dodged). The bar never teleports: between pokes it slides from where it is
-   to the next start at <= 0.3 m/s (first poke slides in from PARK). Stroke speed stays 0.10 m/s.
-2. Add `--mode B`: no cameras/mapper; the MPC gets the true bar (and rod) as cuboids each step, same
-   scheduler, same rules. `--mode E` = current camera pipeline.
-3. Perception: MEASURE the RobotSegmenter distance_threshold instead of guessing (user: no arbitrary 3 cm).
-   Calibration step (Newton shape ids used ONLY here, never in control): empty scene, the usual 10 s motion
-   plus ~20 varied arm poses, both cameras. For every true-robot depth pixel, compute its distance to the
-   nearest robot collision-sphere surface (positive = outside the spheres). Report max, p99.9, p99 overall and
-   per link (expect the gripper to be worst). Set distance_threshold = overall max rounded up to the next mm
-   (sim has no depth noise or timing error; note that a real D435 would add ~1 cm). Also report, at the B/E
-   closest bar approach, how many bar pixels lie within that threshold of the arm. Save the calibration to
-   docs/experiments/sim-camera-curobo/results/v7_segmenter_calibration.json.
-   Decay 0.3 / frustum 1.0 and floor handling as in original v7.
-4. Display only (user request, small): do NOT draw the ESDF slice at all (remove it from the viewer).
-   In the camera depth panels draw removed pixels WHITE instead of black.
-Runs, 1 each, both cameras for E: (0) calibration above, (a) E empty scene 10 s with the measured threshold, (b) B Dance 6 s, (c) E Dance 6 s.
-SUCCESS (user's definition): the arm goes from the start (left, tool y ~0.12) to the goal (right, y ~0.45)
-without touching the bar = >= 1 reach AND 0 bar contacts in the run.
-Pass: (a) <= 5 voxels near the arm and peak reversals <= 2; (b) B succeeds (if B fails, the scene is still
-unfair: report and stop, do not touch perception); (c) E succeeds. Report a table plus, for any E contact,
-the forensic classification. Commit, push, leave the existing --interactive running (E, both cameras; no new interactive features), URL + 3 lines. Stop. Do not do "Next time".
+91af079 reviewed. Scene is fair (B succeeded), E empty passed, display fixes done. Two findings:
+1. Calibration: every MOVING link sticks out of its spheres by <= 15 mm (upper_arm max 14.9 mm, forearm 13.0,
+   gripper links <= 4). The 51 mm max comes ONLY from ur/base_link_inertia (the fixed base, poorly covered by
+   spheres). Using the overall max (51 mm) erased the bar again (fixed bar px 1125 -> 963 at the contact).
+   Fix: distance_threshold = 0.015 (moving links, measured); remove the fixed base separately with a static
+   world-frame box = bounding box of the calibration's base_link_inertia pixels + 1 cm (the base never moves,
+   same on the real robot). Save the box in the calibration json.
+2. Perception is now correct: in the 1 s before the E contact the ESDF matched the truth within ~1 cm
+   (0.138/0.138, 0.087/0.094, 0.039/0.037 m) while the ARM drove toward the bar at 0.40-0.48 m/s. B passed only
+   by 1.1 cm at the same moment (4.93 s). So it is control: MPC feels obstacles only within
+   optimizer_collision_activation_distance = 0.03 m and treats them as static over its 0.43 s horizon.
+   Required distance = closing speed x reaction time + bar travel over the horizon
+   = 0.5 m/s x (1/30 + 0.025) s + 0.10 m/s x 0.43 s ~= 0.072 -> use 0.07 m for obstacles. Keep the floor's
+   own activation at 0.01 (FloorMaskedScene) unchanged.
+Runs, 1 each: (a) E empty 10 s both cameras (arm mask check), (b) B Dance 6 s, (c) E Dance 6 s both cameras.
+SUCCESS as before (start -> goal, 0 bar contacts). Pass: (a) <= 5 voxels near the arm, reversals <= 2;
+(b) success and min clearance >= 0.02 m; (c) success. If (b) fails, stop and report (control, not perception).
+Report a table + E forensic rows if any contact. Commit, push, leave the existing --interactive running (E,
+both cameras), URL + 3 lines. Stop. Do not do "Next time".
 
 ### Next time (user: postpone)
 0. Interactive, like the v6 interactive: GUI selector for mode B / E (switch without
