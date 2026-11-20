@@ -33,7 +33,16 @@ No pending task
 Leave the deleted 05_c2_tall_wall_refused.png and the untracked curobo/ untouched. Stage files by
 explicit path only. No git clean/reset/restore/stash/add -A.
 
-## Task: v7 — the arm goes once and never comes back (diagnose + fix, TIME LIMIT 15 min) — 2026-11-20
+## Task: none. Work stopped for today (2026-11-20). Wait for the user.
+
+bdfb4ab reviewed: return trips fixed (MPC also tracks the verified joint branch). 30 s: A0 10 reaches / 9 returns,
+B 6/6, E (both cameras) 6/6, 0 contacts, bar clearance B 25.5 mm, E 19.0 mm. Open item: the live viewer return
+was not independently verified (the GUI "Trip" line shows reaches/returns). Next, only when the user says:
+verify the viewer returns from a second process; then planner (MotionGen) + MPC over the bar; then the
+"Next time" display items; then re-identification. Do not start anything.
+
+### Previous task (kept for reference)
+#### v7 — the arm goes once and never comes back (diagnose + fix, TIME LIMIT 15 min) — 2026-11-20
 
 2ceb256 reviewed (viewer moves on 30006). User: the arm goes left -> right once and never returns. The data agree:
 every long-retract run (A, B, E) has reaches = 1 and no return in 15 s.
