@@ -33,22 +33,30 @@ No pending task
 Leave the deleted 05_c2_tall_wall_refused.png and the untracked curobo/ untouched. Stage files by
 explicit path only. No git clean/reset/restore/stash/add -A.
 
-## Task: v7 — test ONE change: RobotSegmenter erases the bar (2 runs) — 2026-11-20
+## Task: v7 — fair scene first, then perception (3 runs) — 2026-11-20
 
-User's hypothesis, supported by the 3c680c4 data: at the contact the ESDF at the contact sphere stayed
-stuck at ~0.08 m while the true clearance went 0.07 -> 0 m. That plateau = RobotSegmenter's default
-distance_threshold 0.05 m (every depth point within 5 cm of the arm spheres is erased as "robot") + sphere
-radius + 3 cm ESDF voxels. The bar is long and the rest of it stayed mapped; only the part next to the arm
-was erased (A: fixed-camera bar pixels 1774 -> 1302 at the closest approach).
-Change ONLY this: RobotSegmenter distance_threshold 0.05 -> 0.015. Everything else back to the original
-v7 settings (decay_factor 0.3, frustum 1.0, floor handling unchanged); undo the 3f91a1d default switch to
-config B. Runs, 1 each, both cameras:
-- Empty scene 10 s: voxels within 5 cm of the arm (must stay ~0 = arm not mapped as obstacle), reaches,
-  reversals.
-- Dance 6 s: contacts, reaches, min clearance; table every 0.1 s over the 1 s before the closest approach:
-  ESDF at the closest sphere vs true clearance (they should now track each other), bar pixels before/after
-  RobotSegmenter.
-Commit, push, leave --interactive running (both cameras), URL + 3 lines. Stop. Do not do "Next time".
+184e7ab reviewed. Segmenter 0.015: the bar is no longer erased (2189 -> 2175 px) and ESDF tracks truth within
+2-3 cm, but the arm leaks into the map in the empty scene (227 voxels near the arm, 292/300 frames, 5 reversals).
+The contact itself came from the SCENE, not perception:
+- `Sequence.pose` picks the Dance target with `visible_path_target(..., self.fixed)`. The fixed camera sees
+  almost everything, so it always picks the path point nearest the tool at the highest allowed z
+  (tool z - 0.12 ~ 0.38 m): right in front of the arm.
+- At each new period the bar TELEPORTS to its new start (fixed bar pixels jump 2033 -> 2496 at 3.0 s): a 30 cm
+  bar appears ~10 cm from the arm while the arm moves 0.54 m/s toward it.
+- v7 never ran group B (truth obstacle), so we could not tell "scene impossible" from "map wrong".
+Do (user decision: finish v7 today, no demo fallback):
+1. Scene: target = the point 0.15 m ahead of the tool on the straight tool -> goal line, at that line's own z
+   (no raising; clip z to [0.15, 0.35]). The bar never teleports: between pokes it slides from where it is
+   to the next start at <= 0.3 m/s (first poke slides in from PARK). Stroke speed stays 0.10 m/s.
+2. Add `--mode B`: no cameras/mapper; the MPC gets the true bar (and rod) as cuboids each step, same
+   scheduler, same rules. `--mode E` = current camera pipeline.
+3. Perception: RobotSegmenter distance_threshold = 0.03 (0.05 erased the bar, 0.015 leaked the arm).
+   Decay 0.3 / frustum 1.0 and floor handling as in original v7.
+Runs, 1 each, both cameras for E: (a) E empty scene 10 s, (b) B Dance 6 s, (c) E Dance 6 s.
+Pass: (a) <= 5 voxels near the arm and peak reversals <= 2; (b) 0 contacts (if B hits, the scene is still
+unfair: report and stop, do not touch perception); (c) 0 contacts. Report a table plus, for any E contact,
+the forensic classification. Commit, push, leave --interactive --mode E running (both cameras), URL +
+3 lines. Stop. Do not do "Next time".
 
 ### Next time (user: postpone, display only)
 a. The red area is the reference example's ESDF slice: red = far from anything, and with nothing observed
