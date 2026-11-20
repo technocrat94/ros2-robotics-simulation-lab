@@ -33,23 +33,11 @@ No pending task
 Leave the deleted 05_c2_tall_wall_refused.png and the untracked curobo/ untouched. Stage files by
 explicit path only. No git clean/reset/restore/stash/add -A.
 
-## Task: v6 Car rerun 3 (checkpoint only, ~5 min) — 2026-11-20
+## Task: none. Waiting for the user's Viser check of v6 (2026-11-20)
 
-2cdc6de reviewed. Sofa is done: B 3 reaches, E 3 reaches, 0 contacts, STATIC box kept while out of view.
-Car still failed (3 bar contacts). Two causes, both fixed by Claude in scripts/curobo_v6_memory.py
-(16 GPU-free tests pass; do not change these rules):
-- The targets (z ~0.38) were only ~6 cm below the camera and ~16 cm sideways, so outside the image; every
-  poke reported in_image false and the bar was only seen when it hit the lens. New `visible_path_target`:
-  the nearest point on the tool -> goal path, at or below the old height, whose tip and the 5 cm behind it
-  project inside the image with a 10% margin. If none, the poke is skipped (bar parked, aimed_in_view
-  false). The first poke waits for the first camera image.
-- Classification used distance over a short track: seen 0.2 s at 0.1 m/s = 2 cm, so it was called STATIC
-  and kept as a phantom for 7 s. Now speed: STATIC only if < 0.04 m/s.
-Do:
-1. Rerun Car E only (Sofa stays as is in the checkpoint file).
-2. Report: contacts, reaches, min clearance; per poke: target, aimed_in_view, seen intervals, class
-   while seen, cleared_by and its time.
-3. Replay + interactive commands, 3 lines on what to look at. Commit, push, stop.
+06eeb17 reviewed. v6 checkpoint passes: Car E 0 contacts (+25.9 mm), pokes 1 and 3 seen and cleared by
+moved_on 0.53 s after leaving view, poke 2 skipped (no visible path point); Sofa B/E 3 reaches, 0 contacts.
+Known small issue: at the bar's turnaround it reads STATIC for 1-2 frames. Do not start anything.
 
 ### Spec kept from v4 (unchanged rules)
 : floor, unseen rod top, visible prediction (started 2026-11-19)
