@@ -31,7 +31,9 @@ FORENSICS_FILE = DIAGNOSIS_FILE.with_name('v7_bar_forensics.json')
 DECAY_COMPARISON_FILE = DIAGNOSIS_FILE.with_name('v7_decay_comparison.json')
 DECAY_CONFIGS = {'A': (.3, 1.), 'B': (1., 1.), 'C': (1., .3)}
 DEFAULT_DECAY = DECAY_CONFIGS['A']
-ROBOT_MASK_DISTANCE = .015
+ROBOT_MASK_DISTANCE = .051  # Calibrated in v7_segmenter_calibration.json.
+CALIBRATION_FILE = DIAGNOSIS_FILE.with_name('v7_segmenter_calibration.json')
+FAIR_SCENE_FILE = DIAGNOSIS_FILE.with_name('v7_fair_scene_checkpoint.json')
 SEGMENTATION_CHECKPOINT_FILE = DIAGNOSIS_FILE.with_name('v7_segmentation_checkpoint.json')
 CAMERA_LABELS = ('固定相機', '手上相機')
 PARK = np.array([2., .28, .20])
@@ -64,14 +66,19 @@ def render_worker(mode):
         [*origin, *source.camera_common.matrix_to_quaternion_xyzw(fixed @ convention)],
         dtype=np.float32).reshape(1, 1, 7)
     focal = height/(2*np.tan(source.VERTICAL_FOV_RAD/2))
-    print('V7_RENDERER '+json.dumps(dict(width=width, height=height, focal=focal)), flush=True)
+    shape_bodies = scene.model.shape_body.numpy()[:scene.robot_shape_count]
+    links = [scene.model.body_label[i] if i >= 0 else 'world' for i in shape_bodies]
+    print('V7_RENDERER '+json.dumps(dict(width=width, height=height, focal=focal, robot_shape_links=links)),
+          flush=True)
     for line in sys.stdin:
         request = json.loads(line)
         if request.get('shutdown'):
             return
         scene._assign_pose(np.asarray(request['q'], dtype=np.float32), *request['bar'], request['rod'])
-        depths, rgbs, poses, bar_pixels = [], [], [], []
-        shape_image = scene.shape_index if request.get('count_bar_pixels') else None
+        depths, rgbs, poses, bar_pixels, robot_shapes = [], [], [], [], []
+        calibrate = request.get('robot_shape_ids')
+        count_bar = request.get('count_bar_pixels')
+        shape_image = scene.shape_index if calibrate or count_bar else None
         scene.camera_transforms.assign(fixed_transform)
         for i in range(1 if mode == 'fixed' else 2):
             if i:
@@ -81,8 +88,12 @@ def render_worker(mode):
             scene.sensor.update(scene.state, scene.camera_transforms, scene.rays,
                                 forward_depth_image=scene.depth, color_image=color, shape_index_image=shape_image)
             source.wp.synchronize_device(scene.device)
-            if shape_image is not None:
-                bar_pixels.append(shape_image.numpy()[0, 0] == scene.rod_shape)
+            if count_bar or calibrate:
+                ids = shape_image.numpy()[0, 0]
+                if count_bar:
+                    bar_pixels.append(ids == scene.rod_shape)
+                if calibrate:
+                    robot_shapes.append(np.where(ids < len(links), ids.astype(np.int32), -1))
             depths.append(scene.depth.numpy()[0, 0].copy())
             rgba = color.numpy()[0, 0]
             rgbs.append(np.stack([(rgba >> shift) & 255 for shift in (0, 8, 16)], axis=-1).astype(np.uint8))
@@ -91,8 +102,10 @@ def render_worker(mode):
             orientation = source.camera_common.matrix_to_quaternion_xyzw(rotation)
             poses.append([*pose[:3], orientation[3], *orientation[:3]])
         arrays = dict(depth=depths, rgb=rgbs, poses=poses)
-        if shape_image is not None:
+        if count_bar:
             arrays['bar_pixels'] = bar_pixels
+        if calibrate:
+            arrays['robot_shapes'] = robot_shapes
         np.savez(request['output'], **arrays)
         print('V7_FRAME', flush=True)
 
@@ -122,13 +135,15 @@ class NewtonStream:
             recent = recent[-12:]
         raise RuntimeError(f'Newton stream exited while waiting for {prefix}: '+''.join(recent))
 
-    def capture(self, q, bar, rod):
+    def capture(self, q, bar, rod, *, robot_shape_ids=False):
         self.process.stdin.write(json.dumps(dict(q=q.tolist(), bar=bar.tolist(), rod=rod,
-                                                 count_bar_pixels=self.count_bar_pixels,
+                                                 count_bar_pixels=self.count_bar_pixels, robot_shape_ids=robot_shape_ids,
                                                  output=str(self.output)))+'\n')
         self.process.stdin.flush()
         self.read('V7_FRAME')
         with np.load(self.output) as arrays:
+            if robot_shape_ids:
+                self.robot_shapes = arrays['robot_shapes']
             if self.count_bar_pixels:
                 self.bar_pixels = arrays['bar_pixels']
             return arrays['depth'], arrays['rgb'], arrays['poses']
@@ -256,33 +271,57 @@ def build_mpc(settings, robot_cfg, grid):
 
 
 class Sequence:
-    """Reuse the v6 Dance stroke and the accepted stationary Sofa location."""
-    def __init__(self, mapping):
-        from curobo_v6_memory import DepthFrame
+    """Slide to each poke start, then run the original X-axis Dance stroke."""
 
-        origin, rotation = camera_basis(yaml.safe_load(FIXED_CONFIG.read_text()))
-        shape = (mapping.height, mapping.width)
-        self.fixed = DepthFrame(np.empty(shape), np.empty(shape, dtype=bool),
-                                (mapping.focal, mapping.focal, mapping.width/2, mapping.height/2),
-                                origin, rotation, mapping.depth_max)
-        self.period = None
-        self.target = None
+    def __init__(self):
+        self.bar = PARK.copy()
+        self.phase = None
+        self.next_poke = 0.
+        self.transition_start = self.bar.copy()
+        self.transition_end = self.bar.copy()
+        self.transition_time = 0.
+        self.transition_duration = 0.
+        self.last_clock = 0.
+
+    @staticmethod
+    def poke_start(tool, goal):
+        from curobo_moving_bar_poke_demo import DANCE_TRAVEL_M
+
+        direction = goal[:2]-tool[:2]
+        distance = np.linalg.norm(direction)
+        target = tool[:2]+direction*(.15/distance) if distance > 1e-6 else goal[:2]
+        return np.array([target[0]+.15+DANCE_TRAVEL_M, target[1], .20])
 
     def pose(self, clock, tool, goal):
-        from curobo_moving_bar_poke_demo import DANCE_PERIOD_S, dance_center
-        from curobo_v6_memory import visible_path_target
+        from curobo_moving_bar_poke_demo import DANCE_SPEED_MPS, DANCE_TRAVEL_M
 
-        elapsed = clock % DURATION
-        if elapsed >= DANCE_END-1e-9:
-            return PARK.copy(), SOFA
-        started = int((clock+1e-9)/DANCE_PERIOD_S)
-        if self.period != started:
-            self.period = started
-            self.target = visible_path_target(tool, goal, self.fixed)
-        if self.target is None:
-            return PARK.copy(), None
-        xy = dance_center(self.target, max(0., clock-started*DANCE_PERIOD_S))[:2]
-        return np.array([*xy, self.target[2]]), None
+        transition_speed = .30
+        stroke_time = DANCE_TRAVEL_M/DANCE_SPEED_MPS
+        dance = clock % DURATION < DANCE_END-1e-9
+        if self.phase != dance or (dance and clock >= self.next_poke-1e-9):
+            self.transition_start = self.bar.copy()
+            self.transition_end = self.poke_start(tool, goal) if dance else PARK.copy()
+            self.transition_time = self.last_clock
+            self.transition_duration = np.linalg.norm(self.transition_end-self.transition_start)/transition_speed
+            self.next_poke = clock+self.transition_duration+2*stroke_time
+            self.phase = dance
+        elapsed = clock-self.transition_time
+        if elapsed < self.transition_duration:
+            self.bar = self.transition_start + elapsed/self.transition_duration*(self.transition_end-self.transition_start)
+        else:
+            stroke = elapsed-self.transition_duration
+            displacement = DANCE_SPEED_MPS * max(0., min(stroke, 2*stroke_time-stroke)) if dance else 0.
+            self.bar = self.transition_end-np.array([displacement, 0., 0.])
+        self.last_clock = clock
+        return self.bar, None if dance else SOFA
+
+
+def update_truth_boxes(mpc, bar, rod):
+    from curobo_moving_rod_mpc import update_box
+
+    update_box(mpc, dict(center_m=bar, dims_m=(.30, .04, .04)), name='truth_bar')
+    rod_box = None if rod is None else dict(center_m=(*rod[:2], rod[2]/2), dims_m=(.05, .05, rod[2]))
+    update_box(mpc, rod_box, name='truth_rod')
 
 
 def cylinder_sdf(points, center, axis, length, radius):
@@ -576,7 +615,7 @@ class MappingView:
             raise RuntimeError(f'viewer port {args.port} occupied')
         scene, gui = self.server.scene, self.server.gui
         gui.add_markdown('**v7 圖例**\n- 紅色短桿、棕色直桿為 Newton 真值\n'
-                         '- 彩色點為 cuRobo TSDF 佔據體素，ESDF 切面顯示距離\n'
+                         '- 彩色點為 cuRobo TSDF 佔據體素，深度圖白色表示已移除\n'
                          '- 青綠色是固定相機，紫色是腕相機。各有視錐、地板投影、RGB 與過濾後深度')
         self.camera_names = '、'.join(CAMERA_LABELS[:mapping.count])
         self.status = gui.add_text('Simulation', self.camera_names+' | starting', disabled=True)
@@ -605,10 +644,9 @@ class MappingView:
         self.voxels = scene.add_point_cloud('/reconstruction', np.zeros((0, 3)), (240, 160, 70),
                                             point_size=TSDF_SIZE)
 
-    def update(self, state, mapping, rgb, grid, bar, rod, clock, integrate_ms, esdf_ms):
+    def update(self, state, mapping, rgb, bar, rod, clock, integrate_ms, esdf_ms):
         from curobo_camera_second_pass import wxyz_matrix
         from curobo_v6_memory import floor_footprint
-        from curobo.examples.reference.live_volumetric_mapping_mpc import _add_static_esdf_slice
 
         self.viewer.set_joint_state(state.squeeze(0))
         self.bar.position = tuple(bar)
@@ -620,7 +658,6 @@ class MappingView:
         with self.server.atomic():
             self.voxels.points = points[::step].cpu().numpy()
             self.voxels.colors = mapping.occupied.colors_uint8()[::step].cpu().numpy()
-        _add_static_esdf_slice(self.viewer, grid, mapping.mapper.config)
         depth = mapping.filtered.cpu().numpy()
         intrinsics = (mapping.focal, mapping.focal, mapping.width/2, mapping.height/2)
         for i, (frustum, image, panel, outline, fill) in enumerate(self.views):
@@ -628,7 +665,8 @@ class MappingView:
             frustum.position, frustum.wxyz = pose[:3], pose[3:]
             image.image = rgb[i, ::4, ::4]
             t = np.clip(depth[i, ::4, ::4]/mapping.depth_max, 0., 1.)
-            preview = np.stack((t, 1.-np.abs(2*t-1), 1.-t), axis=-1)*(t[..., None] > 0.)
+            preview = np.stack((t, 1.-np.abs(2*t-1), 1.-t), axis=-1)
+            preview[t <= 0.] = 1.
             panel.image = (255*preview).astype(np.uint8)
             vertices = floor_footprint(pose[:3], wxyz_matrix(pose[3:]), intrinsics,
                                        mapping.width, mapping.height, mapping.depth_max)
@@ -656,8 +694,9 @@ def run(args, stream):
     tuned.original.configure_scene(baseline)
     robot_cfg, _ = v2.sixth.limited_robot_cfg(args.robot_config, v2.sixth.CAMERA_FRONT_SEED)
     robot = Kinematics(robot_cfg.kinematics)
-    mapping = LiveMapping(stream.calibration, 1 if args.cameras == 'fixed' else 2, robot,
-                          decay=args.decay)
+    mapping = None if stream is None else LiveMapping(
+        stream.calibration, 1 if args.cameras == 'fixed' else 2, robot, decay=args.decay,
+    )
     q = np.asarray(baseline['raised_start']['joints_rad'], dtype=np.float32)
     start_q = q.copy()
     velocity = np.zeros(6)
@@ -667,17 +706,24 @@ def run(args, stream):
     target = goal.position.detach().cpu().numpy().reshape(-1, 3)[0]
     start = v2.sixth.fourth.tool_position(robot, state.position)
     tool = start.copy()
-    sequence = None if args.diagnosis else Sequence(mapping)
+    sequence = None if args.diagnosis or args.calibrate_segmenter else Sequence()
     bar, rod = (PARK.copy(), None) if sequence is None else sequence.pose(0., tool, target)
     forensics = BarForensics() if args.bar_forensics else None
-    depth, rgb, poses = stream.capture(q, bar, rod)
-    grid, integrate_ms, esdf_ms = mapping.observe(depth, rgb, poses, state, stream.bar_pixels)
-    if forensics is not None:
-        forensics.observe(0., 0., bar, mapping, grid)
-    print(f'V7_MAPPED {args.cameras} decay={args.decay[0]:.1f} frustum={args.decay[1]:.1f} '
-          f'robot_mask_m={ROBOT_MASK_DISTANCE:.3f} occupied={len(mapping.occupied)} integrate={integrate_ms:.1f} '
-          f'esdf={esdf_ms:.1f}', flush=True)
-    mpc, mask = build_mpc(preflight['frozen_config'], robot_cfg, grid)
+    if mapping is None:
+        mask = v41.nonbase_mask(robot)
+        mpc, _ = v41.make_mpc(args.robot_config, preflight['frozen_config'], floor_activation_m=.01,
+                              additional_boxes=('truth_bar', 'truth_rod'))
+        update_truth_boxes(mpc, bar, rod)
+        integrate_ms = esdf_ms = 0.
+    else:
+        depth, rgb, poses = stream.capture(q, bar, rod)
+        grid, integrate_ms, esdf_ms = mapping.observe(depth, rgb, poses, state, stream.bar_pixels)
+        if forensics is not None:
+            forensics.observe(0., 0., bar, mapping, grid)
+        print(f'V7_MAPPED {args.cameras} decay={args.decay[0]:.1f} frustum={args.decay[1]:.1f} '
+              f'robot_mask_m={ROBOT_MASK_DISTANCE:.3f} occupied={len(mapping.occupied)} '
+              f'integrate={integrate_ms:.1f} esdf={esdf_ms:.1f}', flush=True)
+        mpc, mask = build_mpc(preflight['frozen_config'], robot_cfg, grid)
     view = None
     try:
         mpc.setup(state)
@@ -690,7 +736,7 @@ def run(args, stream):
         if args.interactive:
             view = MappingView(args, mapping)
             print(f'V7_INTERACTIVE http://127.0.0.1:{args.port}', flush=True)
-            view.update(state, mapping, rgb, grid, bar, rod, 0., integrate_ms, esdf_ms)
+            view.update(state, mapping, rgb, bar, rod, 0., integrate_ms, esdf_ms)
         voxel_data = mpc.scene_collision_checker.data.voxels
         next_frame, step = 1, 0
         previous_q, previous_velocity, previous_time = q.copy(), velocity.copy(), 0.
@@ -708,10 +754,15 @@ def run(args, stream):
         flips = [list() for _ in range(6)]
         last_direction = np.zeros(6)
         peak_flips = 0
+        max_bar_speed = 0.
+        closest_truth = None
         frames = 0
         duration = DIAGNOSIS_S if args.diagnosis else DURATION
-        if forensics is not None:
+        if args.calibrate_segmenter:
+            duration = DIAGNOSIS_S
+        elif forensics is not None or mapping is None:
             duration = DANCE_END
+        calibration_poses = [q.tolist()] if args.calibrate_segmenter else None
         if args.diagnosis:
             measurements.append(empty_frame(0., mapping, grid, robot, state, flips))
         while args.interactive or step < round(duration/CONTROL_DT):
@@ -719,7 +770,16 @@ def run(args, stream):
             began = time.monotonic()
             if sequence is not None:
                 bar, rod = sequence.pose(clock, tool, target)
-            if next_frame/FRAME_RATE <= clock+1e-9:
+            if step:
+                max_bar_speed = max(max_bar_speed, float(np.linalg.norm(bar-previous_bar))/CONTROL_DT)
+            if mapping is None:
+                update_truth_boxes(mpc, bar, rod)
+                if calibration_poses is not None and next_frame/FRAME_RATE <= clock+1e-9:
+                    observed_q = sample_held_pose(previous_q, previous_velocity,
+                                                  next_frame/FRAME_RATE-previous_time, position)
+                    calibration_poses.append(observed_q.tolist())
+                    next_frame += 1
+            elif next_frame/FRAME_RATE <= clock+1e-9:
                 frame_time = next_frame/FRAME_RATE
                 next_frame += 1
                 observed_q = sample_held_pose(previous_q, previous_velocity, frame_time-previous_time, position)
@@ -739,7 +799,7 @@ def run(args, stream):
                     if not args.diagnosis:
                         probe.observe(frame_time, observed_bar, mapping.occupied.centers.cpu().numpy())
                 if view is not None and frames % 3 == 0:
-                    view.update(state, mapping, rgb, grid, bar, rod, clock, integrate_ms, esdf_ms)
+                    view.update(state, mapping, rgb, bar, rod, clock, integrate_ms, esdf_ms)
                 frames += 1
             result = mpc.optimize_action_sequence(state)
             commands = result.action_sequence.velocity.detach().cpu().numpy().reshape(-1, 6)
@@ -763,8 +823,15 @@ def run(args, stream):
                 seeking_goal = not seeking_goal
                 mpc.update_goal_tool_poses(goal if seeking_goal else initial, run_ik=False)
             spheres = sphere_series(robot, torch.as_tensor(path, device='cuda', dtype=torch.float32))
+            bar_gaps = cylinder_sdf(spheres[..., :3], bar, 0, .30, .02)-spheres[..., 3]
+            endpoint, sphere = np.unravel_index(np.argmin(bar_gaps), bar_gaps.shape)
+            bar_gap = float(bar_gaps[endpoint, sphere])
+            if closest_truth is None or bar_gap < closest_truth['clearance_m']:
+                closest_truth = dict(time_s=clock+endpoint*CONTROL_DT, clearance_m=bar_gap,
+                                     sphere_index=int(sphere), q_rad=path[endpoint].tolist(),
+                                     bar_center_m=bar.tolist(), rod=rod)
             clearances = {
-                'bar': cylinder_clearance(spheres, bar, 0, .30, .02),
+                'bar': bar_gap,
                 'floor': float(np.min(floor_distances(spheres, mask, 0.))),
             }
             if rod is not None:
@@ -791,6 +858,8 @@ def run(args, stream):
             step += 1
             if args.interactive:
                 time.sleep(max(0., CONTROL_DT-(time.monotonic()-began)))
+        if calibration_poses is not None:
+            return dict(poses=calibration_poses, position_limits=position.tolist(), reaches=reaches, returns=returns)
         if args.diagnosis:
             return dict(cameras=args.cameras, seconds=step*CONTROL_DT, contacts=contacts,
                         reaches=reaches, returns=returns, arrival_times_s=arrival_times,
@@ -800,10 +869,12 @@ def run(args, stream):
                         peak_joint_reversals_in_half_s=peak_flips,
                         alignment=static_alignment(stream, mapping, start_q,
                                                    tuned.joint_state(start_q, np.zeros(6)),
-                                                   Sequence(mapping).pose(0., start, target)[0])
+                                                   Sequence.poke_start(start, target)-np.array([.125, 0., 0.]))
                         if args.cameras == 'fixed' else None)
         arrays = np.asarray(timings)
-        result = dict(cameras=args.cameras, seconds=step*CONTROL_DT, rgbd_batches=len(timings),
+        result = dict(mode=args.mode, cameras=None if mapping is None else args.cameras,
+                      seconds=step*CONTROL_DT, rgbd_batches=0 if mapping is None else len(timings),
+                      max_bar_speed_mps=max_bar_speed, closest_truth=closest_truth,
                     contacts=contacts, reaches=reaches, minimum_clearance_m=min_clearance,
                     integrate_ms=dict(mean=float(arrays[:, 0].mean()), p95=float(np.percentile(arrays[:, 0], 95))),
                     esdf_ms=dict(mean=float(arrays[:, 1].mean()), p95=float(np.percentile(arrays[:, 1], 95))),
@@ -817,6 +888,9 @@ def run(args, stream):
 
 
 def run_mode(args):
+    if args.mode == 'B':
+        print('V7_MODE B truth cuboids; no cameras or mapper', flush=True)
+        return run(args, None)
     print('V7_CAMERAS '+json.dumps(CAMERA_LABELS[:1 if args.cameras == 'fixed' else 2],
                                   ensure_ascii=False), flush=True)
     with tempfile.TemporaryDirectory(prefix='v7-newton-') as temp:
@@ -916,13 +990,150 @@ def segmentation_checkpoint(args):
     print(f'V7_SEGMENTATION saved {SEGMENTATION_CHECKPOINT_FILE.relative_to(ROOT)}', flush=True)
 
 
+def signed_pixel_distances(depth, pose, focal, mask, spheres):
+    """Project selected Newton depth pixels and evaluate the RobotSegmenter metric."""
+    import torch
+    from curobo_camera_second_pass import wxyz_matrix
+
+    y, x = np.nonzero(mask & np.isfinite(depth) & (depth > 0.))
+    if not len(x):
+        return y, x, np.empty(0, dtype=np.float32)
+    h, w = depth.shape
+    rays = np.column_stack(((x+.5-w/2)/focal, (y+.5-h/2)/focal, np.ones(len(x))))
+    world = (rays*depth[y, x, None]) @ wxyz_matrix(pose[3:]).T+pose[:3]
+    points = torch.as_tensor(world, device=spheres.device, dtype=spheres.dtype)
+    distances = [(torch.cdist(chunk, spheres[:, :3])-spheres[:, 3]).amin(dim=1)
+                 for chunk in points.split(16384)]
+    return y, x, torch.cat(distances).cpu().numpy()
+
+
+def calibration_robot(config):
+    from curobo.kinematics import Kinematics
+    from curobo_moving_rod_v41 import v2
+
+    robot_cfg, _ = v2.sixth.limited_robot_cfg(config, v2.sixth.CAMERA_FRONT_SEED)
+    return Kinematics(robot_cfg.kinematics)
+
+
+def active_spheres(robot, q):
+    from curobo_moving_rod_mpc import joint_state
+
+    spheres = robot.compute_kinematics(joint_state(q, np.zeros(6))).robot_spheres.reshape(-1, 4)
+    return spheres[spheres[:, 3] > 0.]
+
+
+def calibrate_segmenter(args):
+    print('V7_CALIBRATION 10 s empty motion + 20 poses; estimated wall time 2–4 minutes', flush=True)
+    motion = run(args, None)
+    poses = np.asarray(motion['poses'])
+    lo, hi = np.asarray(motion['position_limits'])
+    # Deterministic perturbations around different points on the empty trajectory.
+    rng = np.random.default_rng(7)
+    pose_indices = np.linspace(0, len(poses)-1, 20, dtype=int)
+    varied = np.clip(poses[pose_indices]+rng.uniform(-.35, .35, (20, 6)), lo, hi)
+    robot = calibration_robot(args.robot_config)
+    by_link = {}
+    with tempfile.TemporaryDirectory(prefix='v7-segmenter-') as directory:
+        stream = NewtonStream(args, Path(directory))
+        try:
+            shape_links = stream.calibration['robot_shape_links']
+            labels, link_ids = np.unique(shape_links, return_inverse=True)
+            for q in np.concatenate((poses, varied)):
+                depth, _, cameras = stream.capture(q, PARK, None, robot_shape_ids=True)
+                spheres = active_spheres(robot, q)
+                for image, pose, shapes in zip(depth, cameras, stream.robot_shapes, strict=True):
+                    y, x, gap = signed_pixel_distances(image, pose, stream.calibration['focal'], shapes >= 0, spheres)
+                    links = link_ids[shapes[y, x]]
+                    for link in np.unique(links):
+                        by_link.setdefault(str(labels[link]), []).append(gap[links == link])
+        finally:
+            stream.close()
+
+    def stats(samples):
+        p99, p999 = np.percentile(samples, (99, 99.9))
+        return dict(pixels=len(samples), max_m=float(samples.max()), p99_9_m=float(p999), p99_m=float(p99))
+
+    by_link = {link: np.concatenate(chunks) for link, chunks in by_link.items()}
+    overall = stats(np.concatenate(list(by_link.values())))
+    threshold = (int(np.floor(overall['max_m']*1000))+1)/1000
+    report = dict(overall=overall, by_link={name: stats(distances) for name, distances in by_link.items()},
+                  threshold_m=threshold, motion_frames=len(poses), motion_reaches=motion['reaches'],
+                  motion_returns=motion['returns'], extra_poses_rad=varied.tolist(),
+                  method='signed distance to the nearest enabled sphere; each pixel grouped by Newton body',
+                  real_d435_additional_margin_m=.01)
+    write_json(CALIBRATION_FILE, report)
+    print('V7_CALIBRATION '+json.dumps(dict(overall=overall, threshold_m=threshold)), flush=True)
+
+
+def write_json(path, payload):
+    tmp = path.with_suffix('.tmp')
+    tmp.write_text(json.dumps(payload, indent=2, allow_nan=False)+'\n')
+    tmp.replace(path)
+
+
+def closest_bar_pixels(robot, stream, closest):
+    q = np.asarray(closest['q_rad'])
+    depth, _, poses = stream.capture(q, np.asarray(closest['bar_center_m']), closest['rod'])
+    spheres = active_spheres(robot, q)
+    counts = {}
+    for name, image, pose, mask in zip(('fixed', 'wrist'), depth, poses, stream.bar_pixels, strict=True):
+        y, x, gap = signed_pixel_distances(image, pose, stream.calibration['focal'], mask, spheres)
+        in_range = (image[y, x] >= DEPTH_MIN) & (image[y, x] <= DEPTH_MAX)
+        near = gap < ROBOT_MASK_DISTANCE
+        counts[name] = dict(valid_bar_pixels=len(gap), within_threshold=int(near.sum()),
+                            in_depth_range=int(in_range.sum()), in_range_within_threshold=int((near & in_range).sum()))
+    return counts
+
+
+def fair_checkpoint(args):
+    truth = json.loads(args.fair_checkpoint.read_text())
+    if truth['mode'] != 'B' or truth['rgbd_batches'] != 0 or truth['seconds'] != DANCE_END:
+        raise RuntimeError('expected a camera-free B Dance result')
+    if truth['reaches'] < 1 or any(truth['contacts'].values()):
+        raise RuntimeError('B did not pass; stop before the perception tests')
+    print('V7_FAIR E empty + E Dance; estimated wall time 2–3 minutes', flush=True)
+    empty = run_mode(argparse.Namespace(**(vars(args) | dict(diagnosis=True))))
+    summary = dict(seconds=empty['seconds'], reaches=empty['reaches'], returns=empty['returns'],
+                   contacts=empty['contacts'], max_voxels_near_arm=empty['max_voxels_near_arm'],
+                   peak_reversals_in_half_s=empty['peak_joint_reversals_in_half_s'],
+                   counts_near_arm=[frame['voxels_within_50mm_of_arm'] for frame in empty['frames']])
+    print('V7_FAIR empty '+json.dumps({k: v for k, v in summary.items() if k != 'counts_near_arm'}), flush=True)
+    dance_args = argparse.Namespace(**(vars(args) | dict(bar_forensics=True)))
+    dance = run_mode(dance_args)
+    print('V7_FAIR E '+json.dumps(dict(contacts=dance['run']['contacts'], reaches=dance['run']['reaches'],
+          closest=dance['closest_bar_approach'],
+          classifications=[event['classification'] for event in dance['contact_episodes']])), flush=True)
+
+    # Render only the saved closest poses for B/E diagnostics. The B controller runs camera-free.
+    robot = calibration_robot(args.robot_config)
+    with tempfile.TemporaryDirectory(prefix='v7-closest-') as directory:
+        stream = NewtonStream(dance_args, Path(directory))
+        try:
+            truth['closest_bar_pixels'] = closest_bar_pixels(robot, stream, truth['closest_truth'])
+            dance['closest_bar_pixels'] = closest_bar_pixels(robot, stream, dance['run']['closest_truth'])
+        finally:
+            stream.close()
+    payload = dict(robot_mask_distance_m=ROBOT_MASK_DISTANCE, decay_factor=args.decay[0],
+                   frustum_decay_factor=args.decay[1], truth_dance=truth, perception_empty=summary,
+                   perception_dance=dance,
+                   empty_pass=summary['max_voxels_near_arm'] <= 5 and summary['peak_reversals_in_half_s'] <= 2,
+                   truth_pass=True,
+                   perception_pass=dance['run']['reaches'] >= 1 and dance['run']['contacts']['bar'] == 0)
+    write_json(FAIR_SCENE_FILE, payload)
+    print(f'V7_FAIR saved {FAIR_SCENE_FILE.relative_to(ROOT)}', flush=True)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--mode', choices=('B', 'E'), default='E')
     parser.add_argument('--cameras', choices=('fixed', 'both'), default='both')
     mode = parser.add_mutually_exclusive_group(required=True)
     mode.add_argument('--smoke', action='store_true')
     mode.add_argument('--diagnosis', action='store_true', help='Measure fixed and both in empty scenes, then save diagnostics')
     mode.add_argument('--interactive', action='store_true')
+    mode.add_argument('--fair-checkpoint', type=Path, metavar='B_RESULT',
+                      help='Run E empty and Dance after a passing camera-free B result')
+    mode.add_argument('--calibrate-segmenter', action='store_true', help='Measure the segmentation threshold')
     mode.add_argument('--segmentation-checkpoint', action='store_true', help='Run one dual-camera empty scene and Dance')
     mode.add_argument('--decay-comparison', action='store_true', help='Compare three 6 s dual-camera Dance runs')
     mode.add_argument('--bar-forensics', action='store_true', help='Record one 6 s dual-camera Dance')
@@ -932,7 +1143,9 @@ def main():
     parser.add_argument('--newton-python', type=Path, default=Path.home()/'newton_ws/.venv-cpu/bin/python')
     args = parser.parse_args()
     args.decay = DEFAULT_DECAY
-    if (args.bar_forensics or args.decay_comparison or args.segmentation_checkpoint) and args.cameras != 'both':
+    if args.mode == 'B' and not args.smoke:
+        parser.error('--mode B requires --smoke')
+    if (args.bar_forensics or args.decay_comparison or args.segmentation_checkpoint or args.calibrate_segmenter or args.fair_checkpoint) and args.cameras != 'both':
         parser.error('Dance checkpoints require --cameras both')
     if args.interactive:
         from curobo_moving_rod_v3 import check_viewer_port
@@ -940,6 +1153,10 @@ def main():
     try:
         if args.diagnosis:
             diagnose(args)
+        elif args.fair_checkpoint is not None:
+            fair_checkpoint(args)
+        elif args.calibrate_segmenter:
+            calibrate_segmenter(args)
         elif args.segmentation_checkpoint:
             segmentation_checkpoint(args)
         elif args.decay_comparison:
