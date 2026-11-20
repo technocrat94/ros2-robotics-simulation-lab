@@ -27,8 +27,11 @@ TSDF_SIZE, ESDF_SIZE = .005, .03
 FRAME_RATE, CONTROL_DT = 30, .025
 DURATION = 10.
 BAR_TIP_INNER_X, BAR_STROKE_M, BAR_SPEED_MPS = .50, .125, .10
-BAR_LANE_Y, BAR_HEIGHT_M = .36, .23
+BAR_LANE_Y, BAR_HEIGHT_M = .25, .25
+START_TOOL_M = (.50, .00, .25)
+GOAL_TOOL_M = (.50, .50, .25)
 RESULTS_DIR = ROOT/'docs/experiments/sim-camera-curobo/results'
+STRAIGHT_PATH_FILE = RESULTS_DIR/'v7_straight_path_preflight.json'
 BAR_LENGTH_M, BAR_RADIUS_M = .30, .02
 OBSTACLE_ACTIVATION_M = .07
 FLOOR_ACTIVATION_M = .01
@@ -704,12 +707,19 @@ def run(args, stream):
     mapping = None if stream is None else LiveMapping(
         stream.calibration, 1 if args.cameras == 'fixed' else 2, robot, decay=args.decay,
     )
-    q = np.asarray(baseline['raised_start']['joints_rad'], dtype=np.float32)
+    path_preflight = json.loads(STRAIGHT_PATH_FILE.read_text())
+    if not path_preflight['passed'] or path_preflight['robot_config_sha256'] != preflight['robot_config_sha256']:
+        raise RuntimeError('straight path IK preflight has not passed for this robot')
+    endpoints = path_preflight['endpoints']
+    if (tuple(endpoints['start']['target_m']), tuple(endpoints['goal']['target_m'])) != (START_TOOL_M, GOAL_TOOL_M):
+        raise RuntimeError('straight path IK preflight targets have changed')
+    q = np.asarray(endpoints['start']['joints_rad'], dtype=np.float32)
     start_q = q.copy()
     velocity = np.zeros(6)
     state = tuned.joint_state(q, velocity)
-    initial = robot.compute_kinematics(state).tool_poses.as_goal().clone()
-    goal = v2.sixth.goal_from_scene()
+    template = v2.sixth.goal_from_scene()
+    initial = straight_goal(template, START_TOOL_M)
+    goal = straight_goal(template, GOAL_TOOL_M)
     target = goal.position.detach().cpu().numpy().reshape(-1, 3)[0]
     start = v2.sixth.fourth.tool_position(robot, state.position)
     tool = start.copy()
@@ -1246,11 +1256,71 @@ def search_bar_lanes(path):
     print('V7_LANE '+json.dumps(chosen), flush=True)
 
 
+def straight_goal(template, position):
+    goal = template.clone()
+    goal.position.copy_(goal.position.new_tensor(position))
+    return goal
+
+
+def straight_path_preflight(args):
+    import hashlib
+
+    from curobo.inverse_kinematics import InverseKinematics, InverseKinematicsCfg
+    import curobo_moving_rod_v41 as v41
+
+    v2, tuned = v41.v2, v41.tuned
+    baseline = json.loads(tuned.original.BASELINE_FILE.read_text())
+    tuned.original.configure_scene(baseline)
+    robot_cfg, _ = v2.sixth.limited_robot_cfg(args.robot_config, v2.sixth.CAMERA_FRONT_SEED)
+    template = v2.sixth.goal_from_scene()
+    seed = np.asarray(baseline['raised_start']['joints_rad'], dtype=np.float32)
+    report = dict(passed=False, robot_config_sha256=hashlib.sha256(args.robot_config.read_bytes()).hexdigest(),
+                  orientation_wxyz=template.quaternion.detach().cpu().reshape(-1, 4)[0].tolist(),
+                  raised_start_seed_rad=seed.tolist(), endpoints={})
+    ik = InverseKinematics(InverseKinematicsCfg.create(robot=robot_cfg,
+                                                      position_tolerance=.001, orientation_tolerance=.01))
+    try:
+        mask = v41.nonbase_mask(ik.kinematics)
+        for name, xyz in (('start', START_TOOL_M), ('goal', GOAL_TOOL_M)):
+            goal = straight_goal(template, xyz)
+            seed_state = tuned.joint_state(seed, np.zeros(6))
+            result = ik.solve_pose(goal, current_state=seed_state)
+            entry = dict(target_m=xyz, ik_success=bool(result.success.item()))
+            report['endpoints'][name] = entry
+            if not entry['ik_success']:
+                report['failure'] = f'{name} IK failed'
+                break
+            solution = result.js_solution.reorder(seed_state.joint_names)
+            q = solution.position.detach().cpu().numpy().reshape(-1, len(seed))[0]
+            state = tuned.joint_state(q, np.zeros(6))
+            actual = ik.kinematics.compute_kinematics(state)
+            spheres = actual.robot_spheres.detach().cpu().numpy().reshape(-1, 4)
+            active = spheres[mask & (spheres[:, 3] > 0.)]
+            floor = float(np.min(active[:, 2]-active[:, 3]))
+            distance = min(float(cylinder_sdf(np.asarray(xyz), bar_position(t), 0, BAR_LENGTH_M, BAR_RADIUS_M))
+                           for t in (0., BAR_STROKE_M/BAR_SPEED_MPS))
+            entry.update(joints_rad=q.tolist(), position_error_m=float(result.position_error.item()),
+                         floor_clearance_m=floor, min_bar_clearance_m=distance, scored_spheres=len(active))
+            if not np.isfinite(floor) or floor < v41.ENDPOINT_GATE_M or distance < .10:
+                report['failure'] = f'{name} did not meet endpoint floor or bar clearance'
+                break
+            seed = q
+        else:
+            report['passed'] = True
+    finally:
+        ik.destroy()
+    write_json(STRAIGHT_PATH_FILE, report)
+    print('V7_PATH '+json.dumps(report), flush=True)
+    if not report['passed']:
+        raise SystemExit(report['failure'])
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--mode', choices=('A', 'B', 'E'), default='E')
     parser.add_argument('--cameras', choices=('fixed', 'both'), default='both')
     mode = parser.add_mutually_exclusive_group(required=True)
+    mode.add_argument('--path-preflight', action='store_true', help='Solve and verify both straight-path endpoints')
     mode.add_argument('--smoke', action='store_true')
     mode.add_argument('--lane-checkpoint', type=Path, metavar='A_RESULT')
     mode.add_argument('--search-lanes', type=Path, metavar='A_SWEEP')
@@ -1279,7 +1349,9 @@ def main():
         from curobo_moving_rod_v3 import check_viewer_port
         check_viewer_port(args.port)
     try:
-        if args.search_lanes is not None:
+        if args.path_preflight:
+            straight_path_preflight(args)
+        elif args.search_lanes is not None:
             search_bar_lanes(args.search_lanes)
         elif args.diagnosis:
             diagnose(args)

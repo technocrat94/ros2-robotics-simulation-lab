@@ -1,0 +1,123 @@
+{
+  "scene": {
+    "start_m": [
+      0.5,
+      0.0,
+      0.25
+    ],
+    "goal_m": [
+      0.5,
+      0.5,
+      0.25
+    ],
+    "bar_lane_y_m": 0.25,
+    "bar_center_z_m": 0.25,
+    "tip_inner_x_m": 0.5,
+    "tip_outer_x_m": 0.625
+  },
+  "gates": {
+    "A": {
+      "passed": true,
+      "mode": "A",
+      "cameras": null,
+      "seconds": 10.0,
+      "rgbd_batches": 0,
+      "max_bar_speed_mps": 0.10000000000000231,
+      "closest_truth": {
+        "time_s": 0.5,
+        "clearance_m": -0.0010039808927115451,
+        "sphere_index": 69,
+        "q_rad": [
+          -2.57637847084552,
+          -2.231690988596528,
+          -1.1850998964160684,
+          1.8678914645686746,
+          4.694686617702246,
+          -2.7057880437932904
+        ],
+        "bar_center_m": [
+          0.725,
+          0.25,
+          0.25
+        ],
+        "rod": null
+      },
+      "contacts": {
+        "bar": 1,
+        "rod": 0,
+        "floor": 0
+      },
+      "reaches": 0,
+      "minimum_clearance_m": -0.0010039808927115451,
+      "integrate_ms": {
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "esdf_ms": {
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "decay": {
+        "voxel_m": null,
+        "left_at_s": null,
+        "cleared_at_s": null,
+        "delay_s": null,
+        "still_occupied_after_s": null
+      },
+      "max_direction_reversals_per_joint_in_half_second": 3,
+      "thrash_detected": true
+    },
+    "B": {
+      "passed": false,
+      "mode": "B",
+      "cameras": null,
+      "seconds": 10.0,
+      "rgbd_batches": 0,
+      "max_bar_speed_mps": 0.10000000000000231,
+      "closest_truth": {
+        "time_s": 0.55,
+        "clearance_m": 0.0334752534329891,
+        "sphere_index": 87,
+        "q_rad": [
+          -2.5079333439469336,
+          -2.1420144602656364,
+          -1.170565973315388,
+          1.8261373499408362,
+          4.660039141587912,
+          -2.6400047191418707
+        ],
+        "bar_center_m": [
+          0.72,
+          0.25,
+          0.25
+        ],
+        "rod": null
+      },
+      "contacts": {
+        "bar": 0,
+        "rod": 0,
+        "floor": 0
+      },
+      "reaches": 0,
+      "minimum_clearance_m": 0.008148759603500366,
+      "integrate_ms": {
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "esdf_ms": {
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "decay": {
+        "voxel_m": null,
+        "left_at_s": null,
+        "cleared_at_s": null,
+        "delay_s": null,
+        "still_occupied_after_s": null
+      },
+      "max_direction_reversals_per_joint_in_half_second": 2,
+      "thrash_detected": false
+    }
+  },
+  "stopped_at": "B"
+}
