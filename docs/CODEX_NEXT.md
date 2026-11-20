@@ -44,6 +44,9 @@ Claude changed scripts/curobo_v6_memory.py (20 GPU-free tests pass; do not chang
 Do:
 1. Add a live GUI readout per obstacle: observed length, predicted length, estimated speed, true speed
    (from the gizmo/dance motion), sweep kept fraction. Same numbers per frame in the replay rows.
+1b. Camera footprint on the floor (user request): every frame, cast the 4 image-corner rays from the
+   camera, intersect with z = 0 (clip at the depth max range), and draw that quadrilateral on the floor
+   as a thin outline + faint fill. Add it to the legend. Same in --replay.
 2. Check the legend shows at the top of the GUI in --interactive and --replay, and every listed colour
    matches what is drawn (fix colours to match the legend, not the other way round).
 3. --interactive --viewer-smoke: Dance 10 s, then drag-like motion of the bar at 0.3 m/s for 2 s; print
