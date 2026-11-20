@@ -33,6 +33,19 @@ No pending task
 Leave the deleted 05_c2_tall_wall_refused.png and the untracked curobo/ untouched. Stage files by
 explicit path only. No git clean/reset/restore/stash/add -A.
 
+## Task: v7 interactive does not move — make it move and verify (TIME LIMIT 10 min) — 2026-11-20
+
+User: the viewer you left running shows a robot that does not move. The default port in curobo_v7_mapper.py is
+30018 (the user usually opens 30006), so they may be looking at an old stopped viewer, or the live loop stalls.
+1. Stop only YOUR OWN old viewer/curobo processes (pgrep -u "$USER" -af 'curobo_v6_memory|curobo_v7_mapper|viser').
+2. Start `NEWTON_VIEWER_PORT=30006 scripts/run_sim_camera_v7.sh --interactive --mode E --cameras both` on the
+   long-retract scene (the one that passed in 08ff7ba). Print the URL.
+3. Verify it really moves, from a second process (not by eye): for 20 s wall time, sample the live sim clock and
+   the arm joint state the viewer shows; report sim seconds advanced, max joint change, and bar position change.
+   Both must change. If the loop stalls, find why (exception, blocked render, real-time sleep, wrong scene) and fix.
+4. Make 30006 the default port in curobo_v7_mapper.py.
+5. Commit, push, leave it running on 30006, give the URL + 3 lines on what the user should see.
+
 ## Task: none. v7 checkpoint PASSED (2026-11-20). Wait for the user.
 
 08ff7ba reviewed. Long-retract scene, gates: A0 reach, A touches, B reach 4.375 s / 0 contacts / bar 52.8 mm,
