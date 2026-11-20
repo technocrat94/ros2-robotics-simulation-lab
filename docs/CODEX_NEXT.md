@@ -33,17 +33,19 @@ No pending task
 Leave the deleted 05_c2_tall_wall_refused.png and the untracked curobo/ untouched. Stage files by
 explicit path only. No git clean/reset/restore/stash/add -A.
 
-## Task: fix v6 interactive mode (user cannot open it) — 2026-11-20
+## Task: v6 interactive shows no camera view — 2026-11-20
 
-The user ran `NEWTON_VIEWER_PORT=30006 scripts/run_sim_camera_v6_memory.sh --interactive` and cannot see
-the viewer. --smoke and --replay worked, so suspect the recording=False path in V6Live/V6Vertical.
+Clarified by the user: `--interactive` opens and runs, but the camera view is missing (no camera frustum,
+no camera points, no depth panel). `--replay` has them (lines ~697-764 of curobo_v6_memory.py). The live
+path (V6Live / V6Worker.capture_xy, which builds its own RodCapture) probably no longer feeds the live
+viewer's camera layers the way curobo_moving_bar_poke_demo.py does.
 1. Stop only your own viewer/curobo processes on port 30006 first (pgrep -u "$USER"); never others'.
-2. Run `--interactive --duration 60` and save the log. Fix every exception or hang.
-3. Add `--viewer-smoke` support for --interactive: in-process, select E, press Dance, enable the vertical
-   rod, run 10 simulated s, assert the camera frustum/points/depth panel and the v6 memory boxes update
-   and no exception; then exit. It must pass.
-4. Report what was broken (1-2 lines), the interactive command and 3 lines on what to look at.
-   Commit, push, stop. Leave the viewer running for the user at the end.
+2. Make --interactive show the same camera layers as the poke_height interactive demo, updated every frame,
+   plus the v6 memory boxes. Reuse existing code.
+3. Add `--viewer-smoke` for --interactive: select E, press Dance, enable the vertical rod, 10 simulated s;
+   assert the frustum pose, camera points and depth panel change between frames, no exception; exit.
+4. Report what was broken (1-2 lines). Commit, push, then leave --interactive running for the user and
+   give the URL + 3 lines on what to look at. Stop.
 
 ### Spec kept from v4 (unchanged rules)
 : floor, unseen rod top, visible prediction (started 2026-11-19)
