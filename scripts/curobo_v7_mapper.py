@@ -130,6 +130,7 @@ class LiveMapping:
     """Adapt the reference example's FilterDepth, Mapper, and camera batching."""
     def __init__(self, calibration, count, robot, *, depth_max=DEPTH_MAX):
         import torch
+        from curobo.kinematics import Kinematics
         from curobo.perception import FilterDepth, Mapper, MapperCfg
         from curobo._src.perception.robot_segmenter import RobotSegmenter
 
@@ -146,7 +147,9 @@ class LiveMapping:
         self.filter = FilterDepth(image_shape=(self.height, self.width), depth_minimum_distance=DEPTH_MIN,
                                   depth_maximum_distance=depth_max, flying_pixel_threshold=.5,
                                   bilateral_kernel_size=3)
-        self.segmenter = RobotSegmenter(robot, ops_dtype=torch.float32)
+        # The segmenter captures the single-pose kinematics buffers in a CUDA graph.
+        # Scoring batches whole motion segments and reallocates its own buffers.
+        self.segmenter = RobotSegmenter(Kinematics(robot.config), ops_dtype=torch.float32)
         cfg = MapperCfg(
             voxel_size=TSDF_SIZE, esdf_voxel_size=ESDF_SIZE,
             extent_meters_xyz=(2., 2., 2.), extent_esdf_meters_xyz=(2., 2., 2.),
