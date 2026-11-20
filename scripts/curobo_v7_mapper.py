@@ -23,6 +23,10 @@ DEPTH_MIN, DEPTH_MAX = .15, 2.
 TSDF_SIZE, ESDF_SIZE = .005, .03
 FRAME_RATE, CONTROL_DT = 30, .025
 DANCE_END, DURATION = 6., 9.
+DIAGNOSIS_S = 10.
+ESDF_NO_SITE_M = 1e4
+DIAGNOSIS_FILE = ROOT/'docs/experiments/sim-camera-curobo/results/v7_diagnosis.json'
+CAMERA_LABELS = ('固定相機', '手上相機')
 PARK = np.array([2., .28, .20])
 SOFA = (.78, .52, .50)
 
@@ -242,13 +246,80 @@ class Sequence:
         return np.array([*xy, self.target[2]]), None
 
 
-def cylinder_clearance(spheres, center, axis, length, radius):
-    relative = spheres[..., :3]-center
+def cylinder_sdf(points, center, axis, length, radius):
+    relative = points-center
     radial = np.linalg.norm(np.delete(relative, axis, axis=-1), axis=-1)-radius
     axial = np.abs(relative[..., axis])-length/2
     pair = np.stack((radial, axial), axis=-1)
-    signed = np.linalg.norm(np.maximum(pair, 0.), axis=-1)+np.minimum(pair.max(axis=-1), 0.)
+    return np.linalg.norm(np.maximum(pair, 0.), axis=-1)+np.minimum(pair.max(axis=-1), 0.)
+
+
+def cylinder_clearance(spheres, center, axis, length, radius):
+    signed = cylinder_sdf(spheres[..., :3], center, axis, length, radius)
     return float(np.min(signed-spheres[..., 3]))
+
+
+def empty_frame(time_s, mapping, grid, robot, state, flips):
+    import torch
+    import torch.nn.functional as functional
+
+    spheres = robot.compute_kinematics(state).robot_spheres.reshape(-1, 4)
+    spheres = spheres[spheres[:, 3] > 0.]
+    points = mapping.occupied.centers
+    if len(points):
+        # Signed distance to a sphere surface, counting each occupied voxel once.
+        gap = torch.cdist(points.float(), spheres[:, :3].float())-spheres[:, 3]
+        near = int((gap.amin(dim=1) <= .05).sum().item())
+    else:
+        near = 0
+    # The map uses XYZ axes, half-cell centres and positive free-space distances.
+    field = grid.feature_tensor.float()
+    half_extent = torch.tensor(field.shape, device=field.device)*(grid.voxel_size/2)
+    half_extent -= grid.voxel_size/2
+    coords = (spheres[:, :3]-torch.tensor(grid.pose[:3], device=field.device))/half_extent
+    inside = torch.all(coords.abs() <= 1., dim=1)
+    samples = functional.grid_sample(
+        field[None, None], coords[inside][:, [2, 1, 0]].reshape(1, 1, 1, -1, 3),
+        align_corners=True,
+    ).reshape(-1) if inside.any() else None
+    return dict(time_s=time_s, occupied_voxels=len(points), voxels_within_50mm_of_arm=near,
+                min_esdf_at_sphere_center_m=None if samples is None else float(samples.min()),
+                min_esdf_sphere_clearance_m=None if samples is None else float((samples-spheres[inside, 3]).min()),
+                spheres_outside_map=int((~inside).sum().item()),
+                direction_reversals_last_half_s=[sum(time_s-.5 < stamp <= time_s for stamp in joint)
+                                                 for joint in flips])
+
+
+def static_alignment(stream, mapping, q, state, bar):
+    """Measure a clean map of one bar and the residual points at floor height."""
+    from curobo_camera_second_pass import wxyz_matrix
+
+    mapping.mapper.reset()
+    for _ in range(10):
+        depth, rgb, poses = stream.capture(q, bar, None)
+        mapping.observe(depth, rgb, poses, state)
+    points = mapping.occupied.centers.cpu().numpy()
+    error = np.abs(cylinder_sdf(points, bar, 0, .30, .02))
+
+    def depth_support(image):
+        y, x = np.nonzero(np.isfinite(image) & (image > 0.))
+        optical = image[y, x, None]*np.column_stack(
+            ((x+.5-mapping.width/2)/mapping.focal, (y+.5-mapping.height/2)/mapping.focal, np.ones(len(x))))
+        world = optical @ wxyz_matrix(poses[0, 3:]).T+poses[0, :3]
+        return int((np.abs(cylinder_sdf(world, bar, 0, .30, .02)) <= .01).sum())
+
+    def distances(values):
+        return dict(voxels=len(values), median_m=float(np.median(values)) if len(values) else None,
+                    p95_m=float(np.percentile(values, 95)) if len(values) else None)
+
+    z = points[:, 2]
+    return dict(bar_center_m=bar.tolist(), stationary_q_rad=q.tolist(), frames=10,
+                raw_depth_near_bar_pixels=depth_support(depth[0]),
+                filtered_depth_near_bar_pixels=depth_support(mapping.filtered[0].cpu().numpy()),
+                occupied_voxels=len(points), bar_within_50mm=distances(error[error <= .05]),
+                floor_surface_band_20mm=distances(np.abs(z[np.abs(z) < .02])),
+                occupied_below_20mm=distances(np.abs(z[z < .02])),
+                far_below_floor_voxels=int((z <= -.02).sum()))
 
 
 class DecayProbe:
@@ -304,16 +375,18 @@ class MappingView:
         gui.add_markdown('**v7 圖例**\n- 紅色短桿、棕色直桿為 Newton 真值\n'
                          '- 彩色點為 cuRobo TSDF 佔據體素，ESDF 切面顯示距離\n'
                          '- 青綠色是固定相機，紫色是腕相機。各有視錐、地板投影、RGB 與過濾後深度')
-        self.status = gui.add_text('Simulation', 'starting', disabled=True)
+        self.camera_names = '、'.join(CAMERA_LABELS[:mapping.count])
+        self.status = gui.add_text('Simulation', self.camera_names+' | starting', disabled=True)
         self.views = []
         fov = 2*np.arctan(mapping.height/(2*mapping.focal))
-        for i, name in enumerate(('Fixed', 'Wrist')[:mapping.count]):
+        for i, name in enumerate(CAMERA_LABELS[:mapping.count]):
             with gui.add_folder(name):
                 initial = np.zeros((mapping.height//4, mapping.width//4, 3), dtype=np.uint8)
-                rgb, depth = gui.add_image(initial, label='RGB'), gui.add_image(initial, label='Filtered depth')
+                rgb = gui.add_image(initial, label=f'{name} RGB')
+                depth = gui.add_image(initial, label=f'{name} 深度')
             color = FOOTPRINT_COLOR if i == 0 else (164, 115, 235)
             frustum = scene.add_camera_frustum(f'/v7/camera/{i}', fov=fov,
-                                               aspect=mapping.width/mapping.height, scale=.15, color=color)
+                                               aspect=mapping.width/mapping.height, scale=.15 if i == 0 else .30, color=color)
             outline = scene.add_line_segments(f'/v7/footprint/{i}/outline', np.zeros((4, 2, 3)),
                                               color, line_width=1.5)
             fill = scene.add_mesh_simple(f'/v7/footprint/{i}/fill', np.zeros((4, 3)),
@@ -359,7 +432,7 @@ class MappingView:
             vertices[:, 2] += .002
             outline.points = np.stack((vertices, np.roll(vertices, -1, axis=0)), axis=1)
             fill.vertices = vertices
-        self.status.value = f'{clock:.2f} sim s | integrate {integrate_ms:.1f} ms | ESDF {esdf_ms:.1f} ms'
+        self.status.value = f'{self.camera_names} | {clock:.2f} sim s | integrate {integrate_ms:.1f} ms | ESDF {esdf_ms:.1f} ms'
 
 
 def run(args, stream):
@@ -382,6 +455,7 @@ def run(args, stream):
     robot = Kinematics(robot_cfg.kinematics)
     mapping = LiveMapping(stream.calibration, 1 if args.cameras == 'fixed' else 2, robot)
     q = np.asarray(baseline['raised_start']['joints_rad'], dtype=np.float32)
+    start_q = q.copy()
     velocity = np.zeros(6)
     state = tuned.joint_state(q, velocity)
     initial = robot.compute_kinematics(state).tool_poses.as_goal().clone()
@@ -389,8 +463,8 @@ def run(args, stream):
     target = goal.position.detach().cpu().numpy().reshape(-1, 3)[0]
     start = v2.sixth.fourth.tool_position(robot, state.position)
     tool = start.copy()
-    sequence = Sequence(mapping)
-    bar, rod = sequence.pose(0., tool, target)
+    sequence = None if args.diagnosis else Sequence(mapping)
+    bar, rod = (PARK.copy(), None) if sequence is None else sequence.pose(0., tool, target)
     depth, rgb, poses = stream.capture(q, bar, rod)
     grid, integrate_ms, esdf_ms = mapping.observe(depth, rgb, poses, state)
     print(f'V7_MAPPED {args.cameras} occupied={len(mapping.occupied)} integrate={integrate_ms:.1f} '
@@ -413,7 +487,11 @@ def run(args, stream):
         next_frame, step = 1, 0
         previous_q, previous_velocity, previous_time = q.copy(), velocity.copy(), 0.
         previous_bar = bar.copy()
-        reaches, seeking_goal = 0, True
+        reaches, returns, seeking_goal = 0, 0, True
+        best_goal_error = float(np.linalg.norm(tool-target))
+        arrival_times = []
+        return_times = []
+        measurements = []
         touched = set()
         contacts = dict(bar=0, rod=0, floor=0)
         min_clearance = float('inf')
@@ -423,10 +501,14 @@ def run(args, stream):
         last_direction = np.zeros(6)
         peak_flips = 0
         frames = 0
-        while args.interactive or step < round(DURATION/CONTROL_DT):
+        duration = DIAGNOSIS_S if args.diagnosis else DURATION
+        if args.diagnosis:
+            measurements.append(empty_frame(0., mapping, grid, robot, state, flips))
+        while args.interactive or step < round(duration/CONTROL_DT):
             clock = step*CONTROL_DT
             began = time.monotonic()
-            bar, rod = sequence.pose(clock, tool, target)
+            if sequence is not None:
+                bar, rod = sequence.pose(clock, tool, target)
             if next_frame/FRAME_RATE <= clock+1e-9:
                 frame_time = next_frame/FRAME_RATE
                 next_frame += 1
@@ -434,13 +516,16 @@ def run(args, stream):
                 fraction = np.clip((frame_time-previous_time)/CONTROL_DT, 0., 1.)
                 observed_bar = previous_bar+(bar-previous_bar)*fraction
                 depth, rgb, poses = stream.capture(observed_q, observed_bar, rod)
-                grid, integrate_ms, esdf_ms = mapping.observe(
-                    depth, rgb, poses, tuned.joint_state(observed_q, np.zeros(6)))
+                observed_state = tuned.joint_state(observed_q, np.zeros(6))
+                grid, integrate_ms, esdf_ms = mapping.observe(depth, rgb, poses, observed_state)
+                if args.diagnosis:
+                    measurements.append(empty_frame(frame_time, mapping, grid, robot, observed_state, flips))
                 if voxel_data.features.data_ptr() != grid.feature_tensor.data_ptr():
                     voxel_data.update_features(grid.feature_tensor.reshape(-1, 1), grid.name)
                 if not args.interactive:
                     timings.append((integrate_ms, esdf_ms))
-                    probe.observe(frame_time, observed_bar, mapping.occupied.centers.cpu().numpy())
+                    if not args.diagnosis:
+                        probe.observe(frame_time, observed_bar, mapping.occupied.centers.cpu().numpy())
                 if view is not None and frames % 3 == 0:
                     view.update(state, mapping, rgb, grid, bar, rod, clock, integrate_ms, esdf_ms)
                 frames += 1
@@ -458,8 +543,11 @@ def run(args, stream):
             state = tuned.joint_state(q, velocity)
             tool = v2.sixth.fourth.tool_position(robot, state.position)
             goal_reached = float(np.linalg.norm(tool-(target if seeking_goal else start))) <= v2.sixth.GOAL_TOLERANCE_M
+            best_goal_error = min(best_goal_error, float(np.linalg.norm(tool-target)))
             if goal_reached:
                 reaches += int(seeking_goal)
+                returns += int(not seeking_goal)
+                (arrival_times if seeking_goal else return_times).append((step+1)*CONTROL_DT)
                 seeking_goal = not seeking_goal
                 mpc.update_goal_tool_poses(goal if seeking_goal else initial, run_ik=False)
             spheres = sphere_series(robot, torch.as_tensor(path, device='cuda', dtype=torch.float32))
@@ -476,7 +564,7 @@ def run(args, stream):
             min_clearance = min(min_clearance, *clearances.values())
             if not args.interactive:
                 for j, speed_j in enumerate(velocity):
-                    if goal_reached:
+                    if goal_reached and not args.diagnosis:
                         flips[j].clear()
                         last_direction[j] = 0
                     if abs(speed_j) >= .05:
@@ -489,6 +577,17 @@ def run(args, stream):
             step += 1
             if args.interactive:
                 time.sleep(max(0., CONTROL_DT-(time.monotonic()-began)))
+        if args.diagnosis:
+            return dict(cameras=args.cameras, seconds=step*CONTROL_DT, contacts=contacts,
+                        reaches=reaches, returns=returns, arrival_times_s=arrival_times,
+                        return_times_s=return_times, min_goal_error_m=best_goal_error,
+                        minimum_clearance_m=min_clearance, frames=measurements,
+                        max_voxels_near_arm=max(f['voxels_within_50mm_of_arm'] for f in measurements),
+                        peak_joint_reversals_in_half_s=peak_flips,
+                        alignment=static_alignment(stream, mapping, start_q,
+                                                   tuned.joint_state(start_q, np.zeros(6)),
+                                                   Sequence(mapping).pose(0., start, target)[0])
+                        if args.cameras == 'fixed' else None)
         arrays = np.asarray(timings)
         return dict(cameras=args.cameras, seconds=step*CONTROL_DT, rgbd_batches=len(timings),
                     contacts=contacts, reaches=reaches, minimum_clearance_m=min_clearance,
@@ -502,11 +601,60 @@ def run(args, stream):
         mpc.destroy()
 
 
+def run_mode(args):
+    print('V7_CAMERAS '+json.dumps(CAMERA_LABELS[:1 if args.cameras == 'fixed' else 2],
+                                  ensure_ascii=False), flush=True)
+    with tempfile.TemporaryDirectory(prefix='v7-newton-') as temp:
+        stream = NewtonStream(args, Path(temp))
+        try:
+            return run(args, stream)
+        finally:
+            stream.close()
+
+
+def diagnose(args):
+    print('V7_DIAGNOSIS 10 simulated seconds per empty scene; estimated wall time 2–4 minutes', flush=True)
+    reports = {}
+    for mode in ('fixed', 'both'):
+        args.cameras = mode
+        reports[mode] = run_mode(args)
+    payload = dict(
+        criteria=dict(near_arm_m=.05, meaningful_joint_speed_rad_s=.05, reversal_window_s=.5,
+                      floor_residual_below_m=.02, bar_sample_distance_m=.05,
+                      esdf_sign='positive in free space', esdf_no_site_m=ESDF_NO_SITE_M,
+                      camera_hz=FRAME_RATE),
+        empty={mode: {k: v for k, v in case.items() if k != 'alignment'} for mode, case in reports.items()},
+        fixed_alignment=reports['fixed']['alignment'],
+    )
+    tmp = DIAGNOSIS_FILE.with_suffix('.tmp')
+    tmp.write_text(json.dumps(payload, separators=(',', ':'), allow_nan=False)+'\n')
+    tmp.replace(DIAGNOSIS_FILE)
+    print_diagnosis(payload)
+
+
+def print_diagnosis(payload):
+    for mode, case in payload['empty'].items():
+        near = case['max_voxels_near_arm']
+        esdf = min((f['min_esdf_sphere_clearance_m'] for f in case['frames']
+                    if f['min_esdf_sphere_clearance_m'] is not None), default=None)
+        # Interpolation and subtracting the sphere radius can lower the sentinel slightly.
+        esdf_label = 'no_site' if esdf is not None and esdf >= ESDF_NO_SITE_M-1. else str(esdf)
+        print(f"V7_DIAG {mode}: reaches={case['reaches']} returns={case['returns']} "
+              f"near_arm_peak={near} min_esdf_clearance_m={esdf_label} "
+              f"peak_reversals={case['peak_joint_reversals_in_half_s']}")
+    alignment = payload['fixed_alignment']
+    print('V7_DIAG bar '+json.dumps(alignment['bar_within_50mm']))
+    print('V7_DIAG floor '+json.dumps(dict(surface=alignment['floor_surface_band_20mm'],
+                                          below_20mm=alignment['occupied_below_20mm'])))
+    print(f'V7_DIAG saved {DIAGNOSIS_FILE.relative_to(ROOT)}', flush=True)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--cameras', choices=('fixed', 'both'), default='both')
     mode = parser.add_mutually_exclusive_group(required=True)
     mode.add_argument('--smoke', action='store_true')
+    mode.add_argument('--diagnosis', action='store_true', help='Measure fixed and both in empty scenes, then save diagnostics')
     mode.add_argument('--interactive', action='store_true')
     parser.add_argument('--port', type=int, default=int(os.environ.get('NEWTON_VIEWER_PORT', '30018')))
     parser.add_argument('--robot-config', type=Path,
@@ -516,16 +664,15 @@ def main():
     if args.interactive:
         from curobo_moving_rod_v3 import check_viewer_port
         check_viewer_port(args.port)
-    with tempfile.TemporaryDirectory(prefix='v7-newton-') as temp:
-        stream = NewtonStream(args, Path(temp))
-        try:
-            result = run(args, stream)
-        except KeyboardInterrupt:
-            return
-        finally:
-            stream.close()
-    if result is not None:
-        print('V7_RESULT '+json.dumps(result, allow_nan=False), flush=True)
+    try:
+        if args.diagnosis:
+            diagnose(args)
+        else:
+            result = run_mode(args)
+            if result is not None:
+                print('V7_RESULT '+json.dumps(result, allow_nan=False), flush=True)
+    except KeyboardInterrupt:
+        return
 
 
 if __name__ == '__main__':
