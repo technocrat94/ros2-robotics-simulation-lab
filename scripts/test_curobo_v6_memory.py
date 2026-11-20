@@ -42,7 +42,7 @@ class MemoryRules(unittest.TestCase):
         self.assertEqual(event['since_seen_s'], 12.)
         self.assertEqual(event['cleared_by'], 'none')
 
-    def test_moving_toward_robot_propagates_and_grows_xy(self):
+    def test_moving_toward_robot_moves_but_keeps_its_size(self):
         track = ObjectMemory()
         self.observed(track, 0., box(x=1.))
         self.observed(track, .5, box(x=.95))
@@ -50,10 +50,11 @@ class MemoryRules(unittest.TestCase):
             actual, velocity, event = track.observe(None, None, frame(), time)
             age = time-.5
             np.testing.assert_allclose(actual['center_m'], [.95-.1*age, 0., .5])
-            np.testing.assert_allclose(actual['dims_m'], [.1+.4*age, .1+.4*age, .1])
+            np.testing.assert_allclose(actual['dims_m'], [.1, .1, .1])
             np.testing.assert_allclose(velocity, [-.1, 0., 0.])
             self.assertEqual(event['class'], 'MOVING')
-            self.assertTrue(event['growth_rule'])
+            self.assertTrue(event['heading_in'])
+            self.assertFalse(event['growth_rule'])
 
     def test_moving_away_keeps_size_and_never_balloons(self):
         track = ObjectMemory()

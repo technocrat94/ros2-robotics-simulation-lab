@@ -40,14 +40,17 @@ wide after 5 s) and "seen empty" needed all 9 samples inside the image, so a lar
 Claude fixed `ObjectMemory`/`DepthFrame` in scripts/curobo_v6_memory.py (10 GPU-free tests pass):
 - carving: 5x5x3 samples per box, each removed only when depth is seen past it; evidence accumulates
   across frames; the box shrinks to what is left, deleted when nothing is left.
-- MOVING leaving (velocity points away from the robot base): predicted along velocity, no growth.
-  MOVING heading in: grows 0.2 m/s and only shrinks by carving. Label shows "leaving"/"heading in".
+- No growth at all (user's rule): out of view, STATIC keeps its box; MOVING keeps its size and only its
+  position is predicted along the last velocity. Label shows "leaving"/"heading in".
 Do not change these rules. Do:
+0. The v6 viewer lost the camera view. Replay AND interactive must show everything the poke_height
+   replay shows (camera frustum, camera points, depth panel, observed + predicted box, arrow), plus the
+   v6 blue/orange memory boxes. Reuse the existing viewer code; record camera pose + points per frame.
 1. Save the checkpoint inside the repo: docs/experiments/sim-camera-curobo/results/v6_memory_checkpoint.json.gz
    (it was outside the repo, so it could not be reviewed). If > 20 MB, thin frames to 10 Hz.
 2. Run `--smoke` (Car + Sofa, E only). For Sofa, first confirm the rod spot is seen at start AND leaves the
    view during the reach (print the first unseen time); if it never leaves the view, move it until it does.
-3. Report per run: contacts, reaches, min clearance, max bar box width, cleared_by events with times.
+3. Report per run: contacts, reaches, min clearance, cleared_by events with times.
 4. Give the replay + interactive commands and 3 lines on what to look at. Commit, push, stop.
 
 ### Spec kept from v4 (unchanged rules)

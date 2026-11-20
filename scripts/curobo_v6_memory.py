@@ -14,7 +14,6 @@ import numpy as np
 
 WINDOW_S = .5
 STATIC_DISTANCE_M = .02
-GROWTH_MPS = .20
 EMPTY_MARGIN_M = .03
 REACH_M = 1.
 COLORS = {'STATIC': (65, 135, 245), 'MOVING': (255, 145, 35)}
@@ -89,19 +88,16 @@ class ObjectMemory:
         if box is not None:
             self._seen(box, center, time_s)
         age = None if self.last_seen is None else max(0., time_s-self.last_seen)
-        growing = False
+        heading_in = False
         if box is None and self.box is not None:
             # The remembered box is a running state: propagate, then carve with this frame's depth.
             dt = max(0., time_s-self.updated)
             center = np.asarray(self.box['center_m'], dtype=float)
             dims = np.asarray(self.box['dims_m'], dtype=float)
             if self.kind == 'MOVING':
-                # Leaving (velocity points away from the robot): keep the predicted box, no growth.
-                # Heading in: grow at the worst-case speed, so it can only shrink by depth evidence.
-                growing = not self.moving_away(center)
+                # The object keeps its real size out of view; only its position is predicted.
+                heading_in = not self.moving_away(center)
                 center = center+self.velocity*dt
-                if growing:
-                    dims = dims+2*GROWTH_MPS*dt*np.array([1., 1., 0.])
             self.box = frame.carve(dict(self.box, center_m=center.tolist(), dims_m=dims.tolist()))
             self.updated = time_s
             if self.box is None:
@@ -115,9 +111,10 @@ class ObjectMemory:
         self.last_event = {'time_s': time_s, 'class': self.kind, 'since_seen_s': age,
                            'cleared_by': self.cleared_by, 'fresh_seen': box is not None,
                            'retained': current is not None, 'top_rule': False,
-                           'moving_away': bool(self.kind == 'MOVING' and current is not None and not growing
+                           'moving_away': bool(self.kind == 'MOVING' and current is not None and not heading_in
                                                and box is None),
-                           'growth_rule': bool(box is None and current is not None and growing)}
+                           'heading_in': bool(box is None and current is not None and heading_in),
+                           'growth_rule': False}
         return current, self.velocity.copy(), self.last_event
 
     def moving_away(self, center):
@@ -245,7 +242,7 @@ def memory_label(event):
     age = event.get('since_seen_s')
     kind = event.get('class') or '—'
     age_text = '—' if age is None else f'{age:.2f} s'
-    motion = ' · leaving' if event.get('moving_away') else (' · heading in' if event.get('growth_rule') else '')
+    motion = ' · leaving' if event.get('moving_away') else (' · heading in' if event.get('heading_in') else '')
     return f"{kind}{motion} · age {age_text} · {event.get('cleared_by', 'none')}"
 
 
