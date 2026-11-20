@@ -628,6 +628,7 @@ class MappingView:
                          '- 青綠色是固定相機，紫色是腕相機。各有視錐、地板投影、RGB 與過濾後深度')
         self.camera_names = '、'.join(CAMERA_LABELS[:mapping.count])
         self.status = gui.add_text('Simulation', self.camera_names+' | starting', disabled=True)
+        self.trip_status = gui.add_text('Trip', 'starting', disabled=True)
         self.views = []
         fov = 2*np.arctan(mapping.height/(2*mapping.focal))
         for i, name in enumerate(CAMERA_LABELS[:mapping.count]):
@@ -684,6 +685,13 @@ class MappingView:
         self.status.value = f'{self.camera_names} | {clock:.2f} sim s | integrate {integrate_ms:.1f} ms | ESDF {esdf_ms:.1f} ms'
 
 
+def set_trip_goal(mpc, pose, joints):
+    """Track the validated joint branch as well as the Cartesian endpoint."""
+    mpc.update_goal_tool_poses(pose, run_ik=False)
+    mpc.update_goal_state(joints)
+    mpc.enable_joint_position_tracking()
+
+
 def run(args, stream):
     import hashlib
 
@@ -716,6 +724,8 @@ def run(args, stream):
     lane = path_preflight['bar_lane_yz_m']
     q = np.asarray(endpoints['start']['joints_rad'], dtype=np.float32)
     start_q = q.copy()
+    start_joints = tuned.joint_state(start_q, np.zeros(6))
+    goal_joints = tuned.joint_state(np.asarray(endpoints['goal']['joints_rad']), np.zeros(6))
     velocity = np.zeros(6)
     state = tuned.joint_state(q, velocity)
     template = v2.sixth.goal_from_scene()
@@ -749,7 +759,7 @@ def run(args, stream):
     view = None
     try:
         mpc.setup(state)
-        mpc.update_goal_tool_poses(goal, run_ik=False)
+        set_trip_goal(mpc, goal, goal_joints)
         mpc.optimize_action_sequence(state)
         limits = mpc.kinematics.get_joint_limits()
         position, speed, acceleration = [getattr(limits, key).detach().cpu().numpy()
@@ -764,10 +774,12 @@ def run(args, stream):
         previous_q, previous_velocity, previous_time = q.copy(), velocity.copy(), 0.
         previous_bar = bar.copy()
         reaches, returns, seeking_goal = 0, 0, True
+        last_return_distance = None
         best_goal_error = float(np.linalg.norm(tool-target))
         arrival_times = []
         return_times = []
         measurements = []
+        trip_trace = []
         touched = set()
         contacts = dict(bar=0, rod=0, floor=0)
         min_clearance = min_floor_clearance = float('inf')
@@ -780,7 +792,7 @@ def run(args, stream):
         closest_truth = None
         sweep = []
         frames = 0
-        duration = DIAGNOSIS_S if args.diagnosis else DURATION
+        duration = DIAGNOSIS_S if args.diagnosis else args.duration
         if args.calibrate_segmenter:
             duration = DIAGNOSIS_S
         calibration_poses = [q.tolist()] if args.calibrate_segmenter else None
@@ -822,6 +834,12 @@ def run(args, stream):
                         probe.observe(frame_time, observed_bar, mapping.occupied.centers.cpu().numpy())
                 if view is not None and frames % 3 == 0:
                     view.update(state, mapping, rgb, bar, clock, integrate_ms, esdf_ms)
+                    trip_target = 'goal' if seeking_goal else 'start'
+                    last_return = '-' if last_return_distance is None else f'{last_return_distance:.6f}'
+                    view.trip_status.value = (
+                        f'target={trip_target} | reaches={reaches} | returns={returns} | '
+                        f'last_return_distance_m={last_return} | tolerance_m={v2.sixth.GOAL_TOLERANCE_M:g}'
+                    )
                 frames += 1
             result = mpc.optimize_action_sequence(state)
             commands = result.action_sequence.velocity.detach().cpu().numpy().reshape(-1, 6)
@@ -836,14 +854,27 @@ def run(args, stream):
             velocity = plane.filter(q, velocity, requested)
             state = tuned.joint_state(q, velocity)
             tool = v2.sixth.fourth.tool_position(robot, state.position)
-            goal_reached = float(np.linalg.norm(tool-(target if seeking_goal else start))) <= v2.sixth.GOAL_TOLERANCE_M
+            active_target_distance = float(np.linalg.norm(tool-(target if seeking_goal else start)))
+            goal_reached = active_target_distance <= v2.sixth.GOAL_TOLERANCE_M
             best_goal_error = min(best_goal_error, float(np.linalg.norm(tool-target)))
+            if args.trip_trace is not None and (step+1) % round(.1/CONTROL_DT) == 0:
+                trip_trace.append(dict(time_s=(step+1)*CONTROL_DT, target='goal' if seeking_goal else 'start',
+                                       distance_m=active_target_distance,
+                                       tool_m=tool.tolist(), q_rad=q.tolist(), velocity_rad_s=velocity.tolist(),
+                                       floor_factor=plane.last_factor,
+                                       bar_tip_x_m=float(bar_position(clock+CONTROL_DT, lane)[0]-BAR_LENGTH_M/2)
+                                       if has_bar else None))
             if goal_reached:
                 reaches += int(seeking_goal)
                 returns += int(not seeking_goal)
+                if not seeking_goal:
+                    last_return_distance = active_target_distance
                 (arrival_times if seeking_goal else return_times).append((step+1)*CONTROL_DT)
                 seeking_goal = not seeking_goal
-                mpc.update_goal_tool_poses(goal if seeking_goal else initial, run_ik=False)
+                if seeking_goal:
+                    set_trip_goal(mpc, goal, goal_joints)
+                else:
+                    set_trip_goal(mpc, initial, start_joints)
             spheres = sphere_series(robot, torch.as_tensor(path, device='cuda', dtype=torch.float32))
             if args.save_a_sweep is not None:
                 sweep.append(spheres if step == 0 else spheres[1:])
@@ -906,7 +937,8 @@ def run(args, stream):
         result = dict(mode=args.mode, cameras=None if mapping is None else args.cameras,
                       seconds=step*CONTROL_DT, rgbd_batches=0 if mapping is None else len(timings),
                       max_bar_speed_mps=max_bar_speed, closest_truth=closest_truth,
-                    contacts=contacts, reaches=reaches, minimum_clearance_m=min_clearance,
+                    contacts=contacts, reaches=reaches, returns=returns, arrival_times_s=arrival_times,
+                    return_times_s=return_times, minimum_clearance_m=min_clearance,
                     bar_min_clearance_m=None if closest_truth is None else closest_truth['clearance_m'],
                     floor_min_clearance_m=min_floor_clearance,
                     first_reach_s=arrival_times[0] if arrival_times else None,
@@ -914,6 +946,8 @@ def run(args, stream):
                     esdf_ms=dict(mean=float(arrays[:, 1].mean()), p95=float(np.percentile(arrays[:, 1], 95))),
                     decay=probe.result(duration), max_direction_reversals_per_joint_in_half_second=peak_flips,
                     thrash_detected=peak_flips >= 3)
+        if args.trip_trace is not None:
+            write_json(args.trip_trace, dict(run=result, samples=trip_trace))
         return forensics.report(result) if forensics is not None else result
     finally:
         if view is not None:
@@ -1357,6 +1391,8 @@ def main():
     mode.add_argument('--segmentation-checkpoint', action='store_true', help='Run one dual-camera empty scene and reciprocating-bar run')
     mode.add_argument('--decay-comparison', action='store_true', help='Compare three 15 s dual-camera reciprocating-bar runs')
     mode.add_argument('--bar-forensics', action='store_true', help='Record one 15 s dual-camera reciprocating-bar run')
+    parser.add_argument('--duration', type=float, default=DURATION, help='Simulated seconds for a smoke run')
+    parser.add_argument('--trip-trace', type=Path, help='Save 0.1 s tool-target measurements for a smoke run')
     parser.add_argument('--forensics-output', type=Path, default=FORENSICS_FILE)
     parser.add_argument('--port', type=int, default=int(os.environ.get('NEWTON_VIEWER_PORT', '30006')))
     parser.add_argument('--robot-config', type=Path,
@@ -1364,6 +1400,10 @@ def main():
     parser.add_argument('--newton-python', type=Path, default=Path.home()/'newton_ws/.venv-cpu/bin/python')
     args = parser.parse_args()
     args.decay = DEFAULT_DECAY
+    if not np.isfinite(args.duration) or args.duration < CONTROL_DT:
+        parser.error('--duration must be finite and at least one control step')
+    if args.trip_trace is not None and not args.smoke:
+        parser.error('--trip-trace requires --smoke')
     if args.save_a_sweep is not None and (args.mode != 'A' or not args.smoke):
         parser.error('--save-a-sweep requires --mode A --smoke')
     if args.mode != 'E' and not args.smoke:
