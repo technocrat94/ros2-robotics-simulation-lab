@@ -78,6 +78,8 @@ class LiveCameraWorker(v2.MovingRodWorker):
 class LiveGroups:
     """Own only this viewer's loop threads, controller instances and camera workers."""
 
+    initial_group = "A"
+
     drag_help = "Drag the rod on the floor. A: no obstacle; B: true box; E: camera. Same frozen MPC."
 
     def obstacle_handles(self, scene):
@@ -119,8 +121,8 @@ class LiveGroups:
                         aspect=v2.DEPTH_ASPECT,scale=.13)
         self.depth = server.gui.add_image(np.zeros((120,212,3),dtype=np.uint8),label="Live E depth")
         server.gui.add_markdown(self.drag_help)
-        self.selector = server.gui.add_dropdown("Group",options=("A","B","E"),initial_value="A")
-        self.group_text = server.gui.add_text("Running group","A",disabled=True)
+        self.selector = server.gui.add_dropdown("Group",options=("A","B","E"),initial_value=self.initial_group)
+        self.group_text = server.gui.add_text("Running group",self.initial_group,disabled=True)
         self.state_text = server.gui.add_text("Group state","stopped",disabled=True)
         self.clearance_text = server.gui.add_text("Truth clearance","",disabled=True)
         self.collisions_text = server.gui.add_text("Collisions since group start","0",disabled=True)
@@ -130,7 +132,7 @@ class LiveGroups:
         self.mount = v2.sixth.fourth.read_mount_config(v2.MOUNT_CONFIG)
         self.selector.on_update(lambda _event:self.switch(self.selector.value))
         self.gizmo.on_update(lambda _event:self.read_rod())
-        self.switch("A")
+        self.switch(self.initial_group)
         print(f"ROD_LIVE_URL http://127.0.0.1:{args.port}",flush=True)
 
     def read_rod(self) -> np.ndarray:

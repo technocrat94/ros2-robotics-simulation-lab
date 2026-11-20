@@ -27,6 +27,7 @@ CARVE_OFFSETS = np.array(list(product(np.linspace(-.5, .5, 5), np.linspace(-.5, 
 ROOT = Path(__file__).resolve().parents[1]
 CHECKPOINT = ROOT/'docs/experiments/sim-camera-curobo/results/v6_memory_checkpoint.json.gz'
 CONTROL_DT = .025
+INTERACTIVE_SMOKE_S = 10.
 SOFA_ROD_XY = (.78, .52)
 REPLAY_SIZE_LIMIT = 20_000_000
 
@@ -455,6 +456,11 @@ def demo_types():
 
         def __init__(self, args, baseline, checkpoint=None, mode='E'):
             self.recording = checkpoint is not None
+            self.camera_smoke = args.viewer_smoke and not self.recording
+            self.initial_group = 'A' if self.recording or self.camera_smoke else 'E'
+            self.camera_signatures = {name: set() for name in ('frustum', 'points', 'depth')}
+            self.displayed_camera_frames = 0
+            self.displayed_cloud_frames = 0
             self.checkpoint = checkpoint
             self.checkpoint_mode = mode
             self.pokes = []
@@ -494,6 +500,17 @@ def demo_types():
             self.active_vertical = V6Vertical(self)
             return self.active_vertical
 
+        def publish_camera_capture(self, capture, points):
+            super().publish_camera_capture(capture, points)
+            if self.displayed_camera_frames == 0:
+                print(f'V6_CAMERA_READY {self.current["group"]} http://127.0.0.1:{self.args.port}', flush=True)
+            self.displayed_camera_frames += 1
+            if self.camera_smoke:
+                self.displayed_cloud_frames += int(len(points) > 0)
+                self.camera_signatures['frustum'].add(tuple(self.frustum.position)+tuple(self.frustum.wxyz))
+                self.camera_signatures['points'].add(hash(self.points.points.tobytes()))
+                self.camera_signatures['depth'].add(hash(self.depth.image.tobytes()))
+
         def camera_memory(self, fixed_top):
             self.bar_memory = CameraMemory(LowerPokeMemory(fixed_top), record=self.recording)
             return self.bar_memory
@@ -531,6 +548,9 @@ def demo_types():
         def before_obstacle_step(self, tool, sim_clock):
             self.clock = sim_clock
             self.move_dance(tool, sim_clock)
+            if (self.camera_smoke and self.current['group'] == 'E'
+                    and sim_clock >= INTERACTIVE_SMOKE_S-CONTROL_DT-1e-9):
+                self.stop_event.set()
             if self.recording and self.current['group'] == self.checkpoint_mode:
                 near_goal = np.linalg.norm(tool-self.goal) <= v2.sixth.GOAL_TOLERANCE_M
                 self.goal_entries += int(near_goal and not self.at_goal)
@@ -827,6 +847,29 @@ def replay(types, args, cases):
         server.stop()
 
 
+def verify_interactive_camera(app):
+    from curobo_moving_bar_poke_demo import wait_for_demo
+
+    app.selector.value = 'E'
+    app.toggle_dance()
+    app.vertical.enabled.value = True
+    wait_for_demo(app, lambda: True if app.current['group'] == 'E' and
+                  app.current['state'] == 'stopped' else None, '10 seconds of live E camera', timeout=150.)
+    app.thread.join(timeout=5.)
+    run = app.current
+    changes = {name: len(values) for name, values in app.camera_signatures.items()}
+    report = dict(duration_s=run['sim_time_s'], captures=app.displayed_camera_frames,
+                  cloud_frames=app.displayed_cloud_frames, distinct=changes,
+                  dance=app.dancing, rod=app.vertical.enabled.value, worker_stopped=run['worker_stopped'])
+    if (app.thread.is_alive() or run['error'] or not run['worker_stopped']
+            or not np.isclose(run['sim_time_s'], INTERACTIVE_SMOKE_S)
+            or not all(handle.visible for handle in (app.frustum, app.points, app.depth))
+            or not app.dancing or not app.vertical.enabled.value
+            or not app.displayed_cloud_frames or min(changes.values()) < 2):
+        raise RuntimeError(f'Live camera smoke failed: {report}')
+    print('V6_INTERACTIVE_SMOKE '+json.dumps(report), flush=True)
+
+
 def main():
     import gzip
     import os
@@ -847,8 +890,8 @@ def main():
     args = parser.parse_args()
     if args.car_only and not args.smoke:
         parser.error('--car-only requires --smoke')
-    if args.viewer_smoke and not args.replay:
-        parser.error('--viewer-smoke requires --replay')
+    if args.viewer_smoke and not (args.replay or args.interactive):
+        parser.error('--viewer-smoke requires --replay or --interactive')
     if not np.isfinite(args.sim_seconds) or args.sim_seconds < 3.:
         parser.error('--sim-seconds must be at least 3')
     types = demo_types()
@@ -886,7 +929,10 @@ def main():
         app = types.Live(args, baseline)
         try:
             print(f'V6_INTERACTIVE http://127.0.0.1:{args.port}', flush=True)
-            types.base.wait_for_viewer(args.duration)
+            if args.viewer_smoke:
+                verify_interactive_camera(app)
+            else:
+                types.base.wait_for_viewer(args.duration)
         finally:
             if not app.closed:
                 app.close()

@@ -30,6 +30,16 @@ class LiveGroups(OriginalLiveGroups):
     def before_obstacle_step(self, tool, sim_clock):
         """Allow scene-specific scripted motion before sampling the gizmo."""
 
+    def publish_camera_capture(self, capture, points):
+        """Publish the matching optical pose, point cloud and depth image as one observation."""
+        transform = np.asarray(capture.camera.camera_transform)
+        rotation = v2.sixth.fourth.wxyz_matrix(transform[[6, 3, 4, 5]])
+        optical_rotation = rotation @ np.diag([1., -1., -1.])
+        self.frustum.position = tuple(transform[:3])
+        self.frustum.wxyz = tuple(v2.sixth.fourth.matrix_to_wxyz(optical_rotation))
+        self.points.points = points if len(points) else np.zeros((1, 3))
+        self.depth.image = capture.depth_preview
+
     def extra_obstacle(self):
         return None
 
@@ -129,6 +139,7 @@ class LiveGroups(OriginalLiveGroups):
                     fit = None
                     estimate = np.zeros(3)
                     capture = None
+                    published_capture = None
                     points = None
                     prior_q = q.copy()
                     prior_center = self.read_rod()
@@ -247,16 +258,19 @@ class LiveGroups(OriginalLiveGroups):
                             target = "raised_start" if target=="goal" else "goal"
                             pending_goal = True
                         self.viewer.set_joint_state(state.squeeze(0))
-                        camera_position,camera_wxyz = v2.sixth.fourth.camera_pose_for_q(mpc.kinematics,state.position,self.mount)
-                        self.frustum.position,self.frustum.wxyz = tuple(map(float,camera_position)),tuple(map(float,camera_wxyz))
+                        if capture is None:
+                            camera_position,camera_wxyz = v2.sixth.fourth.camera_pose_for_q(
+                                mpc.kinematics,state.position,self.mount)
+                            self.frustum.position = tuple(map(float,camera_position))
+                            self.frustum.wxyz = tuple(map(float,camera_wxyz))
+                        elif capture is not published_capture:
+                            visible_points = points if extra is None else extra.visible_points(points)
+                            self.publish_camera_capture(capture, visible_points)
+                            published_capture = capture
                         for box,data in ((self.observed,fit),(self.predicted,predicted)):
                             box.visible = data is not None
                             if data:
                                 box.position,box.dimensions = tuple(map(float,data["center_m"])),tuple(map(float,data["dims_m"]))
-                        if capture is not None:
-                            visible_points = points if extra is None else extra.visible_points(points)
-                            self.points.points = visible_points if len(visible_points) else np.zeros((1,3))
-                            self.depth.image = capture.depth_preview
                         if hasattr(self,"graphics"):
                             self.graphics.update(fit,estimate,true_velocity,horizon+1/v3.OBS_HZ,prediction,self.predicted)
                         fit = raw_fit
