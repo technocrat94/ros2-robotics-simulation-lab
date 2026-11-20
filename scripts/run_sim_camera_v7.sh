@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 REPO_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+export NEWTON_VIEWER_PORT="${NEWTON_VIEWER_PORT:-30006}"
 source "${REPO_DIR}/scripts/lab_session_env.sh"
 set +u
 source "${HOME}/use_curobo_env.sh"

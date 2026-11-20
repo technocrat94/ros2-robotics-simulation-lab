@@ -1358,7 +1358,7 @@ def main():
     mode.add_argument('--decay-comparison', action='store_true', help='Compare three 15 s dual-camera reciprocating-bar runs')
     mode.add_argument('--bar-forensics', action='store_true', help='Record one 15 s dual-camera reciprocating-bar run')
     parser.add_argument('--forensics-output', type=Path, default=FORENSICS_FILE)
-    parser.add_argument('--port', type=int, default=int(os.environ.get('NEWTON_VIEWER_PORT', '30018')))
+    parser.add_argument('--port', type=int, default=int(os.environ.get('NEWTON_VIEWER_PORT', '30006')))
     parser.add_argument('--robot-config', type=Path,
                         default=Path.home()/'.cache/ur5_moveit_demo/curobo_v2/ur5_robotiq_curobo.yml')
     parser.add_argument('--newton-python', type=Path, default=Path.home()/'newton_ws/.venv-cpu/bin/python')

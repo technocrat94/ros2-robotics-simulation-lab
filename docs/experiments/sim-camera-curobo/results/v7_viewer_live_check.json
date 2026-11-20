@@ -1,0 +1,16 @@
+{
+  "url": "http://127.0.0.1:30006/",
+  "window_wall_s": 20.00133910123259,
+  "samples": 89,
+  "sim_start_s": 19.05,
+  "sim_end_s": 27.85,
+  "sim_advanced_s": 8.8,
+  "max_joint_change_rad": 2.9409542083740234,
+  "max_joint_child_link": "forearm_link",
+  "bar_change_m": 0.24000000000000066,
+  "bar_min_x_m": 0.6549999999999997,
+  "bar_max_x_m": 0.8950000000000004,
+  "method": "Independent Viser WebSocket client, measuring the GUI clock, six URDF joint orientations, and bar pose",
+  "joint_change_metric": "maximum principal rotation angle between two sampled orientations of the same joint",
+  "bar_position_reference": "cylinder center"
+}
