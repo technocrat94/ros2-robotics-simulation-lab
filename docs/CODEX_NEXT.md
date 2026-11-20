@@ -45,8 +45,8 @@ The contact itself came from the SCENE, not perception:
   bar appears ~10 cm from the arm while the arm moves 0.54 m/s toward it.
 - v7 never ran group B (truth obstacle), so we could not tell "scene impossible" from "map wrong".
 Do (user decision: finish v7 today, no demo fallback):
-1. Scene: target = the point 0.15 m ahead of the tool on the straight tool -> goal line, at that line's own z
-   (no raising; clip z to [0.15, 0.35]). The bar never teleports: between pokes it slides from where it is
+1. Scene: target xy = the point 0.15 m ahead of the tool on the straight tool -> goal line; bar height LOW:
+   z = 0.20 m (user: lower; same height as the v6 poke that B and E both dodged). The bar never teleports: between pokes it slides from where it is
    to the next start at <= 0.3 m/s (first poke slides in from PARK). Stroke speed stays 0.10 m/s.
 2. Add `--mode B`: no cameras/mapper; the MPC gets the true bar (and rod) as cuboids each step, same
    scheduler, same rules. `--mode E` = current camera pipeline.
@@ -59,11 +59,14 @@ Do (user decision: finish v7 today, no demo fallback):
    closest bar approach, how many bar pixels lie within that threshold of the arm. Save the calibration to
    docs/experiments/sim-camera-curobo/results/v7_segmenter_calibration.json.
    Decay 0.3 / frustum 1.0 and floor handling as in original v7.
+4. Interactive (user request), like the v6 interactive: GUI selector for mode B / E (switch without
+   restarting), Dance on/off button, single Poke button, draggable bar and vertical-rod gizmos, rod on/off,
+   both cameras on in E, live status (mode, contacts, reaches, min clearance). Same scene rules as above
+   (no teleport, bar z 0.20 by default; dragging may move it anywhere).
 Runs, 1 each, both cameras for E: (0) calibration above, (a) E empty scene 10 s with the measured threshold, (b) B Dance 6 s, (c) E Dance 6 s.
 Pass: (a) <= 5 voxels near the arm and peak reversals <= 2; (b) 0 contacts (if B hits, the scene is still
 unfair: report and stop, do not touch perception); (c) 0 contacts. Report a table plus, for any E contact,
-the forensic classification. Commit, push, leave --interactive --mode E running (both cameras), URL +
-3 lines. Stop. Do not do "Next time".
+the forensic classification. Commit, push, leave --interactive running (starts in E, both cameras), URL + 3 lines. Stop. Do not do "Next time".
 
 ### Next time (user: postpone, display only)
 a. The red area is the reference example's ESDF slice: red = far from anything, and with nothing observed
