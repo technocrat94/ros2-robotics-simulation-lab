@@ -33,7 +33,26 @@ No pending task
 Leave the deleted 05_c2_tall_wall_refused.png and the untracked curobo/ untouched. Stage files by
 explicit path only. No git clean/reset/restore/stash/add -A.
 
-## Task: none. Work stopped for today (2026-11-20). Wait for the user.
+## Task (2026-11-21): show where the arm is going and what the MPC plans (v7 interactive only)
+
+Model: 6.2 Sol Medium. Display only: do not change MPC weights, limits, mapping or the scene.
+
+In `MappingView` (`scripts/curobo_v7_mapper.py`) add, updated every view refresh:
+1. Start and goal markers: small spheres at START_TOOL_M (blue) and the verified goal target (green), labels
+   "起點" / "終點". The active trip target gets a larger ring/frame so the user sees where it is heading now.
+2. MPC plan: a yellow polyline of the tool positions along the MPC's current optimized trajectory
+   (the action sequence it just solved, forward kinematics on each step). Use cuRobo's own result/fields;
+   do not re-plan. A thin grey line straight from the tool to the active target for comparison.
+3. GUI text "Plan": horizon length (s and steps), closest map distance along the plan (m), and the
+   obstacle activation 0.07 m, so the user sees "plan stays > 7 cm" vs "plan is pushed".
+4. Fold the legend into one markdown block, Chinese, listing every colour.
+
+Checkpoint (one run only): `scripts/run_sim_camera_v7.sh --mode E --interactive` on port 30006.
+From a second process confirm the yellow line changes over 10 s and the Trip `returns` count increases
+(this also closes the open live-viewer item). Commit, push, ls-remote = HEAD. Reply with the hash, the
+command, and 3 lines on what to look at. Then stop.
+
+### Previous task (kept for reference): none. Work stopped for today (2026-11-20).
 
 bdfb4ab reviewed: return trips fixed (MPC also tracks the verified joint branch). 30 s: A0 10 reaches / 9 returns,
 B 6/6, E (both cameras) 6/6, 0 contacts, bar clearance B 25.5 mm, E 19.0 mm. Open item: the live viewer return
