@@ -50,9 +50,16 @@ Do (user decision: finish v7 today, no demo fallback):
    to the next start at <= 0.3 m/s (first poke slides in from PARK). Stroke speed stays 0.10 m/s.
 2. Add `--mode B`: no cameras/mapper; the MPC gets the true bar (and rod) as cuboids each step, same
    scheduler, same rules. `--mode E` = current camera pipeline.
-3. Perception: RobotSegmenter distance_threshold = 0.03 (0.05 erased the bar, 0.015 leaked the arm).
+3. Perception: MEASURE the RobotSegmenter distance_threshold instead of guessing (user: no arbitrary 3 cm).
+   Calibration step (Newton shape ids used ONLY here, never in control): empty scene, the usual 10 s motion
+   plus ~20 varied arm poses, both cameras. For every true-robot depth pixel, compute its distance to the
+   nearest robot collision-sphere surface (positive = outside the spheres). Report max, p99.9, p99 overall and
+   per link (expect the gripper to be worst). Set distance_threshold = overall max rounded up to the next mm
+   (sim has no depth noise or timing error; note that a real D435 would add ~1 cm). Also report, at the B/E
+   closest bar approach, how many bar pixels lie within that threshold of the arm. Save the calibration to
+   docs/experiments/sim-camera-curobo/results/v7_segmenter_calibration.json.
    Decay 0.3 / frustum 1.0 and floor handling as in original v7.
-Runs, 1 each, both cameras for E: (a) E empty scene 10 s, (b) B Dance 6 s, (c) E Dance 6 s.
+Runs, 1 each, both cameras for E: (0) calibration above, (a) E empty scene 10 s with the measured threshold, (b) B Dance 6 s, (c) E Dance 6 s.
 Pass: (a) <= 5 voxels near the arm and peak reversals <= 2; (b) 0 contacts (if B hits, the scene is still
 unfair: report and stop, do not touch perception); (c) 0 contacts. Report a table plus, for any E contact,
 the forensic classification. Commit, push, leave --interactive --mode E running (both cameras), URL +
