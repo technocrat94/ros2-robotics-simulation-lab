@@ -33,7 +33,15 @@ No pending task
 Leave the deleted 05_c2_tall_wall_refused.png and the untracked curobo/ untouched. Stage files by
 explicit path only. No git clean/reset/restore/stash/add -A.
 
-## Task: v7 — run E only (B passed) (TIME LIMIT 5 min) — 2026-11-20
+## Task: none. v7 checkpoint PASSED (2026-11-20). Wait for the user.
+
+08ff7ba reviewed. Long-retract scene, gates: A0 reach, A touches, B reach 4.375 s / 0 contacts / bar 52.8 mm,
+E (both cameras) reach 6.725 s / 0 bar and floor contacts / bar 34.3 mm, floor 8.46 mm.
+Next (only when the user says): planner (MotionGen) + MPC to go over the bar instead of waiting; then the
+"Next time" display items; then re-identification for prediction. Do not start anything.
+
+### Previous task (kept for reference)
+#### v7 — run E only (B passed) (TIME LIMIT 5 min) — 2026-11-20
 
 df3eba8 reviewed. B PASSED as intended: reached at 4.375 s, 0 contacts, closest BAR clearance 0.053 m. The
 8.5 mm minimum is the FLOOR (low path), which is fine (floor activation 0.01 m, safety plane 0.005 m). My task
