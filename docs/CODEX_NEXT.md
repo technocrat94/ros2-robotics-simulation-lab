@@ -69,6 +69,9 @@ a. The red area is the reference example's ESDF slice: red = far from anything, 
 b. Dark images: Newton renders RGB without lights (load_textures=False). RGB is not used for mapping.
    For display only, brighten it (normalise per frame) or replace the RGB panel with a shaded depth
    image; say which.
+d. The red square the user saw is the 2 x 2 m map extent (grid_center = robot base, so half the map is under
+   the floor/behind the robot). Draw the map bounds as a thin box outline + legend line; consider centring the
+   map on the workspace (e.g. (0.45, 0.2, 0.5)) with the same size.
 c. Per camera show TWO depth panels side by side: "原始深度" (raw, whole scene) and "建圖用深度" (after
    depth limits, floor removal and RobotSegmenter). Removed pixels are drawn WHITE, not black (user request);
    legend says white = removed (floor, arm, too near/far).
