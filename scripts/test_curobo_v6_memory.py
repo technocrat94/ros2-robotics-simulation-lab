@@ -3,7 +3,7 @@ import unittest
 
 import numpy as np
 
-from curobo_v6_memory import DepthFrame, ObjectMemory
+from curobo_v6_memory import DepthFrame, ObjectMemory, path_target, tip_projection
 
 
 def box(x=0., y=0., z=.5, size=.10):
@@ -15,6 +15,22 @@ def frame(depth=0., mask=None, origin=(0., 0., 0.), rotation=None):
                       np.zeros((100, 100), dtype=bool) if mask is None else mask,
                       (50., 50., 50., 50.), np.asarray(origin),
                       np.eye(3) if rotation is None else rotation)
+
+
+class DanceGeometry(unittest.TestCase):
+    def test_aims_fifteen_centimeters_along_the_path_then_clips_height(self):
+        np.testing.assert_allclose(path_target(np.array([0., 0., .50]), [.6, .8, .50]),
+                                   [.09, .12, .38])
+        np.testing.assert_allclose(path_target(np.array([0., 0., .30]), [.03, .04, .17]),
+                                   [.03, .04, .17])
+        np.testing.assert_allclose(path_target(np.array([0., 0., .28]), [0., 0., 0.]),
+                                   [0., 0., .15])
+
+    def test_peak_projection_checks_image_bounds_in_the_camera_frame(self):
+        camera = frame(origin=(1., 0., 0.))
+        self.assertEqual(tip_projection(camera, [1., 0., .5]), (True, [50., 50.]))
+        self.assertFalse(tip_projection(camera, [2., 0., .5])[0])
+        self.assertEqual(tip_projection(camera, [1., 0., -.5]), (False, None))
 
 
 class MemoryRules(unittest.TestCase):

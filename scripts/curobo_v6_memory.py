@@ -27,6 +27,7 @@ CARVE_OFFSETS = np.array(list(product(np.linspace(-.5, .5, 5), np.linspace(-.5, 
 ROOT = Path(__file__).resolve().parents[1]
 CHECKPOINT = ROOT/'docs/experiments/sim-camera-curobo/results/v6_memory_checkpoint.json.gz'
 CONTROL_DT = .025
+SOFA_ROD_XY = (.78, .52)
 REPLAY_SIZE_LIMIT = 20_000_000
 
 
@@ -194,7 +195,7 @@ def renderer():
         np.savez(request['output'], **arrays)
         metadata = dict(border_touches=capture['border_touches'],
                         border_pixel_counts=capture['border_pixel_counts'],
-                        rod_pixels=capture['rod_pixels'],
+                        bar_pixels=capture['rod_pixels'],
                         rod_borders=capture.get('vertical_border_counts'), vertical_pixels=vertical_pixels)
         print('NEWTON_MOVING_ROD_WORKER_RESPONSE '+json.dumps(metadata), flush=True)
 
@@ -233,7 +234,7 @@ class CameraMemory:
             center = self.center_from_points(capture.points, center)
         current, velocity, event = self.track.observe(fresh, center, capture.metadata['depth_frame'], time_s)
         self.current = current
-        self.last_event = {**v5, **event, 'obstacle_pixels': capture.metadata['rod_pixels']}
+        self.last_event = {**v5, **event, 'obstacle_pixels': capture.metadata['obstacle_pixels']}
         self.growth_events += int(event['growth_rule'])
         self.events.append(self.last_event)
         return current, velocity, capture.points, self.last_event
@@ -254,6 +255,39 @@ def standing_center(points, fallback, height):
             if .020**2 < radius_squared < .030**2:
                 xy = center
     return [*xy, height/2]
+
+
+def path_target(tool, goal):
+    """Aim the inner tip along the tool-to-goal segment, below the tool."""
+    delta = np.asarray(goal)-tool
+    distance = np.linalg.norm(delta)
+    target = np.asarray(tool, dtype=float)+delta*min(1., .15/max(distance, .15))
+    target[2] = np.clip(target[2], .15, tool[2]-.12)
+    return target
+
+
+def tip_projection(frame, tip):
+    optical = (np.asarray(tip)-frame.origin) @ frame.rotation
+    if not np.isfinite(optical).all() or optical[2] <= 0.:
+        return False, None
+    fx, fy, cx, cy = frame.intrinsics
+    xy = optical[:2]/optical[2]*[fx, fy]+[cx, cy]
+    height, width = frame.depth.shape
+    inside = bool(np.all((xy >= 0.) & (xy < [width, height])))
+    return inside, xy.tolist()
+
+
+def record_poke_frame(poke, frame, time_s, pixels):
+    if pixels:
+        intervals = poke['seen_intervals_s']
+        if intervals and time_s-intervals[-1][1] <= 1/30+1e-8:
+            intervals[-1][1] = time_s
+        else:
+            intervals.append([time_s, time_s])
+    if poke['peak_projection'] is None and time_s >= poke['closest_time_s']-1e-9:
+        inside, xy = tip_projection(frame, poke['target_m'])
+        poke['peak_projection'] = dict(frame_time_s=time_s, in_image=inside, pixel_xy=xy)
+        print('V6_POKE_PEAK '+json.dumps(poke), flush=True)
 
 
 def memory_label(event):
@@ -278,7 +312,11 @@ def demo_types():
     import subprocess
     from types import SimpleNamespace
 
-    from curobo_moving_bar_poke_demo import DemoBarWorker, LiveDance, LiveVerticalRod, ROD_UNKNOWN_TOP_M
+    from curobo_moving_bar_poke_demo import (
+        DANCE_PERIOD_S, DANCE_SPEED_MPS, DANCE_TRAVEL_M, DemoBarWorker, LiveDance,
+        LiveVerticalRod, ROD_UNKNOWN_TOP_M, dance_center,
+    )
+    from curobo_moving_bar_v5_viewer import LivePoke
     from curobo_moving_bar_poke_height import LowerPokeMemory, scene
     from curobo_moving_bar_v5 import base, v2
     from curobo_moving_rod_v5_rules import HeightMemory
@@ -303,15 +341,18 @@ def demo_types():
                 pose = arrays['pose']
                 frame = DepthFrame(arrays['depth'], arrays['robot_mask'], tuple(arrays['intrinsics']),
                                    pose[:3], arrays['rotation'])
-                camera = v2.sixth.fourth.Capture(q, arrays['points'], pose,
-                                               {**metadata, 'depth_frame': frame})
+                bar_pixels = metadata['bar_pixels']
+                camera = v2.sixth.fourth.Capture(
+                    q, arrays['points'], pose,
+                    {**metadata, 'depth_frame': frame, 'rod_pixels': bar_pixels, 'obstacle_pixels': bar_pixels},
+                )
                 vertical = None
                 if vertical_rod is not None:
                     borders = metadata['rod_borders']
                     vertical = v2.sixth.fourth.Capture(
                         q, arrays['rod_points'], pose,
                         dict(depth_frame=frame, border_touches={k: v > 0 for k, v in borders.items()},
-                             border_pixel_counts=borders, rod_pixels=metadata['vertical_pixels']),
+                             border_pixel_counts=borders, obstacle_pixels=metadata['vertical_pixels']),
                     )
                 return v2.RodCapture(camera, arrays['preview'], vertical)
 
@@ -330,6 +371,10 @@ def demo_types():
 
         def capture(self, worker, q, center, time_s):
             capture = super().capture(worker, q, center, time_s)
+            poke = self.app.active_poke
+            if poke is not None and time_s >= poke['start_s']-1e-9:
+                metadata = capture.camera.metadata
+                record_poke_frame(poke, metadata['depth_frame'], time_s, metadata['obstacle_pixels'])
             if self.app.recording:
                 self.app.camera_frames.append(camera_sample(capture, time_s, v2.sixth.fourth.matrix_to_wxyz))
                 if self.app.checkpoint == 'Sofa':
@@ -337,7 +382,7 @@ def demo_types():
             return capture
 
         def check_sofa_capture(self, camera, time_s):
-            pixels = camera.metadata['rod_pixels']
+            pixels = camera.metadata['obstacle_pixels']
             if time_s == 0.:
                 if not self.memory.last_event['fresh_seen'] or not pixels:
                     raise RuntimeError('Sofa did not produce a rod observation at startup')
@@ -350,16 +395,20 @@ def demo_types():
             super().update(mpc, family, q, mask, horizon)
             app = self.app
             bar = app.bar_memory if family == 'E' else None
+            recording = app.recording and family == app.checkpoint_mode
             tracks = {}
             for name, memory in (('bar', bar), ('rod', self.memory if family == 'E' else None)):
                 box = None if memory is None else memory.current
                 event = {} if memory is None else memory.last_event
                 paint(*app.memory_handles[name], box, event)
-                if app.recording:
+                if recording:
                     observed, predicted = (None, None) if memory is None else memory.display_boxes
+                    if family == 'B' and name == 'rod':
+                        x, y, height = self.pose
+                        observed = predicted = dict(center_m=[x, y, height/2], dims_m=[.05, .05, height])
                     tracks[name] = dict(box=box, event=event, observed=observed, predicted=predicted,
                                         velocity_mps=([0.]*3 if memory is None else memory.track.velocity.tolist()))
-            if app.recording and family == 'E':
+            if recording:
                 app.active_mask = mask
                 bar_center = app.read_rod().copy()
                 true_velocity = (np.zeros(3) if app.last_bar is None else
@@ -373,9 +422,12 @@ def demo_types():
         worker_type = V6Worker
         version = 'v6 object memory'
 
-        def __init__(self, args, baseline, checkpoint=None):
+        def __init__(self, args, baseline, checkpoint=None, mode='E'):
             self.recording = checkpoint is not None
             self.checkpoint = checkpoint
+            self.checkpoint_mode = mode
+            self.pokes = []
+            self.active_poke = None
             self.rows = []
             self.camera_frames = []
             self.last_bar = None
@@ -392,6 +444,7 @@ def demo_types():
         def obstacle_handles(self, scene_api):
             handles = super().obstacle_handles(scene_api)
             self.vertical.observed.wireframe = True
+            self.vertical.gizmo.position = (*SOFA_ROD_XY, 0.)
             self.server.gui.add_markdown('Memory fill: blue = STATIC, orange = MOVING. Orange outline = observed box.')
             self.memory_handles = {
                 name: (
@@ -405,6 +458,7 @@ def demo_types():
             self.observed.wireframe = True
             with self.poke_lock:
                 self.dance_started = None
+                self.active_poke = None
             self.active_vertical = V6Vertical(self)
             return self.active_vertical
 
@@ -412,10 +466,27 @@ def demo_types():
             self.bar_memory = CameraMemory(LowerPokeMemory(fixed_top), record=self.recording)
             return self.bar_memory
 
+        def move_dance(self, tool, sim_clock):
+            with self.poke_lock:
+                if self.dancing:
+                    if self.dance_started is None or sim_clock-self.dance_started >= DANCE_PERIOD_S-1e-9:
+                        self.dance_started = sim_clock
+                        self.dance_target = path_target(tool, self.goal)
+                        self.active_poke = dict(start_s=sim_clock, target_m=self.dance_target.tolist(),
+                                                closest_time_s=sim_clock+DANCE_TRAVEL_M/DANCE_SPEED_MPS,
+                                                peak_projection=None, seen_intervals_s=[])
+                        if self.recording:
+                            self.pokes.append(self.active_poke)
+                    position = dance_center(self.dance_target, sim_clock-self.dance_started)
+                    self.gizmo.position = (*position[:2], self.dance_target[2])
+                    return
+                self.active_poke = None
+            LivePoke.before_obstacle_step(self, tool, sim_clock)
+
         def before_obstacle_step(self, tool, sim_clock):
             self.clock = sim_clock
-            super().before_obstacle_step(tool, sim_clock)
-            if self.recording and self.current['group'] == 'E':
+            self.move_dance(tool, sim_clock)
+            if self.recording and self.current['group'] == self.checkpoint_mode:
                 near_goal = np.linalg.norm(tool-self.goal) <= v2.sixth.GOAL_TOLERANCE_M
                 self.goal_entries += int(near_goal and not self.at_goal)
                 self.at_goal = near_goal
@@ -424,7 +495,7 @@ def demo_types():
 
         def truth_clearance(self, spheres, center):
             clearance = super().truth_clearance(spheres, center)
-            if self.recording and self.current['group'] == 'E':
+            if self.recording and self.current['group'] == self.checkpoint_mode:
                 rod = self.active_vertical.clearance(spheres)
                 floor = np.min(spheres[self.active_mask, 2]-spheres[self.active_mask, 3])
                 distances = {'bar': clearance, 'rod': rod, 'floor': floor}
@@ -471,49 +542,76 @@ def write_checkpoint(path, cases):
     if tmp.stat().st_size > REPLAY_SIZE_LIMIT:
         # 30 Hz observations become 10 Hz; keep control poses and events intact.
         thinned = {
-            name: dict(case, camera_frames=case['camera_frames'][::3],
-                       frames=[dict(row, camera_index=row['camera_index']//3) for row in case['frames']])
+            name: (case if case.get('camera_stride') else
+                   dict(case, camera_frames=case['camera_frames'][::3],
+                        frames=[dict(row, camera_index=row['camera_index']//3) for row in case['frames']]))
             for name, case in cases.items()
         }
         write(thinned)
     tmp.replace(path)
 
 
-def checkpoint_run(types, args, baseline, name):
+def checkpoint_run(types, args, baseline, name, mode='E', *, rod_xy=SOFA_ROD_XY):
     from curobo_moving_bar_poke_demo import wait_for_demo
 
-    app = types.Live(args, baseline, name)
+    app = types.Live(args, baseline, name, mode)
     try:
         if name == 'Car':
             app.toggle_dance()
         else:
             app.gizmo.position = (2., .28, .20)
-            app.vertical.gizmo.position = (.38, .44, 0.)
+            app.vertical.gizmo.position = (*rod_xy, 0.)
             app.vertical.enabled.value = True
-        app.selector.value = 'E'
-        wait_for_demo(app, lambda: True if app.current['group'] == 'E' and
+        app.selector.value = mode
+        wait_for_demo(app, lambda: True if app.current['group'] == mode and
                       app.current['state'] == 'stopped' else None, f'{name} checkpoint', timeout=180.)
         app.thread.join(timeout=5.)
         if app.thread.is_alive():
             raise RuntimeError(f'{name} checkpoint thread did not stop')
         memory = app.bar_memory if name == 'Car' else app.active_vertical.memory
-        events = memory.events
+        events = memory.events if mode == 'E' else []
         losses = [event for event in events if event['retained'] and not event['fresh_seen']]
         clears = [event for i, event in enumerate(events)
                   if event['cleared_by'] != 'none' and (i == 0 or events[i-1]['cleared_by'] == 'none')]
-        summary = dict(first_unseen_s=app.first_unseen, contacts=app.contacts, reaches=app.goal_entries, minimum_clearance_m=float(app.minimum),
+        summary = dict(mode=mode, first_unseen_s=app.first_unseen, contacts=app.contacts,
+                       reaches=app.goal_entries, minimum_clearance_m=float(app.minimum),
                        observed_frames=sum(event['fresh_seen'] for event in events),
                        moving_frames=sum(event['class'] == 'MOVING' for event in events),
                        max_retained_static_age_s=max((e['since_seen_s'] for e in losses if e['class'] == 'STATIC'),
                                                      default=0.),
                        clears=clears, duration_s=app.current['sim_time_s'])
-        print(f'V6_{name.upper()} '+json.dumps(summary), flush=True)
-        if name == 'Sofa' and app.first_unseen is None:
+        print(f'V6_RESULT {name} {mode} '+json.dumps(summary), flush=True)
+        if name == 'Car':
+            for poke in app.pokes:
+                print('V6_CAR_POKE '+json.dumps(poke), flush=True)
+        if name == 'Sofa' and mode == 'E' and app.first_unseen is None:
             raise RuntimeError('Sofa stayed in the camera view for the entire checkpoint')
-        return dict(summary=summary, frames=app.rows, camera_frames=app.camera_frames, observations=events)
+        return dict(summary=summary, frames=app.rows, camera_frames=app.camera_frames, observations=events,
+                    pokes=app.pokes)
     finally:
         if not app.closed:
             app.close()
+
+
+def render_truth_replay(types, args, case):
+    """Passively render B's recorded poses after truth-box control."""
+    import tempfile
+
+    with tempfile.TemporaryDirectory(prefix='v6-truth-view-') as tmp:
+        worker = types.Worker(args.newton_python, Path(tmp))
+        try:
+            worker.start()
+            for i, row in enumerate(case['frames']):
+                if i % 4 == 0:
+                    capture = worker.capture_xy(np.asarray(row['q'], dtype=np.float32), row['bar'],
+                                                vertical_rod=row['rod'])
+                    sample = camera_sample(capture, row['time_s'], types.v2.sixth.fourth.matrix_to_wxyz)
+                    case['camera_frames'].append(sample)
+                row['camera_index'] = len(case['camera_frames'])-1
+        finally:
+            worker.close()
+    case['camera_stride'] = 4
+
 
 
 def replay(types, args, cases):
@@ -630,24 +728,34 @@ def replay(types, args, cases):
         if args.viewer_smoke:
             for name, case in cases.items():
                 selector.value = name
-                focus = 'rod' if name == 'Sofa' else 'bar'
-                visible_row = next(row for row in case['frames'] if row['tracks'][focus]['observed'])
-                slider.value = visible_row['time_s']
-                assert len(cloud.points) and outlines[focus][0].visible
-                assert outlines[focus][1].visible and graphics.ghost.visible
-                graphics.visible.value = False
-                assert not outlines[focus][1].visible and not graphics.ghost.visible
-                graphics.visible.value = True
-                assert outlines[focus][1].visible and graphics.ghost.visible
+                focus = 'rod' if case['frames'][0]['rod'] is not None else 'bar'
+                point_row = next((row for row in case['frames']
+                                  if case['camera_frames'][row['camera_index']]['points_m']), None)
+                if point_row is not None:
+                    slider.value = point_row['time_s']
+                    assert len(cloud.points)
+                visible_row = next((row for row in case['frames'] if row['tracks'][focus]['observed']), None)
+                if visible_row is not None:
+                    slider.value = visible_row['time_s']
+                    assert outlines[focus][0].visible
+                    assert outlines[focus][1].visible and graphics.ghost.visible
+                    graphics.visible.value = False
+                    assert not outlines[focus][1].visible and not graphics.ghost.visible
+                    graphics.visible.value = True
+                    assert outlines[focus][1].visible and graphics.ghost.visible
+                else:
+                    assert not outlines[focus][0].visible
                 slider.value = case['frames'][-1]['time_s']
                 assert slider.value > 0. and selector.value == name
             car = cases['Car']
-            with_arrow = next(row for row in car['frames'] if row['tracks']['bar']['observed']
-                              and np.linalg.norm(row['tracks']['bar']['velocity_mps']) > 1e-9)
-            selector.value = 'Car'
-            slider.value = with_arrow['time_s']
-            assert graphics.arrow.visible
-            print('V6_REPLAY_SMOKE camera, boxes, prediction toggle and arrow passed', flush=True)
+            with_arrow = next((row for row in car['frames'] if row['tracks']['bar']['observed']
+                               and np.linalg.norm(row['tracks']['bar']['velocity_mps']) > 1e-9), None)
+            if with_arrow is not None:
+                selector.value = 'Car'
+                slider.value = with_arrow['time_s']
+                assert graphics.arrow.visible
+            print(f'V6_REPLAY_SMOKE camera, boxes and prediction toggle passed; '
+                  f'nonzero arrow sample={with_arrow is not None}', flush=True)
         print(f'V6_REPLAY http://127.0.0.1:{args.port}', flush=True)
         types.base.wait_for_viewer(args.duration)
     finally:
@@ -686,11 +794,17 @@ def main():
     types.base.tuned.original.configure_scene(baseline)
     types.base.v41.v3.check_viewer_port(args.port)
     if args.smoke:
-        print('V6_CHECKPOINT two E runs, estimated wall time 1–3 minutes', flush=True)
-        cases = {}
-        for name in ('Car', 'Sofa'):
-            cases[name] = checkpoint_run(types, args, baseline, name)
-            write_checkpoint(args.checkpoint, cases)
+        print('V6_CHECKPOINT Car E, Sofa B and Sofa E; estimated wall time 2–4 minutes', flush=True)
+        cases = {'Car': checkpoint_run(types, args, baseline, 'Car')}
+        write_checkpoint(args.checkpoint, cases)
+        truth = checkpoint_run(types, args, baseline, 'Sofa', 'B')
+        render_truth_replay(types, args, truth)
+        cases['Sofa B'] = truth
+        write_checkpoint(args.checkpoint, cases)
+        if not truth['summary']['reaches']:
+            raise RuntimeError('Sofa B did not establish a reachable rod position')
+        cases['Sofa'] = checkpoint_run(types, args, baseline, 'Sofa')
+        write_checkpoint(args.checkpoint, cases)
         print(f'V6_CHECKPOINT {args.checkpoint}', flush=True)
     else:
         app = types.Live(args, baseline)
