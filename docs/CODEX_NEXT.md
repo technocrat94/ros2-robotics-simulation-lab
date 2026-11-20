@@ -33,7 +33,17 @@ No pending task
 Leave the deleted 05_c2_tall_wall_refused.png and the untracked curobo/ untouched. Stage files by
 explicit path only. No git clean/reset/restore/stash/add -A.
 
-## Task: v7 — let the arm pass when the bar pulls back (TIME LIMIT 10 min) — 2026-11-20
+## Task: v7 — run E only (B passed) (TIME LIMIT 5 min) — 2026-11-20
+
+df3eba8 reviewed. B PASSED as intended: reached at 4.375 s, 0 contacts, closest BAR clearance 0.053 m. The
+8.5 mm minimum is the FLOOR (low path), which is fine (floor activation 0.01 m, safety plane 0.005 m). My task
+wording "min clearance >= 0.02 m" meant the bar; clarify that in the report fields (bar_min vs floor_min).
+Do: run E on the same scene, both cameras, 15 s. SUCCESS = >= 1 reach and 0 bar contacts (floor contacts must be
+0 too). Report contacts, reaches, first reach time, bar min clearance, floor min clearance; if a bar contact,
+add the forensic rows. Commit, push, leave the existing --interactive running (E, both cameras), URL + 3 lines.
+
+### Previous task (kept for reference)
+#### v7 — let the arm pass when the bar pulls back (TIME LIMIT 10 min) — 2026-11-20
 
 45d92d6 reviewed. The path works (A0 reaches, no thrash), the bar is in the way (A touches), but B never
 reaches: it stops in front of the bar (min 12.6 mm, 0 contacts). That is the MPC local minimum: with a 0.4 s
