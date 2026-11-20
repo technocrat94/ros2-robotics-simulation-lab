@@ -20,12 +20,15 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXED_CONFIG = ROOT/'config/sim_fixed_camera.yaml'
+NEWTON_URDF = Path.home()/'newton_ws/ros_bridge_assets/ur5_robotiq.newton.urdf'
+BASE_LINK = 'base_link_inertia'
 DEPTH_MIN, DEPTH_MAX = .15, 2.
 TSDF_SIZE, ESDF_SIZE = .005, .03
 FRAME_RATE, CONTROL_DT = 30, .025
 DURATION = 10.
 BAR_TIP_INNER_X, BAR_STROKE_M, BAR_SPEED_MPS = .50, .125, .10
-BAR_LANE_Y, BAR_HEIGHT_M = .28, .15
+BAR_LANE_Y, BAR_HEIGHT_M = .36, .23
+RESULTS_DIR = ROOT/'docs/experiments/sim-camera-curobo/results'
 BAR_LENGTH_M, BAR_RADIUS_M = .30, .02
 OBSTACLE_ACTIVATION_M = .07
 FLOOR_ACTIVATION_M = .01
@@ -36,7 +39,7 @@ FORENSICS_FILE = DIAGNOSIS_FILE.with_name('v7_bar_forensics.json')
 DECAY_COMPARISON_FILE = DIAGNOSIS_FILE.with_name('v7_decay_comparison.json')
 DECAY_CONFIGS = {'A': (.3, 1.), 'B': (1., 1.), 'C': (1., .3)}
 DEFAULT_DECAY = DECAY_CONFIGS['A']
-ROBOT_MASK_DISTANCE = .051  # Calibrated in v7_segmenter_calibration.json.
+ROBOT_MASK_DISTANCE = .015  # Moving-link maximum rounded up to the next mm.
 CALIBRATION_FILE = DIAGNOSIS_FILE.with_name('v7_segmenter_calibration.json')
 FAIR_SCENE_FILE = DIAGNOSIS_FILE.with_name('v7_reciprocating_checkpoint.json')
 SEGMENTATION_CHECKPOINT_FILE = DIAGNOSIS_FILE.with_name('v7_segmentation_checkpoint.json')
@@ -59,7 +62,7 @@ def render_worker(mode):
 
     mount, _ = source.camera_common.read_mount_config(ROOT/'config/sim_camera_mount.yaml')
     scene = source.MovingRodCamera(
-        Path.home()/'newton_ws/ros_bridge_assets/ur5_robotiq.newton.urdf', mount,
+        NEWTON_URDF, mount,
         'cuda:0', horizontal_bar=True, bar_length=BAR_LENGTH_M,
     )
     width, height = source.WIDTH, source.HEIGHT
@@ -163,6 +166,48 @@ class NewtonStream:
                 self.process.wait(timeout=5.)
 
 
+def fixed_base_volume():
+    """Compute world bounds from the fixed base link's URDF collision mesh."""
+    import xml.etree.ElementTree as ET
+
+    import trimesh
+    from trimesh.transformations import euler_matrix
+
+    robot = ET.parse(NEWTON_URDF).getroot()
+
+    def transform(node):
+        origin = node.find('origin')
+        if origin is None:
+            return np.eye(4)
+        rpy = np.fromstring(origin.get('rpy', '0 0 0'), sep=' ')
+        matrix = euler_matrix(*rpy)
+        matrix[:3, 3] = np.fromstring(origin.get('xyz', '0 0 0'), sep=' ')
+        return matrix
+
+    link = robot.find(f"link[@name='{BASE_LINK}']")
+    parents = {joint.find('child').get('link'): joint for joint in robot.findall('joint')}
+    current = BASE_LINK
+    fixed_world = np.eye(4)
+    while current in parents:
+        joint = parents[current]
+        if joint.get('type') != 'fixed':
+            raise ValueError(f'{BASE_LINK} is not fixed')
+        fixed_world = transform(joint) @ fixed_world
+        current = joint.find('parent').get('link')
+    vertices = []
+    for collision in link.findall('collision'):
+        mesh = collision.find('geometry/mesh')
+        filename = NEWTON_URDF.parent/mesh.get('filename')
+        scale = np.fromstring(mesh.get('scale', '1 1 1'), sep=' ')
+        points = trimesh.load_mesh(filename).vertices*scale
+        vertices.append(trimesh.transform_points(points, fixed_world @ transform(collision)))
+    vertices = np.concatenate(vertices)
+    margin = .01
+    return dict(link=BASE_LINK, source=NEWTON_URDF.name, geometry='collision mesh world AABB',
+                margin_m=margin, min_m=(vertices.min(axis=0)-margin).tolist(),
+                max_m=(vertices.max(axis=0)+margin).tolist())
+
+
 class LiveMapping:
     """Adapt the reference example's FilterDepth, Mapper, and camera batching."""
     def __init__(self, calibration, count, robot, *, depth_max=DEPTH_MAX, decay=DEFAULT_DECAY):
@@ -176,6 +221,11 @@ class LiveMapping:
         self.count = count
         self.focal = f = calibration['focal']
         self.depth_max = depth_max
+        volume = fixed_base_volume()
+        self.base_min = torch.tensor(volume['min_m'], dtype=torch.float32, device='cuda')[:, None, None]
+        self.base_max = torch.tensor(volume['max_m'], dtype=torch.float32, device='cuda')[:, None, None]
+        self.ray_x = (torch.arange(self.width, device='cuda')+.5-self.width/2)/f
+        self.ray_y = ((torch.arange(self.height, device='cuda')+.5-self.height/2)/f)[:, None]
         self.intrinsics = torch.tensor([[f, 0., self.width/2], [0., f, self.height/2], [0., 0., 1.]],
                                       dtype=torch.float32, device='cuda').repeat(count, 1, 1)
         # Newton uses pixel centres. The mapper/segmenter project integer pixel indices.
@@ -226,15 +276,14 @@ class LiveMapping:
         _, camera.depth_image = self.segmenter.get_robot_mask(camera, state)
         if bar_pixels is not None:
             after_segmenter = (in_range & (camera.depth_image > 0.)).sum(dim=(1, 2))
-        # The exact floor is already represented by a cuboid with the v6 base-link exclusions.
-        # Avoid a duplicate noisy floor surface in the voxel obstacle.
-        x = (np.arange(self.width)+.5-self.width/2)/self.focal
-        y = (np.arange(self.height)+.5-self.height/2)/self.focal
+        # The fixed base mesh and analytic floor are masked in world coordinates.
         for i, pose in enumerate(poses):
-            rotation = wxyz_matrix(pose[3:])
-            rz = rotation[2, 0]*x[None, :]+rotation[2, 1]*y[:, None]+rotation[2, 2]
-            z = pose[2]+camera.depth_image[i]*torch.as_tensor(rz, device='cuda', dtype=torch.float32)
-            camera.depth_image[i].masked_fill_(z <= .012, 0.)
+            rotation = torch.as_tensor(wxyz_matrix(pose[3:]), dtype=torch.float32, device='cuda')
+            rays = (rotation[:, 0, None, None]*self.ray_x
+                    + rotation[:, 1, None, None]*self.ray_y + rotation[:, 2, None, None])
+            world = camera.pose.position[i, :, None, None]+camera.depth_image[i]*rays
+            inside_base = ((world >= self.base_min) & (world <= self.base_max)).all(dim=0)
+            camera.depth_image[i].masked_fill_(inside_base | (world[2] <= .012), 0.)
         if bar_pixels is not None:
             mapped_depth = (in_range & (camera.depth_image > 0.)).sum(dim=(1, 2))
             counts = torch.stack((raw, within_limits, after_depth, after_segmenter, mapped_depth)).cpu().tolist()
@@ -618,7 +667,10 @@ class MappingView:
         for i, (frustum, image, panel, outline, fill) in enumerate(self.views):
             pose = mapping.poses[i]
             frustum.position, frustum.wxyz = pose[:3], pose[3:]
-            image.image = rgb[i, ::4, ::4]
+            preview_rgb = rgb[i, ::4, ::4]
+            white = np.percentile(preview_rgb.max(axis=-1), 99)
+            gain = 255./white if white > 0. else 1.
+            image.image = np.clip(preview_rgb*gain, 0., 255.).astype(np.uint8)
             t = np.clip(depth[i, ::4, ::4]/mapping.depth_max, 0., 1.)
             preview = np.stack((t, 1.-np.abs(2*t-1), 1.-t), axis=-1)
             preview[t <= 0.] = 1.
@@ -715,6 +767,7 @@ def run(args, stream):
         peak_flips = 0
         max_bar_speed = 0.
         closest_truth = None
+        sweep = []
         frames = 0
         duration = DIAGNOSIS_S if args.diagnosis else DURATION
         if args.calibrate_segmenter:
@@ -781,6 +834,8 @@ def run(args, stream):
                 seeking_goal = not seeking_goal
                 mpc.update_goal_tool_poses(goal if seeking_goal else initial, run_ik=False)
             spheres = sphere_series(robot, torch.as_tensor(path, device='cuda', dtype=torch.float32))
+            if args.save_a_sweep is not None:
+                sweep.append(spheres if step == 0 else spheres[1:])
             bar_end = bar_position(clock+CONTROL_DT) if has_bar else bar
             bar_path = np.stack((bar, bar_end))
             bar_gaps = cylinder_sdf(spheres[..., :3], bar_path[:, None, :], 0,
@@ -830,6 +885,11 @@ def run(args, stream):
                                                    tuned.joint_state(start_q, np.zeros(6)),
                                                    bar_position(BAR_STROKE_M/BAR_SPEED_MPS))
                         if args.cameras == 'fixed' else None)
+        if sweep:
+            sampled_spheres = np.concatenate(sweep)
+            np.savez_compressed(args.save_a_sweep,
+                                time_s=np.arange(len(sampled_spheres))*CONTROL_DT,
+                                spheres=sampled_spheres)
         arrays = np.asarray(timings)
         result = dict(mode=args.mode, cameras=None if mapping is None else args.cameras,
                       seconds=step*CONTROL_DT, rgbd_batches=0 if mapping is None else len(timings),
@@ -950,17 +1010,22 @@ def segmentation_checkpoint(args):
     print(f'V7_SEGMENTATION saved {SEGMENTATION_CHECKPOINT_FILE.relative_to(ROOT)}', flush=True)
 
 
-def signed_pixel_distances(depth, pose, focal, mask, spheres):
-    """Project selected Newton depth pixels and evaluate the RobotSegmenter metric."""
-    import torch
+def project_pixels(depth, pose, focal, mask):
     from curobo_camera_second_pass import wxyz_matrix
 
     y, x = np.nonzero(mask & np.isfinite(depth) & (depth > 0.))
-    if not len(x):
-        return y, x, np.empty(0, dtype=np.float32)
     h, w = depth.shape
     rays = np.column_stack(((x+.5-w/2)/focal, (y+.5-h/2)/focal, np.ones(len(x))))
-    world = (rays*depth[y, x, None]) @ wxyz_matrix(pose[3:]).T+pose[:3]
+    return y, x, (rays*depth[y, x, None]) @ wxyz_matrix(pose[3:]).T+pose[:3]
+
+
+def signed_pixel_distances(depth, pose, focal, mask, spheres):
+    """Project selected Newton depth pixels and evaluate the RobotSegmenter metric."""
+    import torch
+
+    y, x, world = project_pixels(depth, pose, focal, mask)
+    if not len(x):
+        return y, x, np.empty(0, dtype=np.float32)
     points = torch.as_tensor(world, device=spheres.device, dtype=spheres.dtype)
     distances = [(torch.cdist(chunk, spheres[:, :3])-spheres[:, 3]).amin(dim=1)
                  for chunk in points.split(16384)]
@@ -1083,12 +1148,113 @@ def fair_checkpoint(args):
     print(f'V7_FAIR saved {FAIR_SCENE_FILE.relative_to(ROOT)}', flush=True)
 
 
+def verify_base_mask(args):
+    calibration = json.loads(CALIBRATION_FILE.read_text())
+    volume = fixed_base_volume()
+    bounds_min, bounds_max = np.asarray(volume['min_m']), np.asarray(volume['max_m'])
+    count = outside = 0
+    poses = calibration['extra_poses_rad']
+    with tempfile.TemporaryDirectory(prefix='v7-base-mask-') as directory:
+        stream = NewtonStream(args, Path(directory))
+        try:
+            base_ids = np.flatnonzero([name.rsplit('/', 1)[-1] == BASE_LINK
+                                       for name in stream.calibration['robot_shape_links']])
+            if not len(base_ids):
+                raise RuntimeError('Newton did not identify the URDF base link')
+            for q in poses:
+                depths, _, cameras = stream.capture(np.asarray(q), PARK, None, robot_shape_ids=True)
+                for depth, pose, shapes in zip(depths, cameras, stream.robot_shapes, strict=True):
+                    _, _, points = project_pixels(depth, pose, stream.calibration['focal'],
+                                                   np.isin(shapes, base_ids))
+                    count += len(points)
+                    outside += int(np.any((points < bounds_min) | (points > bounds_max), axis=1).sum())
+        finally:
+            stream.close()
+    calibration['fixed_base_volume'] = volume
+    calibration['fixed_base_pixel_verification'] = dict(poses=len(poses), cameras=args.cameras,
+                                                         base_pixels=count, base_pixels_outside=outside)
+    calibration['moving_link_threshold_m'] = ROBOT_MASK_DISTANCE
+    write_json(CALIBRATION_FILE, calibration)
+    print('V7_LANE base '+json.dumps(calibration['fixed_base_pixel_verification']), flush=True)
+    if count == 0 or outside:
+        raise RuntimeError('computed base mask did not cover all observed calibration base pixels')
+
+
+def lane_checkpoint(args):
+    confirmed = json.loads(args.lane_checkpoint.read_text())
+    if confirmed['mode'] != 'A' or confirmed['seconds'] != DURATION or confirmed['contacts']['bar'] < 1:
+        raise RuntimeError('a passing confirmed A run is required')
+    print('V7_LANE base verification, E empty, B and E; estimated wall time 3–5 minutes', flush=True)
+    payload = dict(lane_y_m=BAR_LANE_Y, lane_z_m=BAR_HEIGHT_M, confirmed_A=confirmed,
+                   robot_mask_distance_m=ROBOT_MASK_DISTANCE, obstacle_activation_m=OBSTACLE_ACTIVATION_M,
+                   floor_activation_m=FLOOR_ACTIVATION_M)
+    write_json(FAIR_SCENE_FILE, payload)
+    verify_base_mask(args)
+    empty = run_mode(argparse.Namespace(**(vars(args) | dict(diagnosis=True))))
+    summary = {key: empty[key] for key in ('seconds', 'reaches', 'returns', 'contacts', 'max_voxels_near_arm',
+                                           'peak_joint_reversals_in_half_s', 'minimum_clearance_m')}
+    summary['near_arm_voxels_per_frame'] = [frame['voxels_within_50mm_of_arm'] for frame in empty['frames']]
+    summary['passed'] = summary['max_voxels_near_arm'] <= 5 and summary['peak_joint_reversals_in_half_s'] <= 2
+    payload['E_empty'] = summary
+    print('V7_LANE E_empty '+json.dumps({k: v for k, v in summary.items() if k != 'near_arm_voxels_per_frame'}),
+          flush=True)
+    write_json(FAIR_SCENE_FILE, payload)
+
+    truth = run_mode(argparse.Namespace(**(vars(args) | dict(mode='B', smoke=True))))
+    truth['passed'] = truth['reaches'] >= 1 and not any(truth['contacts'].values()) and truth['minimum_clearance_m'] >= .02
+    payload['B'] = truth
+    print('V7_LANE B '+json.dumps(truth), flush=True)
+    if not truth['passed']:
+        payload['stopped_before'] = 'E reciprocating bar'
+        write_json(FAIR_SCENE_FILE, payload)
+        print('V7_LANE stopped at B gate', flush=True)
+        return
+    write_json(FAIR_SCENE_FILE, payload)
+
+    perception = run_mode(argparse.Namespace(**(vars(args) | dict(bar_forensics=True))))
+    result = perception['run']
+    perception['passed'] = result['reaches'] >= 1 and not any(result['contacts'].values())
+    payload['E'] = perception
+    write_json(FAIR_SCENE_FILE, payload)
+    print('V7_LANE E '+json.dumps(dict(run=result, passed=perception['passed'],
+          classifications=[event['classification'] for event in perception['contact_episodes']])), flush=True)
+
+
+def search_bar_lanes(path):
+    with np.load(path) as sweep:
+        times, spheres = sweep['time_s'], sweep['spheres']
+    expected = np.arange(round(DURATION/CONTROL_DT)+1)*CONTROL_DT
+    if times.shape != expected.shape or not np.allclose(times, expected) or not np.isfinite(spheres).all():
+        raise ValueError('expected a complete finite 10 s A sweep')
+    centers = np.stack([bar_position(t) for t in times])
+    rows = []
+    for z_cm in range(12, 31):
+        for y_cm in range(20, 37, 2):
+            centers[:, 1:] = y_cm/100, z_cm/100
+            gaps = cylinder_sdf(spheres[..., :3], centers[:, None, :], 0, BAR_LENGTH_M, BAR_RADIUS_M)
+            gaps -= spheres[..., 3]
+            gaps[:, spheres[0, :, 3] <= 0.] = np.inf
+            frame, sphere = np.unravel_index(np.argmin(gaps), gaps.shape)
+            rows.append(dict(y_m=y_cm/100, z_m=z_cm/100,
+                             min_clearance_m=float(gaps[frame, sphere]), time_s=float(times[frame]),
+                             sphere_index=int(sphere)))
+    chosen = min((row for row in rows if row['min_clearance_m'] <= -.02),
+                 key=lambda row: (row['z_m'], round(abs(row['y_m']-.28), 6), row['y_m']),
+                 default=None)
+    report = dict(sweep=path.name, lanes=rows, selected=chosen, required_clearance_m=-.02)
+    write_json(RESULTS_DIR/'v7_bar_lane_search.json', report)
+    print('V7_LANE '+json.dumps(chosen), flush=True)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--mode', choices=('A', 'B', 'E'), default='E')
     parser.add_argument('--cameras', choices=('fixed', 'both'), default='both')
     mode = parser.add_mutually_exclusive_group(required=True)
     mode.add_argument('--smoke', action='store_true')
+    mode.add_argument('--lane-checkpoint', type=Path, metavar='A_RESULT')
+    mode.add_argument('--search-lanes', type=Path, metavar='A_SWEEP')
+    parser.add_argument('--save-a-sweep', type=Path, metavar='FILE')
     mode.add_argument('--diagnosis', action='store_true', help='Measure fixed and both in empty scenes, then save diagnostics')
     mode.add_argument('--interactive', action='store_true')
     mode.add_argument('--fair-checkpoint', type=Path, metavar='B_RESULT',
@@ -1103,16 +1269,22 @@ def main():
     parser.add_argument('--newton-python', type=Path, default=Path.home()/'newton_ws/.venv-cpu/bin/python')
     args = parser.parse_args()
     args.decay = DEFAULT_DECAY
+    if args.save_a_sweep is not None and (args.mode != 'A' or not args.smoke):
+        parser.error('--save-a-sweep requires --mode A --smoke')
     if args.mode != 'E' and not args.smoke:
         parser.error('--mode A and --mode B require --smoke')
-    if (args.bar_forensics or args.decay_comparison or args.segmentation_checkpoint or args.calibrate_segmenter or args.fair_checkpoint) and args.cameras != 'both':
+    if (args.bar_forensics or args.decay_comparison or args.segmentation_checkpoint or args.calibrate_segmenter or args.fair_checkpoint or args.lane_checkpoint) and args.cameras != 'both':
         parser.error('Dance checkpoints require --cameras both')
     if args.interactive:
         from curobo_moving_rod_v3 import check_viewer_port
         check_viewer_port(args.port)
     try:
-        if args.diagnosis:
+        if args.search_lanes is not None:
+            search_bar_lanes(args.search_lanes)
+        elif args.diagnosis:
             diagnose(args)
+        elif args.lane_checkpoint is not None:
+            lane_checkpoint(args)
         elif args.fair_checkpoint is not None:
             fair_checkpoint(args)
         elif args.calibrate_segmenter:

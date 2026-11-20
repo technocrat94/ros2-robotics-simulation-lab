@@ -276,5 +276,28 @@
     ]
   ],
   "method": "signed distance to the nearest enabled sphere; each pixel grouped by Newton body",
-  "real_d435_additional_margin_m": 0.01
+  "real_d435_additional_margin_m": 0.01,
+  "fixed_base_volume": {
+    "link": "base_link_inertia",
+    "source": "ur5_robotiq.newton.urdf",
+    "geometry": "collision mesh world AABB",
+    "margin_m": 0.01,
+    "min_m": [
+      -0.08357943803071975,
+      -0.1200001111626625,
+      -0.010002399319782853
+    ],
+    "max_m": [
+      0.08363327592611312,
+      0.08355142384767532,
+      0.034000296369194986
+    ]
+  },
+  "fixed_base_pixel_verification": {
+    "poses": 20,
+    "cameras": "both",
+    "base_pixels": 6609,
+    "base_pixels_outside": 0
+  },
+  "moving_link_threshold_m": 0.015
 }
