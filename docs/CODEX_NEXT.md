@@ -54,7 +54,13 @@ explicit path only. No git clean/reset/restore/stash/add -A.
 3. Display (user: do it now): the RGB panels are dark because Newton renders without lights/textures.
    Make them readable for display only (per-frame normalisation / gamma, or a simple headlight if Newton's
    sensor supports it). Does not affect mapping.
-Runs, 1 each: (a) E empty 10 s both cameras (arm mask check), (b) B Dance 6 s, (c) E Dance 6 s both cameras.
+4. Scene change (user request): remove the Dance and the vertical rod. One horizontal bar only, at ONE fixed
+   spot, lower: tip lane y = 0.28 (middle of the start -> goal path), z = 0.15 m, axis along x entering from +x.
+   It just reciprocates in place: tip goes in to x = 0.50 and back out 0.125 m, at 0.10 m/s, continuously
+   (no re-aiming, no teleport; starts already at the outer position). Use this scene for B and E.
+   Add one run (A) with the bar NOT given to the MPC at all: it must touch the bar, otherwise the bar is not in
+   the way and the test means nothing (report and stop).
+Runs, 1 each: (A) bar ignored, (a) E empty 10 s both cameras (arm mask check), (b) B reciprocating bar 10 s, (c) E reciprocating bar 10 s both cameras.
 SUCCESS as before (start -> goal, 0 bar contacts). Pass: (a) <= 5 voxels near the arm, reversals <= 2;
 (b) success and min clearance >= 0.02 m; (c) success. If (b) fails, stop and report (control, not perception).
 Report a table + E forensic rows if any contact. Commit, push, leave the existing --interactive running (E,
