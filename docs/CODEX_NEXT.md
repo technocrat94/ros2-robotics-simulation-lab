@@ -33,24 +33,20 @@ No pending task
 Leave the deleted 05_c2_tall_wall_refused.png and the untracked curobo/ untouched. Stage files by
 explicit path only. No git clean/reset/restore/stash/add -A.
 
-## Task: v7 diagnosis — why the arm thrashes (measure only, ~10 min) — 2026-11-20
+## Task: v7 diagnosis 2 — the MPC, not perception (A/B, ~10 min) — 2026-11-20
 
-f3f7b5e reviewed. User: in --interactive the arm flickers/thrashes, and only one camera was visible.
-The v7 run skipped the empty-scene check (our group A rule). Before changing anything, find which layer
-breaks. Do not tune parameters in this task.
-USER DECISION (corrected): use BOTH cameras = 1 fixed + 1 wrist. Default `--cameras both`. The user
-saw several image panels and thought there were extra fixed cameras: label every panel with its camera
-("固定相機 RGB", "固定相機 深度", "手上相機 RGB", "手上相機 深度"), and make the wrist frustum big
-enough to see.
-1. Print at start and in the GUI status which cameras are on.
-2. EMPTY scene (no bar, no rod), `--cameras fixed` then `--cameras both`, 10 s each, reach goal and back.
-   Per camera frame log: occupied voxels within 0.05 m of any robot sphere (= the arm left in the map),
-   min ESDF distance at the robot spheres, total occupied voxels, joint direction reversals per 0.5 s.
-3. Alignment: with the bar parked still in view of the fixed camera (arm still), median and p95 distance
-   from occupied voxels near the bar to the true bar surface (should be < 0.01 m), and the same for the
-   floor (floor removal should leave ~0 voxels at z < 0.02).
-4. Save the logs to docs/experiments/sim-camera-curobo/results/v7_diagnosis.json, print a 5-line summary,
-   commit, push, stop. Leave nothing running.
+b2143dc reviewed. Perception is fine: empty scene keeps <= 8 voxels, 0 voxels within 5 cm of the arm
+(RobotSegmenter works); alignment median 6 mm, p95 16 mm; floor ~0 voxels. BUT the arm still thrashes in
+the EMPTY scene: joint reversals from 0.17 s, peak 7 per 0.5 s, 0 reaches, goal error stays 0.21-0.23 m.
+v4/v5/v6 reach this same goal with the same robot and settings. So the v7 MPC construction or control loop
+differs. Find it with A/B runs in the empty scene, 10 s each, no perception changes:
+- A: v7 loop, MPC from `curobo_moving_rod_v41.make_mpc(config, frozen_config, floor_activation_m=.01)`
+  (cuboid scene, no voxel grid, no mapper updates).
+- B: v7 loop, v7 `build_mpc` (voxel scene) but never call `update_features` after setup.
+- C: v7 as is (reference, already measured).
+Report reaches and peak reversals for A/B/C. Then fix only the part that differs (in curobo_v7_mapper.py),
+rerun the empty scene (fixed and both) + one Dance run with both cameras, report contacts/reaches/
+reversals, commit, push, leave --interactive running (both cameras), URL + 3 lines. Stop.
 
 ### Previous v7 task (kept for reference)
 #### v7 = follow NVIDIA's official cuRobo pipeline with a fixed camera (checkpoint only) — 2026-11-20
